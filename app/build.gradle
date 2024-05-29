@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'de.undercouch.download'
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 34
@@ -47,7 +48,12 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 
 }
 
@@ -97,6 +103,19 @@ dependencies {
 
 
 
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.assentify.sdk'
+            artifactId = 'Assentify.SDK.Android'
+            version = '0.0.1'
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
 }
 
 
