@@ -1,4 +1,5 @@
 package com.assentify.sdk
+
 import com.assentify.sdk.R
 import android.graphics.Bitmap
 import android.graphics.RectF
@@ -85,7 +86,7 @@ abstract class CameraPreview : Fragment() {
         frontCamera = true
     }
 
-   private fun startCamera() {
+    private fun startCamera() {
         cameraProviderFuture = ProcessCameraProvider.getInstance(requireActivity())
         cameraProviderFuture?.addListener({
             cameraProvider = cameraProviderFuture?.get()
@@ -96,7 +97,7 @@ abstract class CameraPreview : Fragment() {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
-             imageCapture = ImageCapture.Builder()
+            imageCapture = ImageCapture.Builder()
                 .setTargetAspectRatio(AspectRatio.RATIO_16_9)
                 .build()
 
@@ -125,15 +126,14 @@ abstract class CameraPreview : Fragment() {
                     listRectF.add(RectFInfo(item.location, confidence.toString(), className))
                 }
                 processImage(scaleImage!!, image.toBitmap(), results)
-                if (!frontCamera) {
-                    scaleAndDrawLocation(
-                        listRectF,
-                        image.width,
-                        image.height,
-                        previewView.width,
-                        previewView.height
-                    )
-                }
+                scaleAndDrawLocation(
+                    listRectF,
+                    image.width,
+                    image.height,
+                    previewView.width,
+                    previewView.height
+                )
+
 
                 image.close()
             }
@@ -155,7 +155,7 @@ abstract class CameraPreview : Fragment() {
             try {
                 cameraProvider?.unbindAll()
                 camera = cameraProvider?.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture, imageAnalysis,videoCapture
+                    this, cameraSelector, preview, imageCapture, imageAnalysis, videoCapture
                 )
                 camera?.cameraControl?.setZoomRatio(0f)
                 sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
@@ -178,7 +178,6 @@ abstract class CameraPreview : Fragment() {
         imageAnalysis?.clearAnalyzer()
         imageAnalysis = null
     }
-
 
 
     fun scaleAndDrawLocation(
@@ -255,7 +254,7 @@ abstract class CameraPreview : Fragment() {
 
             }
             .start(ContextCompat.getMainExecutor(requireContext())) { recordEvent ->
-                when(recordEvent) {
+                when (recordEvent) {
                     is VideoRecordEvent.Start -> {
                     }
 
@@ -264,7 +263,7 @@ abstract class CameraPreview : Fragment() {
                         if (!recordEvent.hasError()) {
                             val videoBytes = file.readBytes()
                             val base64Encoded = Base64.getEncoder().encodeToString(videoBytes)
-                            onStopRecordVideo(base64Encoded,file)
+                            onStopRecordVideo(base64Encoded, file)
                         } else {
                             recording?.close()
                             recording = null
@@ -282,8 +281,7 @@ abstract class CameraPreview : Fragment() {
         recording = null
     }
 
-    protected abstract fun onStopRecordVideo(videoBase64: String,video:File)
-
+    protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
 
 
 }
