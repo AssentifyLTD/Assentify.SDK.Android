@@ -5,6 +5,7 @@ import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
@@ -162,7 +163,7 @@ class AssentifySdk(
         }
     }
 
-    fun startScanIDCard(scnIDCardCallback: IDCardCallback): ScanIDCard {
+    fun startScanIDCard(scnIDCardCallback: IDCardCallback,kycDocumentDetails : List<KycDocumentDetails>): ScanIDCard {
         if (isKeyValid) {
             scanIDCard = ScanIDCard(
                 configModel,
@@ -173,12 +174,15 @@ class AssentifySdk(
                 storeCapturedDocument,
                 storeImageStream,
                 scnIDCardCallback,
+                kycDocumentDetails
                 )
             return scanIDCard;
         } else {
             throw Exception("Invalid Keys")
         }
     }
+
+
 
     fun startScanOther(scanPassportCallback: ScanOtherCallback): ScanOther {
         if (isKeyValid) {

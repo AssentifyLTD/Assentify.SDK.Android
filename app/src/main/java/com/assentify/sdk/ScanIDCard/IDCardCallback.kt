@@ -21,8 +21,7 @@ interface IDCardCallback {
 
     fun onLivenessUpdate(dataModel: BaseResponseDataModel)
 
-    fun onComplete(dataModel: BaseResponseDataModel)
-
+    fun onComplete(dataModel: BaseResponseDataModel,order:Int)
     fun onCardDetected(dataModel: BaseResponseDataModel)
 
     fun onMrzExtracted(dataModel: BaseResponseDataModel)
@@ -43,13 +42,15 @@ interface IDCardCallback {
 
     fun onDocumentCropped(dataModel: BaseResponseDataModel)
 
-    fun onUploadFailed(dataModel: BaseResponseDataModel)
+    fun onWrongTemplate(dataModel: BaseResponseDataModel)
 
     fun onEnvironmentalConditionsChange(
         brightness: Double,
         motion: MotionType,
         zoom: ZoomType,
     )
+
+    fun onUploadFailed(dataModel: BaseResponseDataModel)
 
 
 }
