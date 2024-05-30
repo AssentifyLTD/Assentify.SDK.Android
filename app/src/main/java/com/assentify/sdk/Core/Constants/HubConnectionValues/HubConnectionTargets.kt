@@ -8,6 +8,7 @@ object HubConnectionTargets {
     const val ON_UPDATE = "onUpdated";
     const val ON_LIVENESS_UPDATE = "onLivenessUpdate";
     const val ON_COMPLETE = "onComplete";
+    const val ON_COMPLETE_BACK = "onCompleteBack";
     const val ON_CARD_DETECTED = "onCardDetected";
     const val ON_MRZ_EXTRACTED = "onMrzExtracted";
     const val ON_MRZ_DETECTED = "onMrzDetected";
@@ -19,4 +20,5 @@ object HubConnectionTargets {
     const val ON_DOCUMENT_CAPTURED = "onDocumentCaptured";
     const val ON_DOCUMENT_CROPPED = "onDocumentCropped";
     const val ON_UPLOAD_FAILED = "onUploadFailed";
+    const val ON_WRONG_TEMPLATE = "onWrongTemplate";
 }

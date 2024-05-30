@@ -6,6 +6,7 @@ import static  com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import  com.assentify.sdk.CameraPreview;
@@ -26,6 +27,7 @@ import  com.assentify.sdk.CheckEnvironment.DetectMotion;
 import  com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails;
 import  com.assentify.sdk.RemoteClient.Models.Templates;
 import  com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
 import  com.assentify.sdk.RemoteClient.RemoteClient;
@@ -84,15 +86,19 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
     private int videoCounter =-1;
+    private int Lis =-1;
 
+    private  int order = 0;
 
+    private List<KycDocumentDetails>  kycDocumentDetails = new ArrayList<>();;
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
                       Boolean performLivenessDetection,
                       Boolean saveCapturedVideo,
                       Boolean storeCapturedDocument,
                       Boolean storeImageStream,
-                      IDCardCallback idCardCallback
+                      IDCardCallback idCardCallback,
+                      List<KycDocumentDetails>  kycDocumentDetails
     ) {
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
@@ -103,12 +109,20 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.idCardCallback = idCardCallback;
+        this.kycDocumentDetails = kycDocumentDetails;
+
+        if(!this.kycDocumentDetails.isEmpty()){
+            KycDocumentDetails firstKycDocument = kycDocumentDetails.get(0);
+            this.changeTemplateId(firstKycDocument.getTemplateProcessingKeyInformation());
+        }
 
     }
 
 
-    public void changeTemplateId(String templateId) {
-       createBase64 = Executors.newSingleThreadExecutor();
+    private void changeTemplateId(String templateId) {
+        Log.e("kycDocumentDetails" , String.valueOf(order));
+        this.templateId = templateId;
+        createBase64 = Executors.newSingleThreadExecutor();
         highQualityBitmaps.clear();
         motionRectF.clear();
         sendingFlagsZoom.clear();
@@ -117,7 +131,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         start = true;
         remoteProcessing = new RemoteProcessing();
         remoteProcessing.setCallback(this);
-        this.templateId = templateId;
+
     }
 
     @Override
@@ -209,10 +223,14 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
             storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
             storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-            this.idCardCallback.onComplete(BaseResponseDataModel);
+            this.idCardCallback.onComplete(BaseResponseDataModel,order);
             start = false;
+            order = order + 1;
+            if(!this.kycDocumentDetails.isEmpty() && order < this.kycDocumentDetails.size()){
+                this.changeTemplateId(this.kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+            }
         } else
-            start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+            start = eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) || eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
         switch (eventName) {
             case HubConnectionTargets.ON_ERROR:
                 this.idCardCallback.onError(BaseResponseDataModel);
@@ -264,6 +282,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 break;
             case HubConnectionTargets.ON_UPLOAD_FAILED:
                 this.idCardCallback.onUploadFailed(BaseResponseDataModel);
+                break;
+            case HubConnectionTargets.ON_WRONG_TEMPLATE:
+                this.idCardCallback.onWrongTemplate(BaseResponseDataModel);
                 break;
             default:
 
