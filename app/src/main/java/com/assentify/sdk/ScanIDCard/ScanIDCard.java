@@ -120,7 +120,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     private void changeTemplateId(String templateId) {
-        Log.e("kycDocumentDetails" , String.valueOf(order));
         this.templateId = templateId;
         createBase64 = Executors.newSingleThreadExecutor();
         highQualityBitmaps.clear();
