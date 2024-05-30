@@ -16,7 +16,7 @@ import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,ScanPassportCallback {
     private lateinit var assentifySdk: AssentifySdk
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +50,19 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
     }
 
     fun startAssentifySdk() {
-        var data: List<KycDocumentDetails> = listOf(
+
+
+        var scanPassport = assentifySdk.startScanPassport(
+            this@MainActivity,
+        );
+        Thread.sleep(1000)
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, scanPassport)
+        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+        transaction.commit()
+
+    /*    var data: List<KycDocumentDetails> = listOf(
             KycDocumentDetails(name = "", order = 0, templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7"),
             KycDocumentDetails(name = "", order = 1, templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4"),
         )
@@ -64,7 +76,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
         var transaction = fragmentManager.beginTransaction()
         transaction.replace(R.id.fragmentContainer, scanPassport)
         transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-        transaction.commit()
+        transaction.commit()*/
 
     }
 
@@ -112,6 +124,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
 
     }
+
+    override fun onComplete(dataModel: BaseResponseDataModel) {
+        Log.e("EVENT HERE","onComplete")    }
 
     override fun onComplete(dataModel: BaseResponseDataModel,order:Int) {
     Log.e("EVENT HERE","onComplete")

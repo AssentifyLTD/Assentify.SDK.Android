@@ -163,7 +163,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         if (environmentalConditions.checkConditions(
                 brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 20  && sendingFlagsZoom.size() > 20) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 2  && sendingFlagsZoom.size() > 2) {
                     if (hasFaceOrCard()) {
                         stopRecording();
                     }
