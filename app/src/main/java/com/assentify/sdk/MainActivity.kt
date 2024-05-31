@@ -16,7 +16,8 @@ import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,ScanPassportCallback {
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,
+    ScanPassportCallback {
     private lateinit var assentifySdk: AssentifySdk
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,21 +63,21 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,S
         transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
         transaction.commit()
 
-    /*    var data: List<KycDocumentDetails> = listOf(
-            KycDocumentDetails(name = "", order = 0, templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7"),
-            KycDocumentDetails(name = "", order = 1, templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4"),
-        )
+        /*    var data: List<KycDocumentDetails> = listOf(
+                KycDocumentDetails(name = "", order = 0, templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7"),
+                KycDocumentDetails(name = "", order = 1, templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4"),
+            )
 
-        var scanPassport = assentifySdk.startScanIDCard(
-            this@MainActivity,
-            data
-        );
-        Thread.sleep(1000)
-        var fragmentManager = supportFragmentManager
-        var transaction = fragmentManager.beginTransaction()
-        transaction.replace(R.id.fragmentContainer, scanPassport)
-        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-        transaction.commit()*/
+            var scanPassport = assentifySdk.startScanIDCard(
+                this@MainActivity,
+                data
+            );
+            Thread.sleep(1000)
+            var fragmentManager = supportFragmentManager
+            var transaction = fragmentManager.beginTransaction()
+            transaction.replace(R.id.fragmentContainer, scanPassport)
+            transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+            transaction.commit()*/
 
     }
 
@@ -98,15 +99,15 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,S
     }
 
     override fun onError(dataModel: BaseResponseDataModel) {
-        Log.e("EVENT HERE","onError")
+        Log.e("EVENT HERE", "onError")
     }
 
     override fun onSend() {
-        Log.e("EVENT HERE","onSend")
+        Log.e("EVENT HERE", "onSend")
     }
 
     override fun onRetry(dataModel: BaseResponseDataModel) {
-        Log.e("EVENT HERE","onRetry")
+        Log.e("EVENT HERE", "onRetry")
     }
 
     override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {
@@ -126,12 +127,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,S
     }
 
     override fun onComplete(dataModel: BaseResponseDataModel) {
-        Log.e("EVENT HERE","onComplete")    }
+        Log.e("EVENT HERE", "onComplete")
+        Log.e("EVENT HERE", dataModel.response.toString())
+    }
 
-    override fun onComplete(dataModel: BaseResponseDataModel,order:Int) {
-    Log.e("EVENT HERE","onComplete")
-    Log.e("EVENT HERE",order.toString())
-    Log.e("EVENT HERE",dataModel.toString())
+    override fun onComplete(dataModel: BaseResponseDataModel, order: Int) {
+        Log.e("EVENT HERE", "onComplete")
+        Log.e("EVENT HERE", order.toString())
+        Log.e("EVENT HERE", dataModel.toString())
     }
 
     override fun onCardDetected(dataModel: BaseResponseDataModel) {
@@ -175,7 +178,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,S
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
-        Log.e("EVENT HERE","onWrongTemplate")
+        Log.e("EVENT HERE", "onWrongTemplate")
     }
 
     override fun onUploadFailed(dataModel: BaseResponseDataModel) {
