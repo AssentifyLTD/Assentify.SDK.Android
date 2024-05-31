@@ -165,7 +165,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         if (environmentalConditions.checkConditions(
                 brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 20 && sendingFlagsZoom.size() > 20) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 5 && sendingFlagsZoom.size() > 5) {
                     if (hasFaceOrCard()) {
                         stopRecording();
                     }
@@ -176,7 +176,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
         this.scanPassportCallback.onEnvironmentalConditionsChange(
                 brightness,
-                sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT :  sendingFlagsMotion.size() > 10 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND ,
+                sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT :  sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND ,
                 zoom);
 
     }
@@ -268,10 +268,10 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         boolean hasFace = true;
         boolean hasCard = false;
         for (Classifier.Recognition item : results) {
-            /* if (item.getDetectedClass() == 0 && environmentalConditions.isPredictionValid(item.getConfidence())) {
+            /* if (item.getDetectedClass() == 1 && environmentalConditions.isPredictionValid(item.getConfidence())) {
                 hasFace = true;
             }*/
-            if (item.getDetectedClass() == 1 && environmentalConditions.isPredictionValid(item.getConfidence())) {
+            if (item.getDetectedClass() == 0 && environmentalConditions.isPredictionValid(item.getConfidence())) {
                 hasCard = true;
             }
         }
