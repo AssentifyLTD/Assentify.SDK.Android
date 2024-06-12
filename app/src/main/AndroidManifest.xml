@@ -23,6 +23,7 @@
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
+
     <application
         android:debuggable="true"
         android:extractNativeLibs="true"
