@@ -1,14 +1,20 @@
 package com.assentify.sdk
 
-import com.assentify.sdk.R
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.RectF
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
@@ -27,6 +33,7 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import  com.assentify.sdk.Core.Constants.ConstantsValues
 import  com.assentify.sdk.Core.FileUtils.ImageUtils
@@ -43,6 +50,12 @@ import java.util.concurrent.Executors
 abstract class CameraPreview : Fragment() {
 
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var cardBackground: ImageView
+    private lateinit var cardContainer: LinearLayout
+    private lateinit var faceContainer: LinearLayout
+
+    private lateinit var faceBackground: LinearLayout
+
     private lateinit var previewView: PreviewView
     private var detector: YoloV5Classifier? = null
     private var cropSize = ConstantsValues.InputSize
@@ -64,6 +77,7 @@ abstract class CameraPreview : Fragment() {
     private var counter = 0;
 
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,6 +86,10 @@ abstract class CameraPreview : Fragment() {
         val view = inflater.inflate(R.layout.camera_preview, container, false)
         previewView = view.findViewById(R.id.previewView)
         rectangleOverlayView = view.findViewById(R.id.rectangleOverlayView)
+        faceBackground = view.findViewById(R.id.face_background)
+        cardBackground = view.findViewById(R.id.card_background)
+        cardContainer = view.findViewById(R.id.card_container)
+        faceContainer = view.findViewById(R.id.face_container)
         return view
     }
 
@@ -114,10 +132,24 @@ abstract class CameraPreview : Fragment() {
 
             imageAnalysisListener = ImageAnalysis.Analyzer { image ->
                 val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
+
+                activity?.runOnUiThread {
+                    if(frontCamera){
+                        faceBackground.visibility = View.VISIBLE
+                        faceContainer.visibility = View.VISIBLE
+                    }else{
+                        cardBackground.visibility = View.VISIBLE
+                        cardContainer.visibility = View.VISIBLE
+                    }
+                }
+
+
                 results = if (frontCamera) {
                     detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
+
                 } else {
                     detector!!.recognizeImage(scaleImage)
+
                 }
                 listRectF.clear()
                 results.forEach { item ->
@@ -228,6 +260,19 @@ abstract class CameraPreview : Fragment() {
 
     fun setRectFCustomColor(color: String) {
         rectangleOverlayView.setCustomColor(color)
+        val layerDrawable =getResources().getDrawable(R.drawable.face_background) as LayerDrawable
+        val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+        shapeDrawable.setStroke(10, Color.parseColor(color))
+        faceBackground.setBackground(layerDrawable)
+
+
+
+        val drawableCard =  getResources().getDrawable(R.drawable.card_background)
+        val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+        DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+        cardBackground.setImageDrawable(wrappedDrawableCard)
+
+
     }
 
 
