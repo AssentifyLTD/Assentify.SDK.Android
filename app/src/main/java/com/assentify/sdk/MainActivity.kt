@@ -43,13 +43,14 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
         ) {
 
             val environmentalConditions = EnvironmentalConditions(
+                true,
+                true,
                 500.0f,
                 00.0f,
                 50.0f,
                 100.0f,
                 "#61A03A",
                 "#FFC400",
-
                 );
 
             assentifySdk = AssentifySdk(

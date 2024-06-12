@@ -49,6 +49,9 @@ import java.util.concurrent.Executors
 
 abstract class CameraPreview : Fragment() {
 
+    private var enableDetect: Boolean = false;
+    private var enableGuide: Boolean = false;
+
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cardBackground: ImageView
     private lateinit var cardContainer: LinearLayout
@@ -134,13 +137,16 @@ abstract class CameraPreview : Fragment() {
                 val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
 
                 activity?.runOnUiThread {
-                    if(frontCamera){
-                        faceBackground.visibility = View.VISIBLE
-                        faceContainer.visibility = View.VISIBLE
-                    }else{
-                        cardBackground.visibility = View.VISIBLE
-                        cardContainer.visibility = View.VISIBLE
+                    if (enableGuide) {
+                        if (frontCamera) {
+                            faceBackground.visibility = View.VISIBLE
+                            faceContainer.visibility = View.VISIBLE
+                        } else {
+                            cardBackground.visibility = View.VISIBLE
+                            cardContainer.visibility = View.VISIBLE
+                        }
                     }
+
                 }
 
 
@@ -158,13 +164,16 @@ abstract class CameraPreview : Fragment() {
                     listRectF.add(RectFInfo(item.location, confidence.toString(), className))
                 }
                 processImage(scaleImage!!, image.toBitmap(), results)
-                scaleAndDrawLocation(
-                    listRectF,
-                    image.width,
-                    image.height,
-                    previewView.width,
-                    previewView.height
-                )
+                if (enableDetect) {
+                    scaleAndDrawLocation(
+                        listRectF,
+                        image.width,
+                        image.height,
+                        previewView.width,
+                        previewView.height
+                    )
+                }
+
 
 
                 image.close()
@@ -258,16 +267,22 @@ abstract class CameraPreview : Fragment() {
         results: List<Classifier.Recognition>
     )
 
-    fun setRectFCustomColor(color: String) {
+    fun setRectFCustomColor(
+        color: String, enableDetect: Boolean,
+        enableGuide: Boolean,
+    ) {
+
+        this.enableDetect = enableDetect;
+        this.enableGuide = enableGuide;
+
         rectangleOverlayView.setCustomColor(color)
-        val layerDrawable =getResources().getDrawable(R.drawable.face_background) as LayerDrawable
+        val layerDrawable = getResources().getDrawable(R.drawable.face_background) as LayerDrawable
         val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
         shapeDrawable.setStroke(10, Color.parseColor(color))
         faceBackground.setBackground(layerDrawable)
 
 
-
-        val drawableCard =  getResources().getDrawable(R.drawable.card_background)
+        val drawableCard = getResources().getDrawable(R.drawable.card_background)
         val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
         DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
         cardBackground.setImageDrawable(wrappedDrawableCard)

@@ -3,6 +3,9 @@ package com.assentify.sdk.Core.Constants
 
 class EnvironmentalConditions(
 
+    /**Detect**/
+    var enableDetect: Boolean,
+    var enableGuide: Boolean,
 
     /**BRIGHTNESS**/
     var BRIGHTNESS_HIGH_THRESHOLD: Float,
