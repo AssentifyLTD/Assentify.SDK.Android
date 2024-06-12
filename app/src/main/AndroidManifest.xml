@@ -31,7 +31,6 @@
         android:installLocation="internalOnly"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true">
-
     </application>
 
 </manifest>
