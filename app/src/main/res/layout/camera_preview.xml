@@ -31,7 +31,7 @@
         android:id="@+id/face_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:orientation="vertical">
 
         <LinearLayout
@@ -71,7 +71,7 @@
                         android:layout_centerInParent="true"
                         android:background="@drawable/face_background"
                         android:orientation="horizontal"
-                        android:visibility="gone"
+                        android:visibility="invisible"
                         app:cardBackgroundColor="@android:color/transparent"
                         tools:ignore="MissingConstraints" />
                 </LinearLayout>
@@ -100,7 +100,7 @@
         android:id="@+id/card_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:orientation="vertical">
 
         <LinearLayout
@@ -138,7 +138,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:src="@drawable/card_background"
-                        android:visibility="gone"
+                        android:visibility="invisible"
                         tools:ignore="MissingConstraints" />
                 </LinearLayout>
 

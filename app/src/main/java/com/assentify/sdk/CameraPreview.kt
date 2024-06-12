@@ -53,11 +53,10 @@ abstract class CameraPreview : Fragment() {
     private var enableGuide: Boolean = false;
 
     private lateinit var cameraExecutor: ExecutorService
-    private lateinit var cardBackground: ImageView
-    private lateinit var cardContainer: LinearLayout
-    private lateinit var faceContainer: LinearLayout
-
-    private lateinit var faceBackground: LinearLayout
+    private var cardBackground: ImageView? = null;
+    private var cardContainer: LinearLayout? = null;
+    private var faceContainer: LinearLayout? = null;
+    private var faceBackground: LinearLayout? = null;
 
     private lateinit var previewView: PreviewView
     private var detector: YoloV5Classifier? = null
@@ -89,10 +88,7 @@ abstract class CameraPreview : Fragment() {
         val view = inflater.inflate(R.layout.camera_preview, container, false)
         previewView = view.findViewById(R.id.previewView)
         rectangleOverlayView = view.findViewById(R.id.rectangleOverlayView)
-        faceBackground = view.findViewById(R.id.face_background)
-        cardBackground = view.findViewById(R.id.card_background)
-        cardContainer = view.findViewById(R.id.card_container)
-        faceContainer = view.findViewById(R.id.face_container)
+
         return view
     }
 
@@ -138,12 +134,30 @@ abstract class CameraPreview : Fragment() {
 
                 activity?.runOnUiThread {
                     if (enableGuide) {
+
+
                         if (frontCamera) {
-                            faceBackground.visibility = View.VISIBLE
-                            faceContainer.visibility = View.VISIBLE
+                            if (faceContainer == null) {
+                                faceContainer = requireActivity().findViewById(R.id.face_container)
+                            }
+                            faceContainer!!.visibility = View.VISIBLE
+                            if (faceBackground == null) {
+                                faceBackground =
+                                    requireActivity().findViewById(R.id.face_background)
+                            }
+                            faceBackground!!.visibility = View.VISIBLE
+
                         } else {
-                            cardBackground.visibility = View.VISIBLE
-                            cardContainer.visibility = View.VISIBLE
+                            if (cardContainer == null) {
+                                cardContainer = requireActivity().findViewById(R.id.card_container)
+                            }
+                            cardContainer!!.visibility = View.VISIBLE
+                            if (cardBackground == null) {
+                                cardBackground =
+                                    requireActivity().findViewById(R.id.card_background)
+                            }
+                            cardBackground!!.visibility = View.VISIBLE
+
                         }
                     }
 
@@ -271,21 +285,28 @@ abstract class CameraPreview : Fragment() {
         color: String, enableDetect: Boolean,
         enableGuide: Boolean,
     ) {
+        rectangleOverlayView.setCustomColor(color)
 
         this.enableDetect = enableDetect;
         this.enableGuide = enableGuide;
 
-        rectangleOverlayView.setCustomColor(color)
-        val layerDrawable = getResources().getDrawable(R.drawable.face_background) as LayerDrawable
-        val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
-        shapeDrawable.setStroke(10, Color.parseColor(color))
-        faceBackground.setBackground(layerDrawable)
+        if (this.enableGuide) {
+            if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                val layerDrawable =
+                    getResources().getDrawable(R.drawable.face_background) as LayerDrawable
+                val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                shapeDrawable.setStroke(10, Color.parseColor(color))
+                faceBackground!!.setBackground(layerDrawable)
+            }
 
 
-        val drawableCard = getResources().getDrawable(R.drawable.card_background)
-        val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
-        DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
-        cardBackground.setImageDrawable(wrappedDrawableCard)
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                val drawableCard = getResources().getDrawable(R.drawable.card_background)
+                val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                cardBackground!!.setImageDrawable(wrappedDrawableCard)
+            }
+        }
 
 
     }
