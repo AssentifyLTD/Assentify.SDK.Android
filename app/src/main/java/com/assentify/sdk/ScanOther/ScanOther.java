@@ -117,9 +117,9 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             }
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-            setRectFCustomColor("#61A03A");
+            setRectFCustomColor(environmentalConditions.getCustomColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor());
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
         }
 
         checkEnvironment();
