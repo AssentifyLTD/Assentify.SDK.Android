@@ -86,6 +86,12 @@ class MainActivity : AppCompatActivity(), ScanPassportCallback {
 
     override fun onComplete(dataModel: BaseResponseDataModel) {
         Log.e("MainActivity", "onComplete: " + dataModel)
+        runOnUiThread {
+            val intent = Intent(this, FaceMatchPage::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            //finish()
+        }
     }
 
     override fun onCardDetected(dataModel: BaseResponseDataModel) {

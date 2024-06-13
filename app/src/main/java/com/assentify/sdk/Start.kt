@@ -46,7 +46,7 @@ class Start : AppCompatActivity(), AssentifySdkCallback {
                 this,
                 true,
                 true,
-                true,
+                false,
                 true,
                 true,
                 true,

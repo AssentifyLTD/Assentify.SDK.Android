@@ -32,6 +32,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="HardcodedDebugMode">
+
+        <activity
+            android:name=".FaceMatchPage"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="false" />
