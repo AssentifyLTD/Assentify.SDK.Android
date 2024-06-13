@@ -65,7 +65,7 @@ abstract class CameraPreview : Fragment() {
     private var results: List<Recognition> = ArrayList()
     private val listRectF: MutableList<RectFInfo> = mutableListOf()
     private lateinit var rectangleOverlayView: RectangleOverlayView
-    private lateinit var cameraSelector: CameraSelector
+    private  var cameraSelector: CameraSelector? = null;
     private var frontCamera: Boolean = false
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
@@ -132,7 +132,7 @@ abstract class CameraPreview : Fragment() {
             imageAnalysisListener = ImageAnalysis.Analyzer { image ->
                 val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
 
-                activity?.runOnUiThread {
+               activity?.runOnUiThread {
                     if (enableGuide) {
 
 
@@ -210,7 +210,7 @@ abstract class CameraPreview : Fragment() {
             try {
                 cameraProvider?.unbindAll()
                 camera = cameraProvider?.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture, imageAnalysis, videoCapture
+                    this, cameraSelector!!, preview, imageCapture, imageAnalysis, videoCapture
                 )
                 camera?.cameraControl?.setZoomRatio(0f)
                 sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
@@ -285,28 +285,32 @@ abstract class CameraPreview : Fragment() {
         color: String, enableDetect: Boolean,
         enableGuide: Boolean,
     ) {
-        rectangleOverlayView.setCustomColor(color)
 
-        this.enableDetect = enableDetect;
-        this.enableGuide = enableGuide;
+        if(this.isVisible){
+            rectangleOverlayView.setCustomColor(color)
 
-        if (this.enableGuide) {
-            if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
-                val layerDrawable =
-                    getResources().getDrawable(R.drawable.face_background) as LayerDrawable
-                val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
-                shapeDrawable.setStroke(10, Color.parseColor(color))
-                faceBackground!!.setBackground(layerDrawable)
-            }
+            this.enableDetect = enableDetect;
+            this.enableGuide = enableGuide;
+
+            if (this.enableGuide) {
+                if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                    val layerDrawable =
+                        getResources().getDrawable(R.drawable.face_background) as LayerDrawable
+                    val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                    shapeDrawable.setStroke(10, Color.parseColor(color))
+                    faceBackground!!.setBackground(layerDrawable)
+                }
 
 
-            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                val drawableCard = getResources().getDrawable(R.drawable.card_background)
-                val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
-                DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
-                cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                    val drawableCard = getResources().getDrawable(R.drawable.card_background)
+                    val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                    DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                    cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                }
             }
         }
+
 
 
     }
@@ -364,5 +368,37 @@ abstract class CameraPreview : Fragment() {
 
     protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
 
+    override fun onDestroy() {
+        super.onDestroy()
 
+        // Stop and release the recording if it's active
+        recording?.let {
+            it.stop()
+            it.close()
+            recording = null
+        }
+
+        // Release video capture
+        videoCapture = null
+
+        // Release image capture
+        imageCapture = null
+
+        // Close and release image analysis
+        imageAnalysis?.clearAnalyzer()
+        imageAnalysis = null
+
+        // Clear image analysis listener
+        imageAnalysisListener = null
+
+        // Unbind all use cases and release camera provider
+        cameraProvider?.unbindAll()
+        cameraProvider = null
+
+        // Release camera
+        camera = null
+
+        // Release camera selector
+        cameraSelector = null
+    }
 }
