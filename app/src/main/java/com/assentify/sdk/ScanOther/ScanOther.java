@@ -255,11 +255,9 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     @Override
     public synchronized void onDestroy() {
         super.onDestroy();
-        storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-        storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
+        this.createBase64.shutdown();
     }
 
-    ;
 
 
     public boolean hasFaceOrCard() {
