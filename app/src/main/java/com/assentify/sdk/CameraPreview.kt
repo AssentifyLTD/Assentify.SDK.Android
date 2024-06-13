@@ -368,37 +368,5 @@ abstract class CameraPreview : Fragment() {
 
     protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
 
-    override fun onDestroy() {
-        super.onDestroy()
 
-        // Stop and release the recording if it's active
-        recording?.let {
-            it.stop()
-            it.close()
-            recording = null
-        }
-
-        // Release video capture
-        videoCapture = null
-
-        // Release image capture
-        imageCapture = null
-
-        // Close and release image analysis
-        imageAnalysis?.clearAnalyzer()
-        imageAnalysis = null
-
-        // Clear image analysis listener
-        imageAnalysisListener = null
-
-        // Unbind all use cases and release camera provider
-        cameraProvider?.unbindAll()
-        cameraProvider = null
-
-        // Release camera
-        camera = null
-
-        // Release camera selector
-        cameraSelector = null
-    }
 }
