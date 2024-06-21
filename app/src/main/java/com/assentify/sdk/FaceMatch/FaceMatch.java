@@ -164,7 +164,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 brightness
                 )) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0  && sendingFlags.size() > 10) {
+                if (start && highQualityBitmaps.size() != 0  && sendingFlags.size() > 2) {
                     if (hasFaceOrCard()) {
                         createClipsService.schedule(() -> {
                             stopRecording();

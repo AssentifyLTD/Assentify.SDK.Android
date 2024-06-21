@@ -165,7 +165,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         if (environmentalConditions.checkConditions(
                 brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 5 && sendingFlagsZoom.size() > 5) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 1 && sendingFlagsZoom.size() > 1) {
                     if (hasFaceOrCard()) {
                         stopRecording();
                     }
