@@ -195,7 +195,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         if (environmentalConditions.checkConditions(
                 brightness) && motion == MotionType.SENDING) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > 5 && sendingFlagsMotion.size() > 5) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > 1 && sendingFlagsMotion.size() > 1) {
                     if (hasFaceOrCard()) {
                         stopRecording();
                     }
