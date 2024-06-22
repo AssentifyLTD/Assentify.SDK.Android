@@ -31,7 +31,6 @@
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
         tools:ignore="HardcodedDebugMode">
-
     </application>
 
 </manifest>

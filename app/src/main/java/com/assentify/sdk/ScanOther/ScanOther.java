@@ -25,7 +25,7 @@ import  com.assentify.sdk.CheckEnvironment.DetectMotion;
 import  com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel;
-import com.assentify.sdk.ScanOther.ScanOtherCallback;import  com.assentify.sdk.tflite.Classifier;
+import  com.assentify.sdk.tflite.Classifier;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -189,7 +189,16 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
             storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
             storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-            this.scanOtherCallback.onComplete(BaseResponseDataModel);
+            OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+            OtherResponseModel otherResponseModel = new OtherResponseModel(
+                    BaseResponseDataModel.getDestinationEndpoint(),
+                    otherExtractedModel,
+                    BaseResponseDataModel.getError(),
+                    BaseResponseDataModel.getSuccess()
+            );
+
+
+            this.scanOtherCallback.onComplete(otherResponseModel);
             start = false;
         } else
             start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);

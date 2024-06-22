@@ -32,7 +32,8 @@ import  com.assentify.sdk.RemoteClient.Models.Templates;
 import  com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
 import  com.assentify.sdk.RemoteClient.RemoteClient;
 import  com.assentify.sdk.RemoteClient.RemoteIdPowerService;
-import com.assentify.sdk.ScanIDCard.IDCardCallback;import  com.assentify.sdk.tflite.Classifier;
+import com.assentify.sdk.ScanIDCard.IDCardCallback;
+import  com.assentify.sdk.tflite.Classifier;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -222,7 +223,17 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
             storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
             storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-            this.idCardCallback.onComplete(BaseResponseDataModel,order);
+
+            IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+            IDResponseModel idResponseModel = new IDResponseModel(
+                    BaseResponseDataModel.getDestinationEndpoint(),
+                    idExtractedModel,
+                    BaseResponseDataModel.getError(),
+                    BaseResponseDataModel.getSuccess()
+            );
+
+
+            this.idCardCallback.onComplete(idResponseModel,order);
             start = false;
             order = order + 1;
             if(!this.kycDocumentDetails.isEmpty() && order < this.kycDocumentDetails.size()){
