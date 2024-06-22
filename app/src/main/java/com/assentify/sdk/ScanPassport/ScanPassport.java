@@ -190,7 +190,16 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
             storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
             storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-            this.scanPassportCallback.onComplete(BaseResponseDataModel);
+
+            PassportExtractedModel  passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+            PassportResponseModel passportResponseModel = new PassportResponseModel(
+                    BaseResponseDataModel.getDestinationEndpoint(),
+                     passportExtractedModel,
+                    BaseResponseDataModel.getError(),
+                    BaseResponseDataModel.getSuccess()
+                 );
+
+            this.scanPassportCallback.onComplete(passportResponseModel);
             start = false;
         } else
             start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);

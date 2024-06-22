@@ -12,45 +12,45 @@ interface IDCardCallback {
     fun onSend()
 
     fun onRetry(dataModel: BaseResponseDataModel)
-
-    fun onClipPreparationComplete(dataModel: BaseResponseDataModel)
-
-    fun onStatusUpdated(dataModel: BaseResponseDataModel)
-
-    fun onUpdated(dataModel: BaseResponseDataModel)
-
-    fun onLivenessUpdate(dataModel: BaseResponseDataModel)
-
-    fun onComplete(dataModel: BaseResponseDataModel,order:Int)
-    fun onCardDetected(dataModel: BaseResponseDataModel)
-
-    fun onMrzExtracted(dataModel: BaseResponseDataModel)
-
-    fun onMrzDetected(dataModel: BaseResponseDataModel)
-
-    fun onNoMrzDetected(dataModel: BaseResponseDataModel)
-
-    fun onFaceDetected(dataModel: BaseResponseDataModel)
-
-    fun onNoFaceDetected(dataModel: BaseResponseDataModel)
-
-    fun onFaceExtracted(dataModel: BaseResponseDataModel)
-
-    fun onQualityCheckAvailable(dataModel: BaseResponseDataModel)
-
-    fun onDocumentCaptured(dataModel: BaseResponseDataModel)
-
-    fun onDocumentCropped(dataModel: BaseResponseDataModel)
-
+    fun onComplete(dataModel: IDResponseModel,order:Int)
     fun onWrongTemplate(dataModel: BaseResponseDataModel)
+
+    fun onClipPreparationComplete(dataModel: BaseResponseDataModel){}
+
+    fun onStatusUpdated(dataModel: BaseResponseDataModel){}
+
+    fun onUpdated(dataModel: BaseResponseDataModel){}
+
+    fun onLivenessUpdate(dataModel: BaseResponseDataModel){}
+
+    fun onCardDetected(dataModel: BaseResponseDataModel){}
+
+    fun onMrzExtracted(dataModel: BaseResponseDataModel){}
+
+    fun onMrzDetected(dataModel: BaseResponseDataModel){}
+
+    fun onNoMrzDetected(dataModel: BaseResponseDataModel){}
+
+    fun onFaceDetected(dataModel: BaseResponseDataModel){}
+
+    fun onNoFaceDetected(dataModel: BaseResponseDataModel){}
+
+    fun onFaceExtracted(dataModel: BaseResponseDataModel){}
+
+    fun onQualityCheckAvailable(dataModel: BaseResponseDataModel){}
+
+    fun onDocumentCaptured(dataModel: BaseResponseDataModel){}
+
+    fun onDocumentCropped(dataModel: BaseResponseDataModel){}
+
+    fun onUploadFailed(dataModel: BaseResponseDataModel){}
 
     fun onEnvironmentalConditionsChange(
         brightness: Double,
         motion: MotionType,
         zoom: ZoomType,
-    )
+    ){}
 
-    fun onUploadFailed(dataModel: BaseResponseDataModel)
 
 
 }

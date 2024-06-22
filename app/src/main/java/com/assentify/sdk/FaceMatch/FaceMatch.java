@@ -194,7 +194,16 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
             storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
             storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-            this.faceMatchCallback.onComplete(BaseResponseDataModel);
+           FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+            FaceResponseModel faceResponseModel = new FaceResponseModel(
+                    BaseResponseDataModel.getDestinationEndpoint(),
+                    faceExtractedModel,
+                    BaseResponseDataModel.getError(),
+                    BaseResponseDataModel.getSuccess()
+            );
+
+
+            this.faceMatchCallback.onComplete(faceResponseModel);
             start = false;
         } else
             start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
