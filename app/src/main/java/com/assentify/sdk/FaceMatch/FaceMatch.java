@@ -177,91 +177,101 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
         }
 
-
-        this.faceMatchCallback.onEnvironmentalConditionsChange(
-                brightness,
-                sendingFlags.size() == 0 ? MotionType.NO_DETECT :  sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                faceMatchCallback.onEnvironmentalConditionsChange(
+                        brightness,
+                        sendingFlags.size() == 0 ? MotionType.NO_DETECT :  sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND
                 );
+            }
+        });
 
     }
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        highQualityBitmaps.clear();
-        bitmaps.clear();
-        motionRectF.clear();
-        sendingFlags.clear();
-        if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-            storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-            storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-           FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-            FaceResponseModel faceResponseModel = new FaceResponseModel(
-                    BaseResponseDataModel.getDestinationEndpoint(),
-                    faceExtractedModel,
-                    BaseResponseDataModel.getError(),
-                    BaseResponseDataModel.getSuccess()
-            );
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                highQualityBitmaps.clear();
+                bitmaps.clear();
+                motionRectF.clear();
+                sendingFlags.clear();
+                if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
+                    storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
+                    storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
+                    FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+                    FaceResponseModel faceResponseModel = new FaceResponseModel(
+                            BaseResponseDataModel.getDestinationEndpoint(),
+                            faceExtractedModel,
+                            BaseResponseDataModel.getError(),
+                            BaseResponseDataModel.getSuccess()
+                    );
 
 
-            this.faceMatchCallback.onComplete(faceResponseModel);
-            start = false;
-        } else
-            start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
-        switch (eventName) {
-            case HubConnectionTargets.ON_ERROR:
-                this.faceMatchCallback.onError(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_RETRY:
-                this.faceMatchCallback.onRetry(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
-                this.faceMatchCallback.onClipPreparationComplete(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_STATUS_UPDATE:
-                this.faceMatchCallback.onStatusUpdated(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_UPDATE:
-                this.faceMatchCallback.onUpdated(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                this.faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_CARD_DETECTED:
-                this.faceMatchCallback.onCardDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_MRZ_EXTRACTED:
-                this.faceMatchCallback.onMrzExtracted(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_MRZ_DETECTED:
-                this.faceMatchCallback.onMrzDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
-                this.faceMatchCallback.onNoMrzDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_FACE_DETECTED:
-                this.faceMatchCallback.onFaceDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_NO_FACE_DETECTED:
-                this.faceMatchCallback.onNoFaceDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_FACE_EXTRACTED:
-                this.faceMatchCallback.onFaceExtracted(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
-                this.faceMatchCallback.onQualityCheckAvailable(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
-                this.faceMatchCallback.onDocumentCaptured(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_DOCUMENT_CROPPED:
-                this.faceMatchCallback.onDocumentCropped(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_UPLOAD_FAILED:
-                this.faceMatchCallback.onUploadFailed(BaseResponseDataModel);
-                break;
-            default:
+                    faceMatchCallback.onComplete(faceResponseModel);
+                    start = false;
+                } else
+                    start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                switch (eventName) {
+                    case HubConnectionTargets.ON_ERROR:
+                        faceMatchCallback.onError(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_RETRY:
+                        faceMatchCallback.onRetry(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
+                        faceMatchCallback.onClipPreparationComplete(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_STATUS_UPDATE:
+                        faceMatchCallback.onStatusUpdated(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_UPDATE:
+                        faceMatchCallback.onUpdated(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                        faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_CARD_DETECTED:
+                        faceMatchCallback.onCardDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_MRZ_EXTRACTED:
+                        faceMatchCallback.onMrzExtracted(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_MRZ_DETECTED:
+                        faceMatchCallback.onMrzDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
+                        faceMatchCallback.onNoMrzDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_FACE_DETECTED:
+                        faceMatchCallback.onFaceDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_NO_FACE_DETECTED:
+                        faceMatchCallback.onNoFaceDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_FACE_EXTRACTED:
+                        faceMatchCallback.onFaceExtracted(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
+                        faceMatchCallback.onQualityCheckAvailable(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
+                        faceMatchCallback.onDocumentCaptured(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_DOCUMENT_CROPPED:
+                        faceMatchCallback.onDocumentCropped(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_UPLOAD_FAILED:
+                        faceMatchCallback.onUploadFailed(BaseResponseDataModel);
+                        break;
+                    default:
 
-        }
+                }
+            }
+        });
+
     }
 
 
@@ -291,7 +301,14 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
-        this.faceMatchCallback.onSend();
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                faceMatchCallback.onSend();
+
+            }
+        });
+
         start = false;
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {

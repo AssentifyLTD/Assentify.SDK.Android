@@ -173,91 +173,103 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             }
         }
 
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+             scanPassportCallback.onEnvironmentalConditionsChange(
+                        brightness,
+                        sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT :  sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND ,
+                        zoom);
+            }
+        });
 
-        this.scanPassportCallback.onEnvironmentalConditionsChange(
-                brightness,
-                sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT :  sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND ,
-                zoom);
 
     }
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        highQualityBitmaps.clear();
-        motionRectF.clear();
-        sendingFlagsMotion.clear();
-        sendingFlagsZoom.clear();
-        if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-            storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-            storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
 
-            PassportExtractedModel  passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-            PassportResponseModel passportResponseModel = new PassportResponseModel(
-                    BaseResponseDataModel.getDestinationEndpoint(),
-                     passportExtractedModel,
-                    BaseResponseDataModel.getError(),
-                    BaseResponseDataModel.getSuccess()
-                 );
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                highQualityBitmaps.clear();
+                motionRectF.clear();
+                sendingFlagsMotion.clear();
+                sendingFlagsZoom.clear();
+                if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
+                    storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
+                    storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
 
-            this.scanPassportCallback.onComplete(passportResponseModel);
-            start = false;
-        } else
-            start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
-        switch (eventName) {
-            case HubConnectionTargets.ON_ERROR:
-                this.scanPassportCallback.onError(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_RETRY:
-                this.scanPassportCallback.onRetry(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
-                this.scanPassportCallback.onClipPreparationComplete(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_STATUS_UPDATE:
-                this.scanPassportCallback.onStatusUpdated(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_UPDATE:
-                this.scanPassportCallback.onUpdated(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                this.scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_CARD_DETECTED:
-                this.scanPassportCallback.onCardDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_MRZ_EXTRACTED:
-                this.scanPassportCallback.onMrzExtracted(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_MRZ_DETECTED:
-                this.scanPassportCallback.onMrzDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
-                this.scanPassportCallback.onNoMrzDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_FACE_DETECTED:
-                this.scanPassportCallback.onFaceDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_NO_FACE_DETECTED:
-                this.scanPassportCallback.onNoFaceDetected(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_FACE_EXTRACTED:
-                this.scanPassportCallback.onFaceExtracted(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
-                this.scanPassportCallback.onQualityCheckAvailable(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
-                this.scanPassportCallback.onDocumentCaptured(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_DOCUMENT_CROPPED:
-                this.scanPassportCallback.onDocumentCropped(BaseResponseDataModel);
-                break;
-            case HubConnectionTargets.ON_UPLOAD_FAILED:
-                this.scanPassportCallback.onUploadFailed(BaseResponseDataModel);
-                break;
-            default:
+                    PassportExtractedModel  passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+                    PassportResponseModel passportResponseModel = new PassportResponseModel(
+                            BaseResponseDataModel.getDestinationEndpoint(),
+                            passportExtractedModel,
+                            BaseResponseDataModel.getError(),
+                            BaseResponseDataModel.getSuccess()
+                    );
 
-        }
+                    scanPassportCallback.onComplete(passportResponseModel);
+                    start = false;
+                } else
+                    start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                switch (eventName) {
+                    case HubConnectionTargets.ON_ERROR:
+                        scanPassportCallback.onError(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_RETRY:
+                        scanPassportCallback.onRetry(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
+                        scanPassportCallback.onClipPreparationComplete(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_STATUS_UPDATE:
+                        scanPassportCallback.onStatusUpdated(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_UPDATE:
+                        scanPassportCallback.onUpdated(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                        scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_CARD_DETECTED:
+                        scanPassportCallback.onCardDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_MRZ_EXTRACTED:
+                        scanPassportCallback.onMrzExtracted(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_MRZ_DETECTED:
+                        scanPassportCallback.onMrzDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
+                        scanPassportCallback.onNoMrzDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_FACE_DETECTED:
+                        scanPassportCallback.onFaceDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_NO_FACE_DETECTED:
+                        scanPassportCallback.onNoFaceDetected(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_FACE_EXTRACTED:
+                        scanPassportCallback.onFaceExtracted(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
+                        scanPassportCallback.onQualityCheckAvailable(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
+                        scanPassportCallback.onDocumentCaptured(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_DOCUMENT_CROPPED:
+                        scanPassportCallback.onDocumentCropped(BaseResponseDataModel);
+                        break;
+                    case HubConnectionTargets.ON_UPLOAD_FAILED:
+                        scanPassportCallback.onUploadFailed(BaseResponseDataModel);
+                        break;
+                    default:
+
+                }
+            }
+        });
+
     }
 
 
@@ -289,7 +301,12 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
     @Override
     protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
-        this.scanPassportCallback.onSend();
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+               scanPassportCallback.onSend();
+            }
+        });
         start = false;
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
