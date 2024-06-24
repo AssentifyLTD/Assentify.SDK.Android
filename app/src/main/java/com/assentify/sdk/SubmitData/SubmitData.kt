@@ -2,8 +2,11 @@ package com.assentify.sdk.SubmitData
 
 import SubmitRequestModel
 import android.util.Log
+import com.assentify.sdk.Core.Constants.SentryKeys
+import com.assentify.sdk.Core.Constants.SentryManager
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 import  com.assentify.sdk.RemoteClient.RemoteClient
+import io.sentry.SentryLevel
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -42,15 +45,16 @@ class SubmitData(
               val responseBody = response.body()?.string()
 
                 if (response.isSuccessful) {
-                    println("Response body: $responseBody")
                     submitDataCallback.onSubmitSuccess();
                 } else {
                     submitDataCallback.onSubmitError(response.message());
                 }
+                SentryManager.registerEvent(SentryKeys.Submit + ":" +  responseBody , SentryLevel.INFO)
 
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                SentryManager.registerEvent(SentryKeys.Submit + ":" +  t.message , SentryLevel.INFO)
                 submitDataCallback.onSubmitError(t.message!!);
             }
         })

@@ -18,6 +18,8 @@ import  com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import  com.assentify.sdk.Core.Constants.MotionType;
 import  com.assentify.sdk.Core.Constants.RemoteProcessing;
 import  com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
+import com.assentify.sdk.Core.Constants.SentryKeys;
+import com.assentify.sdk.Core.Constants.SentryManager;
 import  com.assentify.sdk.Core.Constants.ZoomType;
 import  com.assentify.sdk.Core.FileUtils.ImageUtils;
 import  com.assentify.sdk.Core.FileUtils.StorageUtils;
@@ -26,14 +28,19 @@ import  com.assentify.sdk.CheckEnvironment.DetectMotion;
 import  com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel;
-import com.assentify.sdk.ScanPassport.ScanPassportCallback;import  com.assentify.sdk.tflite.Classifier;
+import com.assentify.sdk.ScanPassport.ScanPassportCallback;
+import  com.assentify.sdk.tflite.Classifier;
 
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
 
 
 public class ScanPassport extends CameraPreview implements RemoteProcessingCallback {
@@ -96,6 +103,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     }
 
     public void setScanPassportCallback(ScanPassportCallback scanPassportCallback) {
+        SentryManager.INSTANCE.registerEvent(SentryKeys.Passport, SentryLevel.INFO);
         this.scanPassportCallback = scanPassportCallback;
         try {
             remoteProcessing = new RemoteProcessing();
@@ -189,6 +197,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
 
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Passport,eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -307,6 +316,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                scanPassportCallback.onSend();
             }
         });
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Passport,"onSend", "");
         start = false;
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {

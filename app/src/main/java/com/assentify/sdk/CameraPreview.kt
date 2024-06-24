@@ -7,6 +7,7 @@ import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -33,6 +34,7 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import  com.assentify.sdk.Core.Constants.ConstantsValues
@@ -294,16 +296,14 @@ abstract class CameraPreview : Fragment() {
 
             if (this.enableGuide) {
                 if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
-                    val layerDrawable =
-                        getResources().getDrawable(R.drawable.face_background) as LayerDrawable
+                    val layerDrawable = ResourcesCompat.getDrawable(resources, R.drawable.face_background, null) as LayerDrawable
                     val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
                     shapeDrawable.setStroke(10, Color.parseColor(color))
                     faceBackground!!.setBackground(layerDrawable)
                 }
 
-
                 if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                    val drawableCard = getResources().getDrawable(R.drawable.card_background)
+                    val drawableCard = ResourcesCompat.getDrawable(resources, R.drawable.card_background, null) as VectorDrawable
                     val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
                     DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
                     cardBackground!!.setImageDrawable(wrappedDrawableCard)
