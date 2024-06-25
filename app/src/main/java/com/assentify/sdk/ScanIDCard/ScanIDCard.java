@@ -1,7 +1,7 @@
 package com.assentify.sdk.ScanIDCard;
 
 
-import static  com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
@@ -9,33 +9,34 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import  com.assentify.sdk.CameraPreview;
-import  com.assentify.sdk.CheckEnvironment.DetectZoom;
-import  com.assentify.sdk.Core.Constants.BlockType;
-import  com.assentify.sdk.Core.Constants.ConstantsValues;
-import  com.assentify.sdk.Core.Constants.EnvironmentalConditions;
-import  com.assentify.sdk.Core.Constants.HubConnectionFunctions;
-import  com.assentify.sdk.Core.Constants.HubConnectionTargets;
-import  com.assentify.sdk.Core.Constants.MotionType;
-import  com.assentify.sdk.Core.Constants.RemoteProcessing;
-import  com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
+
+import com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.CheckEnvironment.DetectZoom;
+import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.Core.Constants.ConstantsValues;
+import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
+import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.MotionType;
+import com.assentify.sdk.Core.Constants.RemoteProcessing;
+import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
 import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
-import  com.assentify.sdk.Core.Constants.ZoomType;
-import  com.assentify.sdk.Core.FileUtils.ImageUtils;
-import  com.assentify.sdk.Core.FileUtils.StorageUtils;
-import  com.assentify.sdk.Models.BaseResponseDataModel;
-import  com.assentify.sdk.CheckEnvironment.DetectMotion;
-import  com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
+import com.assentify.sdk.Core.Constants.ZoomType;
+import com.assentify.sdk.Core.FileUtils.ImageUtils;
+import com.assentify.sdk.Core.FileUtils.StorageUtils;
+import com.assentify.sdk.Models.BaseResponseDataModel;
+import com.assentify.sdk.CheckEnvironment.DetectMotion;
+import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
-import  com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails;
-import  com.assentify.sdk.RemoteClient.Models.Templates;
-import  com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
-import  com.assentify.sdk.RemoteClient.RemoteClient;
-import  com.assentify.sdk.RemoteClient.RemoteIdPowerService;
+import com.assentify.sdk.RemoteClient.Models.Templates;
+import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
+import com.assentify.sdk.RemoteClient.RemoteClient;
+import com.assentify.sdk.RemoteClient.RemoteIdPowerService;
 import com.assentify.sdk.ScanIDCard.IDCardCallback;
-import  com.assentify.sdk.tflite.Classifier;
+import com.assentify.sdk.tflite.Classifier;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -91,12 +92,14 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
-    private int videoCounter =-1;
-    private int Lis =-1;
+    private int videoCounter = -1;
+    private int Lis = -1;
 
-    private  int order = 0;
+    private int order = 0;
 
-    private List<KycDocumentDetails>  kycDocumentDetails = new ArrayList<>();;
+    private List<KycDocumentDetails> kycDocumentDetails = new ArrayList<>();
+    ;
+
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
                       Boolean performLivenessDetection,
@@ -104,7 +107,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                       Boolean storeCapturedDocument,
                       Boolean storeImageStream,
                       IDCardCallback idCardCallback,
-                      List<KycDocumentDetails>  kycDocumentDetails
+                      List<KycDocumentDetails> kycDocumentDetails
     ) {
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
@@ -117,7 +120,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         this.idCardCallback = idCardCallback;
         this.kycDocumentDetails = kycDocumentDetails;
 
-        if(!this.kycDocumentDetails.isEmpty()){
+        if (!this.kycDocumentDetails.isEmpty()) {
             KycDocumentDetails firstKycDocument = kycDocumentDetails.get(0);
             this.changeTemplateId(firstKycDocument.getTemplateProcessingKeyInformation());
         }
@@ -133,7 +136,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         motionRectF.clear();
         sendingFlagsZoom.clear();
         sendingFlagsMotion.clear();
-        videoCounter =-1;
+        videoCounter = -1;
         start = true;
         remoteProcessing = new RemoteProcessing();
         remoteProcessing.setCallback(this);
@@ -156,18 +159,15 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             }
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-            setRectFCustomColor(environmentalConditions.getCustomColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getCustomColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
         }
 
         checkEnvironment();
 
 
     }
-
-
-
 
 
     protected void checkEnvironment() {
@@ -210,116 +210,116 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
             }
         }
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    idCardCallback.onEnvironmentalConditionsChange(
+                            brightness,
+                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                idCardCallback.onEnvironmentalConditionsChange(
-                        brightness,
-                        sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT :  sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND ,
-
-                        zoom);
-            }
-        });
+                            zoom);
+                }
+            });
+        }
 
 
     }
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID,eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    highQualityBitmaps.clear();
+                    motionRectF.clear();
+                    sendingFlagsZoom.clear();
+                    sendingFlagsMotion.clear();
+                    if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
+                        storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
+                        storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                highQualityBitmaps.clear();
-                motionRectF.clear();
-                sendingFlagsZoom.clear();
-                sendingFlagsMotion.clear();
-                if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                    storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-                    storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-
-                    IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-                    IDResponseModel idResponseModel = new IDResponseModel(
-                            BaseResponseDataModel.getDestinationEndpoint(),
-                            idExtractedModel,
-                            BaseResponseDataModel.getError(),
-                            BaseResponseDataModel.getSuccess()
-                    );
+                        IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+                        IDResponseModel idResponseModel = new IDResponseModel(
+                                BaseResponseDataModel.getDestinationEndpoint(),
+                                idExtractedModel,
+                                BaseResponseDataModel.getError(),
+                                BaseResponseDataModel.getSuccess()
+                        );
 
 
-                    idCardCallback.onComplete(idResponseModel,order);
-                    start = false;
-                    order = order + 1;
-                    if(!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()){
-                        changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+                        idCardCallback.onComplete(idResponseModel, order);
+                        start = false;
+                        order = order + 1;
+                        if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
+                            changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+                        }
+                    } else
+                        start = eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) || eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                    switch (eventName) {
+                        case HubConnectionTargets.ON_ERROR:
+                            idCardCallback.onError(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_RETRY:
+                            idCardCallback.onRetry(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
+                            idCardCallback.onClipPreparationComplete(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_STATUS_UPDATE:
+                            idCardCallback.onStatusUpdated(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_UPDATE:
+                            idCardCallback.onUpdated(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                            idCardCallback.onLivenessUpdate(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_CARD_DETECTED:
+                            idCardCallback.onCardDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_MRZ_EXTRACTED:
+                            idCardCallback.onMrzExtracted(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_MRZ_DETECTED:
+                            idCardCallback.onMrzDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
+                            idCardCallback.onNoMrzDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_FACE_DETECTED:
+                            idCardCallback.onFaceDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_NO_FACE_DETECTED:
+                            idCardCallback.onNoFaceDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_FACE_EXTRACTED:
+                            idCardCallback.onFaceExtracted(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
+                            idCardCallback.onQualityCheckAvailable(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
+                            idCardCallback.onDocumentCaptured(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_DOCUMENT_CROPPED:
+                            idCardCallback.onDocumentCropped(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_UPLOAD_FAILED:
+                            idCardCallback.onUploadFailed(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_WRONG_TEMPLATE:
+                            idCardCallback.onWrongTemplate(BaseResponseDataModel);
+                            break;
+                        default:
+
                     }
-                } else
-                    start = eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) || eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
-                switch (eventName) {
-                    case HubConnectionTargets.ON_ERROR:
-                        idCardCallback.onError(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_RETRY:
-                        idCardCallback.onRetry(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
-                        idCardCallback.onClipPreparationComplete(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_STATUS_UPDATE:
-                        idCardCallback.onStatusUpdated(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_UPDATE:
-                        idCardCallback.onUpdated(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                       idCardCallback.onLivenessUpdate(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_CARD_DETECTED:
-                        idCardCallback.onCardDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_MRZ_EXTRACTED:
-                        idCardCallback.onMrzExtracted(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_MRZ_DETECTED:
-                        idCardCallback.onMrzDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
-                        idCardCallback.onNoMrzDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_FACE_DETECTED:
-                        idCardCallback.onFaceDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_NO_FACE_DETECTED:
-                        idCardCallback.onNoFaceDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_FACE_EXTRACTED:
-                        idCardCallback.onFaceExtracted(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
-                        idCardCallback.onQualityCheckAvailable(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
-                        idCardCallback.onDocumentCaptured(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_DOCUMENT_CROPPED:
-                        idCardCallback.onDocumentCropped(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_UPLOAD_FAILED:
-                        idCardCallback.onUploadFailed(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_WRONG_TEMPLATE:
-                        idCardCallback.onWrongTemplate(BaseResponseDataModel);
-                        break;
-                    default:
-
                 }
-            }
-        });
-
+            });
+        }
     }
-
 
 
     @Override
@@ -357,13 +357,15 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                idCardCallback.onSend();
-            }
-        });
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID,"onSend", "");
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    idCardCallback.onSend();
+                }
+            });
+        }
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, "onSend", "");
 
         start = false;
         videoCounter = videoCounter + 1;
@@ -376,7 +378,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     this.templateId,
                     "",
                     "ConnectionId",
-                    getVideoPath(configModel, this.templateId,videoCounter),
+                    getVideoPath(configModel, this.templateId, videoCounter),
                     false,
                     processMrz,
                     performLivenessDetection,

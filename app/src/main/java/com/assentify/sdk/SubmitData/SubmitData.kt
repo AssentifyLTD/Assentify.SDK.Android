@@ -45,7 +45,7 @@ class SubmitData(
               val responseBody = response.body()?.string()
 
                 if (response.isSuccessful) {
-                    submitDataCallback.onSubmitSuccess();
+                    submitDataCallback.onSubmitSuccess(response.message());
                 } else {
                     submitDataCallback.onSubmitError(response.message());
                 }

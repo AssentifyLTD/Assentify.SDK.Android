@@ -177,16 +177,17 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
 
             }
         }
-
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                scanOtherCallback.onEnvironmentalConditionsChange(
-                        brightness,
-                        sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT :  sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND ,
-                        zoom);
-            }
-        });
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    scanOtherCallback.onEnvironmentalConditionsChange(
+                            brightness,
+                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
+                            zoom);
+                }
+            });
+        }
 
 
     }
@@ -194,89 +195,89 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
         SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other,eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    highQualityBitmaps.clear();
+                    motionRectF.clear();
+                    sendingFlagsZoom.clear();
+                    sendingFlagsMotion.clear();
+                    if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
+                        storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
+                        storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
+                        OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+                        OtherResponseModel otherResponseModel = new OtherResponseModel(
+                                BaseResponseDataModel.getDestinationEndpoint(),
+                                otherExtractedModel,
+                                BaseResponseDataModel.getError(),
+                                BaseResponseDataModel.getSuccess()
+                        );
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                highQualityBitmaps.clear();
-                motionRectF.clear();
-                sendingFlagsZoom.clear();
-                sendingFlagsMotion.clear();
-                if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                    storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-                    storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-                    OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-                    OtherResponseModel otherResponseModel = new OtherResponseModel(
-                            BaseResponseDataModel.getDestinationEndpoint(),
-                            otherExtractedModel,
-                            BaseResponseDataModel.getError(),
-                            BaseResponseDataModel.getSuccess()
-                    );
 
+                        scanOtherCallback.onComplete(otherResponseModel);
+                        start = false;
+                    } else
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                    switch (eventName) {
+                        case HubConnectionTargets.ON_ERROR:
+                            scanOtherCallback.onError(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_RETRY:
+                            scanOtherCallback.onRetry(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
+                            scanOtherCallback.onClipPreparationComplete(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_STATUS_UPDATE:
+                            scanOtherCallback.onStatusUpdated(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_UPDATE:
+                            scanOtherCallback.onUpdated(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                            scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_CARD_DETECTED:
+                            scanOtherCallback.onCardDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_MRZ_EXTRACTED:
+                            scanOtherCallback.onMrzExtracted(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_MRZ_DETECTED:
+                            scanOtherCallback.onMrzDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
+                            scanOtherCallback.onNoMrzDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_FACE_DETECTED:
+                            scanOtherCallback.onFaceDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_NO_FACE_DETECTED:
+                            scanOtherCallback.onNoFaceDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_FACE_EXTRACTED:
+                            scanOtherCallback.onFaceExtracted(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
+                            scanOtherCallback.onQualityCheckAvailable(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
+                            scanOtherCallback.onDocumentCaptured(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_DOCUMENT_CROPPED:
+                            scanOtherCallback.onDocumentCropped(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_UPLOAD_FAILED:
+                            scanOtherCallback.onUploadFailed(BaseResponseDataModel);
+                            break;
+                        default:
 
-                    scanOtherCallback.onComplete(otherResponseModel);
-                    start = false;
-                } else
-                    start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
-                switch (eventName) {
-                    case HubConnectionTargets.ON_ERROR:
-                        scanOtherCallback.onError(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_RETRY:
-                        scanOtherCallback.onRetry(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
-                        scanOtherCallback.onClipPreparationComplete(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_STATUS_UPDATE:
-                        scanOtherCallback.onStatusUpdated(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_UPDATE:
-                        scanOtherCallback.onUpdated(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                        scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_CARD_DETECTED:
-                        scanOtherCallback.onCardDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_MRZ_EXTRACTED:
-                        scanOtherCallback.onMrzExtracted(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_MRZ_DETECTED:
-                        scanOtherCallback.onMrzDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
-                        scanOtherCallback.onNoMrzDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_FACE_DETECTED:
-                        scanOtherCallback.onFaceDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_NO_FACE_DETECTED:
-                        scanOtherCallback.onNoFaceDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_FACE_EXTRACTED:
-                        scanOtherCallback.onFaceExtracted(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
-                        scanOtherCallback.onQualityCheckAvailable(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
-                        scanOtherCallback.onDocumentCaptured(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_DOCUMENT_CROPPED:
-                        scanOtherCallback.onDocumentCropped(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_UPLOAD_FAILED:
-                        scanOtherCallback.onUploadFailed(BaseResponseDataModel);
-                        break;
-                    default:
-
+                    }
                 }
-            }
-        });
+            });
 
-
+        }
     }
 
 
@@ -316,12 +317,14 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-               scanOtherCallback.onSend();
-            }
-        });
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    scanOtherCallback.onSend();
+                }
+            });
+        }
 
         SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other,"onSend", "");
 
