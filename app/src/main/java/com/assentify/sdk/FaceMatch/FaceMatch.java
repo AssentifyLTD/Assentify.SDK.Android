@@ -1,31 +1,33 @@
 package com.assentify.sdk.FaceMatch;
 
-import static  com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
-import  com.assentify.sdk.CameraPreview;
-import  com.assentify.sdk.Core.Constants.BlockType;
-import  com.assentify.sdk.Core.Constants.ConstantsValues;
-import  com.assentify.sdk.Core.Constants.EnvironmentalConditions;
-import  com.assentify.sdk.Core.Constants.HubConnectionFunctions;
-import  com.assentify.sdk.Core.Constants.HubConnectionTargets;
-import  com.assentify.sdk.Core.Constants.MotionType;
-import  com.assentify.sdk.Core.Constants.RemoteProcessing;
-import  com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
+
+import com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.Core.Constants.ConstantsValues;
+import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
+import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.MotionType;
+import com.assentify.sdk.Core.Constants.RemoteProcessing;
+import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
 import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
-import  com.assentify.sdk.Core.FileUtils.ImageUtils;
-import  com.assentify.sdk.Core.FileUtils.StorageUtils;
-import com.assentify.sdk.FaceMatch.FaceMatchCallback;import  com.assentify.sdk.Models.BaseResponseDataModel;
-import  com.assentify.sdk.CheckEnvironment.DetectMotion;
-import  com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
+import com.assentify.sdk.Core.FileUtils.ImageUtils;
+import com.assentify.sdk.Core.FileUtils.StorageUtils;
+import com.assentify.sdk.FaceMatch.FaceMatchCallback;
+import com.assentify.sdk.Models.BaseResponseDataModel;
+import com.assentify.sdk.CheckEnvironment.DetectMotion;
+import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
-import  com.assentify.sdk.RemoteClient.Models.ConfigModel;
-import  com.assentify.sdk.tflite.Classifier;
+import com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.tflite.Classifier;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -75,8 +77,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
     private ScheduledExecutorService createClipsService = Executors.newSingleThreadScheduledExecutor();
 
-    private String  faceMatch = "FaceMatch";
-    private  int videoCounter = -1;
+    private String faceMatch = "FaceMatch";
+    private int videoCounter = -1;
+
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
                      Boolean performLivenessDetection,
@@ -130,14 +133,13 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
         }
         if (motion == MotionType.SENDING) {
-            setRectFCustomColor(environmentalConditions.getCustomColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getCustomColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
         }
 
         checkEnvironment();
     }
-
 
 
     protected void checkEnvironment() {
@@ -168,9 +170,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
         if (environmentalConditions.checkConditions(
                 brightness
-                )) {
+        )) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0  && sendingFlags.size() > 2) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2) {
                     if (hasFaceOrCard()) {
                         createClipsService.schedule(() -> {
                             stopRecording();
@@ -183,102 +185,105 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
         }
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                faceMatchCallback.onEnvironmentalConditionsChange(
-                        brightness,
-                        sendingFlags.size() == 0 ? MotionType.NO_DETECT :  sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND
-                );
-            }
-        });
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    faceMatchCallback.onEnvironmentalConditionsChange(
+                            brightness,
+                            sendingFlags.size() == 0 ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND
+                    );
+                }
+            });
+        }
 
     }
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Face,eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Face, eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    highQualityBitmaps.clear();
+                    bitmaps.clear();
+                    motionRectF.clear();
+                    sendingFlags.clear();
+                    if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
+                        storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
+                        storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
+                        FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+                        FaceResponseModel faceResponseModel = new FaceResponseModel(
+                                BaseResponseDataModel.getDestinationEndpoint(),
+                                faceExtractedModel,
+                                BaseResponseDataModel.getError(),
+                                BaseResponseDataModel.getSuccess()
+                        );
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                highQualityBitmaps.clear();
-                bitmaps.clear();
-                motionRectF.clear();
-                sendingFlags.clear();
-                if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                    storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-                    storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
-                    FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-                    FaceResponseModel faceResponseModel = new FaceResponseModel(
-                            BaseResponseDataModel.getDestinationEndpoint(),
-                            faceExtractedModel,
-                            BaseResponseDataModel.getError(),
-                            BaseResponseDataModel.getSuccess()
-                    );
 
+                        faceMatchCallback.onComplete(faceResponseModel);
+                        start = false;
+                    } else
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                    switch (eventName) {
+                        case HubConnectionTargets.ON_ERROR:
+                            faceMatchCallback.onError(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_RETRY:
+                            faceMatchCallback.onRetry(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
+                            faceMatchCallback.onClipPreparationComplete(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_STATUS_UPDATE:
+                            faceMatchCallback.onStatusUpdated(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_UPDATE:
+                            faceMatchCallback.onUpdated(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                            faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_CARD_DETECTED:
+                            faceMatchCallback.onCardDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_MRZ_EXTRACTED:
+                            faceMatchCallback.onMrzExtracted(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_MRZ_DETECTED:
+                            faceMatchCallback.onMrzDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
+                            faceMatchCallback.onNoMrzDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_FACE_DETECTED:
+                            faceMatchCallback.onFaceDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_NO_FACE_DETECTED:
+                            faceMatchCallback.onNoFaceDetected(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_FACE_EXTRACTED:
+                            faceMatchCallback.onFaceExtracted(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
+                            faceMatchCallback.onQualityCheckAvailable(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
+                            faceMatchCallback.onDocumentCaptured(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_DOCUMENT_CROPPED:
+                            faceMatchCallback.onDocumentCropped(BaseResponseDataModel);
+                            break;
+                        case HubConnectionTargets.ON_UPLOAD_FAILED:
+                            faceMatchCallback.onUploadFailed(BaseResponseDataModel);
+                            break;
+                        default:
 
-                    faceMatchCallback.onComplete(faceResponseModel);
-                    start = false;
-                } else
-                    start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
-                switch (eventName) {
-                    case HubConnectionTargets.ON_ERROR:
-                        faceMatchCallback.onError(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_RETRY:
-                        faceMatchCallback.onRetry(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
-                        faceMatchCallback.onClipPreparationComplete(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_STATUS_UPDATE:
-                        faceMatchCallback.onStatusUpdated(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_UPDATE:
-                        faceMatchCallback.onUpdated(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                        faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_CARD_DETECTED:
-                        faceMatchCallback.onCardDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_MRZ_EXTRACTED:
-                        faceMatchCallback.onMrzExtracted(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_MRZ_DETECTED:
-                        faceMatchCallback.onMrzDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
-                        faceMatchCallback.onNoMrzDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_FACE_DETECTED:
-                        faceMatchCallback.onFaceDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_NO_FACE_DETECTED:
-                        faceMatchCallback.onNoFaceDetected(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_FACE_EXTRACTED:
-                        faceMatchCallback.onFaceExtracted(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
-                        faceMatchCallback.onQualityCheckAvailable(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
-                        faceMatchCallback.onDocumentCaptured(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_DOCUMENT_CROPPED:
-                        faceMatchCallback.onDocumentCropped(BaseResponseDataModel);
-                        break;
-                    case HubConnectionTargets.ON_UPLOAD_FAILED:
-                        faceMatchCallback.onUploadFailed(BaseResponseDataModel);
-                        break;
-                    default:
-
+                    }
                 }
-            }
-        });
+            });
+        }
 
     }
 
@@ -309,15 +314,16 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID,"onSend", "");
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, "onSend", "");
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    faceMatchCallback.onSend();
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                faceMatchCallback.onSend();
-
-            }
-        });
+                }
+            });
+        }
 
         start = false;
         videoCounter = videoCounter + 1;
@@ -329,7 +335,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     "",
                     this.secondImage,
                     "ConnectionId",
-                    getVideoPath(configModel, faceMatch,videoCounter),
+                    getVideoPath(configModel, faceMatch, videoCounter),
                     hasFace(),
                     processMrz,
                     performLivenessDetection,
