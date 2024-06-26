@@ -4,7 +4,7 @@ import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 
 interface AssentifySdkCallback {
     fun onAssentifySdkInitError(message: String)
-    fun onAssentifySdkInitSuccess(stepDefinitions: List<StepDefinitions>)
+    fun onAssentifySdkInitSuccess(configModel: ConfigModel)
 
     fun onHasTemplates(templates: List<TemplatesByCountry>)
 }
