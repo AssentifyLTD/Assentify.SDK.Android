@@ -71,7 +71,7 @@ class AssentifySdk(
             ) {
                 if (response.isSuccessful) {
                     configModel = response.body()!!
-                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!.stepDefinitions);
+                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
                     GlobalScope.launch {
                         configModel.stepDefinitions.forEach { item ->
                             if (item.stepDefinition == "IdentificationDocumentCapture") {
