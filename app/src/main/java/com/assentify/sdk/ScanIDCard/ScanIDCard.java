@@ -171,6 +171,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     protected void checkEnvironment() {
+        if (getActivity() != null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (hasFaceOrCard() && start) {
                 startRecording();
@@ -210,7 +211,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
             }
         }
-        if (getActivity() != null) {
+
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

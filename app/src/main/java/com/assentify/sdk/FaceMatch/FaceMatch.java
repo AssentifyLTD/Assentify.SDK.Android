@@ -143,6 +143,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     protected void checkEnvironment() {
+        if (getActivity() != null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (hasFaceOrCard() && start) {
                 startRecording();
@@ -185,7 +186,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
         }
 
-        if (getActivity() != null) {
+
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

@@ -142,6 +142,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
 
     protected void checkEnvironment() {
+        if (getActivity() != null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (hasFaceOrCard() && start) {
                 startRecording();
@@ -180,7 +181,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 }
             }
         }
-        if (getActivity() != null) {
+
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
