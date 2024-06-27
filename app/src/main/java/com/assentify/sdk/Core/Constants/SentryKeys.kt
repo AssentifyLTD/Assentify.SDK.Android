@@ -22,7 +22,7 @@ object SentryKeys {
 
 object SentryManager {
     fun registerCallbackEvent(futureName:String,eventName: String, moreInfo: String) {
-        if (eventName == HubConnectionTargets.ON_ERROR || eventName == HubConnectionTargets.ON_RETRY || eventName == HubConnectionTargets.ON_NO_FACE_DETECTED || eventName == HubConnectionTargets.ON_NO_MRZ_EXTRACTED || eventName == HubConnectionTargets.ON_UPLOAD_FAILED || eventName == HubConnectionTargets.ON_WRONG_TEMPLATE) {
+     /*   if (eventName == HubConnectionTargets.ON_ERROR || eventName == HubConnectionTargets.ON_RETRY || eventName == HubConnectionTargets.ON_NO_FACE_DETECTED || eventName == HubConnectionTargets.ON_NO_MRZ_EXTRACTED || eventName == HubConnectionTargets.ON_UPLOAD_FAILED || eventName == HubConnectionTargets.ON_WRONG_TEMPLATE) {
             Sentry.captureMessage(
                 futureName +" , "+ eventName + " : " + moreInfo, ScopeCallback(
                     { scope: Scope? -> scope!!.setLevel(SentryLevel.ERROR) })
@@ -32,13 +32,13 @@ object SentryManager {
                 futureName  +" , " + eventName + " : " + moreInfo, ScopeCallback(
                     { scope: Scope? -> scope!!.setLevel(SentryLevel.INFO) })
             )
-        }
+        }*/
     }
 
     fun registerEvent(message: String, sentryLevel: SentryLevel) {
-        Sentry.captureMessage(
+     /*   Sentry.captureMessage(
             message, ScopeCallback(
                 { scope: Scope? -> scope!!.setLevel(sentryLevel) })
-        );
+        );*/
     }
 }
