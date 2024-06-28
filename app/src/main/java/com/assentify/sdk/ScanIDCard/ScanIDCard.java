@@ -172,45 +172,45 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     protected void checkEnvironment() {
         if (getActivity() != null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (hasFaceOrCard() && start) {
-                startRecording();
-            }
-        }
-        ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
-        DetectMotion detectMotion = new DetectMotion();
-        DetectZoom detectZoom = new DetectZoom();
-        brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
-        if (motionRectF.size() >= 2) {
-            if (results.isEmpty()) {
-                motionRectF.clear();
-                sendingFlagsZoom.clear();
-                sendingFlagsMotion.clear();
-                motion = MotionType.NO_DETECT;
-                zoom = ZoomType.NO_DETECT;
-            } else {
-                motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
-                zoom = detectZoom.calculatePercentageChangeWidth(motionRectF.get(motionRectF.size() - 1));
-                if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-                    sendingFlagsMotion.add(MotionType.SENDING);
-                    sendingFlagsZoom.add(ZoomType.SENDING);
-                } else {
-                    sendingFlagsMotion.clear();
-                    sendingFlagsZoom.clear();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (hasFaceOrCard() && start) {
+                    startRecording();
                 }
             }
-        }
-        if (environmentalConditions.checkConditions(
-                brightness) && motion == MotionType.SENDING) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > 1 && sendingFlagsMotion.size() > 1) {
-                    if (hasFaceOrCard()) {
-                        stopRecording();
+            ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
+            DetectMotion detectMotion = new DetectMotion();
+            DetectZoom detectZoom = new DetectZoom();
+            brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
+            if (motionRectF.size() >= 2) {
+                if (results.isEmpty()) {
+                    motionRectF.clear();
+                    sendingFlagsZoom.clear();
+                    sendingFlagsMotion.clear();
+                    motion = MotionType.NO_DETECT;
+                    zoom = ZoomType.NO_DETECT;
+                } else {
+                    motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
+                    zoom = detectZoom.calculatePercentageChangeWidth(motionRectF.get(motionRectF.size() - 1));
+                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
+                        sendingFlagsMotion.add(MotionType.SENDING);
+                        sendingFlagsZoom.add(ZoomType.SENDING);
+                    } else {
+                        sendingFlagsMotion.clear();
+                        sendingFlagsZoom.clear();
                     }
                 }
-
             }
-        }
+            if (environmentalConditions.checkConditions(
+                    brightness) && motion == MotionType.SENDING) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > 1 && sendingFlagsMotion.size() > 1) {
+                        if (hasFaceOrCard()) {
+                            stopRecording();
+                        }
+                    }
+
+                }
+            }
 
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -255,7 +255,15 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                         start = false;
                         order = order + 1;
                         if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
-                            changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+                            Thread backgroundThread = new Thread(() -> {
+                                try {
+                                    Thread.sleep(3000);
+                                    changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                            backgroundThread.start();
                         }
                     } else
                         start = eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) || eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
