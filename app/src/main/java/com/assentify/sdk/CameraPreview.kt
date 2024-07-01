@@ -38,12 +38,17 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import  com.assentify.sdk.Core.Constants.ConstantsValues
+import com.assentify.sdk.Core.Constants.SentryManager
 import  com.assentify.sdk.Core.FileUtils.ImageUtils
 import  com.assentify.sdk.tflite.Classifier
 import  com.assentify.sdk.tflite.Classifier.Recognition
 import  com.assentify.sdk.tflite.DetectorFactory
 import  com.assentify.sdk.tflite.YoloV5Classifier
 import com.google.common.util.concurrent.ListenableFuture
+import io.sentry.Scope
+import io.sentry.ScopeCallback
+import io.sentry.Sentry
+import io.sentry.SentryLevel
 import java.io.File
 import java.util.Base64
 import java.util.concurrent.ExecutorService
@@ -134,45 +139,53 @@ abstract class CameraPreview : Fragment() {
             imageAnalysisListener = ImageAnalysis.Analyzer { image ->
                 val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
 
-               activity?.runOnUiThread {
-                    if (enableGuide) {
+                try {
+                    requireActivity().runOnUiThread {
+                        if (enableGuide) {
 
 
-                        if (frontCamera) {
-                            if (faceContainer == null) {
-                                faceContainer = requireActivity().findViewById(R.id.face_container)
-                                faceContainer!!.visibility = View.VISIBLE
-                            }else{
-                                faceContainer!!.visibility = View.VISIBLE
+                            if (frontCamera) {
+                                if (faceContainer == null) {
+                                    faceContainer = requireActivity().findViewById(R.id.face_container)
+                                    faceContainer!!.visibility = View.VISIBLE
+                                }else{
+                                    faceContainer!!.visibility = View.VISIBLE
+                                }
+                                if (faceBackground == null) {
+                                    faceBackground =
+                                        requireActivity().findViewById(R.id.face_background)
+                                    faceBackground!!.visibility = View.VISIBLE
+                                }else{
+                                    faceBackground!!.visibility = View.VISIBLE
+                                }
+
+                            } else {
+                                if (cardContainer == null) {
+                                    cardContainer = requireActivity().findViewById(R.id.card_container)
+                                    cardContainer!!.visibility = View.VISIBLE
+                                }else{
+                                    cardContainer!!.visibility = View.VISIBLE
+                                }
+                                if (cardBackground == null) {
+                                    cardBackground =
+                                        requireActivity().findViewById(R.id.card_background)
+                                    cardBackground!!.visibility = View.VISIBLE
+                                }else{
+                                    cardBackground!!.visibility = View.VISIBLE
+                                }
+
+
                             }
-                            if (faceBackground == null) {
-                                faceBackground =
-                                    requireActivity().findViewById(R.id.face_background)
-                                faceBackground!!.visibility = View.VISIBLE
-                            }else{
-                                faceBackground!!.visibility = View.VISIBLE
-                            }
-
-                        } else {
-                            if (cardContainer == null) {
-                                cardContainer = requireActivity().findViewById(R.id.card_container)
-                                cardContainer!!.visibility = View.VISIBLE
-                            }else{
-                                cardContainer!!.visibility = View.VISIBLE
-                            }
-                            if (cardBackground == null) {
-                                cardBackground =
-                                    requireActivity().findViewById(R.id.card_background)
-                                cardBackground!!.visibility = View.VISIBLE
-                            }else{
-                                cardBackground!!.visibility = View.VISIBLE
-                            }
-
-
                         }
-                    }
 
+                    }
+                }catch (e :Exception){
+                    Sentry.captureMessage(
+                        "CameraPreview : " + e.message, ScopeCallback(
+                            { scope: Scope? -> scope!!.setLevel(SentryLevel.ERROR) })
+                    )
                 }
+
 
 
                 results = if (frontCamera) {
