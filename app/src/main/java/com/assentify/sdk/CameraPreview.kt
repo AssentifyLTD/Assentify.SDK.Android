@@ -141,24 +141,33 @@ abstract class CameraPreview : Fragment() {
                         if (frontCamera) {
                             if (faceContainer == null) {
                                 faceContainer = requireActivity().findViewById(R.id.face_container)
+                                faceContainer!!.visibility = View.VISIBLE
+                            }else{
+                                faceContainer!!.visibility = View.VISIBLE
                             }
-                            faceContainer!!.visibility = View.VISIBLE
                             if (faceBackground == null) {
                                 faceBackground =
                                     requireActivity().findViewById(R.id.face_background)
+                                faceBackground!!.visibility = View.VISIBLE
+                            }else{
+                                faceBackground!!.visibility = View.VISIBLE
                             }
-                            faceBackground!!.visibility = View.VISIBLE
 
                         } else {
                             if (cardContainer == null) {
                                 cardContainer = requireActivity().findViewById(R.id.card_container)
+                                cardContainer!!.visibility = View.VISIBLE
+                            }else{
+                                cardContainer!!.visibility = View.VISIBLE
                             }
-                            cardContainer!!.visibility = View.VISIBLE
                             if (cardBackground == null) {
                                 cardBackground =
                                     requireActivity().findViewById(R.id.card_background)
+                                cardBackground!!.visibility = View.VISIBLE
+                            }else{
+                                cardBackground!!.visibility = View.VISIBLE
                             }
-                            cardBackground!!.visibility = View.VISIBLE
+
 
                         }
                     }
