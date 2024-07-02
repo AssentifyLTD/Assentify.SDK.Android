@@ -1,7 +1,7 @@
 package com.assentify.sdk.Core.Constants
 
 
-class EnvironmentalConditions(
+data class EnvironmentalConditions(
 
     /**Detect**/
     var enableDetect: Boolean,

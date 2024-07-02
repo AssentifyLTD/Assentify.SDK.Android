@@ -128,9 +128,7 @@ class RemoteProcessing {
 
                 if (response.isSuccessful) {
                     val responseBody = response.body()?.string() ?: ""
-                    Log.e("onResponse",responseBody)
                     val baseResponseDataModel = parseDataToBaseResponseDataModel(responseBody)
-                    Log.e("baseResponseDataModel",baseResponseDataModel.toString())
                     callback!!.onMessageReceived(
                         baseResponseDataModel.destinationEndpoint!!,
                         baseResponseDataModel
@@ -138,7 +136,6 @@ class RemoteProcessing {
 
                 }else {
                     val responseBody = response.body()?.string() ?: ""
-                    Log.e("onResponse",responseBody)
                     callback!!.onMessageReceived(
                         HubConnectionTargets.ON_ERROR,
                         BaseResponseDataModel(
