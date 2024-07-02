@@ -12,9 +12,6 @@ android {
         versionCode 1
         versionName "1.0"
         android.ndkVersion "25.1.8937393"
-        ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
-        }
     }
 
     buildTypes {
@@ -90,7 +87,6 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.7.0"
 
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'org.jcodec:jcodec-android:0.1.9'
     implementation 'com.microsoft.signalr:signalr:8.0.0'
