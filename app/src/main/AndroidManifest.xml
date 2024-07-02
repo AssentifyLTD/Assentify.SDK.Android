@@ -24,7 +24,7 @@
         tools:ignore="ScopedStorage" />
 
     <application
-        android:debuggable="true"
+        android:debuggable="false"
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
