@@ -14,13 +14,6 @@ android {
         android.ndkVersion "25.1.8937393"
     }
 
-    packaging {
-        resources {
-            excludes += "root/lib/x86_64/darwin/libscrypt.dylib"
-            excludes += "lib/x86_64/darwin/libscrypt.dylib"
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled false
