@@ -6,10 +6,6 @@ buildscript {
         google()
         maven { url 'https://jitpack.io' }
         mavenCentral()
-//        mavenLocal()
-        flatDir {
-            dirs 'lib'
-        }
 
 
     }
@@ -28,10 +24,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-//        mavenLocal()
-        flatDir {
-            dirs 'lib'
-        }
     }
 }
 
