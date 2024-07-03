@@ -24,7 +24,6 @@ import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
 import com.assentify.sdk.Core.Constants.ZoomType;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
-import com.assentify.sdk.Core.FileUtils.StorageUtils;
 import com.assentify.sdk.Models.BaseResponseDataModel;
 import com.assentify.sdk.CheckEnvironment.DetectMotion;
 import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
@@ -76,12 +75,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private String apiKey = "";
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
-    private StorageUtils storageUtils = new StorageUtils(
-            ConstantsValues.FolderImagesName,
-            ConstantsValues.FolderVideosName,
-            ConstantsValues.ImageName,
-            ConstantsValues.VideoName
-    );
+
 
     Boolean processMrz;
     Boolean performLivenessDetection;
@@ -239,8 +233,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     sendingFlagsZoom.clear();
                     sendingFlagsMotion.clear();
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                        storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-                        storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
 
                         IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                         IDResponseModel idResponseModel = new IDResponseModel(

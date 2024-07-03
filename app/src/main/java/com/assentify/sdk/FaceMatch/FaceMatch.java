@@ -20,7 +20,6 @@ import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
 import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
-import com.assentify.sdk.Core.FileUtils.StorageUtils;
 import com.assentify.sdk.FaceMatch.FaceMatchCallback;
 import com.assentify.sdk.Models.BaseResponseDataModel;
 import com.assentify.sdk.CheckEnvironment.DetectMotion;
@@ -56,12 +55,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private boolean start = true;
     private String apiKey = "";
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
-    private StorageUtils storageUtils = new StorageUtils(
-            ConstantsValues.FolderImagesName,
-            ConstantsValues.FolderVideosName,
-            ConstantsValues.ImageName,
-            ConstantsValues.VideoName
-    );
+
     Boolean processMrz;
     Boolean performLivenessDetection;
     Boolean saveCapturedVideo;
@@ -212,8 +206,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     motionRectF.clear();
                     sendingFlags.clear();
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                        storageUtils.deleteFolderContents(storageUtils.getImageFolder(getActivity().getApplicationContext()));
-                        storageUtils.deleteFolderContents(storageUtils.getVideosFolder(getActivity().getApplicationContext()));
                         FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                         FaceResponseModel faceResponseModel = new FaceResponseModel(
                                 BaseResponseDataModel.getDestinationEndpoint(),
