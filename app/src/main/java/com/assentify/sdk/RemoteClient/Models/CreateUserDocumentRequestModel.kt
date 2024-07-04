@@ -1,3 +1,4 @@
+package com.assentify.sdk.RemoteClient.Models
 data class CreateUserDocumentRequestModel(
     val userId: String,
     val documentTemplateId: Int,

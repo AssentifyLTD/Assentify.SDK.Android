@@ -1,3 +1,4 @@
+package com.assentify.sdk.RemoteClient.Models
 data class SignatureRequestModel(
     val documentId: Int,
     val documentInstanceId: Int,

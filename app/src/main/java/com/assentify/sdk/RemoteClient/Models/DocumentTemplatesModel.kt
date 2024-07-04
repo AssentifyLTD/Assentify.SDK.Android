@@ -1,3 +1,4 @@
+package com.assentify.sdk.RemoteClient.Models
 data class DocumentTemplatesModel(
     val id: Int,
     val documentId: Int,

@@ -1,4 +1,4 @@
-package   com.assentify.sdk.RemoteClient.Models
+package com.assentify.sdk.RemoteClient.Models
 
 import com.google.gson.Gson
 

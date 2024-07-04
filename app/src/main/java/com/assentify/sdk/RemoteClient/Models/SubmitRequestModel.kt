@@ -1,3 +1,4 @@
+package com.assentify.sdk.RemoteClient.Models
 import org.json.JSONArray
 import org.json.JSONObject
 
