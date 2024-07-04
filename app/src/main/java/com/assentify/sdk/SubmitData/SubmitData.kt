@@ -1,10 +1,10 @@
 package com.assentify.sdk.SubmitData
 
-import SubmitRequestModel
 import android.util.Log
 import com.assentify.sdk.Core.Constants.SentryKeys
 import com.assentify.sdk.Core.Constants.SentryManager
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import  com.assentify.sdk.RemoteClient.RemoteClient
 import io.sentry.SentryLevel
 import okhttp3.ResponseBody

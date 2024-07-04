@@ -1,13 +1,14 @@
 package com.assentify.sdk.CheckEnvironment
 
-import ContextAwareSigningModel
-import CreateUserDocumentRequestModel
-import CreateUserDocumentResponseModel
-import DocumentTokensModel
-import SignatureRequestModel
-import SignatureResponseModel
+
 import  com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
+import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentRequestModel
+import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
+import com.assentify.sdk.RemoteClient.Models.DocumentTokensModel
+import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
+import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import  com.assentify.sdk.RemoteClient.RemoteClient.remoteGatewayService
 import  com.assentify.sdk.RemoteClient.RemoteClient.remoteSigningService
 import retrofit2.Call

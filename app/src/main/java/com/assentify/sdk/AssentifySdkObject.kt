@@ -1,6 +1,5 @@
 package  com.assentify.sdk
 
-import AssentifySdk
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions
 
 object AssentifySdkObject {

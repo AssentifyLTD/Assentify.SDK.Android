@@ -1,13 +1,13 @@
 package   com.assentify.sdk.RemoteClient
 
-import ContextAwareSigningModel
-import CreateUserDocumentRequestModel
-import CreateUserDocumentResponseModel
-import DocumentTemplatesModel
-import DocumentTokensModel
-import SignatureRequestModel
-import SignatureResponseModel
-import SubmitRequestModel
+import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
+import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentRequestModel
+import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
+import com.assentify.sdk.RemoteClient.Models.DocumentTemplatesModel
+import com.assentify.sdk.RemoteClient.Models.DocumentTokensModel
+import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
+import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
+import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.Models.BaseResponseDataModel
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 import  com.assentify.sdk.RemoteClient.Models.Templates
