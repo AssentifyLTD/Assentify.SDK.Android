@@ -324,6 +324,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             remoteProcessing.starProcessing(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
                     ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.FACE_MATCH, getActivity()),
+                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.FACE_MATCH, getActivity()),
                     configModel,
                     "",
                     this.secondImage,

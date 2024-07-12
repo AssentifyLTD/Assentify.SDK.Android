@@ -375,6 +375,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             remoteProcessing.starProcessing(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.ID_CARD),
                     ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.ID_CARD, getActivity()),
+                    "",
                     configModel,
                     this.templateId,
                     "",
