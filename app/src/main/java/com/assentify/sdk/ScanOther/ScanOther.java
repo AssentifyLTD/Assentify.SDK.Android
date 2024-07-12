@@ -327,6 +327,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             remoteProcessing.starProcessing(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.OTHER),
                     ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.OTHER, getActivity()),
+                    "",
                     configModel,
                     "",
                     "",

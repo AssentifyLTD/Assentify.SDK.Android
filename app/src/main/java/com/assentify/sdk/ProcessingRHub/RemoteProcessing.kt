@@ -68,6 +68,7 @@ class RemoteProcessing {
     fun starProcessing(
         url: String,
         videoClip: String,
+        selfieImage: String,
         appConfiguration: ConfigModel,
         templateId: String,
         secondImage: String,
@@ -118,6 +119,7 @@ class RemoteProcessing {
             RequestBody.create("text/plain".toMediaTypeOrNull(), saveCapturedVideo.toString()),
             RequestBody.create("text/plain".toMediaTypeOrNull(), storeCapturedDocument.toString()),
             RequestBody.create("text/plain".toMediaTypeOrNull(), traceIdentifier),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), selfieImage),
 
             )
         call.enqueue(object : Callback<ResponseBody> {

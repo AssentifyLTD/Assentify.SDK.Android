@@ -157,6 +157,7 @@ interface RemoteWidgetsService {
         @Part("saveCapturedVideo") saveCapturedVideo: RequestBody,
         @Part("storeCapturedDocument") storeCapturedDocument: RequestBody,
         @Part("traceIdentifier") traceIdentifier: RequestBody,
+        @Part("selfieImage") selfieImage: RequestBody,
     ): Call<ResponseBody>
 }
 
