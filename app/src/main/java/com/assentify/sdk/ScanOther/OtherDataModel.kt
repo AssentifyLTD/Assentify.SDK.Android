@@ -13,14 +13,20 @@ open class OtherResponseModel(
 
 open class OtherExtractedModel(
     var outputProperties: Map<String, Any>? = null,
+    var transformedProperties: Map<String, String>? = null,
     var extractedData: Map<String, Any>? = null,
     var additionalDetails: Map<String, Any>? = null,
+    var transformedDetails: Map<String, String>? = null,
     var imageUrl: String? = null,
     var faces: List<String>? = null,
     var identificationDocumentCapture: IdentificationDocumentCapture? = null
 ) {
     companion object {
-        fun fromJsonString(responseString: String): OtherExtractedModel? {
+        fun fromJsonString(
+            responseString: String,
+            transformedProperties: Map<String, String>?,
+            transformedDetails: Map<String, String>?,
+        ): OtherExtractedModel? {
             return try {
                 val response = JSONObject(responseString)
 
@@ -34,21 +40,23 @@ open class OtherExtractedModel(
                 }
 
                 val imageUrl = response.optString("ImageUrl")
-                val outputProperties = response.optJSONObject("OutputProperties")?.let { outputProps ->
-                    val map = mutableMapOf<String, Any>()
-                    outputProps.keys().forEach { key ->
-                        map[key] = outputProps.get(key)
+                val outputProperties =
+                    response.optJSONObject("OutputProperties")?.let { outputProps ->
+                        val map = mutableMapOf<String, Any>()
+                        outputProps.keys().forEach { key ->
+                            map[key] = outputProps.get(key)
+                        }
+                        map
                     }
-                    map
-                }
 
-                val additionalDetails = response.optJSONObject("AdditionalDetails")?.let { additionalDetail ->
-                    val map = mutableMapOf<String, Any>()
-                    additionalDetail.keys().forEach { key ->
-                        map[key] = additionalDetail.get(key)
+                val additionalDetails =
+                    response.optJSONObject("AdditionalDetails")?.let { additionalDetail ->
+                        val map = mutableMapOf<String, Any>()
+                        additionalDetail.keys().forEach { key ->
+                            map[key] = additionalDetail.get(key)
+                        }
+                        map
                     }
-                    map
-                }
 
 
                 val extractedData = mutableMapOf<String, Any>()
@@ -57,9 +65,41 @@ open class OtherExtractedModel(
                     extractedData[newKey] = value
                 }
 
-                val identificationDocumentCapture = fillIdentificationDocumentCapture(outputProperties)
+                val identificationDocumentCapture =
+                    fillIdentificationDocumentCapture(outputProperties)
 
-                OtherExtractedModel(outputProperties, extractedData,additionalDetails, imageUrl, faces, identificationDocumentCapture)
+                val transformedPropertiesResult: MutableMap<String, String> = mutableMapOf()
+                if (transformedProperties!!.isEmpty()) {
+                    outputProperties?.forEach { (key, value) ->
+                        if (value.toString().isNotEmpty()) {
+                            transformedPropertiesResult.put(key, value.toString())
+                        }
+                    }
+                } else {
+                    transformedPropertiesResult.putAll(transformedProperties)
+                }
+
+                val transformedDetailsResult: MutableMap<String, String> = mutableMapOf()
+                if (transformedDetails!!.isEmpty()) {
+                    additionalDetails?.forEach { (key, value) ->
+                        if (value.toString().isNotEmpty()) {
+                            transformedDetailsResult.put(key, value.toString())
+                        }
+                    }
+                } else {
+                    transformedDetailsResult.putAll(transformedDetails)
+                }
+
+                OtherExtractedModel(
+                    outputProperties,
+                    transformedPropertiesResult,
+                    extractedData,
+                    additionalDetails,
+                    transformedDetailsResult,
+                    imageUrl,
+                    faces,
+                    identificationDocumentCapture
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
                 null

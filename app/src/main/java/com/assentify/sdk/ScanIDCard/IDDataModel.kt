@@ -13,13 +13,14 @@ open class IDResponseModel(
 
 open class IDExtractedModel(
     var outputProperties: Map<String, Any>? = null,
+    var transformedProperties: Map<String, String>? = null,
     var extractedData: Map<String, Any>? = null,
     var imageUrl: String? = null,
     var faces: List<String>? = null,
     var identificationDocumentCapture: IdentificationDocumentCapture? = null
 ) {
     companion object {
-        fun fromJsonString(responseString: String): IDExtractedModel? {
+        fun fromJsonString(responseString: String,transformedProperties: Map<String, String>?): IDExtractedModel? {
             return try {
                 val response = JSONObject(responseString)
 
@@ -49,7 +50,17 @@ open class IDExtractedModel(
 
                 val identificationDocumentCapture = fillIdentificationDocumentCapture(outputProperties)
 
-                IDExtractedModel(outputProperties, extractedData, imageUrl, faces, identificationDocumentCapture)
+                val transformedPropertiesResult: MutableMap<String, String> = mutableMapOf()
+                if (transformedProperties!!.isEmpty()) {
+                    outputProperties?.forEach { (key, value) ->
+                        if (value.toString().isNotEmpty()) {
+                            transformedPropertiesResult.put(key, value.toString())
+                        }
+                    }
+                } else {
+                    transformedPropertiesResult.putAll(transformedProperties)
+                }
+                IDExtractedModel(outputProperties,transformedPropertiesResult, extractedData, imageUrl, faces, identificationDocumentCapture)
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
