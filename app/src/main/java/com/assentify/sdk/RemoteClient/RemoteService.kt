@@ -1,5 +1,7 @@
 package   com.assentify.sdk.RemoteClient
 
+import LanguageTransformationModel
+import TransformationModel
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentRequestModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
@@ -29,8 +31,8 @@ interface RemoteAPIService {
 interface RemoteIdPowerService {
     @GET("GetTemplates")
     @Headers(
-      "Content-Type: application/json",
-      "x-caller: sdk"
+        "Content-Type: application/json",
+        "x-caller: sdk"
     )
     fun getTemplates(): Call<List<Templates>>;
 
@@ -161,5 +163,16 @@ interface RemoteWidgetsService {
     ): Call<ResponseBody>
 }
 
-
+interface RemoteTranslatedService {
+    @Headers(
+        "accept: application/json, text/plain, */*",
+        "Content-Type: application/json"
+    )
+    @POST("LanguageTransform/LanguageTransformation")
+    fun transformData(
+        @Header("'x-api-key") apiKey: String,
+        @Header("accept-language") language: String,
+        @Body request: TransformationModel
+    ): Call<List<LanguageTransformationModel>>
+}
 

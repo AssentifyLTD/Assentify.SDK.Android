@@ -2,6 +2,8 @@ package com.assentify.sdk.ScanIDCard;
 
 
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
+import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
+import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
@@ -9,6 +11,7 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
@@ -17,6 +20,7 @@ import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
@@ -24,6 +28,8 @@ import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
 import com.assentify.sdk.Core.Constants.ZoomType;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
+import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
+import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
 import com.assentify.sdk.Models.BaseResponseDataModel;
 import com.assentify.sdk.CheckEnvironment.DetectMotion;
 import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
@@ -35,11 +41,14 @@ import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
 import com.assentify.sdk.RemoteClient.RemoteClient;
 import com.assentify.sdk.RemoteClient.RemoteIdPowerService;
 import com.assentify.sdk.ScanIDCard.IDCardCallback;
+import com.assentify.sdk.ScanPassport.ScanPassport;
 import com.assentify.sdk.tflite.Classifier;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,7 +59,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class ScanIDCard extends CameraPreview implements RemoteProcessingCallback {
+public class ScanIDCard extends CameraPreview implements RemoteProcessingCallback , LanguageTransformationCallback {
 
 
     private IDCardCallback idCardCallback;
@@ -84,6 +93,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     Boolean storeImageStream;
     ConfigModel configModel;
 
+    private  String language;
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
     private int videoCounter = -1;
@@ -94,6 +104,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private List<KycDocumentDetails> kycDocumentDetails = new ArrayList<>();
     ;
 
+    private IDResponseModel idResponseModel;
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
                       Boolean performLivenessDetection,
@@ -101,7 +112,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                       Boolean storeCapturedDocument,
                       Boolean storeImageStream,
                       IDCardCallback idCardCallback,
-                      List<KycDocumentDetails> kycDocumentDetails
+                      List<KycDocumentDetails> kycDocumentDetails,
+                      String language
     ) {
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
@@ -113,6 +125,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         this.configModel = configModel;
         this.idCardCallback = idCardCallback;
         this.kycDocumentDetails = kycDocumentDetails;
+        this.language = language;
 
         if (!this.kycDocumentDetails.isEmpty()) {
             KycDocumentDetails firstKycDocument = kycDocumentDetails.get(0);
@@ -233,89 +246,103 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     sendingFlagsZoom.clear();
                     sendingFlagsMotion.clear();
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-
-                        IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-                        IDResponseModel idResponseModel = new IDResponseModel(
+                        Map<String, String> transformedProperties = new HashMap<>();
+                        start = false;
+                        IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(),transformedProperties);
+                        idResponseModel = new IDResponseModel(
                                 BaseResponseDataModel.getDestinationEndpoint(),
                                 idExtractedModel,
                                 BaseResponseDataModel.getError(),
                                 BaseResponseDataModel.getSuccess()
                         );
 
-
-                        idCardCallback.onComplete(idResponseModel, order);
-                        start = false;
-                        order = order + 1;
-                        if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
-                            Thread backgroundThread = new Thread(() -> {
-                                try {
-                                    Thread.sleep(3000);
-                                    changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            });
-                            backgroundThread.start();
+                        if (Objects.equals(language, Language.NON)) {
+                            idCardCallback.onComplete(idResponseModel, order);
+                            order = order + 1;
+                            if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
+                                Thread backgroundThread = new Thread(() -> {
+                                    try {
+                                        Thread.sleep(3000);
+                                        changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                });
+                                backgroundThread.start();
+                            }
+                        } else {
+                            LanguageTransformation translated = new LanguageTransformation(apiKey);
+                            translated.setCallback(ScanIDCard.this);
+                            translated.languageTransformation(
+                                    language,
+                                    preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
+                            );
                         }
-                    } else
-                        start = eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) || eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
-                    switch (eventName) {
-                        case HubConnectionTargets.ON_ERROR:
-                            idCardCallback.onError(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_RETRY:
-                            idCardCallback.onRetry(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
-                            idCardCallback.onClipPreparationComplete(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_STATUS_UPDATE:
-                            idCardCallback.onStatusUpdated(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_UPDATE:
-                            idCardCallback.onUpdated(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                            idCardCallback.onLivenessUpdate(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_CARD_DETECTED:
-                            idCardCallback.onCardDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_MRZ_EXTRACTED:
-                            idCardCallback.onMrzExtracted(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_MRZ_DETECTED:
-                            idCardCallback.onMrzDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
-                            idCardCallback.onNoMrzDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_FACE_DETECTED:
-                            idCardCallback.onFaceDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_NO_FACE_DETECTED:
-                            idCardCallback.onNoFaceDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_FACE_EXTRACTED:
-                            idCardCallback.onFaceExtracted(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
-                            idCardCallback.onQualityCheckAvailable(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
-                            idCardCallback.onDocumentCaptured(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_DOCUMENT_CROPPED:
-                            idCardCallback.onDocumentCropped(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_UPLOAD_FAILED:
-                            idCardCallback.onUploadFailed(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_WRONG_TEMPLATE:
-                            idCardCallback.onWrongTemplate(BaseResponseDataModel);
-                            break;
-                        default:
 
+
+
+                    } else {
+                        start = eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) || eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                        switch (eventName) {
+                            case HubConnectionTargets.ON_ERROR:
+                                idCardCallback.onError(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_RETRY:
+                                idCardCallback.onRetry(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
+                                idCardCallback.onClipPreparationComplete(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_STATUS_UPDATE:
+                                idCardCallback.onStatusUpdated(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_UPDATE:
+                                idCardCallback.onUpdated(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                                idCardCallback.onLivenessUpdate(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_CARD_DETECTED:
+                                idCardCallback.onCardDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_MRZ_EXTRACTED:
+                                idCardCallback.onMrzExtracted(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_MRZ_DETECTED:
+                                idCardCallback.onMrzDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
+                                idCardCallback.onNoMrzDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_FACE_DETECTED:
+                                idCardCallback.onFaceDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_NO_FACE_DETECTED:
+                                idCardCallback.onNoFaceDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_FACE_EXTRACTED:
+                                idCardCallback.onFaceExtracted(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
+                                idCardCallback.onQualityCheckAvailable(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
+                                idCardCallback.onDocumentCaptured(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_DOCUMENT_CROPPED:
+                                idCardCallback.onDocumentCropped(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_UPLOAD_FAILED:
+                                idCardCallback.onUploadFailed(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_WRONG_TEMPLATE:
+                                idCardCallback.onWrongTemplate(BaseResponseDataModel);
+                                break;
+                            default:
+                                start = true;
+                                idCardCallback.onRetry(BaseResponseDataModel);
+                                break;
+                        }
                     }
                 }
             });
@@ -393,6 +420,47 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         });
 
         remoteProcessing.uploadVideo(videoCounter, video, configModel, this.templateId);
+    }
+
+    @Override
+    public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
+        getIgnoredProperties(Objects.requireNonNull(idResponseModel.getIDExtractedModel().getOutputProperties())).forEach((key, value) -> {
+            properties.put(key,value);
+        });
+        idResponseModel.getIDExtractedModel().getTransformedProperties().clear();
+        properties.forEach((key, value) -> {
+            idResponseModel.getIDExtractedModel().getTransformedProperties().put(key,value);
+        });
+        idCardCallback.onComplete(idResponseModel,order);
+        order = order + 1;
+        if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
+            Thread backgroundThread = new Thread(() -> {
+                try {
+                    Thread.sleep(3000);
+                    changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+            backgroundThread.start();
+        }
+    }
+
+    @Override
+    public void onTranslatedError(@Nullable Map<String, String> properties) {
+        idCardCallback.onComplete(idResponseModel,order);
+        order = order + 1;
+        if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
+            Thread backgroundThread = new Thread(() -> {
+                try {
+                    Thread.sleep(3000);
+                    changeTemplateId(kycDocumentDetails.get(order).getTemplateProcessingKeyInformation());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+            backgroundThread.start();
+        }
     }
 
 

@@ -1,11 +1,14 @@
 package com.assentify.sdk.ScanOther;
 
 import static  com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
+import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
+import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import  com.assentify.sdk.CameraPreview;
 import  com.assentify.sdk.CheckEnvironment.DetectZoom;
@@ -14,6 +17,7 @@ import  com.assentify.sdk.Core.Constants.ConstantsValues;
 import  com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import  com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import  com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.Language;
 import  com.assentify.sdk.Core.Constants.MotionType;
 import  com.assentify.sdk.Core.Constants.RemoteProcessing;
 import  com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
@@ -21,23 +25,30 @@ import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
 import  com.assentify.sdk.Core.Constants.ZoomType;
 import  com.assentify.sdk.Core.FileUtils.ImageUtils;
+import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
+import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
 import  com.assentify.sdk.Models.BaseResponseDataModel;
 import  com.assentify.sdk.CheckEnvironment.DetectMotion;
 import  com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.ScanPassport.PassportExtractedModel;
+import com.assentify.sdk.ScanPassport.PassportResponseModel;
+import com.assentify.sdk.ScanPassport.ScanPassport;
 import  com.assentify.sdk.tflite.Classifier;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import io.sentry.SentryLevel;
 
-public class ScanOther  extends CameraPreview implements RemoteProcessingCallback {
+public class ScanOther  extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
 
 
     private ScanOtherCallback scanOtherCallback;
@@ -66,19 +77,23 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     Boolean storeImageStream;
     ConfigModel configModel;
 
+    String language;
+
     private  String other = "Other";
 
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
     private  int videoCounter = -1;
 
+    private OtherResponseModel otherResponseModel;
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public ScanOther(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
                      Boolean performLivenessDetection,
                      Boolean saveCapturedVideo,
                      Boolean storeCapturedDocument,
-                     Boolean storeImageStream
+                     Boolean storeImageStream,
+                     String language
     ) {
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
@@ -88,7 +103,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
-
+        this.language = language;
     }
 
     public void setScanOtherCallback(ScanOtherCallback scanOtherCallback) {
@@ -198,74 +213,99 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
                     motionRectF.clear();
                     sendingFlagsZoom.clear();
                     sendingFlagsMotion.clear();
+
+
+
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                        OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-                        OtherResponseModel otherResponseModel = new OtherResponseModel(
+                        start = false;
+                        Map<String, String> transformedProperties = new HashMap<>();
+                        Map<String, String> transformedDetails = new HashMap<>();
+                        OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(),transformedProperties,transformedDetails);
+                         otherResponseModel = new OtherResponseModel(
                                 BaseResponseDataModel.getDestinationEndpoint(),
                                 otherExtractedModel,
                                 BaseResponseDataModel.getError(),
                                 BaseResponseDataModel.getSuccess()
                         );
+                        if (Objects.equals(language, Language.NON)) {
+                            scanOtherCallback.onComplete(otherResponseModel);
+                        } else {
+                            Map<String, String> propertiesToTranslate = new HashMap<>();
+                            otherExtractedModel.getAdditionalDetails().forEach((key, value) -> {
+                                propertiesToTranslate.put(key,value.toString());
+                            });
+
+                            otherExtractedModel.getOutputProperties().forEach((key, value) -> {
+                                propertiesToTranslate.put(key,value.toString());
+                            });
+                            LanguageTransformation translated = new LanguageTransformation(apiKey);
+                            translated.setCallback(ScanOther.this);
+                            translated.languageTransformation(
+                                    language,
+                                    preparePropertiesToTranslate(language,propertiesToTranslate)
+                            );
+                        }
 
 
-                        scanOtherCallback.onComplete(otherResponseModel);
-                        start = false;
-                    } else
+                    } else {
                         start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
-                    switch (eventName) {
-                        case HubConnectionTargets.ON_ERROR:
-                            scanOtherCallback.onError(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_RETRY:
-                            scanOtherCallback.onRetry(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
-                            scanOtherCallback.onClipPreparationComplete(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_STATUS_UPDATE:
-                            scanOtherCallback.onStatusUpdated(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_UPDATE:
-                            scanOtherCallback.onUpdated(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                            scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_CARD_DETECTED:
-                            scanOtherCallback.onCardDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_MRZ_EXTRACTED:
-                            scanOtherCallback.onMrzExtracted(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_MRZ_DETECTED:
-                            scanOtherCallback.onMrzDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
-                            scanOtherCallback.onNoMrzDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_FACE_DETECTED:
-                            scanOtherCallback.onFaceDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_NO_FACE_DETECTED:
-                            scanOtherCallback.onNoFaceDetected(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_FACE_EXTRACTED:
-                            scanOtherCallback.onFaceExtracted(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
-                            scanOtherCallback.onQualityCheckAvailable(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
-                            scanOtherCallback.onDocumentCaptured(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_DOCUMENT_CROPPED:
-                            scanOtherCallback.onDocumentCropped(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_UPLOAD_FAILED:
-                            scanOtherCallback.onUploadFailed(BaseResponseDataModel);
-                            break;
-                        default:
-
+                        switch (eventName) {
+                            case HubConnectionTargets.ON_ERROR:
+                                scanOtherCallback.onError(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_RETRY:
+                                scanOtherCallback.onRetry(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
+                                scanOtherCallback.onClipPreparationComplete(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_STATUS_UPDATE:
+                                scanOtherCallback.onStatusUpdated(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_UPDATE:
+                                scanOtherCallback.onUpdated(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                                scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_CARD_DETECTED:
+                                scanOtherCallback.onCardDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_MRZ_EXTRACTED:
+                                scanOtherCallback.onMrzExtracted(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_MRZ_DETECTED:
+                                scanOtherCallback.onMrzDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_NO_MRZ_EXTRACTED:
+                                scanOtherCallback.onNoMrzDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_FACE_DETECTED:
+                                scanOtherCallback.onFaceDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_NO_FACE_DETECTED:
+                                scanOtherCallback.onNoFaceDetected(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_FACE_EXTRACTED:
+                                scanOtherCallback.onFaceExtracted(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_QUALITY_CHECK_AVAILABLE:
+                                scanOtherCallback.onQualityCheckAvailable(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_DOCUMENT_CAPTURED:
+                                scanOtherCallback.onDocumentCaptured(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_DOCUMENT_CROPPED:
+                                scanOtherCallback.onDocumentCropped(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_UPLOAD_FAILED:
+                                scanOtherCallback.onUploadFailed(BaseResponseDataModel);
+                                break;
+                            default:
+                                start = true;
+                                scanOtherCallback.onRetry(BaseResponseDataModel);
+                                break;
+                        }
                     }
                 }
             });
@@ -347,5 +387,27 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         remoteProcessing.uploadVideo(videoCounter, video, configModel, other);
     }
 
+    @Override
+    public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
+        getIgnoredProperties(Objects.requireNonNull(otherResponseModel.getOtherExtractedModel().getOutputProperties())).forEach((key, value) -> {
+            properties.put(key,value);
+        });
+        otherResponseModel.getOtherExtractedModel().getTransformedProperties().clear();
+        otherResponseModel.getOtherExtractedModel().getTransformedDetails().clear();
+        properties.forEach((key, value) -> {
+            if(key.contains("OnBoardMe_IdentificationDocumentCapture")){
+                otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(key,value);
+            }else {
+                otherResponseModel.getOtherExtractedModel().getTransformedDetails().put(key,value);
+            }
+        });
+
+        scanOtherCallback.onComplete(otherResponseModel);
+    }
+
+    @Override
+    public void onTranslatedError(@Nullable Map<String, String> properties) {
+        scanOtherCallback.onComplete(otherResponseModel);
+    }
 
 }

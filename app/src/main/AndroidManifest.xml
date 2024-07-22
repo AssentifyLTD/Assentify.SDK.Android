@@ -23,6 +23,7 @@
         android:installLocation="internalOnly"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
+
         tools:ignore="HardcodedDebugMode">
 
 
@@ -40,6 +41,8 @@
             <meta-data android:name="io.sentry.traces.sample-rate" android:value="1.0" />
             <!-- enable profiling when starting transactions, adjust in production env -->
             <meta-data android:name="io.sentry.traces.profiling.sample-rate" android:value="1.0" />
+
+
 
     </application>
 

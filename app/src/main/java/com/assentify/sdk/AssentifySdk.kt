@@ -1,12 +1,16 @@
 package  com.assentify.sdk
-import android.util.Log
+
+import LanguageTransformationModel
+import TransformationModel
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
+import com.assentify.sdk.Core.Constants.Language
 import com.assentify.sdk.Core.Constants.SentryKeys
 import com.assentify.sdk.Core.Constants.SentryManager
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
+import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
@@ -23,6 +27,7 @@ import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
+import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import io.sentry.SentryLevel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -106,11 +111,17 @@ class AssentifySdk(
                         }
                         if (processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
                             assentifySdkCallback!!.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { processMrz , storeCapturedDocument , saveCapturedVideo }  ");
-                            SentryManager.registerEvent(SentryKeys.Initialized + ":" + "Please Configure The IdentificationDocumentCapture { processMrz , storeCapturedDocument , saveCapturedVideo }  ", SentryLevel.ERROR)
+                            SentryManager.registerEvent(
+                                SentryKeys.Initialized + ":" + "Please Configure The IdentificationDocumentCapture { processMrz , storeCapturedDocument , saveCapturedVideo }  ",
+                                SentryLevel.ERROR
+                            )
                         }
                         if (performLivenessDetection == null || storeImageStream == null || saveCapturedVideoFace == null) {
                             assentifySdkCallback!!.onAssentifySdkInitError("Please Configure The FaceImageAcquisition { performLivenessDetection , storeImageStream , saveCapturedVideo }  ");
-                            SentryManager.registerEvent(SentryKeys.Initialized + ":" +  "Please Configure The FaceImageAcquisition { performLivenessDetection , storeImageStream , saveCapturedVideo }  ", SentryLevel.ERROR)
+                            SentryManager.registerEvent(
+                                SentryKeys.Initialized + ":" + "Please Configure The FaceImageAcquisition { performLivenessDetection , storeImageStream , saveCapturedVideo }  ",
+                                SentryLevel.ERROR
+                            )
 
                         }
 
@@ -120,7 +131,10 @@ class AssentifySdk(
             }
 
             override fun onFailure(call: Call<ConfigModel>, t: Throwable) {
-                  SentryManager.registerEvent(SentryKeys.Initialized + ":" + t.message, SentryLevel.ERROR)
+                SentryManager.registerEvent(
+                    SentryKeys.Initialized + ":" + t.message,
+                    SentryLevel.ERROR
+                )
                 assentifySdkCallback!!.onAssentifySdkInitError(t.message!!);
             }
         })
@@ -143,20 +157,29 @@ class AssentifySdk(
                 } else {
                     isKeyValid = false;
                     assentifySdkCallback!!.onAssentifySdkInitError("Invalid Keys");
-                    SentryManager.registerEvent(SentryKeys.KeyValidation + ":" +  "Invalid Keys ", SentryLevel.ERROR)
+                    SentryManager.registerEvent(
+                        SentryKeys.KeyValidation + ":" + "Invalid Keys ",
+                        SentryLevel.ERROR
+                    )
 
                 }
             }
 
             override fun onFailure(call: Call<ValidateKeyModel>, t: Throwable) {
                 isKeyValid = false;
-                SentryManager.registerEvent(SentryKeys.KeyValidation + ":" +  t.message, SentryLevel.ERROR)
+                SentryManager.registerEvent(
+                    SentryKeys.KeyValidation + ":" + t.message,
+                    SentryLevel.ERROR
+                )
                 assentifySdkCallback!!.onAssentifySdkInitError("Invalid Keys");
             }
         })
     }
 
-    fun startScanPassport(scanPassportCallback: ScanPassportCallback): ScanPassport {
+    fun startScanPassport(
+        scanPassportCallback: ScanPassportCallback,
+        language: String = Language.NON
+    ): ScanPassport {
         if (isKeyValid) {
             scanPassport = ScanPassport(
                 configModel,
@@ -166,7 +189,7 @@ class AssentifySdk(
                 performLivenessDetection,
                 saveCapturedVideoID,
                 storeCapturedDocument,
-                storeImageStream
+                storeImageStream, language
             )
             scanPassport.setScanPassportCallback(scanPassportCallback)
             return scanPassport;
@@ -175,7 +198,10 @@ class AssentifySdk(
         }
     }
 
-    fun startScanIDCard(scnIDCardCallback: IDCardCallback,kycDocumentDetails : List<KycDocumentDetails>): ScanIDCard {
+    fun startScanIDCard(
+        scnIDCardCallback: IDCardCallback,
+        kycDocumentDetails: List<KycDocumentDetails>, language: String = Language.NON
+    ): ScanIDCard {
         if (isKeyValid) {
             scanIDCard = ScanIDCard(
                 configModel,
@@ -186,8 +212,8 @@ class AssentifySdk(
                 storeCapturedDocument,
                 storeImageStream,
                 scnIDCardCallback,
-                kycDocumentDetails
-                )
+                kycDocumentDetails, language
+            )
             return scanIDCard;
         } else {
             throw Exception("Invalid Keys")
@@ -195,8 +221,10 @@ class AssentifySdk(
     }
 
 
-
-    fun startScanOther(scanPassportCallback: ScanOtherCallback): ScanOther {
+    fun startScanOther(
+        scanPassportCallback: ScanOtherCallback,
+        language: String = Language.NON
+    ): ScanOther {
         if (isKeyValid) {
             scanOther = ScanOther(
                 configModel,
@@ -205,7 +233,8 @@ class AssentifySdk(
                 performLivenessDetection,
                 saveCapturedVideoID,
                 storeCapturedDocument,
-                storeImageStream
+                storeImageStream,
+                language
             )
             scanOther.setScanOtherCallback(scanPassportCallback)
             return scanOther;
@@ -260,85 +289,116 @@ class AssentifySdk(
         }
     }
 
-  fun getTemplates() {
-    val remoteService = RemoteClient.remoteIdPowerService
-    val call: Call<List<Templates>> = remoteService.getTemplates()
+    fun getTemplates() {
+        val remoteService = RemoteClient.remoteIdPowerService
+        val call: Call<List<Templates>> = remoteService.getTemplates()
 
-    call.enqueue(object : Callback<List<Templates>> {
-      override fun onResponse(call: Call<List<Templates>>, response: Response<List<Templates>>) {
-        if (response.isSuccessful) {
-          val remoteResult: List<Templates>? = response.body()
-          val filteredList = filterBySourceCountryCode(remoteResult)
-          val templatesByCountry = ArrayList<TemplatesByCountry>()
-          filteredList?.forEach { data ->
-            val item = TemplatesByCountry(
-              data.sourceCountry,
-              data.sourceCountryCode,
-              data.sourceCountryFlag,
-              filterTemplatesCountryCode(remoteResult, data.sourceCountryCode)!!
-            )
-            templatesByCountry.add(item)
-          }
-
-
-          assentifySdkCallback!!.onHasTemplates(filterToSupportedCountries(templatesByCountry)!!);
-        }
-      }
-
-      override fun onFailure(call: Call<List<Templates>>, t: Throwable) {
-          SentryManager.registerEvent(SentryKeys.HasTemplates + ":" +  t.message, SentryLevel.ERROR)
-      }
-    })
-  }
-
-  private fun filterBySourceCountryCode(dataList: List<Templates>?): List<Templates>? {
-    val filteredList = ArrayList<Templates>()
-    val uniqueSourceCountryCodes = ArrayList<String>()
-    dataList?.forEach { data ->
-      if (!uniqueSourceCountryCodes.contains(data.sourceCountryCode)) {
-        filteredList.add(data)
-        uniqueSourceCountryCodes.add(data.sourceCountryCode)
-      }
-    }
-    return filteredList
-  }
-
-  private fun filterTemplatesCountryCode(dataList: List<Templates>?, countryCode: String): List<Templates>? {
-    val filteredList = ArrayList<Templates>()
-    dataList?.forEach { data ->
-      if (data.sourceCountryCode == countryCode) {
-        filteredList.add(data)
-      }
-    }
-    return filteredList
-  }
+        call.enqueue(object : Callback<List<Templates>> {
+            override fun onResponse(
+                call: Call<List<Templates>>,
+                response: Response<List<Templates>>
+            ) {
+                if (response.isSuccessful) {
+                    val remoteResult: List<Templates>? = response.body()
+                    val filteredList = filterBySourceCountryCode(remoteResult)
+                    val templatesByCountry = ArrayList<TemplatesByCountry>()
+                    filteredList?.forEach { data ->
+                        val item = TemplatesByCountry(
+                            data.sourceCountry,
+                            data.sourceCountryCode,
+                            data.sourceCountryFlag,
+                            filterTemplatesCountryCode(remoteResult, data.sourceCountryCode)!!
+                        )
+                        templatesByCountry.add(item)
+                    }
 
 
-  private fun filterToSupportedCountries (dataList: List<TemplatesByCountry>?) : List<TemplatesByCountry>? {
-    var selectedCountries:List<String> = emptyList();
-       configModel.stepDefinitions.forEach{step ->
-      if(step.stepDefinition=="IdentificationDocumentCapture"){
-        step.customization.identificationDocuments!!.forEach{docStep ->
-          if(docStep.key == "IdentificationDocument.IdCard"){
-            if(docStep.selectedCountries != null){
-              selectedCountries = docStep.selectedCountries;
+                    assentifySdkCallback!!.onHasTemplates(
+                        filterToSupportedCountries(
+                            templatesByCountry
+                        )!!
+                    );
+                }
             }
-          }
+
+            override fun onFailure(call: Call<List<Templates>>, t: Throwable) {
+                SentryManager.registerEvent(
+                    SentryKeys.HasTemplates + ":" + t.message,
+                    SentryLevel.ERROR
+                )
+            }
+        })
+    }
+
+    private fun filterBySourceCountryCode(dataList: List<Templates>?): List<Templates>? {
+        val filteredList = ArrayList<Templates>()
+        val uniqueSourceCountryCodes = ArrayList<String>()
+        dataList?.forEach { data ->
+            if (!uniqueSourceCountryCodes.contains(data.sourceCountryCode)) {
+                filteredList.add(data)
+                uniqueSourceCountryCodes.add(data.sourceCountryCode)
+            }
         }
-      }
+        return filteredList
     }
-    val filteredList = ArrayList<TemplatesByCountry>()
-    dataList?.forEach { data ->
-      val foundCountry: String? = selectedCountries.find { it == data.sourceCountryCode }
-      if (foundCountry != null && foundCountry.isNotEmpty()) {
-        filteredList.add(data)
-      }
+
+    private fun filterTemplatesCountryCode(
+        dataList: List<Templates>?,
+        countryCode: String
+    ): List<Templates>? {
+        val filteredList = ArrayList<Templates>()
+        dataList?.forEach { data ->
+            if (data.sourceCountryCode == countryCode) {
+                filteredList.add(data)
+            }
+        }
+        return filteredList
     }
-    if(selectedCountries.isEmpty()){
-      return dataList;
+
+
+    private fun filterToSupportedCountries(dataList: List<TemplatesByCountry>?): List<TemplatesByCountry>? {
+        var selectedCountries: List<String> = emptyList();
+        configModel.stepDefinitions.forEach { step ->
+            if (step.stepDefinition == "IdentificationDocumentCapture") {
+                step.customization.identificationDocuments!!.forEach { docStep ->
+                    if (docStep.key == "IdentificationDocument.IdCard") {
+                        if (docStep.selectedCountries != null) {
+                            selectedCountries = docStep.selectedCountries;
+                        }
+                    }
+                }
+            }
+        }
+        val filteredList = ArrayList<TemplatesByCountry>()
+        dataList?.forEach { data ->
+            val foundCountry: String? = selectedCountries.find { it == data.sourceCountryCode }
+            if (foundCountry != null && foundCountry.isNotEmpty()) {
+                filteredList.add(data)
+            }
+        }
+        if (selectedCountries.isEmpty()) {
+            return dataList;
+        }
+        return filteredList
     }
-    return  filteredList
-  }
+
+
+    fun languageTransformation(
+        translatedCallback: LanguageTransformationCallback,
+        language: String,
+        languageTransformationData: List<LanguageTransformationModel>
+    ) {
+        if (isKeyValid) {
+            val translated = LanguageTransformation(apiKey);
+            translated.setCallback(translatedCallback)
+            translated.languageTransformation(
+                language,
+                TransformationModel(languageTransformationData)
+            )
+        } else {
+            throw Exception("Invalid Keys")
+        }
+    }
 
 
 }

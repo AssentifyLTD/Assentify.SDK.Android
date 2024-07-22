@@ -15,6 +15,9 @@ object RemoteClient {
         "https://api.admin.assentify.com/api/Authentication/"
     private const val BASE_URL_GATEWAY = "https://api.gateway.assentify.com/webapi/"
     private const val BLOB_STORAGE_URL = "https://blob.assentify.com"
+    const val LANGUAGE_TRANSFORM_URL = "https://dev.widgets.socket.assentify.com/api/"
+
+
     val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(120, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
@@ -76,4 +79,11 @@ object RemoteClient {
         .client(okHttpClient)
         .build()
         .create(RemoteWidgetsService::class.java)
+
+    val remoteLanguageTransform: RemoteTranslatedService = Retrofit.Builder()
+        .baseUrl(LANGUAGE_TRANSFORM_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .client(okHttpClient)
+        .build()
+        .create(RemoteTranslatedService::class.java)
 }

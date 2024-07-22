@@ -1,5 +1,10 @@
 package com.assentify.sdk.Core.Constants
 
+import DataType
+import LanguageTransformationModel
+import TransformationModel
+import android.util.Log
+
 
 object IdentificationDocumentCaptureKeys {
     const val name = "OnBoardMe_IdentificationDocumentCapture_name"
@@ -315,3 +320,201 @@ fun fillIdentificationDocumentCapture(outputProperties: Map<String, Any>?): Iden
 
     return identificationDocumentCapture
 }
+
+fun getLanguageTransformationEnum(key: String): Int {
+    return when {
+        key.contains(IdentificationDocumentCaptureKeys.name) ||
+                key.contains(IdentificationDocumentCaptureKeys.surname) ||
+                key.contains(IdentificationDocumentCaptureKeys.documentType) ||
+                key.contains(IdentificationDocumentCaptureKeys.country) ||
+                key.contains(IdentificationDocumentCaptureKeys.nationality) ||
+                key.contains(IdentificationDocumentCaptureKeys.idType) ||
+                key.contains(IdentificationDocumentCaptureKeys.idMaritalStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPlaceOfResidence) ||
+                key.contains(IdentificationDocumentCaptureKeys.idProvince) ||
+                key.contains(IdentificationDocumentCaptureKeys.idGovernorate) ||
+                key.contains(IdentificationDocumentCaptureKeys.idMothersName) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFathersName) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPlaceOfBirth) ||
+                key.contains(IdentificationDocumentCaptureKeys.idIssuanceAuthority) ||
+                key.contains(IdentificationDocumentCaptureKeys.idArmyStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.idReference) ||
+                key.contains(IdentificationDocumentCaptureKeys.idRegion) ||
+                key.contains(IdentificationDocumentCaptureKeys.idRegistrationLocation) ||
+                key.contains(IdentificationDocumentCaptureKeys.idCountryOfStay) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPresentAddress) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPermanentAddress) ->
+            LanguageTransformationEnum.Transliteration
+
+        key.contains(IdentificationDocumentCaptureKeys.sex) ||
+                key.contains(IdentificationDocumentCaptureKeys.idDateOfIssuance) ||
+                key.contains(IdentificationDocumentCaptureKeys.documentNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.birthDate) ||
+                key.contains(IdentificationDocumentCaptureKeys.expiryDate) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFamilyNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.identityNumberBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.idIdentityNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFaceColor) ||
+                key.contains(IdentificationDocumentCaptureKeys.idEyeColor) ||
+                key.contains(IdentificationDocumentCaptureKeys.idSpecialMarks) ||
+                key.contains(IdentificationDocumentCaptureKeys.idDocumentTypeNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFees) ||
+                key.contains(IdentificationDocumentCaptureKeys.idUniqueNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.idProfession) ||
+                key.contains(IdentificationDocumentCaptureKeys.idDrivingCategory) ||
+                key.contains(IdentificationDocumentCaptureKeys.idBloodType) ||
+                key.contains(IdentificationDocumentCaptureKeys.idCivilRegisterNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.faceCapture) ||
+                key.contains(IdentificationDocumentCaptureKeys.image) ||
+                key.contains(IdentificationDocumentCaptureKeys.capturedVideoFront) ||
+                key.contains(IdentificationDocumentCaptureKeys.capturedVideoBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.livenessStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFrontAuth) ||
+                key.contains(IdentificationDocumentCaptureKeys.isBackAuth) ||
+                key.contains(IdentificationDocumentCaptureKeys.isExpired) ||
+                key.contains(IdentificationDocumentCaptureKeys.isTampering) ||
+                key.contains(IdentificationDocumentCaptureKeys.tamperHeatMap) ||
+                key.contains(IdentificationDocumentCaptureKeys.isBackTampering) ||
+                key.contains(IdentificationDocumentCaptureKeys.backTamperHeatmap) ||
+                key.contains(IdentificationDocumentCaptureKeys.originalFrontImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.originalBackImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.ghostImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.isSkippedAfterNFails) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFailedFront) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFailedBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.skippedStatus) ->
+            LanguageTransformationEnum.Translation
+
+        else -> LanguageTransformationEnum.Transliteration
+    }
+}
+
+
+fun getLDataType(key: String): String {
+    return when {
+        key.contains(IdentificationDocumentCaptureKeys.name) ||
+                key.contains(IdentificationDocumentCaptureKeys.surname) ||
+                key.contains(IdentificationDocumentCaptureKeys.documentType) ||
+                key.contains(IdentificationDocumentCaptureKeys.country) ||
+                key.contains(IdentificationDocumentCaptureKeys.nationality) ||
+                key.contains(IdentificationDocumentCaptureKeys.idType) ||
+                key.contains(IdentificationDocumentCaptureKeys.idMaritalStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPlaceOfResidence) ||
+                key.contains(IdentificationDocumentCaptureKeys.idProvince) ||
+                key.contains(IdentificationDocumentCaptureKeys.idGovernorate) ||
+                key.contains(IdentificationDocumentCaptureKeys.idMothersName) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFathersName) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPlaceOfBirth) ||
+                key.contains(IdentificationDocumentCaptureKeys.idDrivingCategory) ||
+                key.contains(IdentificationDocumentCaptureKeys.idIssuanceAuthority) ||
+                key.contains(IdentificationDocumentCaptureKeys.idArmyStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.idProfession) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFees) ||
+                key.contains(IdentificationDocumentCaptureKeys.idReference) ||
+                key.contains(IdentificationDocumentCaptureKeys.idRegion) ||
+                key.contains(IdentificationDocumentCaptureKeys.idRegistrationLocation) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFaceColor) ||
+                key.contains(IdentificationDocumentCaptureKeys.idEyeColor) ||
+                key.contains(IdentificationDocumentCaptureKeys.idSpecialMarks) ||
+                key.contains(IdentificationDocumentCaptureKeys.idCountryOfStay) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPresentAddress) ||
+                key.contains(IdentificationDocumentCaptureKeys.idPermanentAddress) ||
+                key.contains(IdentificationDocumentCaptureKeys.sex) ||
+                key.contains(IdentificationDocumentCaptureKeys.faceCapture) ||
+                key.contains(IdentificationDocumentCaptureKeys.image) ||
+                key.contains(IdentificationDocumentCaptureKeys.isSkippedAfterNFails) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFailedFront) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFailedBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.skippedStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.capturedVideoFront) ||
+                key.contains(IdentificationDocumentCaptureKeys.capturedVideoBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.livenessStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFrontAuth) ||
+                key.contains(IdentificationDocumentCaptureKeys.isBackAuth) ||
+                key.contains(IdentificationDocumentCaptureKeys.isExpired) ||
+                key.contains(IdentificationDocumentCaptureKeys.isTampering) ||
+                key.contains(IdentificationDocumentCaptureKeys.tamperHeatMap) ||
+                key.contains(IdentificationDocumentCaptureKeys.isBackTampering) ||
+                key.contains(IdentificationDocumentCaptureKeys.backTamperHeatmap) ||
+                key.contains(IdentificationDocumentCaptureKeys.originalFrontImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.originalBackImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.ghostImage) ->
+            DataType.Text
+
+        key.contains(IdentificationDocumentCaptureKeys.birthDate) ||
+                key.contains(IdentificationDocumentCaptureKeys.expiryDate) ||
+                key.contains(IdentificationDocumentCaptureKeys.idDateOfIssuance) ->
+            DataType.Date
+
+        key.contains(IdentificationDocumentCaptureKeys.idIdentityNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.idUniqueNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.idFamilyNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.identityNumberBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.idDocumentTypeNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.idCivilRegisterNumber) ||
+                key.contains(IdentificationDocumentCaptureKeys.documentNumber) ->
+            DataType.Text // should be number
+
+        else -> DataType.Text
+    }
+}
+
+fun ignoredKeys(key: String): Boolean {
+    return when {
+        key.contains(IdentificationDocumentCaptureKeys.capturedVideoFront) ||
+                key.contains(IdentificationDocumentCaptureKeys.capturedVideoBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.livenessStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFrontAuth) ||
+                key.contains(IdentificationDocumentCaptureKeys.isBackAuth) ||
+                key.contains(IdentificationDocumentCaptureKeys.isExpired) ||
+                key.contains(IdentificationDocumentCaptureKeys.isTampering) ||
+                key.contains(IdentificationDocumentCaptureKeys.tamperHeatMap) ||
+                key.contains(IdentificationDocumentCaptureKeys.isBackTampering) ||
+                key.contains(IdentificationDocumentCaptureKeys.backTamperHeatmap) ||
+                key.contains(IdentificationDocumentCaptureKeys.originalFrontImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.originalBackImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.ghostImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.isSkippedAfterNFails) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFailedFront) ||
+                key.contains(IdentificationDocumentCaptureKeys.isFailedBack) ||
+                key.contains(IdentificationDocumentCaptureKeys.skippedStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.image) ||
+                key.contains(IdentificationDocumentCaptureKeys.faceCapture) -> true
+
+        else -> false;
+    }
+}
+
+fun getIgnoredProperties(properties: Map<String, Any>): Map<String, String> {
+    val ignoredProperties = mutableMapOf<String, String>()
+    properties.forEach { key, value ->
+        if (ignoredKeys(key)) {
+            ignoredProperties[key] = value.toString();
+        }
+    }
+
+    return ignoredProperties;
+}
+
+fun preparePropertiesToTranslate(
+    language: String,
+    properties: Map<String, Any>
+): TransformationModel {
+    val languageTransformationModels = mutableListOf<LanguageTransformationModel>()
+    properties.forEach { key, value ->
+        if (!ignoredKeys(key)) {
+            languageTransformationModels.add(
+                LanguageTransformationModel(
+                    languageTransformationEnum = getLanguageTransformationEnum(key),
+                    key = key,
+                    value = value.toString(),
+                    language = language,
+                    dataType = getLDataType(key),
+                )
+            )
+        }
+    }
+
+    return TransformationModel(languageTransformationModels)
+}
+
