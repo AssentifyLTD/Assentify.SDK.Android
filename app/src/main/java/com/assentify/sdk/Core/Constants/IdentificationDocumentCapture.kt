@@ -325,11 +325,8 @@ fun getLanguageTransformationEnum(key: String): Int {
     return when {
         key.contains(IdentificationDocumentCaptureKeys.name) ||
                 key.contains(IdentificationDocumentCaptureKeys.surname) ||
-                key.contains(IdentificationDocumentCaptureKeys.documentType) ||
-                key.contains(IdentificationDocumentCaptureKeys.country) ||
-                key.contains(IdentificationDocumentCaptureKeys.nationality) ||
                 key.contains(IdentificationDocumentCaptureKeys.idType) ||
-                key.contains(IdentificationDocumentCaptureKeys.idMaritalStatus) ||
+
                 key.contains(IdentificationDocumentCaptureKeys.idPlaceOfResidence) ||
                 key.contains(IdentificationDocumentCaptureKeys.idProvince) ||
                 key.contains(IdentificationDocumentCaptureKeys.idGovernorate) ||
@@ -339,14 +336,18 @@ fun getLanguageTransformationEnum(key: String): Int {
                 key.contains(IdentificationDocumentCaptureKeys.idIssuanceAuthority) ||
                 key.contains(IdentificationDocumentCaptureKeys.idArmyStatus) ||
                 key.contains(IdentificationDocumentCaptureKeys.idReference) ||
-                key.contains(IdentificationDocumentCaptureKeys.idRegion) ||
                 key.contains(IdentificationDocumentCaptureKeys.idRegistrationLocation) ||
-                key.contains(IdentificationDocumentCaptureKeys.idCountryOfStay) ||
                 key.contains(IdentificationDocumentCaptureKeys.idPresentAddress) ||
                 key.contains(IdentificationDocumentCaptureKeys.idPermanentAddress) ->
             LanguageTransformationEnum.Transliteration
 
-        key.contains(IdentificationDocumentCaptureKeys.sex) ||
+        key.contains(IdentificationDocumentCaptureKeys.idCountryOfStay) ||
+                key.contains(IdentificationDocumentCaptureKeys.idRegion) ||
+                key.contains(IdentificationDocumentCaptureKeys.idMaritalStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.documentType) ||
+                key.contains(IdentificationDocumentCaptureKeys.country) ||
+                key.contains(IdentificationDocumentCaptureKeys.nationality) ||
+                key.contains(IdentificationDocumentCaptureKeys.sex) ||
                 key.contains(IdentificationDocumentCaptureKeys.idDateOfIssuance) ||
                 key.contains(IdentificationDocumentCaptureKeys.documentNumber) ||
                 key.contains(IdentificationDocumentCaptureKeys.birthDate) ||
