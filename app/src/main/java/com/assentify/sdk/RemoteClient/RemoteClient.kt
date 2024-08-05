@@ -15,7 +15,7 @@ object RemoteClient {
         "https://api.admin.assentify.com/api/Authentication/"
     private const val BASE_URL_GATEWAY = "https://api.gateway.assentify.com/webapi/"
     private const val BLOB_STORAGE_URL = "https://blob.assentify.com"
-    const val LANGUAGE_TRANSFORM_URL = "https://dev.widgets.socket.assentify.com/api/"
+    const val LANGUAGE_TRANSFORM_URL = "https://widgets.socket.assentify.com/api/"
 
 
     val okHttpClient = OkHttpClient.Builder()
