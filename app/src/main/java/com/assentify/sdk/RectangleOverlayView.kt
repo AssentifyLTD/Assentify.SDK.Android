@@ -26,7 +26,7 @@ class RectangleOverlayView @JvmOverloads constructor(
 
 
     fun setCustomColor(CustomColor: String?) {
-        rectangleColor = Color.parseColor(CustomColor);
+        rectangleColor = Color.parseColor(CustomColor)?.or(10);
     }
     private val textPaint: Paint = Paint().apply {
         color =Color.WHITE
@@ -50,6 +50,7 @@ class RectangleOverlayView @JvmOverloads constructor(
         listRectF.forEach { (rectF, text) ->
             val textWidth = textPaint.measureText(text)
             val textHeight = textPaint.textSize
+            textPaint.color = rectangleColor!!;
             val backgroundRectF = RectF(
                 rectF.left + paddingLeft,
                 rectF.top,
@@ -58,7 +59,7 @@ class RectangleOverlayView @JvmOverloads constructor(
             )
             val backgroundPaint = Paint().apply {
                 color = rectangleColor!!
-                style = Paint.Style.FILL
+                style = Paint.Style.STROKE
             }
             val rectPaint: Paint = Paint().apply {
                 color = rectangleColor!!;

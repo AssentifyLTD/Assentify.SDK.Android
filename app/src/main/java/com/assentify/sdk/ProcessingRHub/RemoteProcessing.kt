@@ -131,6 +131,7 @@ class RemoteProcessing {
                 if (response.isSuccessful) {
                     val responseBody = response.body()?.string() ?: ""
                     val baseResponseDataModel = parseDataToBaseResponseDataModel(responseBody)
+                 //   Log.e("IDSCAN",baseResponseDataModel.response!!);
                     callback!!.onMessageReceived(
                         baseResponseDataModel.destinationEndpoint!!,
                         baseResponseDataModel

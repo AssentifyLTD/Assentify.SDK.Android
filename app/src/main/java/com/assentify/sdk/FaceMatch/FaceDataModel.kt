@@ -44,7 +44,7 @@ class FaceExtractedModel(
 
                 val extractedData = mutableMapOf<String, Any>()
                 outputProperties?.forEach { (key, value) ->
-                    val newKey = key.split("_").last()
+                    val newKey = key.substringAfter("FaceImageAcquisition_").split("_").joinToString(" ")
                     extractedData[newKey] = value
                 }
 
