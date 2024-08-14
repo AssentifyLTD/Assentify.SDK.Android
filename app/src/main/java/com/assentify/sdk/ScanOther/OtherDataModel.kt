@@ -61,7 +61,7 @@ open class OtherExtractedModel(
 
                 val extractedData = mutableMapOf<String, Any>()
                 outputProperties?.forEach { (key, value) ->
-                    val newKey = key.split("_").last()
+                    val newKey = key.substringAfter("IdentificationDocumentCapture_").split("_").joinToString(" ")
                     extractedData[newKey] = value
                 }
 
