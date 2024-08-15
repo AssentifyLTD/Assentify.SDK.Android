@@ -42,11 +42,7 @@ open class IDExtractedModel(
                     map
                 }
 
-                val extractedData = mutableMapOf<String, Any>()
-                outputProperties?.forEach { (key, value) ->
-                    val newKey = key.substringAfter("IdentificationDocumentCapture_").split("_").joinToString(" ")
-                    extractedData[newKey] = value
-                }
+
 
                 val identificationDocumentCapture = fillIdentificationDocumentCapture(outputProperties)
 
@@ -60,6 +56,13 @@ open class IDExtractedModel(
                 } else {
                     transformedPropertiesResult.putAll(transformedProperties)
                 }
+
+                val extractedData = mutableMapOf<String, Any>()
+                transformedPropertiesResult?.forEach { (key, value) ->
+                    val newKey = key.substringAfter("IdentificationDocumentCapture_").split("_").joinToString(" ")
+                    extractedData[newKey] = value
+                }
+
                 IDExtractedModel(outputProperties,transformedPropertiesResult, extractedData, imageUrl, faces, identificationDocumentCapture)
             } catch (e: Exception) {
                 e.printStackTrace()

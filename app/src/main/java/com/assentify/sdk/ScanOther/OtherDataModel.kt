@@ -59,11 +59,7 @@ open class OtherExtractedModel(
                     }
 
 
-                val extractedData = mutableMapOf<String, Any>()
-                outputProperties?.forEach { (key, value) ->
-                    val newKey = key.substringAfter("IdentificationDocumentCapture_").split("_").joinToString(" ")
-                    extractedData[newKey] = value
-                }
+
 
                 val identificationDocumentCapture =
                     fillIdentificationDocumentCapture(outputProperties)
@@ -88,6 +84,12 @@ open class OtherExtractedModel(
                     }
                 } else {
                     transformedDetailsResult.putAll(transformedDetails)
+                }
+
+                val extractedData = mutableMapOf<String, Any>()
+                transformedPropertiesResult?.forEach { (key, value) ->
+                    val newKey = key.substringAfter("IdentificationDocumentCapture_").split("_").joinToString(" ")
+                    extractedData[newKey] = value
                 }
 
                 OtherExtractedModel(

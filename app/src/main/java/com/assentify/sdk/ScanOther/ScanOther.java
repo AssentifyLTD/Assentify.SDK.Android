@@ -394,9 +394,13 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         });
         otherResponseModel.getOtherExtractedModel().getTransformedProperties().clear();
         otherResponseModel.getOtherExtractedModel().getTransformedDetails().clear();
+        otherResponseModel.getOtherExtractedModel().getExtractedData().clear();
         properties.forEach((key, value) -> {
             if(key.contains("OnBoardMe_IdentificationDocumentCapture")){
                 otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(key,value);
+                String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
+                        .replace("_", " ");
+                otherResponseModel.getOtherExtractedModel().getExtractedData().put(newKey,value);
             }else {
                 otherResponseModel.getOtherExtractedModel().getTransformedDetails().put(key,value);
             }
