@@ -375,8 +375,13 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             properties.put(key,value);
         });
         passportResponseModel.getPassportExtractedModel().getTransformedProperties().clear();
+        passportResponseModel.getPassportExtractedModel().getExtractedData().clear();
+
         properties.forEach((key, value) -> {
             passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(key,value);
+            String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
+                    .replace("_", " ");
+            passportResponseModel.getPassportExtractedModel().getExtractedData().put(newKey,value);
         });
         scanPassportCallback.onComplete(passportResponseModel);
     }
