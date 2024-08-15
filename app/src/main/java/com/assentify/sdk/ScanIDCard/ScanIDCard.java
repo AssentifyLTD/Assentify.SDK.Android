@@ -428,9 +428,18 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             properties.put(key,value);
         });
         idResponseModel.getIDExtractedModel().getTransformedProperties().clear();
+        idResponseModel.getIDExtractedModel().getExtractedData().clear();
         properties.forEach((key, value) -> {
             idResponseModel.getIDExtractedModel().getTransformedProperties().put(key,value);
+            String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
+                    .replace("_", " ");
+            idResponseModel.getIDExtractedModel().getExtractedData().put(newKey,value);
         });
+
+
+
+
+
         idCardCallback.onComplete(idResponseModel,order);
         order = order + 1;
         if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {

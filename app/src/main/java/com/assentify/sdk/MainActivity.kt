@@ -43,7 +43,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCallback {
+class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
 
@@ -119,45 +119,46 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
 //
 //    }
 
-//    fun startAssentifySdk() {
-//        var data: List<KycDocumentDetails> = listOf(
-//            KycDocumentDetails(
-//                name = "",
-//                order = 0,
-//                templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
-//                templateSpecimen = ""
-//            ),
-//            KycDocumentDetails(
-//                name = "",
-//                order = 1,
-//                templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
-//                templateSpecimen = ""
-//            ),
-//        )
-//        var scanID = assentifySdk.startScanIDCard(
-//            this@MainActivity,// This activity implemented from from IDCardCallback
-//            data, // List<KycDocumentDetails> || Your selected template ||,
-//            Language.Arabic ,// Optional the default is the doc language
-//        );
-//        var fragmentManager = supportFragmentManager
-//        var transaction = fragmentManager.beginTransaction()
-//        transaction.replace(R.id.fragmentContainer, scanID)
-//        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-//        transaction.commit()
-//
-//    }
-
     fun startAssentifySdk() {
-       var scanID = assentifySdk.startScanPassport(
-           this@MainActivity,// This activity implemented from from IDCardCallback
-       );
-       var fragmentManager = supportFragmentManager
-       var transaction = fragmentManager.beginTransaction()
-       transaction.replace(R.id.fragmentContainer, scanID)
-       transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-       transaction.commit()
+        var data: List<KycDocumentDetails> = listOf(
+            KycDocumentDetails(
+                name = "",
+                order = 0,
+                templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
+                templateSpecimen = ""
+            ),
+            KycDocumentDetails(
+                name = "",
+                order = 1,
+                templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
+                templateSpecimen = ""
+            ),
+        )
+        var scanID = assentifySdk.startScanIDCard(
+            this@MainActivity,// This activity implemented from from IDCardCallback
+            data, // List<KycDocumentDetails> || Your selected template ||,
+            Language.English ,// Optional the default is the doc language
+        );
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, scanID)
+        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+        transaction.commit()
 
-   }
+    }
+
+//    fun startAssentifySdk() {
+//       var scanID = assentifySdk.startScanPassport(
+//           this@MainActivity,
+//           Language.Arabic// This activity implemented from from IDCardCallback
+//       );
+//       var fragmentManager = supportFragmentManager
+//       var transaction = fragmentManager.beginTransaction()
+//       transaction.replace(R.id.fragmentContainer, scanID)
+//       transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+//       transaction.commit()
+//
+//   }
     override fun onError(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onError: ", )
     }
@@ -171,23 +172,27 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
         Log.e("IDSCAN", "onRetry: ", )
     }
 
+/*
     override fun onComplete(dataModel: PassportResponseModel) {
-        Log.e("IDSCAN", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
-        Log.e("IDSCAN", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
+        Log.e("IDSCAN extractedData", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
+        Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
+        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.transformedProperties )
     }
+*/
 
 //    override fun onComplete(dataModel: FaceResponseModel) {
 //        Log.e("IDSCAN", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
 //    }
 
-//    override fun onComplete(dataModel: IDResponseModel, order: Int) {
-//        Log.e("IDSCAN", "onComplete: " + dataModel.iDExtractedModel!!.extractedData )
-//        Log.e("IDSCAN", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
-//    }
-//
-//    override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
-//        Log.e("IDSCAN", "" )
-//    }
+    override fun onComplete(dataModel: IDResponseModel, order: Int) {
+        Log.e("IDSCAN extractedData", "onComplete: " + dataModel.iDExtractedModel!!.extractedData )
+        Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
+        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.transformedProperties )
+    }
+
+    override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
+        Log.e("IDSCAN", "" )
+    }
 
     override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {
 

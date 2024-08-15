@@ -46,11 +46,7 @@ open class PassportExtractedModel(
                         map
                     }
 
-                val extractedData = mutableMapOf<String, Any>()
-                outputProperties?.forEach { (key, value) ->
-                    val newKey = key.substringAfter("IdentificationDocumentCapture_").split("_").joinToString(" ")
-                    extractedData[newKey] = value
-                }
+
 
                 val identificationDocumentCapture =
                     fillIdentificationDocumentCapture(outputProperties)
@@ -65,6 +61,13 @@ open class PassportExtractedModel(
                 } else {
                     transformedPropertiesResult.putAll(transformedProperties)
                 }
+
+                val extractedData = mutableMapOf<String, Any>()
+                transformedPropertiesResult?.forEach { (key, value) ->
+                    val newKey = key.substringAfter("IdentificationDocumentCapture_").split("_").joinToString(" ")
+                    extractedData[newKey] = value
+                }
+
                 PassportExtractedModel(
                     outputProperties,
                     transformedPropertiesResult,
