@@ -1,17 +1,21 @@
 package com.assentify.sdk
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Surface
+import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -37,19 +41,15 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
-import  com.assentify.sdk.Core.Constants.ConstantsValues
-import com.assentify.sdk.Core.Constants.SentryManager
-import  com.assentify.sdk.Core.FileUtils.ImageUtils
-import  com.assentify.sdk.tflite.Classifier
-import  com.assentify.sdk.tflite.Classifier.Recognition
-import  com.assentify.sdk.tflite.DetectorFactory
-import  com.assentify.sdk.tflite.YoloV5Classifier
+import com.assentify.sdk.Core.Constants.ConstantsValues
+import com.assentify.sdk.Core.FileUtils.ImageUtils
+import com.assentify.sdk.tflite.Classifier
+import com.assentify.sdk.tflite.Classifier.Recognition
+import com.assentify.sdk.tflite.DetectorFactory
+import com.assentify.sdk.tflite.YoloV5Classifier
 import com.google.common.util.concurrent.ListenableFuture
-import io.sentry.Scope
-import io.sentry.ScopeCallback
-import io.sentry.Sentry
-import io.sentry.SentryLevel
 import java.io.File
+import java.lang.Math.abs
 import java.util.Base64
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -92,9 +92,12 @@ abstract class CameraPreview : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
+
         val view = inflater.inflate(R.layout.camera_preview, container, false)
         previewView = view.findViewById(R.id.previewView)
         rectangleOverlayView = view.findViewById(R.id.rectangleOverlayView)
+
 
         return view
     }
@@ -110,145 +113,172 @@ abstract class CameraPreview : Fragment() {
         frontCamera = true
     }
 
+
+    fun closeCamera() {
+        imageAnalysisListener = null
+
+        imageAnalysis?.clearAnalyzer()
+        imageAnalysis = null
+
+        if (!cameraExecutor.isShutdown) {
+            cameraExecutor.shutdown()
+        }
+
+        camera?.let {
+            it.cameraControl.cancelFocusAndMetering()
+            it.cameraControl.enableTorch(false)
+            try {
+                it.cameraControl.setZoomRatio(1.0f)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            cameraProvider?.unbindAll()
+            camera = null
+        }
+
+        cameraProvider = null
+    }
+
+
+
+
     private fun startCamera() {
-        cameraProviderFuture = ProcessCameraProvider.getInstance(requireActivity())
-        cameraProviderFuture?.addListener({
-            cameraProvider = cameraProviderFuture?.get()
-            val preview = Preview.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-            imageCapture = ImageCapture.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                .build()
-
-            val recorder = Recorder.Builder()
-                .setQualitySelector(
-                    QualitySelector.from(
-                        Quality.SD,
-                        FallbackStrategy.higherQualityOrLowerThan(Quality.SD)
-                    )
-                )
-                .build()
-            videoCapture = VideoCapture.withOutput(recorder)
-
-
-            imageAnalysisListener = ImageAnalysis.Analyzer { image ->
-                val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
-                requireActivity().runOnUiThread {
-                    if (enableGuide) {
-
-
-                        if (frontCamera) {
-                            if (faceContainer == null) {
-                                faceContainer = requireActivity().findViewById(R.id.face_container)
-                                faceContainer!!.visibility = View.VISIBLE
-                            } else {
-                                faceContainer!!.visibility = View.VISIBLE
-                            }
-                            if (faceBackground == null) {
-                                faceBackground =
-                                    requireActivity().findViewById(R.id.face_background)
-                                faceBackground!!.visibility = View.VISIBLE
-                            } else {
-                                faceBackground!!.visibility = View.VISIBLE
-                            }
-
-                        } else {
-                            if (cardContainer == null) {
-                                cardContainer = requireActivity().findViewById(R.id.card_container)
-                                cardContainer!!.visibility = View.VISIBLE
-                            } else {
-                                cardContainer!!.visibility = View.VISIBLE
-                            }
-                            if (cardBackground == null) {
-                                cardBackground =
-                                    requireActivity().findViewById(R.id.card_background)
-                                cardBackground!!.visibility = View.VISIBLE
-                            } else {
-                                cardBackground!!.visibility = View.VISIBLE
-                            }
-
-
-                        }
+            cameraProviderFuture = ProcessCameraProvider.getInstance(requireActivity())
+            cameraProviderFuture?.addListener({
+                cameraProvider = cameraProviderFuture?.get()
+                val preview = Preview.Builder()
+                    .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
                     }
 
-                }
+                imageCapture = ImageCapture.Builder()
+                    .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                    .build()
+
+                val recorder = Recorder.Builder()
+                    .setQualitySelector(
+                        QualitySelector.from(
+                            Quality.SD,
+                            FallbackStrategy.higherQualityOrLowerThan(Quality.SD)
+                        )
+                    )
+                    .build()
+                videoCapture = VideoCapture.withOutput(recorder)
+
+
+                imageAnalysisListener = ImageAnalysis.Analyzer { image ->
+                    val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
+                    requireActivity().runOnUiThread {
+                        if (enableGuide) {
+
+
+                            if (frontCamera) {
+                                if (faceContainer == null) {
+                                    faceContainer =
+                                        requireActivity().findViewById(R.id.face_container)
+                                    faceContainer!!.visibility = View.VISIBLE
+                                } else {
+                                    faceContainer!!.visibility = View.VISIBLE
+                                }
+                                if (faceBackground == null) {
+                                    faceBackground =
+                                        requireActivity().findViewById(R.id.face_background)
+                                    faceBackground!!.visibility = View.VISIBLE
+                                } else {
+                                    faceBackground!!.visibility = View.VISIBLE
+                                }
+
+                            } else {
+                                if (cardContainer == null) {
+                                    cardContainer =
+                                        requireActivity().findViewById(R.id.card_container)
+                                    cardContainer!!.visibility = View.VISIBLE
+                                } else {
+                                    cardContainer!!.visibility = View.VISIBLE
+                                }
+                                if (cardBackground == null) {
+                                    cardBackground =
+                                        requireActivity().findViewById(R.id.card_background)
+                                    cardBackground!!.visibility = View.VISIBLE
+                                } else {
+                                    cardBackground!!.visibility = View.VISIBLE
+                                }
+
+
+                            }
+                        }
+
+                    }
 
 
 
 
-                results = if (frontCamera) {
-                    detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
+                    results = if (frontCamera) {
+                        detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
 
-                } else {
-                    detector!!.recognizeImage(scaleImage)
+                    } else {
+                        detector!!.recognizeImage(scaleImage)
 
-                }
-                listRectF.clear()
-                results.forEach { item ->
-                    val confidence = (item.confidence * 100).toInt()
-                    val className = capitalizeFirstLetter(item.title);
-                    listRectF.add(RectFInfo(item.location, confidence.toString(), className))
-                }
-                processImage(scaleImage!!, image.toBitmap(), results)
-                if (enableDetect) {
-                    scaleAndDrawLocation(
+                    }
+                    listRectF.clear()
+                    results.forEach { item ->
+                        val confidence = (item.confidence * 100).toInt()
+                        val className = capitalizeFirstLetter(item.title);
+                        listRectF.add(RectFInfo(item.location, confidence.toString(), className))
+                    }
+                    val listScaleRectF = scaleAndDrawLocation(
                         listRectF,
                         image.width,
                         image.height,
                         previewView.width,
+                        previewView.height,
+                        enableDetect
+                    );
+
+                    processImage(
+                        scaleImage!!,
+                        image.toBitmap(),
+                        results,
+                        listScaleRectF,
+                        previewView.width,
                         previewView.height
                     )
+
+
+
+
+
+                    image.close()
                 }
 
+                imageAnalysis = ImageAnalysis.Builder()
+                    .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                    .setTargetRotation(Surface.ROTATION_0)
+                    .build()
+                    .also {
+                        it.setAnalyzer(cameraExecutor, imageAnalysisListener!!)
+                    }
 
-
-                image.close()
-            }
-
-            imageAnalysis = ImageAnalysis.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                .setTargetRotation(Surface.ROTATION_0)
-                .build()
-                .also {
-                    it.setAnalyzer(cameraExecutor, imageAnalysisListener!!)
+                cameraSelector = if (frontCamera) {
+                    CameraSelector.DEFAULT_FRONT_CAMERA
+                } else {
+                    CameraSelector.DEFAULT_BACK_CAMERA
                 }
 
-            cameraSelector = if (frontCamera) {
-                CameraSelector.DEFAULT_FRONT_CAMERA
-            } else {
-                CameraSelector.DEFAULT_BACK_CAMERA
-            }
+                try {
+                    cameraProvider?.unbindAll()
+                    camera = cameraProvider?.bindToLifecycle(
+                        this, cameraSelector!!, preview, imageCapture, imageAnalysis, videoCapture
+                    )
+                    camera?.cameraControl?.setZoomRatio(0f)
+                    sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
+                } catch (exc: Exception) {
+                }
 
-            try {
-                cameraProvider?.unbindAll()
-                camera = cameraProvider?.bindToLifecycle(
-                    this, cameraSelector!!, preview, imageCapture, imageAnalysis, videoCapture
-                )
-                camera?.cameraControl?.setZoomRatio(0f)
-                sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
-            } catch (exc: Exception) {
-            }
+            }, ContextCompat.getMainExecutor(requireActivity()))
 
-        }, ContextCompat.getMainExecutor(requireActivity()))
-    }
-
-    fun closeCamera() {
-        cameraExecutor.shutdown()
-        camera?.let {
-            it.cameraControl?.cancelFocusAndMetering()
-            it.cameraControl?.enableTorch(false)
-            it.cameraControl?.setZoomRatio(0f)
-            cameraProvider?.unbindAll()
-            camera = null
-        }
-        imageAnalysisListener = null
-        imageAnalysis?.clearAnalyzer()
-        imageAnalysis = null
     }
 
 
@@ -257,8 +287,10 @@ abstract class CameraPreview : Fragment() {
         width: Int,
         height: Int,
         previewWidth: Int,
-        previewHeight: Int
-    ) {
+        previewHeight: Int,
+        enableDetect: Boolean
+    ): MutableList<Pair<RectF, String>> {
+
         val listScaleRectF: MutableList<Pair<RectF, String>> = mutableListOf()
         listRectF.forEach { rectInfo ->
             val location = rectInfo.rectF
@@ -288,14 +320,21 @@ abstract class CameraPreview : Fragment() {
                 )
             )
         }
-        rectangleOverlayView.setListRect(listScaleRectF)
+        if (enableDetect) {
+            rectangleOverlayView.setListRect(listScaleRectF)
+        }
+        return listScaleRectF;
+
     }
 
 
     protected abstract fun processImage(
         croppedBitmap: Bitmap,
         normalImage: Bitmap,
-        results: List<Classifier.Recognition>
+        results: List<Classifier.Recognition>,
+        listScaleRectF: MutableList<Pair<RectF, String>>,
+        previewWidth: Int,
+        previewHeight: Int,
     )
 
     fun setRectFCustomColor(

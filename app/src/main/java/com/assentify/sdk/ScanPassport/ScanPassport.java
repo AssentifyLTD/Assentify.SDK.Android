@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
@@ -48,6 +49,7 @@ import java.util.concurrent.Executors;
 
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
+import kotlin.Pair;
 
 
 public class ScanPassport extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
@@ -85,7 +87,10 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
     private int videoCounter = -1;
 
-    private   PassportResponseModel passportResponseModel;
+    private PassportResponseModel passportResponseModel;
+
+    private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
+    private boolean isRectFInsideTheScreen = false;
 
     public ScanPassport(
             ConfigModel configModel,
@@ -122,11 +127,16 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
 
     @Override
-    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results) {
+    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
         this.results = results;
         if (hasFaceOrCard()) {
             highQualityBitmaps.add(normalImage);
+            listScaleRectF.forEach((item) -> {
+                if (item.component2().contains(ConstantsValues.CardName)) {
+                    isRectFInsideTheScreen = detectIfInsideTheScreen.isRectFWithinMargins(item.component1(), previewWidth, previewHeight);
+                }
+            });
         }
         this.croppedBitmap = croppedBitmap;
         for (final Classifier.Recognition result : results) {
@@ -137,7 +147,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             }
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-            setRectFCustomColor(environmentalConditions.getCustomColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            if(isRectFInsideTheScreen) {
+                setRectFCustomColor(ConstantsValues.DetectColor , environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            }
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
         }
@@ -179,7 +191,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
+                    brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 1 && sendingFlagsZoom.size() > 1) {
                         if (hasFaceOrCard()) {
@@ -218,7 +230,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         start = false;
                         Map<String, String> transformedProperties = new HashMap<>();
-                        PassportExtractedModel  passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
+                        PassportExtractedModel passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
                         passportResponseModel = new PassportResponseModel(
                                 BaseResponseDataModel.getDestinationEndpoint(),
                                 passportExtractedModel,
@@ -372,16 +384,16 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     @Override
     public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
         getIgnoredProperties(Objects.requireNonNull(passportResponseModel.getPassportExtractedModel().getOutputProperties())).forEach((key, value) -> {
-            properties.put(key,value);
+            properties.put(key, value);
         });
         passportResponseModel.getPassportExtractedModel().getTransformedProperties().clear();
         passportResponseModel.getPassportExtractedModel().getExtractedData().clear();
 
         properties.forEach((key, value) -> {
-            passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(key,value);
+            passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(key, value);
             String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
                     .replace("_", " ");
-            passportResponseModel.getPassportExtractedModel().getExtractedData().put(newKey,value);
+            passportResponseModel.getPassportExtractedModel().getExtractedData().put(newKey, value);
         });
         scanPassportCallback.onComplete(passportResponseModel);
     }
@@ -389,5 +401,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
         scanPassportCallback.onComplete(passportResponseModel);
+    }
+
+    public void stopScanning(){
+        closeCamera();
     }
 }
