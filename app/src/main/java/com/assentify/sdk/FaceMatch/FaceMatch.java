@@ -9,6 +9,7 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 
 import com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
@@ -38,6 +39,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.sentry.SentryLevel;
+import kotlin.Pair;
 
 
 public class FaceMatch extends CameraPreview implements RemoteProcessingCallback {
@@ -73,6 +75,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     private String faceMatch = "FaceMatch";
     private int videoCounter = -1;
+
+    private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
+    private boolean isRectFInsideTheScreen = false;
 
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
@@ -111,12 +116,17 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     @Override
-    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results) {
+    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
         this.results = results;
         if (hasFaceOrCard()) {
             bitmaps.add(normalImage);
             highQualityBitmaps.add(normalImage);
+            listScaleRectF.forEach((item) -> {
+                if (item.component2().contains(ConstantsValues.FaceName)) {
+                    isRectFInsideTheScreen = detectIfInsideTheScreen.isRectFWithinMargins(item.component1(), previewWidth, previewHeight);
+                }
+            });
         }
         this.croppedBitmap = croppedBitmap;
         for (final Classifier.Recognition result : results) {
@@ -127,7 +137,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
         }
         if (motion == MotionType.SENDING) {
-            setRectFCustomColor(environmentalConditions.getCustomColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            if(isRectFInsideTheScreen){
+                setRectFCustomColor(ConstantsValues.DetectColor , environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            }
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
         }
@@ -167,13 +179,12 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 brightness
         )) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen) {
                     if (hasFaceOrCard()) {
                         createClipsService.schedule(() -> {
                             stopRecording();
                         }, 250, TimeUnit.MILLISECONDS);
                         start = false;
-
                     }
                 }
 
@@ -342,6 +353,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         });
 
         remoteProcessing.uploadVideo(videoCounter, video, configModel, faceMatch);
+    }
+
+    public void stopScanning(){
+        closeCamera();
     }
 
 
