@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import  com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import  com.assentify.sdk.CheckEnvironment.DetectZoom;
 import  com.assentify.sdk.Core.Constants.BlockType;
 import  com.assentify.sdk.Core.Constants.ConstantsValues;
@@ -47,6 +48,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import io.sentry.SentryLevel;
+import kotlin.Pair;
 
 public class ScanOther  extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
 
@@ -86,6 +88,9 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     private  int videoCounter = -1;
 
     private OtherResponseModel otherResponseModel;
+
+    private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
+    private boolean isRectFInsideTheScreen = false;
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public ScanOther(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
@@ -117,11 +122,16 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
 
     }
     @Override
-    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results) {
+    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
         this.results = results;
         if (hasFaceOrCard()) {
             highQualityBitmaps.add(normalImage);
+            listScaleRectF.forEach((item) -> {
+                if (item.component2().contains(ConstantsValues.CardName)) {
+                    isRectFInsideTheScreen = detectIfInsideTheScreen.isRectFWithinMargins(item.component1(), previewWidth, previewHeight);
+                }
+            });
         }
         this.croppedBitmap = croppedBitmap;
         for (final Classifier.Recognition result : results) {
@@ -132,7 +142,9 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             }
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-            setRectFCustomColor(environmentalConditions.getCustomColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
+            if(isRectFInsideTheScreen){
+                setRectFCustomColor(ConstantsValues.DetectColor ,environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
+            }
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide());
         }
@@ -177,7 +189,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             }
         }
         if (environmentalConditions.checkConditions(
-                brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
+                brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 1  && sendingFlagsZoom.size() > 1) {
                     if (hasFaceOrCard()) {
@@ -412,6 +424,10 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
         scanOtherCallback.onComplete(otherResponseModel);
+    }
+
+    public void stopScanning(){
+        closeCamera();
     }
 
 }

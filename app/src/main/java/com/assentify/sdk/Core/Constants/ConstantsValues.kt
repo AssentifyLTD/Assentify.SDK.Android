@@ -3,6 +3,9 @@ package com.assentify.sdk.Core.Constants
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 
 object ConstantsValues {
+    const val CardName = "Card"
+    const val FaceName = "Face"
+    const val DetectColor = "#499C5B"
     const val ModelFileName = "best-fp16.tflite"
     const val AssetsPath = "file:///android_asset/"
     const val LabelFileName = "file:///android_asset/classes.txt"

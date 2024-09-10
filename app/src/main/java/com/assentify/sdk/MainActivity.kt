@@ -18,6 +18,7 @@ import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
 import com.assentify.sdk.Core.Constants.MotionType
@@ -32,6 +33,7 @@ import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.IDExtractedModel
 import com.assentify.sdk.ScanIDCard.IDResponseModel
+import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanOther.ScanOtherCallback
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 import com.assentify.sdk.ScanPassport.ScanPassport
@@ -46,6 +48,7 @@ import javax.security.auth.callback.PasswordCallback
 class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
+    private lateinit var scanID:ScanIDCard;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,10 +72,11 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
 
                 );
 
+
             assentifySdk = AssentifySdk(
-                "trwMw7AKPIVuNii4Y3D0EncDidbCwLQ4kVcJlnBGdY8CO3zVhydAn7sguTA3oVC9I9NdWAMM9nsDjriCN4g",
-                "b096e6ea-2a81-44cb-858e-08dbcbc01489",
-                "8B31D32E1F7476671B743DD6C0D4B4E0D4AA6C0386A16E4586D8DBA9B25AEFEA",
+                "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
+                "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
+                "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
                 environmentalConditions,
                 this,
                 true,
@@ -134,11 +138,12 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
                 templateSpecimen = ""
             ),
         )
-        var scanID = assentifySdk.startScanIDCard(
+         scanID = assentifySdk.startScanIDCard(
             this@MainActivity,// This activity implemented from from IDCardCallback
             data, // List<KycDocumentDetails> || Your selected template ||,
             Language.English ,// Optional the default is the doc language
         );
+
         var fragmentManager = supportFragmentManager
         var transaction = fragmentManager.beginTransaction()
         transaction.replace(R.id.fragmentContainer, scanID)
@@ -185,13 +190,17 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
 //    }
 
     override fun onComplete(dataModel: IDResponseModel, order: Int) {
+        runOnUiThread {
+            scanID.stopScanning();
+            finish();
+        }
         Log.e("IDSCAN extractedData", "onComplete: " + dataModel.iDExtractedModel!!.extractedData )
         Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
         Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.transformedProperties )
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
-        Log.e("IDSCAN", "" )
+        Log.e("IDSCAN", "onWrongTemplate" )
     }
 
     override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {

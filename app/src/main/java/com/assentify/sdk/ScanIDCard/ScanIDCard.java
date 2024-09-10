@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
@@ -54,12 +55,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import io.sentry.SentryLevel;
+import kotlin.Pair;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class ScanIDCard extends CameraPreview implements RemoteProcessingCallback , LanguageTransformationCallback {
+public class ScanIDCard extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
 
 
     private IDCardCallback idCardCallback;
@@ -85,7 +87,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
 
-
     Boolean processMrz;
     Boolean performLivenessDetection;
     Boolean saveCapturedVideo;
@@ -93,7 +94,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     Boolean storeImageStream;
     ConfigModel configModel;
 
-    private  String language;
+    private String language;
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
     private int videoCounter = -1;
@@ -105,6 +106,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     ;
 
     private IDResponseModel idResponseModel;
+
+    private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
+    private boolean isRectFInsideTheScreen = false;
+
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
                       Boolean performLivenessDetection,
@@ -151,11 +156,17 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     }
 
     @Override
-    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results) {
+    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
         this.results = results;
+
         if (hasFaceOrCard()) {
             highQualityBitmaps.add(normalImage);
+            listScaleRectF.forEach((item) -> {
+                if (item.component2().contains(ConstantsValues.CardName)) {
+                    isRectFInsideTheScreen = detectIfInsideTheScreen.isRectFWithinMargins(item.component1(), previewWidth, previewHeight);
+                }
+            });
         }
         this.croppedBitmap = croppedBitmap;
         for (final Classifier.Recognition result : results) {
@@ -166,7 +177,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             }
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-            setRectFCustomColor(environmentalConditions.getCustomColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            if (isRectFInsideTheScreen) {
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            }
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
         }
@@ -208,7 +221,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness) && motion == MotionType.SENDING) {
+                    brightness) && motion == MotionType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > 1 && sendingFlagsMotion.size() > 1) {
                         if (hasFaceOrCard()) {
@@ -248,7 +261,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         Map<String, String> transformedProperties = new HashMap<>();
                         start = false;
-                        IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(),transformedProperties);
+                        IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
                         idResponseModel = new IDResponseModel(
                                 BaseResponseDataModel.getDestinationEndpoint(),
                                 idExtractedModel,
@@ -278,7 +291,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                                     preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
                             );
                         }
-
 
 
                     } else {
@@ -425,22 +437,19 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     @Override
     public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
         getIgnoredProperties(Objects.requireNonNull(idResponseModel.getIDExtractedModel().getOutputProperties())).forEach((key, value) -> {
-            properties.put(key,value);
+            properties.put(key, value);
         });
         idResponseModel.getIDExtractedModel().getTransformedProperties().clear();
         idResponseModel.getIDExtractedModel().getExtractedData().clear();
         properties.forEach((key, value) -> {
-            idResponseModel.getIDExtractedModel().getTransformedProperties().put(key,value);
+            idResponseModel.getIDExtractedModel().getTransformedProperties().put(key, value);
             String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
                     .replace("_", " ");
-            idResponseModel.getIDExtractedModel().getExtractedData().put(newKey,value);
+            idResponseModel.getIDExtractedModel().getExtractedData().put(newKey, value);
         });
 
 
-
-
-
-        idCardCallback.onComplete(idResponseModel,order);
+        idCardCallback.onComplete(idResponseModel, order);
         order = order + 1;
         if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
             Thread backgroundThread = new Thread(() -> {
@@ -457,7 +466,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
-        idCardCallback.onComplete(idResponseModel,order);
+        idCardCallback.onComplete(idResponseModel, order);
         order = order + 1;
         if (!kycDocumentDetails.isEmpty() && order < kycDocumentDetails.size()) {
             Thread backgroundThread = new Thread(() -> {
@@ -470,6 +479,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             });
             backgroundThread.start();
         }
+    }
+
+    public void stopScanning(){
+        closeCamera();
     }
 
 
