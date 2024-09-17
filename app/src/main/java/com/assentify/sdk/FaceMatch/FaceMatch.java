@@ -54,7 +54,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     private List<Bitmap> bitmaps = new ArrayList<>();
     private RemoteProcessing remoteProcessing;
-    private boolean start = true;
+    private boolean start = false;
     private String apiKey = "";
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
@@ -359,5 +359,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         closeCamera();
     }
 
-
+    public void startScanning(){
+        start = true;
+    }
 }
