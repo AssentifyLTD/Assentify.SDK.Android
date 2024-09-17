@@ -56,7 +56,7 @@ class AssentifySdk(
     private lateinit var faceMatch: FaceMatch;
     private lateinit var configModel: ConfigModel;
     private var stepID: Int = -1;
-
+    private var templates: List<TemplatesByCountry> = emptyList();
 
     init {
         require(apiKey.isNotBlank() && apiKey.isNotEmpty()) { "ApiKey must not be blank or null" }
@@ -78,7 +78,7 @@ class AssentifySdk(
             ) {
                 if (response.isSuccessful) {
                     configModel = response.body()!!
-                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
+                    getTemplatesByCountry();
                     GlobalScope.launch {
                         configModel.stepDefinitions.forEach { item ->
                             if (item.stepDefinition == "IdentificationDocumentCapture") {
@@ -289,7 +289,7 @@ class AssentifySdk(
         }
     }
 
-    fun getTemplates() {
+   private fun getTemplatesByCountry() {
         val remoteService = RemoteClient.remoteIdPowerService
         val call: Call<List<Templates>> = remoteService.getTemplates()
 
@@ -313,11 +313,11 @@ class AssentifySdk(
                     }
 
 
-                    assentifySdkCallback!!.onHasTemplates(
-                        filterToSupportedCountries(
-                            templatesByCountry
-                        )!!
-                    );
+                   templates = filterToSupportedCountries(
+                        templatesByCountry
+                    )!!;
+
+                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel);
                 }
             }
 
@@ -400,5 +400,7 @@ class AssentifySdk(
         }
     }
 
+
+    fun getTemplates () = templates;
 
 }
