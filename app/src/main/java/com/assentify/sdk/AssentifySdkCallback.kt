@@ -7,5 +7,4 @@ interface AssentifySdkCallback {
     fun onAssentifySdkInitError(message: String)
     fun onAssentifySdkInitSuccess(configModel: ConfigModel)
 
-    fun onHasTemplates(templates: List<TemplatesByCountry>)
 }

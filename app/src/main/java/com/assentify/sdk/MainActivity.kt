@@ -45,7 +45,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback {
+class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallback {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var scanID:ScanIDCard;
@@ -103,27 +103,29 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         Log.e("MainActivity", "onAssentifySdkInitSuccess: "  )
+        Log.e("onAssentifySdkInitSuccess", assentifySdk.getTemplates().toString() )
         startAssentifySdk();
     }
-//    fun startAssentifySdk() {
-//
-//        val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
-//       val base64Image =
-//            ImageToBase64Converter().execute(image).get()
-//        var face = assentifySdk.startFaceMatch(
-//            this@MainActivity, // This activity implemented from from FaceMatchCallback
-//            base64Image // Target  Image
-//        );
-//        Thread.sleep(1000)
-//        var fragmentManager = supportFragmentManager
-//        var transaction = fragmentManager.beginTransaction()
-//        transaction.replace(R.id.fragmentContainer, face)
-//        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-//        transaction.commit()
-//
-//    }
+   fun startAssentifySdk() {
 
-    fun startAssentifySdk() {
+       val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
+      val base64Image =
+           ImageToBase64Converter().execute(image).get()
+       var face = assentifySdk.startFaceMatch(
+           this@MainActivity, // This activity implemented from from FaceMatchCallback
+           base64Image // Target  Image
+       );
+       Thread.sleep(1000)
+       face.startScanning();
+       var fragmentManager = supportFragmentManager
+       var transaction = fragmentManager.beginTransaction()
+       transaction.replace(R.id.fragmentContainer, face)
+       transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+       transaction.commit()
+
+   }
+
+/*    fun startAssentifySdk() {
         var data: List<KycDocumentDetails> = listOf(
             KycDocumentDetails(
                 name = "",
@@ -150,7 +152,7 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
         transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
         transaction.commit()
 
-    }
+    }*/
 
 //    fun startAssentifySdk() {
 //       var scanID = assentifySdk.startScanPassport(
@@ -185,11 +187,11 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
     }
 */
 
-//    override fun onComplete(dataModel: FaceResponseModel) {
-//        Log.e("IDSCAN", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
-//    }
+   override fun onComplete(dataModel: FaceResponseModel) {
+       Log.e("IDSCAN", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
+   }
 
-    override fun onComplete(dataModel: IDResponseModel, order: Int) {
+/*    override fun onComplete(dataModel: IDResponseModel, order: Int) {
         runOnUiThread {
             scanID.stopScanning();
             finish();
@@ -201,7 +203,7 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onWrongTemplate" )
-    }
+    }*/
 
     override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {
 
@@ -269,10 +271,6 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback 
 
         println("MainActivity onEnvironmentalConditionsChange" + zoomType)
     }*/
-
-    override fun onHasTemplates(templates: List<TemplatesByCountry>) {
-        println("MainActivity onEnvironmentalConditionsChange")
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
