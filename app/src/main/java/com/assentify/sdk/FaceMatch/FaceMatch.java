@@ -1,5 +1,6 @@
 package com.assentify.sdk.FaceMatch;
 
+import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 
 import android.graphics.Bitmap;
@@ -179,7 +180,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 brightness
         )) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > MotionLimit && isRectFInsideTheScreen) {
                     if (hasFaceOrCard()) {
                         createClipsService.schedule(() -> {
                             stopRecording();
@@ -197,7 +198,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 public void run() {
                     faceMatchCallback.onEnvironmentalConditionsChange(
                             brightness,
-                            sendingFlags.size() == 0 ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND
+                            sendingFlags.size() == 0 ? MotionType.NO_DETECT : sendingFlags.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND
                     );
                 }
             });
