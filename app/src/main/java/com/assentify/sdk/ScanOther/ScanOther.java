@@ -1,5 +1,7 @@
 package com.assentify.sdk.ScanOther;
 
+import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionLimit;
+import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
 import static  com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -191,7 +193,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         if (environmentalConditions.checkConditions(
                 brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > 1  && sendingFlagsZoom.size() > 1) {
+                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionLimit   && sendingFlagsZoom.size() > ZoomLimit) {
                     if (hasFaceOrCard()) {
                         stopRecording();
                     }
@@ -205,7 +207,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
                 public void run() {
                     scanOtherCallback.onEnvironmentalConditionsChange(
                             brightness,
-                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
+                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
                             zoom);
                 }
             });
