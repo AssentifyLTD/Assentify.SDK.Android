@@ -26,6 +26,7 @@
         android:supportsRtl="true"
         tools:ignore="HardcodedDebugMode">
 
+
         <meta-data
             android:name="io.sentry.dsn"
             android:value="https://4a19cbdb27d1b951d8c8b04cce125b8d@o4507430254673920.ingest.us.sentry.io/4507486592696320" /> <!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
