@@ -64,6 +64,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
     ConfigModel configModel;
+
+    Boolean showCountDownView = true;
     private MotionType motion = MotionType.NO_DETECT;
     private RectF rectFCard = new RectF();
     private List<RectF> motionRectF = new ArrayList<>();
@@ -84,7 +86,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                      Boolean performLivenessDetection,
                      Boolean saveCapturedVideo,
                      Boolean storeCapturedDocument,
-                     Boolean storeImageStream
+                     Boolean storeImageStream,
+                     Boolean showCountDownView
     ) {
         this.apiKey = apiKey;
         frontCamera();
@@ -95,6 +98,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
+        this.showCountDownView = showCountDownView;
 
     }
 
@@ -137,8 +141,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
         }
         if (motion == MotionType.SENDING) {
-            if(isRectFInsideTheScreen){
-                setRectFCustomColor(ConstantsValues.DetectColor , environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            if (isRectFInsideTheScreen) {
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
             }
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
@@ -150,46 +154,59 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     protected void checkEnvironment() {
         if (getActivity() != null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (hasFaceOrCard() && start) {
-                startRecording();
-            }
-        }
-        ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
-        DetectMotion detectMotion = new DetectMotion();
-        brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
-
-        if (motionRectF.size() >= 2) {
-            if (results.isEmpty()) {
-                motionRectF.clear();
-                sendingFlags.clear();
-                motion = MotionType.NO_DETECT;
-            } else {
-                motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
-                if (motion == MotionType.SENDING) {
-                    sendingFlags.add(MotionType.SENDING);
-                } else {
-                    sendingFlags.clear();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (hasFaceOrCard() && start) {
+                    startRecording();
                 }
             }
-        }
+            ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
+            DetectMotion detectMotion = new DetectMotion();
+            brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
 
-
-        if (environmentalConditions.checkConditions(
-                brightness
-        )) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen) {
-                    if (hasFaceOrCard()) {
-                        createClipsService.schedule(() -> {
-                            stopRecording();
-                        }, 250, TimeUnit.MILLISECONDS);
-                        start = false;
+            if (motionRectF.size() >= 2) {
+                if (results.isEmpty()) {
+                    motionRectF.clear();
+                    sendingFlags.clear();
+                    motion = MotionType.NO_DETECT;
+                } else {
+                    motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
+                    if (motion == MotionType.SENDING) {
+                        sendingFlags.add(MotionType.SENDING);
+                    } else {
+                        sendingFlags.clear();
                     }
                 }
-
             }
-        }
+
+
+            if (environmentalConditions.checkConditions(
+                    brightness
+            )) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen) {
+                        if (hasFaceOrCard()) {
+                            start = false;
+                            if(this.showCountDownView){
+                                showCountDown(new CountDownCallback() {
+                                    @Override
+                                    public void onCountDownFinished() {
+                                        createClipsService.schedule(() -> {
+                                            stopRecording();
+                                        }, 250, TimeUnit.MILLISECONDS);
+
+                                    }
+                                },environmentalConditions.getHoldHandColor());
+                            }else {
+                                createClipsService.schedule(() -> {
+                                    stopRecording();
+                                }, 250, TimeUnit.MILLISECONDS);
+                            }
+
+                        }
+
+                    }
+                }
+            }
 
 
             getActivity().runOnUiThread(new Runnable() {
@@ -355,11 +372,11 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         remoteProcessing.uploadVideo(videoCounter, video, configModel, faceMatch);
     }
 
-    public void stopScanning(){
+    public void stopScanning() {
         closeCamera();
     }
 
-    public void startScanning(){
+    public void startScanning() {
         start = true;
     }
 }
