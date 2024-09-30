@@ -243,7 +243,7 @@ class AssentifySdk(
         }
     }
 
-    fun startFaceMatch(faceMatchCallback: FaceMatchCallback, image: String): FaceMatch {
+    fun startFaceMatch(faceMatchCallback: FaceMatchCallback, image: String,showCountDown:Boolean = true): FaceMatch {
         if (isKeyValid) {
             faceMatch = FaceMatch(
                 configModel,
@@ -252,7 +252,8 @@ class AssentifySdk(
                 performLivenessDetection,
                 saveCapturedVideoFace,
                 storeCapturedDocument,
-                storeImageStream
+                storeImageStream,
+                showCountDown,
             )
             faceMatch.setFaceMatchCallback(faceMatchCallback)
             faceMatch.setSecondImage(image)

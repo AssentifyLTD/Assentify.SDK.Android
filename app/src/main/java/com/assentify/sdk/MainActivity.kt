@@ -45,7 +45,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallback {
+class MainActivity : AppCompatActivity() ,AssentifySdkCallback ,FaceMatchCallback {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var scanID:ScanIDCard;
@@ -106,14 +106,14 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         Log.e("onAssentifySdkInitSuccess", assentifySdk.getTemplates().toString() )
         startAssentifySdk();
     }
-   fun startAssentifySdk() {
+ fun startAssentifySdk() {
 
        val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
       val base64Image =
            ImageToBase64Converter().execute(image).get()
        var face = assentifySdk.startFaceMatch(
            this@MainActivity, // This activity implemented from from FaceMatchCallback
-           base64Image // Target  Image
+           base64Image,true // Target  Image
        );
        Thread.sleep(1000)
        face.startScanning();
@@ -125,7 +125,8 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
 
    }
 
-/*    fun startAssentifySdk() {
+/*
+  fun startAssentifySdk() {
         var data: List<KycDocumentDetails> = listOf(
             KycDocumentDetails(
                 name = "",
@@ -152,9 +153,10 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
         transaction.commit()
 
-    }*/
+    }
+*/
 
-/*    fun startAssentifySdk() {
+  /*  fun startAssentifySdk() {
        var scanID = assentifySdk.startScanPassport(
            this@MainActivity,
            Language.Arabic// This activity implemented from from IDCardCallback
@@ -179,22 +181,24 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         Log.e("IDSCAN", "onRetry: ", )
     }
 
-/*
-    override fun onComplete(dataModel: PassportResponseModel) {
+
+ /*   override fun onComplete(dataModel: PassportResponseModel) {
         Log.e("IDSCAN extractedData", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
         Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
         Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.transformedProperties )
-    }
-*/
+    }*/
+
+
 
    override fun onComplete(dataModel: FaceResponseModel) {
        Log.e("IDSCAN", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
    }
 
+
 /*    override fun onComplete(dataModel: IDResponseModel, order: Int) {
         runOnUiThread {
             scanID.stopScanning();
-          //  finish();
+            finish();
         }
         Log.e("IDSCAN extractedData", "onComplete: " + dataModel.iDExtractedModel!!.extractedData )
         Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )

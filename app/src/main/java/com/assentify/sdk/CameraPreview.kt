@@ -10,16 +10,17 @@ import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Surface
-import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
@@ -43,13 +44,13 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.FileUtils.ImageUtils
+import com.assentify.sdk.FaceMatch.CountDownCallback
 import com.assentify.sdk.tflite.Classifier
 import com.assentify.sdk.tflite.Classifier.Recognition
 import com.assentify.sdk.tflite.DetectorFactory
 import com.assentify.sdk.tflite.YoloV5Classifier
 import com.google.common.util.concurrent.ListenableFuture
 import java.io.File
-import java.lang.Math.abs
 import java.util.Base64
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -428,6 +429,31 @@ abstract class CameraPreview : Fragment() {
     }
 
     protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
+
+    protected fun showCountDown(callback: CountDownCallback,color: String) {
+        requireActivity().runOnUiThread {
+            val countDownContainer = requireActivity().findViewById<View>(R.id.countDownContainer) as LinearLayout
+            countDownContainer.visibility = View.VISIBLE
+            val countDownText = requireActivity().findViewById<View>(R.id.countDownText) as TextView
+            countDownText.visibility = View.VISIBLE
+            countDownText.setTextColor(Color.parseColor(color))
+            var counter = 3;
+            Handler(Looper.getMainLooper()).postDelayed({
+                object : CountDownTimer(3000, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        countDownText.text = counter.toString()
+                        counter--;
+                    }
+                    override fun onFinish() {
+                        countDownText.visibility = View.GONE
+                        // Call the callback's method
+                        callback.onCountDownFinished()
+                    }
+                }.start()
+            }, 1000)
+        }
+    }
+
 
 
 }
