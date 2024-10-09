@@ -45,106 +45,108 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback ,FaceMatchCallback {
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
-    private lateinit var scanID:ScanIDCard;
+    private lateinit var scanID: ScanIDCard;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         if (ContextCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
+                        applicationContext,
+                        Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
         ) {
 
             val environmentalConditions = EnvironmentalConditions(
-                true,
-                true,
-                500.0f,
-                00.0f,
-                50.0f,
-                100.0f,
-                "#FFFFFF",
-                "#FFC400",
+                    true,
+                    true,
+                    500.0f,
+                    00.0f,
+                    50.0f,
+                    100.0f,
+                    "#FFFFFF",
+                    "#FFC400",
 
-                );
+                    );
 
 
             assentifySdk = AssentifySdk(
-                "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
-                "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
-                "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
-                environmentalConditions,
-                this,
-                true,
-                true,
-                false,
-                true,
-                true,
-                true,
+                    "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
+                    "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
+                    "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
+                    environmentalConditions,
+                    this,
+                    true,
+                    true,
+                    false,
+                    true,
+                    true,
+                    true,
             );
 
         } else {
             ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CAMERA),
-                CAMERA_PERMISSION_REQUEST_CODE
+                    this,
+                    arrayOf(Manifest.permission.CAMERA),
+                    CAMERA_PERMISSION_REQUEST_CODE
             )
         }
 
     }
 
     override fun onAssentifySdkInitError(message: String) {
-        Log.e("MainActivity", "onAssentifySdkInitError: " + message )
+        Log.e("MainActivity", "onAssentifySdkInitError: " + message)
     }
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
-        Log.e("MainActivity", "onAssentifySdkInitSuccess: "  )
-        Log.e("onAssentifySdkInitSuccess", assentifySdk.getTemplates().toString() )
+        Log.e("MainActivity", "onAssentifySdkInitSuccess: ")
+        Log.e("onAssentifySdkInitSuccess", assentifySdk.getTemplates().toString())
         startAssentifySdk();
     }
- fun startAssentifySdk() {
+    /*
+     fun startAssentifySdk() {
 
-       val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
-      val base64Image =
-           ImageToBase64Converter().execute(image).get()
-       var face = assentifySdk.startFaceMatch(
-           this@MainActivity, // This activity implemented from from FaceMatchCallback
-           base64Image,true // Target  Image
-       );
-       Thread.sleep(1000)
-       face.startScanning();
-       var fragmentManager = supportFragmentManager
-       var transaction = fragmentManager.beginTransaction()
-       transaction.replace(R.id.fragmentContainer, face)
-       transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-       transaction.commit()
+           val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
+          val base64Image =
+               ImageToBase64Converter().execute(image).get()
+           var face = assentifySdk.startFaceMatch(
+               this@MainActivity, // This activity implemented from from FaceMatchCallback
+               base64Image,true // Target  Image
+           );
+           Thread.sleep(1000)
+           face.startScanning();
+           var fragmentManager = supportFragmentManager
+           var transaction = fragmentManager.beginTransaction()
+           transaction.replace(R.id.fragmentContainer, face)
+           transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+           transaction.commit()
 
-   }
+       }
+    */
 
-/*
-  fun startAssentifySdk() {
+
+    fun startAssentifySdk() {
         var data: List<KycDocumentDetails> = listOf(
-            KycDocumentDetails(
-                name = "",
-                order = 0,
-                templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
-                templateSpecimen = ""
-            ),
-            KycDocumentDetails(
-                name = "",
-                order = 1,
-                templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
-                templateSpecimen = ""
-            ),
+          /*      KycDocumentDetails(
+                        name = "",
+                        order = 0,
+                        templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
+                        templateSpecimen = ""
+                ),*/
+                KycDocumentDetails(
+                        name = "",
+                        order = 0,
+                        templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
+                        templateSpecimen = ""
+                ),
         )
-         scanID = assentifySdk.startScanIDCard(
-            this@MainActivity,// This activity implemented from from IDCardCallback
-            data, // List<KycDocumentDetails> || Your selected template ||,
-            Language.English ,// Optional the default is the doc language
+        scanID = assentifySdk.startScanIDCard(
+                this@MainActivity,// This activity implemented from from IDCardCallback
+                data, // List<KycDocumentDetails> || Your selected template ||,
+                Language.English,// Optional the default is the doc language
         );
 
         var fragmentManager = supportFragmentManager
@@ -154,60 +156,61 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback ,FaceMatchCallbac
         transaction.commit()
 
     }
-*/
 
-  /*  fun startAssentifySdk() {
-       var scanID = assentifySdk.startScanPassport(
-           this@MainActivity,
-           Language.Arabic// This activity implemented from from IDCardCallback
-       );
-       var fragmentManager = supportFragmentManager
-       var transaction = fragmentManager.beginTransaction()
-       transaction.replace(R.id.fragmentContainer, scanID)
-       transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-       transaction.commit()
 
-   }*/
+    /*  fun startAssentifySdk() {
+         var scanID = assentifySdk.startScanPassport(
+             this@MainActivity,
+             Language.Arabic// This activity implemented from from IDCardCallback
+         );
+         var fragmentManager = supportFragmentManager
+         var transaction = fragmentManager.beginTransaction()
+         transaction.replace(R.id.fragmentContainer, scanID)
+         transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+         transaction.commit()
+
+     }*/
     override fun onError(dataModel: BaseResponseDataModel) {
-        Log.e("IDSCAN", "onError: ", )
+        Log.e("IDSCAN", "onError: ")
     }
 
     override fun onSend() {
-        Log.e("IDSCAN", "onSend: ", )
+        Log.e("IDSCAN", "onSend: ")
 
     }
 
     override fun onRetry(dataModel: BaseResponseDataModel) {
-        Log.e("IDSCAN", "onRetry: ", )
+        Log.e("IDSCAN", "onRetry: ")
     }
 
 
- /*   override fun onComplete(dataModel: PassportResponseModel) {
-        Log.e("IDSCAN extractedData", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
-        Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
-        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.transformedProperties )
-    }*/
+    /*   override fun onComplete(dataModel: PassportResponseModel) {
+           Log.e("IDSCAN extractedData", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
+           Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
+           Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.transformedProperties )
+       }*/
 
 
+/*
+    override fun onComplete(dataModel: FaceResponseModel) {
+        Log.e("IDSCAN", "onComplete: " + dataModel.faceExtractedModel!!.extractedData)
+    }
+*/
 
-   override fun onComplete(dataModel: FaceResponseModel) {
-       Log.e("IDSCAN", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
-   }
 
-
-/*    override fun onComplete(dataModel: IDResponseModel, order: Int) {
+    override fun onComplete(dataModel: IDResponseModel, order: Int) {
         runOnUiThread {
             scanID.stopScanning();
             finish();
         }
-        Log.e("IDSCAN extractedData", "onComplete: " + dataModel.iDExtractedModel!!.extractedData )
-        Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
-        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.transformedProperties )
+        Log.e("IDSCAN extractedData", "onComplete: " + dataModel.iDExtractedModel!!.extractedData)
+        Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties)
+        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.transformedProperties)
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
-        Log.e("IDSCAN", "onWrongTemplate" )
-    }*/
+        Log.e("IDSCAN", "onWrongTemplate")
+    }
 
     override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {
 
@@ -224,7 +227,6 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback ,FaceMatchCallbac
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
 
     }
-
 
 
     override fun onCardDetected(dataModel: BaseResponseDataModel) {
@@ -271,15 +273,15 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback ,FaceMatchCallbac
 
     }
 
-/*    override fun onEnvironmentalConditionsChange(brightness: Double, motion: MotionType,zoomType: ZoomType) {
+    /*    override fun onEnvironmentalConditionsChange(brightness: Double, motion: MotionType,zoomType: ZoomType) {
 
-        println("MainActivity onEnvironmentalConditionsChange" + zoomType)
-    }*/
+            println("MainActivity onEnvironmentalConditionsChange" + zoomType)
+        }*/
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {

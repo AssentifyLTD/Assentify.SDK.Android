@@ -4,21 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.RectF;
-import android.os.Environment;
 import android.util.Base64;
+import android.util.Log;
 
 import  com.assentify.sdk.Core.Constants.BlockType;
 import  com.assentify.sdk.Core.Constants.ConstantsValues;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URLEncoder;
-
-import kotlin.text.Regex;
-
+import com.gemalto.jp2.JP2Encoder;
 
 public class ImageUtils {
 
@@ -34,16 +26,26 @@ public class ImageUtils {
 
         }
 
-        return bitmapToBase64(bitmap);
+        return bitmapToBase64(bitmap,false,50);
     }
 
-    public static String bitmapToBase64(Bitmap bitmap) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(byteArray, Base64.DEFAULT);
-    }
 
+    public static String bitmapToBase64(Bitmap bitmap, boolean isLossless, int visualQuality) {
+        try {
+            byte[] jp2Data;
+            if (isLossless) {
+                jp2Data = new JP2Encoder(bitmap).encode();
+            } else {
+                jp2Data = new JP2Encoder(bitmap)
+                        .setVisualQuality(visualQuality)
+                        .encode();
+            }
+            return Base64.encodeToString(jp2Data, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
 
