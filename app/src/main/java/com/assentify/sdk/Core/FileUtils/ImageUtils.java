@@ -26,7 +26,7 @@ public class ImageUtils {
 
         }
 
-        return bitmapToBase64(bitmap,false,50);
+        return bitmapToBase64(bitmap,true,0);
     }
 
 
