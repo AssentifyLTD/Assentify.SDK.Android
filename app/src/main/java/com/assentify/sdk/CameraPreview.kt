@@ -161,8 +161,8 @@ abstract class CameraPreview : Fragment() {
                 val recorder = Recorder.Builder()
                     .setQualitySelector(
                         QualitySelector.from(
-                            Quality.SD,
-                            FallbackStrategy.higherQualityOrLowerThan(Quality.SD)
+                            Quality.UHD,
+                            FallbackStrategy.higherQualityOrLowerThan(Quality.UHD)
                         )
                     )
                     .build()

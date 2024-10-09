@@ -98,8 +98,10 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
     implementation group: 'com.lambdaworks', name: 'scrypt', version: '1.4.0'
-
     implementation 'io.sentry:sentry-android:6.8.0'
+
+    implementation 'dev.keiji.jp2:jp2-android:1.0.5'
+
 
 
 
