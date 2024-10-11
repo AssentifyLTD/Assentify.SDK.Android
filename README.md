@@ -14,8 +14,6 @@ To run the example project, clone the repo, and sync the project with Gradle fil
 
 AssentifySdk is available through [JitPack](https://jitpack.io). To install
 
-Add the dependency
-
 ### Step 1: Add JitPack repository to your project-level `build.gradle` file
 
 ```gradle
