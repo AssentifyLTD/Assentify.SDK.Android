@@ -13,7 +13,8 @@ To run the example project, clone the repo, and sync the project with Gradle fil
 ## Installation
 
 AssentifySdk is available through [JitPack](https://jitpack.io). To install
-it, simply add the following lines to your root `build.gradle` and app-level `build.gradle` files:
+
+Add the dependency
 
 ### Step 1: Add JitPack repository to your project-level `build.gradle` file
 
@@ -26,6 +27,14 @@ allprojects {
         maven { url 'https://jitpack.io' }
     }
 }
+```
+
+### Step 2. Add the dependency
+```
+dependencies {
+    implementation 'com.github.AssentifyLTD:Assentify.SDK.Android:Tag'
+}
+```
 
 ## Versions
 **0.0.49**
