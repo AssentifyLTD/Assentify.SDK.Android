@@ -35,6 +35,9 @@ dependencies {
 ```
 
 ## Versions
+**0.0.50**
+- Enhance The Image lossless compression Algorithm
+
 **0.0.49**
 - Image lossless compression
 
