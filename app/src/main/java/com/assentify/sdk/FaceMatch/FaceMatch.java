@@ -332,9 +332,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
         return hasFace;
     }
-
+    // TODO Later
     @Override
-    protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
+    protected void onStopRecordVideo() {
         SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, "onSend", "");
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
@@ -351,13 +351,14 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         createBase64.execute(() -> {
             remoteProcessing.starProcessing(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.FACE_MATCH, getActivity()),
+                    "",
                     ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.FACE_MATCH, getActivity()),
                     configModel,
                     "",
                     this.secondImage,
                     "ConnectionId",
-                    getVideoPath(configModel, faceMatch, videoCounter),
+                   // getVideoPath(configModel, faceMatch, videoCounter),
+                    "",
                     hasFace(),
                     processMrz,
                     performLivenessDetection,
@@ -369,7 +370,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             );
         });
 
-        remoteProcessing.uploadVideo(videoCounter, video, configModel, faceMatch);
+       // remoteProcessing.uploadVideo(videoCounter, video, configModel, faceMatch);
     }
 
     public void stopScanning() {
