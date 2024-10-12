@@ -344,9 +344,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         return hasFace && hasCard;
     }
 
-
+    // TODO Later
     @Override
-    protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
+    protected void onStopRecordVideo() {
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -367,7 +367,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     "",
                     "",
                     "ConnectionId",
-                    getVideoPath(configModel, readPassport, videoCounter),
+                   // getVideoPath(configModel, readPassport, videoCounter),
+                    "",
                     true,
                     processMrz,
                     performLivenessDetection,
@@ -379,7 +380,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             );
         });
 
-        remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
+       // remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
     }
 
 

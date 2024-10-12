@@ -397,8 +397,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     }
 
 
+    // TODO Later
     @Override
-    protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
+    protected void onStopRecordVideo() {
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -421,7 +422,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     this.templateId,
                     "",
                     "ConnectionId",
-                    getVideoPath(configModel, this.templateId, videoCounter),
+                    //getVideoPath(configModel, this.templateId, videoCounter),
+                    "",
                     false,
                     processMrz,
                     performLivenessDetection,
@@ -433,7 +435,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             );
         });
 
-        remoteProcessing.uploadVideo(videoCounter, video, configModel, this.templateId);
+      //  remoteProcessing.uploadVideo(videoCounter, video, configModel, this.templateId);
     }
 
     @Override
