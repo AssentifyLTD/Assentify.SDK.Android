@@ -361,9 +361,9 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         }
         return hasFace;
     }
-
+    // TODO Later
     @Override
-    protected void onStopRecordVideo(@NonNull String videoBase64, @NonNull File video) {
+    protected void onStopRecordVideo() {
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -386,7 +386,8 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
                     "",
                     "",
                     "ConnectionId",
-                    getVideoPath(configModel, other,videoCounter),
+                  // getVideoPath(configModel, other,videoCounter),
+                    "",
                     hasFace(),
                     processMrz,
                     performLivenessDetection,
@@ -398,7 +399,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             );
         });
 
-        remoteProcessing.uploadVideo(videoCounter, video, configModel, other);
+       // remoteProcessing.uploadVideo(videoCounter, video, configModel, other);
     }
 
     @Override
