@@ -6,7 +6,7 @@
 
 ## Example
 
-[To run the example project, download the example projet](https://we.tl/t-lZRDNgzp8p)
+[To run the example project](https://we.tl/t-lZRDNgzp8p)
 
 ## documentation 
 [Assentify Abdroid Sdk documentation](https://we.tl/t-GJoRi9RmA9)
