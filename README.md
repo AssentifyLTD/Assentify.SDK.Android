@@ -6,9 +6,10 @@
 
 ## Example
 
-[To run the example project, clone the repo, and sync the project with Gradle files.](https://we.tl/t-lZRDNgzp8p)
+[To run the example project, download the example projet](https://we.tl/t-lZRDNgzp8p)
 
-## Requirements
+## documentation 
+[Assentify Abdroid Sdk documentation](https://we.tl/t-GJoRi9RmA9)
 
 ## Installation
 
