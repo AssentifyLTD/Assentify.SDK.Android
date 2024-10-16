@@ -1,8 +1,8 @@
 # AssentifySdk
 
-[![Version](https://img.shields.io/cocoapods/v/AssentifySdk.svg?style=flat)](https://cocoapods.org/pods/AssentifySdk)
-[![License](https://img.shields.io/cocoapods/l/AssentifySdk.svg?style=flat)](https://cocoapods.org/pods/AssentifySdk)
-[![Platform](https://img.shields.io/cocoapods/p/AssentifySdk.svg?style=flat)](https://cocoapods.org/pods/AssentifySdk)
+[![Release](https://jitpack.io/v/AssentifyLTD/Assentify.SDK.Android.svg)](https://jitpack.io/#AssentifyLTD/Assentify.SDK.Android)
+[![License](https://img.shields.io/github/license/AssentifyLTD/Assentify.SDK.Android)](https://github.com/AssentifyLTD/Assentify.SDK.Android/blob/main/LICENSE)
+![Platform](https://img.shields.io/badge/platform-Android-green)
 
 ## Example
 
