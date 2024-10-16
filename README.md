@@ -9,7 +9,7 @@
 [To run the example project](https://we.tl/t-lZRDNgzp8p)
 
 ## documentation 
-[Assentify Android Sdk documentation](https://we.tl/t-GJoRi9RmA9)
+[Assentify Sdk Documentation](https://we.tl/t-GJoRi9RmA9)
 
 ## Installation
 
