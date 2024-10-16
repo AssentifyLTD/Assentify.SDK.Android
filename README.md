@@ -36,6 +36,9 @@ dependencies {
 ```
 
 ## Versions
+**0.0.51**
+- bug fixes and performance improvements
+
 **0.0.50**
 - Enhance The Image lossless compression Algorithm
 
