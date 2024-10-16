@@ -6,7 +6,7 @@
 
 ## Example
 
-To run the example project, clone the repo, and sync the project with Gradle files.
+[To run the example project, clone the repo, and sync the project with Gradle files.](https://we.tl/t-lZRDNgzp8p)
 
 ## Requirements
 
