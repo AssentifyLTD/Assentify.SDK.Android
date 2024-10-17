@@ -6,10 +6,10 @@
 
 ## Example
 
-[To run the example project](https://we.tl/t-lZRDNgzp8p)
+[To run the example project](https://onedrive.live.com/?authkey=%21AMzZrtiLMczPWx0&id=1FA5B54185CEA738%21274&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
 
-## Documentation 
-[Assentify Sdk Documentation](https://we.tl/t-GJoRi9RmA9)
+## Documentation
+[Assentify Sdk Documentation](https://onedrive.live.com/?authkey=%21AN2IEg459j8AyA0&id=1FA5B54185CEA738%21271&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
 
 ## Installation
 
