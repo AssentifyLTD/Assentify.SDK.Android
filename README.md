@@ -1,14 +1,15 @@
 # AssentifySdk
 
-[![Version](https://img.shields.io/cocoapods/v/AssentifySdk.svg?style=flat)](https://cocoapods.org/pods/AssentifySdk)
-[![License](https://img.shields.io/cocoapods/l/AssentifySdk.svg?style=flat)](https://cocoapods.org/pods/AssentifySdk)
-[![Platform](https://img.shields.io/cocoapods/p/AssentifySdk.svg?style=flat)](https://cocoapods.org/pods/AssentifySdk)
+[![Release](https://jitpack.io/v/AssentifyLTD/Assentify.SDK.Android.svg)](https://jitpack.io/#AssentifyLTD/Assentify.SDK.Android)
+[![License](https://img.shields.io/github/license/AssentifyLTD/Assentify.SDK.Android)](https://github.com/AssentifyLTD/Assentify.SDK.Android/blob/main/LICENSE)
+![Platform](https://img.shields.io/badge/platform-Android-green)
 
 ## Example
 
-To run the example project, clone the repo, and sync the project with Gradle files.
+[To run the example project](https://onedrive.live.com/?authkey=%21AMzZrtiLMczPWx0&id=1FA5B54185CEA738%21274&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
 
-## Requirements
+## Documentation 
+[Assentify Sdk Documentation](https://onedrive.live.com/?authkey=%21AN2IEg459j8AyA0&id=1FA5B54185CEA738%21271&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
 
 ## Installation
 
