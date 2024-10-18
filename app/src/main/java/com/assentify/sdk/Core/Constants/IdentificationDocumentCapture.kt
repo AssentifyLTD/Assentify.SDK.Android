@@ -56,7 +56,7 @@ object IdentificationDocumentCaptureKeys {
     const val idDocumentTypeNumber =
         "5OnBoardMe_IdentificationDocumentCapture_ID_DocumentTypeNumber"
     const val idFees = "OnBoardMe_IdentificationDocumentCapture_ID_Fees"
-    const val idReference = "OnBoardMe_IdentificationDocumentCapture_ID"
+    const val idReference = "OnBoardMe_IdentificationDocumentCapture_ID_Reference"
     const val idRegion = "OnBoardMe_IdentificationDocumentCapture_ID_Region"
     const val idRegistrationLocation =
         "OnBoardMe_IdentificationDocumentCapture_ID_RegistrationLocation"

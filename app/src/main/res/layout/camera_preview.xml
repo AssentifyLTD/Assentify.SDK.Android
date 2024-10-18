@@ -96,6 +96,16 @@
     </LinearLayout>
 
 
+
+    <LinearLayout
+        android:id="@+id/transmitting_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:background="@color/shadow"
+        android:orientation="vertical">
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/card_container"
         android:layout_width="match_parent"

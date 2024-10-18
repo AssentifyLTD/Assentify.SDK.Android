@@ -142,10 +142,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
         if (motion == MotionType.SENDING) {
             if (isRectFInsideTheScreen) {
-                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
             }
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
         }
 
         checkEnvironment();
