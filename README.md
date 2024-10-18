@@ -36,8 +36,12 @@ dependencies {
 ```
 
 ## Versions
+
+**0.0.52**
+- Enhance The Translation / Transliteration Feature
+
 **0.0.51**
-- bug fixes and performance improvements
+- Enhance The Image lossless compression Algorithm
 
 **0.0.50**
 - Enhance The Image lossless compression Algorithm
