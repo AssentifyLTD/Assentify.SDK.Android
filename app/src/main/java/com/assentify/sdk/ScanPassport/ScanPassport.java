@@ -150,10 +150,10 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
             if(isRectFInsideTheScreen) {
-                setRectFCustomColor(ConstantsValues.DetectColor , environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+                setRectFCustomColor(ConstantsValues.DetectColor , environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
             }
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
         }
 
         checkEnvironment();

@@ -5,6 +5,7 @@ import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -66,6 +67,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     ConfigModel configModel;
 
     Boolean showCountDownView = true;
+    Boolean isCountDownStarted = true;
     private MotionType motion = MotionType.NO_DETECT;
     private RectF rectFCard = new RectF();
     private List<RectF> motionRectF = new ArrayList<>();
@@ -73,7 +75,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private List<MotionType> sendingFlags = new ArrayList<>();
 
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
-    private ScheduledExecutorService createClipsService = Executors.newSingleThreadScheduledExecutor();
 
     private String faceMatch = "FaceMatch";
     private int videoCounter = -1;
@@ -142,10 +143,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
         if (motion == MotionType.SENDING) {
             if (isRectFInsideTheScreen) {
-                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
         }
 
         checkEnvironment();
@@ -185,21 +186,21 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen) {
                         if (hasFaceOrCard()) {
-                            start = false;
-                            if(this.showCountDownView){
+                            if (this.showCountDownView) {
                                 showCountDown(new CountDownCallback() {
                                     @Override
                                     public void onCountDownFinished() {
-                                        createClipsService.schedule(() -> {
+                                        if (start) {
+                                            isCountDownStarted = true;
                                             stopRecording();
-                                        }, 250, TimeUnit.MILLISECONDS);
-
+                                        }
                                     }
-                                },environmentalConditions.getHoldHandColor());
-                            }else {
-                                createClipsService.schedule(() -> {
+                                }, environmentalConditions.getHoldHandColor(),isCountDownStarted);
+                                isCountDownStarted = false;
+                            } else {
+                                if (start) {
                                     stopRecording();
-                                }, 250, TimeUnit.MILLISECONDS);
+                                }
                             }
 
                         }
@@ -332,6 +333,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
         return hasFace;
     }
+
     // TODO Later
     @Override
     protected void onStopRecordVideo() {
@@ -340,13 +342,12 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    start = false;
                     faceMatchCallback.onSend();
 
                 }
             });
         }
-
-        start = false;
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
             remoteProcessing.starProcessing(
@@ -369,7 +370,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             );
         });
 
-       // remoteProcessing.uploadVideo(videoCounter, video, configModel, faceMatch);
+        // remoteProcessing.uploadVideo(videoCounter, video, configModel, faceMatch);
     }
 
     public void stopScanning() {

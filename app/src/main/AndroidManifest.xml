@@ -24,8 +24,8 @@
         android:installLocation="internalOnly"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
-
         tools:ignore="HardcodedDebugMode">
+
 
 
         <meta-data
