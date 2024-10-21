@@ -36,7 +36,10 @@ dependencies {
 ```
 
 ## Versions
-**0.0.51**
+**0.0.53**
+- Removing the Detect and Guide during the Transmitting process
+
+**0.0.52**
 - bug fixes and performance improvements
 
 **0.0.50**
