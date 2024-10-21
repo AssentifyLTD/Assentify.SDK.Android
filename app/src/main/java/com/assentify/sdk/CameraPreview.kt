@@ -65,6 +65,7 @@ abstract class CameraPreview : Fragment() {
     private var cardContainer: LinearLayout? = null;
     private var faceContainer: LinearLayout? = null;
     private var faceBackground: LinearLayout? = null;
+    private var transmittingContainer: LinearLayout? = null;
 
     private lateinit var previewView: PreviewView
     private var detector: YoloV5Classifier? = null
@@ -141,144 +142,144 @@ abstract class CameraPreview : Fragment() {
     }
 
 
-
-
     private fun startCamera() {
-            cameraProviderFuture = ProcessCameraProvider.getInstance(requireActivity())
-            cameraProviderFuture?.addListener({
-                cameraProvider = cameraProviderFuture?.get()
-                val preview = Preview.Builder()
-                    .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                    .build()
-                    .also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
+        cameraProviderFuture = ProcessCameraProvider.getInstance(requireActivity())
+        cameraProviderFuture?.addListener({
+            cameraProvider = cameraProviderFuture?.get()
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .build()
+                .also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
 
-                imageCapture = ImageCapture.Builder()
-                    .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                    .build()
+            imageCapture = ImageCapture.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .build()
 
-                val recorder = Recorder.Builder()
-                    .setQualitySelector(
-                        QualitySelector.from(
-                            Quality.UHD,
-                            FallbackStrategy.higherQualityOrLowerThan(Quality.UHD)
-                        )
+            val recorder = Recorder.Builder()
+                .setQualitySelector(
+                    QualitySelector.from(
+                        Quality.UHD,
+                        FallbackStrategy.higherQualityOrLowerThan(Quality.UHD)
                     )
-                    .build()
-                videoCapture = VideoCapture.withOutput(recorder)
+                )
+                .build()
+            videoCapture = VideoCapture.withOutput(recorder)
 
 
-                imageAnalysisListener = ImageAnalysis.Analyzer { image ->
-                    val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
-                    requireActivity().runOnUiThread {
-                        if (enableGuide) {
-
-
-                            if (frontCamera) {
-                                if (faceContainer == null) {
-                                    faceContainer =
-                                        requireActivity().findViewById(R.id.face_container)
-                                    faceContainer!!.visibility = View.VISIBLE
-                                } else {
-                                    faceContainer!!.visibility = View.VISIBLE
-                                }
-                                if (faceBackground == null) {
-                                    faceBackground =
-                                        requireActivity().findViewById(R.id.face_background)
-                                    faceBackground!!.visibility = View.VISIBLE
-                                } else {
-                                    faceBackground!!.visibility = View.VISIBLE
-                                }
-
+            imageAnalysisListener = ImageAnalysis.Analyzer { image ->
+                val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
+                requireActivity().runOnUiThread {
+                    if (transmittingContainer == null) {
+                        transmittingContainer =
+                            requireActivity().findViewById(R.id.transmitting_container)
+                    }
+                    if (enableGuide) {
+                        if (frontCamera) {
+                            if (faceContainer == null) {
+                                faceContainer =
+                                    requireActivity().findViewById(R.id.face_container)
+                                faceContainer!!.visibility = View.VISIBLE
                             } else {
-                                if (cardContainer == null) {
-                                    cardContainer =
-                                        requireActivity().findViewById(R.id.card_container)
-                                    cardContainer!!.visibility = View.VISIBLE
-                                } else {
-                                    cardContainer!!.visibility = View.VISIBLE
-                                }
-                                if (cardBackground == null) {
-                                    cardBackground =
-                                        requireActivity().findViewById(R.id.card_background)
-                                    cardBackground!!.visibility = View.VISIBLE
-                                } else {
-                                    cardBackground!!.visibility = View.VISIBLE
-                                }
-
-
+                                faceContainer!!.visibility = View.VISIBLE
                             }
+                            if (faceBackground == null) {
+                                faceBackground =
+                                    requireActivity().findViewById(R.id.face_background)
+                                faceBackground!!.visibility = View.VISIBLE
+                            } else {
+                                faceBackground!!.visibility = View.VISIBLE
+                            }
+
+                        } else {
+                            if (cardContainer == null) {
+                                cardContainer =
+                                    requireActivity().findViewById(R.id.card_container)
+                                cardContainer!!.visibility = View.VISIBLE
+                            } else {
+                                cardContainer!!.visibility = View.VISIBLE
+                            }
+                            if (cardBackground == null) {
+                                cardBackground =
+                                    requireActivity().findViewById(R.id.card_background)
+                                cardBackground!!.visibility = View.VISIBLE
+                            } else {
+                                cardBackground!!.visibility = View.VISIBLE
+                            }
+
+
                         }
-
                     }
 
-
-
-
-                    results = if (frontCamera) {
-                        detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
-
-                    } else {
-                        detector!!.recognizeImage(scaleImage)
-
-                    }
-                    listRectF.clear()
-                    results.forEach { item ->
-                        val confidence = (item.confidence * 100).toInt()
-                        val className = capitalizeFirstLetter(item.title);
-                        listRectF.add(RectFInfo(item.location, confidence.toString(), className))
-                    }
-                    val listScaleRectF = scaleAndDrawLocation(
-                        listRectF,
-                        image.width,
-                        image.height,
-                        previewView.width,
-                        previewView.height,
-                        enableDetect
-                    );
-
-                    processImage(
-                        scaleImage!!,
-                        image.toBitmap(),
-                        results,
-                        listScaleRectF,
-                        previewView.width,
-                        previewView.height
-                    )
-
-
-
-
-
-                    image.close()
                 }
 
-                imageAnalysis = ImageAnalysis.Builder()
-                    .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                    .setTargetRotation(Surface.ROTATION_0)
-                    .build()
-                    .also {
-                        it.setAnalyzer(cameraExecutor, imageAnalysisListener!!)
-                    }
 
-                cameraSelector = if (frontCamera) {
-                    CameraSelector.DEFAULT_FRONT_CAMERA
+
+
+                results = if (frontCamera) {
+                    detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
+
                 } else {
-                    CameraSelector.DEFAULT_BACK_CAMERA
+                    detector!!.recognizeImage(scaleImage)
+
+                }
+                listRectF.clear()
+                results.forEach { item ->
+                    val confidence = (item.confidence * 100).toInt()
+                    val className = capitalizeFirstLetter(item.title);
+                    listRectF.add(RectFInfo(item.location, confidence.toString(), className))
+                }
+                val listScaleRectF = scaleAndDrawLocation(
+                    listRectF,
+                    image.width,
+                    image.height,
+                    previewView.width,
+                    previewView.height,
+                    enableDetect
+                );
+
+                processImage(
+                    scaleImage!!,
+                    image.toBitmap(),
+                    results,
+                    listScaleRectF,
+                    previewView.width,
+                    previewView.height
+                )
+
+
+
+
+
+                image.close()
+            }
+
+            imageAnalysis = ImageAnalysis.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setTargetRotation(Surface.ROTATION_0)
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, imageAnalysisListener!!)
                 }
 
-                try {
-                    cameraProvider?.unbindAll()
-                    camera = cameraProvider?.bindToLifecycle(
-                        this, cameraSelector!!, preview, imageCapture, imageAnalysis, videoCapture
-                    )
-                    camera?.cameraControl?.setZoomRatio(0f)
-                    sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
-                } catch (exc: Exception) {
-                }
+            cameraSelector = if (frontCamera) {
+                CameraSelector.DEFAULT_FRONT_CAMERA
+            } else {
+                CameraSelector.DEFAULT_BACK_CAMERA
+            }
 
-            }, ContextCompat.getMainExecutor(requireActivity()))
+            try {
+                cameraProvider?.unbindAll()
+                camera = cameraProvider?.bindToLifecycle(
+                    this, cameraSelector!!, preview, imageCapture, imageAnalysis, videoCapture
+                )
+                camera?.cameraControl?.setZoomRatio(0f)
+                sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
+            } catch (exc: Exception) {
+            }
+
+        }, ContextCompat.getMainExecutor(requireActivity()))
 
     }
 
@@ -323,6 +324,9 @@ abstract class CameraPreview : Fragment() {
         }
         if (enableDetect) {
             rectangleOverlayView.setListRect(listScaleRectF)
+        }else{
+            listScaleRectF.clear();
+            rectangleOverlayView.setListRect(listScaleRectF)
         }
         return listScaleRectF;
 
@@ -339,41 +343,65 @@ abstract class CameraPreview : Fragment() {
     )
 
     fun setRectFCustomColor(
-        color: String, enableDetect: Boolean,
+        color: String,
+        enableDetect: Boolean,
         enableGuide: Boolean,
+        notTransmitting: Boolean,
     ) {
-
-        if (this.isVisible) {
-            rectangleOverlayView.setCustomColor(color)
-
-            this.enableDetect = enableDetect;
-            this.enableGuide = enableGuide;
-
-            if (this.enableGuide) {
-                if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
-                    val layerDrawable = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.face_background,
-                        null
-                    ) as LayerDrawable
-                    val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
-                    shapeDrawable.setStroke(10, Color.parseColor(color))
-                    faceBackground!!.setBackground(layerDrawable)
+        requireActivity().runOnUiThread {
+            if (this.isVisible) {
+                rectangleOverlayView.setCustomColor(color)
+                if (notTransmitting) {
+                    this.enableDetect = enableDetect;
+                    this.enableGuide = enableGuide;
+                    if (transmittingContainer != null) {
+                        transmittingContainer!!.visibility = View.GONE
+                    }
+                } else {
+                    this.enableDetect = false;
+                    this.enableGuide = false;
+                    if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                        faceBackground!!.visibility = View.GONE
+                    }
+                    if (faceContainer != null && faceContainer!!.visibility == View.VISIBLE) {
+                        faceContainer!!.visibility = View.GONE
+                    }
+                    if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                        cardBackground!!.visibility = View.GONE
+                    }
+                    if (cardContainer != null && cardContainer!!.visibility == View.VISIBLE) {
+                        cardContainer!!.visibility = View.GONE
+                    }
+                    if (transmittingContainer != null) {
+                        transmittingContainer!!.visibility = View.VISIBLE
+                    }
                 }
 
-                if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                    val drawableCard = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.card_background,
-                        null
-                    ) as VectorDrawable
-                    val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
-                    DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
-                    cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                if (this.enableGuide) {
+                    if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                        val layerDrawable = ResourcesCompat.getDrawable(
+                            resources,
+                            R.drawable.face_background,
+                            null
+                        ) as LayerDrawable
+                        val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                        shapeDrawable.setStroke(10, Color.parseColor(color))
+                        faceBackground!!.setBackground(layerDrawable)
+                    }
+
+                    if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                        val drawableCard = ResourcesCompat.getDrawable(
+                            resources,
+                            R.drawable.card_background,
+                            null
+                        ) as VectorDrawable
+                        val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                        DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                        cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                    }
                 }
             }
         }
-
 
     }
 
@@ -431,33 +459,38 @@ abstract class CameraPreview : Fragment() {
 //        curRecording.stop()
 //        recording = null
     }
-    // TODO Later
-  //  protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
-  protected abstract fun onStopRecordVideo()
-    protected fun showCountDown(callback: CountDownCallback,color: String) {
-        requireActivity().runOnUiThread {
-            val countDownContainer = requireActivity().findViewById<View>(R.id.countDownContainer) as LinearLayout
-            countDownContainer.visibility = View.VISIBLE
-            val countDownText = requireActivity().findViewById<View>(R.id.countDownText) as TextView
-            countDownText.visibility = View.VISIBLE
-            countDownText.setTextColor(Color.parseColor(color))
-            var counter = 3;
-            Handler(Looper.getMainLooper()).postDelayed({
-                object : CountDownTimer(3000, 1000) {
-                    override fun onTick(millisUntilFinished: Long) {
-                        countDownText.text = counter.toString()
-                        counter--;
-                    }
-                    override fun onFinish() {
-                        countDownText.visibility = View.GONE
-                        // Call the callback's method
-                        callback.onCountDownFinished()
-                    }
-                }.start()
-            }, 1000)
-        }
-    }
 
+    // TODO Later
+    //  protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
+    protected abstract fun onStopRecordVideo()
+    protected fun showCountDown(callback: CountDownCallback, color: String,isCountDownStarted: Boolean,) {
+        if(isCountDownStarted){
+            requireActivity().runOnUiThread {
+                val countDownContainer =
+                    requireActivity().findViewById<View>(R.id.countDownContainer) as LinearLayout
+                countDownContainer.visibility = View.VISIBLE
+                val countDownText = requireActivity().findViewById<View>(R.id.countDownText) as TextView
+                countDownText.visibility = View.VISIBLE
+                countDownText.setTextColor(Color.parseColor(color))
+                var counter = 3;
+                Handler(Looper.getMainLooper()).postDelayed({
+                    object : CountDownTimer(3000, 1000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            countDownText.text = counter.toString()
+                            counter--;
+                        }
+
+                        override fun onFinish() {
+                            countDownText.visibility = View.GONE
+                            // Call the callback's method
+                            callback.onCountDownFinished()
+                        }
+                    }.start()
+                }, 1000)
+            }
+        }
+
+    }
 
 
 }
