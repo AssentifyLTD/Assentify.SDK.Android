@@ -15,7 +15,7 @@ class DetectMotion {
 
         val percentageChangeX = (centerX2 - centerX1) / centerX1 * 100
         val percentageChangeY = (centerY2 - centerY1) / centerY1 * 100
-        if (percentageChangeX in -20f..20f && percentageChangeY in -20f..20f) {
+        if (percentageChangeX in -5f..5f && percentageChangeY in -5f..5f) {
             return MotionType.SENDING
         }
         return MotionType.HOLD_YOUR_HAND
@@ -30,7 +30,7 @@ class DetectMotion {
         val percentageChangeX = (centerX2 - centerX1) / centerX1 * 100
         val percentageChangeY = (centerY2 - centerY1) / centerY1 * 100
 
-        if (percentageChangeX in -20f..20f && percentageChangeY in -20f..20f) {
+        if (percentageChangeX in -10f..10f && percentageChangeY in -10f..10f) {
             return MotionType.SENDING
         }
         return MotionType.HOLD_YOUR_HAND
@@ -38,4 +38,3 @@ class DetectMotion {
 
 
 }
-
