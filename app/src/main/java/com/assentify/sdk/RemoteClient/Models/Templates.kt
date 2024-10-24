@@ -4,6 +4,7 @@ import com.google.gson.Gson
 
 
 data class TemplatesByCountry(
+    val id: Int,
     val name: String,
     val sourceCountryCode: String,
     val flag: String,
