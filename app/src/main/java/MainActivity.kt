@@ -103,8 +103,15 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         Log.e("MainActivity", "onAssentifySdkInitSuccess: "  )
-        Log.e("onAssentifySdkInitSuccess", assentifySdk.getTemplates().toString() )
-        startAssentifySdk();
+        assentifySdk.getTemplates()?.forEach { item ->
+            Log.e("MainActivity", "onAssentifySdkInitSuccess: ${item.name}"   )
+            item.templates.forEach { item2 ->
+                Log.e("MainActivity", "onAssentifySdkInitSuccess: Templates ${item2.kycDocumentType}"   )
+                Log.e("MainActivity", "onAssentifySdkInitSuccess: Templates ${item2.id}"   )
+            }
+        }
+
+        //   startAssentifySdk();
     }
    fun startAssentifySdk() {
 
@@ -154,7 +161,7 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         transaction.commit()
 
     }
-*/
+
 
 /*   fun startAssentifySdk() {
       var scanID = assentifySdk.startScanPassport(

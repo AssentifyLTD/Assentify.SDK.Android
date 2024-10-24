@@ -56,6 +56,7 @@ data class Customization(
 data class IdentificationDocuments(
   val key: String?, // IdentificationDocument.IdCard
   val selectedCountries: List<String>?,
+  val supportedIdCards: List<String>,
 
 )
 
