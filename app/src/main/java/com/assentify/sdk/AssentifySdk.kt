@@ -305,6 +305,7 @@ class AssentifySdk(
                     val templatesByCountry = ArrayList<TemplatesByCountry>()
                     filteredList?.forEach { data ->
                         val item = TemplatesByCountry(
+                            data.id,
                             data.sourceCountry,
                             data.sourceCountryCode,
                             data.sourceCountryFlag,
@@ -359,12 +360,14 @@ class AssentifySdk(
 
     private fun filterToSupportedCountries(dataList: List<TemplatesByCountry>?): List<TemplatesByCountry>? {
         var selectedCountries: List<String> = emptyList();
+        var supportedIdCards: List<String> = emptyList();
         configModel.stepDefinitions.forEach { step ->
             if (step.stepDefinition == "IdentificationDocumentCapture") {
                 step.customization.identificationDocuments!!.forEach { docStep ->
                     if (docStep.key == "IdentificationDocument.IdCard") {
                         if (docStep.selectedCountries != null) {
                             selectedCountries = docStep.selectedCountries;
+                            supportedIdCards = docStep.supportedIdCards;
                         }
                     }
                 }
@@ -380,7 +383,29 @@ class AssentifySdk(
         if (selectedCountries.isEmpty()) {
             return dataList;
         }
-        return filteredList
+        val filteredListByCards = mutableListOf<TemplatesByCountry>()
+
+        filteredList.forEach { card ->
+            val selectedTemplates = mutableListOf<Templates>()
+
+            card.templates.forEach { cardTemplate ->
+                if (supportedIdCards.contains(cardTemplate.id.toString())) {
+                    selectedTemplates.add(cardTemplate)
+                }
+            }
+
+            filteredListByCards.add(
+                TemplatesByCountry(
+                    id = card.id,
+                    name = card.name,
+                    sourceCountryCode = card.sourceCountryCode,
+                    flag = card.flag,
+                    templates = selectedTemplates
+                )
+            )
+        }
+
+        return filteredListByCards
     }
 
 
