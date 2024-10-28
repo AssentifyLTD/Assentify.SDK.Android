@@ -23,6 +23,7 @@ import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.Language;
+import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
@@ -149,11 +150,11 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             }
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-            if(isRectFInsideTheScreen) {
-                setRectFCustomColor(ConstantsValues.DetectColor , environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
+            if (isRectFInsideTheScreen) {
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
         }
 
         checkEnvironment();
@@ -379,7 +380,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             );
         });
 
-       // remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
+        // remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
     }
 
 
@@ -405,7 +406,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         scanPassportCallback.onComplete(passportResponseModel);
     }
 
-    public void stopScanning(){
+    public void stopScanning() {
         closeCamera();
     }
 }
