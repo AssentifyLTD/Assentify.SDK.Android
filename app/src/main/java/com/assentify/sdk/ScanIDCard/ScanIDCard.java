@@ -24,6 +24,7 @@ import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.Language;
+import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;

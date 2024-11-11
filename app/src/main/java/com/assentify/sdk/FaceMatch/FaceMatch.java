@@ -16,6 +16,7 @@ import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
@@ -29,6 +30,7 @@ import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.tflite.Classifier;
+import com.assentify.sdk.tflite.Liveness.CheckLiveness;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -82,6 +84,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
     private boolean isRectFInsideTheScreen = false;
 
+    private CheckLiveness checkIsLive = null;
+
+    private LivenessType livenessType = LivenessType.NON;
+
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
                      Boolean performLivenessDetection,
@@ -123,6 +129,12 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
+        if (checkIsLive == null) {
+            checkIsLive = new CheckLiveness();
+            checkIsLive.loadTfliteModel(requireContext());
+        }
+
+
         this.results = results;
         if (hasFaceOrCard()) {
             bitmaps.add(normalImage);
@@ -143,7 +155,22 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
         if (motion == MotionType.SENDING) {
             if (isRectFInsideTheScreen) {
+                if (performLivenessDetection) {
+                    livenessType = checkIsLive.preprocessAndPredict(normalImage);
+                    if(livenessType == LivenessType.NOT_LIVE){
+                        if(start){
+                            faceMatchCallback.onLivenessUpdate(new BaseResponseDataModel(
+                                    HubConnectionTargets.ON_LIVENESS_UPDATE,
+                                    "",
+                                    "",
+                                    false
+                            ));
+                        }
+                        start = false;
+                    }
+                }
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+
             }
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
@@ -195,7 +222,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                             stopRecording();
                                         }
                                     }
-                                }, environmentalConditions.getHoldHandColor(),isCountDownStarted);
+                                }, environmentalConditions.getHoldHandColor(), isCountDownStarted);
                                 isCountDownStarted = false;
                             } else {
                                 if (start) {
@@ -234,6 +261,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     bitmaps.clear();
                     motionRectF.clear();
                     sendingFlags.clear();
+
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                         FaceResponseModel faceResponseModel = new FaceResponseModel(

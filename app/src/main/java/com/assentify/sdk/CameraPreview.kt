@@ -43,11 +43,13 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import com.assentify.sdk.Core.Constants.ConstantsValues
+import com.assentify.sdk.Core.Constants.LivenessType
 import com.assentify.sdk.Core.FileUtils.ImageUtils
 import com.assentify.sdk.FaceMatch.CountDownCallback
 import com.assentify.sdk.tflite.Classifier
 import com.assentify.sdk.tflite.Classifier.Recognition
 import com.assentify.sdk.tflite.DetectorFactory
+import com.assentify.sdk.tflite.Liveness.CheckLiveness
 import com.assentify.sdk.tflite.YoloV5Classifier
 import com.google.common.util.concurrent.ListenableFuture
 import java.io.File
@@ -168,6 +170,9 @@ abstract class CameraPreview : Fragment() {
             videoCapture = VideoCapture.withOutput(recorder)
 
 
+
+
+
             imageAnalysisListener = ImageAnalysis.Analyzer { image ->
                 val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
                 requireActivity().runOnUiThread {
@@ -215,8 +220,6 @@ abstract class CameraPreview : Fragment() {
                 }
 
 
-
-
                 results = if (frontCamera) {
                     detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
 
@@ -239,14 +242,15 @@ abstract class CameraPreview : Fragment() {
                     enableDetect
                 );
 
+
                 processImage(
                     scaleImage!!,
                     image.toBitmap(),
                     results,
                     listScaleRectF,
                     previewView.width,
-                    previewView.height
-                )
+                    previewView.height,
+                    )
 
 
 
@@ -324,7 +328,7 @@ abstract class CameraPreview : Fragment() {
         }
         if (enableDetect) {
             rectangleOverlayView.setListRect(listScaleRectF)
-        }else{
+        } else {
             listScaleRectF.clear();
             rectangleOverlayView.setListRect(listScaleRectF)
         }
@@ -463,13 +467,18 @@ abstract class CameraPreview : Fragment() {
     // TODO Later
     //  protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
     protected abstract fun onStopRecordVideo()
-    protected fun showCountDown(callback: CountDownCallback, color: String,isCountDownStarted: Boolean,) {
-        if(isCountDownStarted){
+    protected fun showCountDown(
+        callback: CountDownCallback,
+        color: String,
+        isCountDownStarted: Boolean,
+    ) {
+        if (isCountDownStarted) {
             requireActivity().runOnUiThread {
                 val countDownContainer =
                     requireActivity().findViewById<View>(R.id.countDownContainer) as LinearLayout
                 countDownContainer.visibility = View.VISIBLE
-                val countDownText = requireActivity().findViewById<View>(R.id.countDownText) as TextView
+                val countDownText =
+                    requireActivity().findViewById<View>(R.id.countDownText) as TextView
                 countDownText.visibility = View.VISIBLE
                 countDownText.setTextColor(Color.parseColor(color))
                 var counter = 3;
