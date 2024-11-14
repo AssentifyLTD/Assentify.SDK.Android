@@ -155,7 +155,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
         if (motion == MotionType.SENDING) {
             if (isRectFInsideTheScreen) {
-                if (performLivenessDetection) {
+     /*           if (performLivenessDetection) {
                     livenessType = checkIsLive.preprocessAndPredict(normalImage);
                     if(livenessType == LivenessType.NOT_LIVE){
                         if(start){
@@ -168,7 +168,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         }
                         start = false;
                     }
-                }
+                }*/
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
 
             }
