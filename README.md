@@ -39,8 +39,8 @@ dependencies {
 
 ## Versions
 
-**0.0.55-Alpha**
-- Local face liveness check
+**0.0.55**
+- Handel the intermittent internet connectivity
 
 **0.0.54**
 - Matching The Templates With The Admin Portal Selected Templates
