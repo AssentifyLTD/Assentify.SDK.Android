@@ -1,6 +1,6 @@
 package com.assentify.sdk.Core.Constants
 
-
+const val  FullNameKey = "FullName"
 object Language {
     const val English = "en"
     const val Arabic = "ar"

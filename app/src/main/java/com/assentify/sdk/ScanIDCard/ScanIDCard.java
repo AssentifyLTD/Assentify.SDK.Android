@@ -6,11 +6,11 @@ import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +23,7 @@ import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
@@ -91,7 +92,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     Boolean processMrz;
-    Boolean performLivenessDetection;
+    Boolean performLivenessDocument;
+    Boolean performLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
@@ -115,7 +117,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
-                      Boolean performLivenessDetection,
+                      Boolean performLivenessDocument,
+                      Boolean performLivenessFace,
                       Boolean saveCapturedVideo,
                       Boolean storeCapturedDocument,
                       Boolean storeImageStream,
@@ -126,7 +129,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
         this.processMrz = processMrz;
-        this.performLivenessDetection = performLivenessDetection;
+        this.performLivenessDocument = performLivenessDocument;
+        this.performLivenessFace = performLivenessFace;
         this.saveCapturedVideo = saveCapturedVideo;
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
@@ -426,7 +430,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     getVideoPath(configModel, this.templateId, videoCounter),
                     false,
                     processMrz,
-                    performLivenessDetection,
+                    performLivenessDocument,
+                    performLivenessFace,
                     saveCapturedVideo,
                     storeCapturedDocument,
                     false,
@@ -438,18 +443,48 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
       //  remoteProcessing.uploadVideo(videoCounter, video, configModel, this.templateId);
     }
 
+    String nameKey = "";
+    int nameLength = 0;
+    String surnameKey = "";
+
     @Override
     public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
         getIgnoredProperties(Objects.requireNonNull(idResponseModel.getIDExtractedModel().getOutputProperties())).forEach((key, value) -> {
             properties.put(key, value);
         });
+
+        Objects.requireNonNull(idResponseModel.getIDExtractedModel().getOutputProperties()).forEach(
+                (key, value) -> {
+                    if(key.contains(IdentificationDocumentCaptureKeys.name)){
+                        nameKey = key;
+                        nameLength = value.toString().length();
+                    }
+                    if(key.contains(IdentificationDocumentCaptureKeys.surname)){
+                        surnameKey = key;
+                    }
+                }
+        );
+
         idResponseModel.getIDExtractedModel().getTransformedProperties().clear();
         idResponseModel.getIDExtractedModel().getExtractedData().clear();
         properties.forEach((key, value) -> {
-            idResponseModel.getIDExtractedModel().getTransformedProperties().put(key, value);
-            String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
-                    .replace("_", " ");
-            idResponseModel.getIDExtractedModel().getExtractedData().put(newKey, value);
+
+            if (key.equals(FullNameKey)) {
+                if(!nameKey.isEmpty()){
+                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(nameKey, value.substring(0,nameLength));
+                    idResponseModel.getIDExtractedModel().getExtractedData().put("name", value.substring(0,nameLength));
+                }
+                if(!surnameKey.isEmpty()){
+                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(surnameKey, value.substring(nameLength+1));
+                    idResponseModel.getIDExtractedModel().getExtractedData().put("surname", value.substring(nameLength+1));
+                }
+            }else {
+                idResponseModel.getIDExtractedModel().getTransformedProperties().put(key, value);
+                String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
+                        .replace("_", " ");
+                idResponseModel.getIDExtractedModel().getExtractedData().put(newKey, value);
+            }
+
         });
 
 
