@@ -62,7 +62,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
     Boolean processMrz;
-    Boolean performLivenessDetection;
+    Boolean performLivenessDocument;
+    Boolean performLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
@@ -90,7 +91,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
-                     Boolean performLivenessDetection,
+                     Boolean performLivenessDocument,
+                     Boolean performLivenessFace,
                      Boolean saveCapturedVideo,
                      Boolean storeCapturedDocument,
                      Boolean storeImageStream,
@@ -100,7 +102,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         frontCamera();
         this.environmentalConditions = environmentalConditions;
         this.processMrz = processMrz;
-        this.performLivenessDetection = performLivenessDetection;
+        this.performLivenessDocument = performLivenessDocument;
+        this.performLivenessFace = performLivenessFace;
         this.saveCapturedVideo = saveCapturedVideo;
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
@@ -389,7 +392,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     getVideoPath(configModel, faceMatch, videoCounter),
                     hasFace(),
                     processMrz,
-                    performLivenessDetection,
+                    performLivenessDocument,
+                    performLivenessFace,
                     saveCapturedVideo,
                     storeCapturedDocument,
                     true,

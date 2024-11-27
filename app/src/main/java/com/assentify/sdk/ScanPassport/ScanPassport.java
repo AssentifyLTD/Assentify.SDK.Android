@@ -5,6 +5,9 @@ import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getRemainingWords;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWords;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
@@ -22,6 +25,7 @@ import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
@@ -78,7 +82,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
     Boolean processMrz;
-    Boolean performLivenessDetection;
+    Boolean performLivenessDocument;
+    Boolean performLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
@@ -99,7 +104,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             ConfigModel configModel,
             EnvironmentalConditions environmentalConditions, String apiKey,
             Boolean processMrz,
-            Boolean performLivenessDetection,
+            Boolean performLivenessDocument,
+            Boolean performLivenessFace,
             Boolean saveCapturedVideo,
             Boolean storeCapturedDocument,
             Boolean storeImageStream,
@@ -108,7 +114,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
         this.processMrz = processMrz;
-        this.performLivenessDetection = performLivenessDetection;
+        this.performLivenessDocument = performLivenessDocument;
+        this.performLivenessFace = performLivenessFace;
         this.saveCapturedVideo = saveCapturedVideo;
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
@@ -371,7 +378,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     getVideoPath(configModel, readPassport, videoCounter),
                     true,
                     processMrz,
-                    performLivenessDetection,
+                    performLivenessDocument,
+                    performLivenessFace,
                     saveCapturedVideo,
                     storeCapturedDocument,
                     false,
@@ -382,21 +390,47 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
         // remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
     }
-
+    String nameKey = "";
+    int nameWordCount = 0;
+    String surnameKey = "";
 
     @Override
     public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
+
         getIgnoredProperties(Objects.requireNonNull(passportResponseModel.getPassportExtractedModel().getOutputProperties())).forEach((key, value) -> {
             properties.put(key, value);
         });
+
+        Objects.requireNonNull(passportResponseModel.getPassportExtractedModel().getOutputProperties()).forEach(
+                (key, value) -> {
+                    if(key.contains(IdentificationDocumentCaptureKeys.name)){
+                        nameKey = key;
+                        nameWordCount = value.toString().trim().isEmpty() ? 0 : value.toString().trim().split("\\s+").length;
+                    }
+                    if(key.contains(IdentificationDocumentCaptureKeys.surname)){
+                        surnameKey = key;
+                    }
+                }
+        );
         passportResponseModel.getPassportExtractedModel().getTransformedProperties().clear();
         passportResponseModel.getPassportExtractedModel().getExtractedData().clear();
 
         properties.forEach((key, value) -> {
-            passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(key, value);
-            String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
-                    .replace("_", " ");
-            passportResponseModel.getPassportExtractedModel().getExtractedData().put(newKey, value);
+            if (key.equals(FullNameKey)) {
+                if(!nameKey.isEmpty()){
+                    passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(nameKey, getSelectedWords(value.toString(),nameWordCount));
+                    passportResponseModel.getPassportExtractedModel().getExtractedData().put("name", getSelectedWords(value.toString(),nameWordCount));
+                }
+                if(!surnameKey.isEmpty()){
+                    passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(surnameKey, getRemainingWords(value.toString(),nameWordCount));
+                    passportResponseModel.getPassportExtractedModel().getExtractedData().put("surname", getRemainingWords(value.toString(),nameWordCount));
+                }
+            } else {
+                passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(key, value);
+                String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
+                        .replace("_", " ");
+                passportResponseModel.getPassportExtractedModel().getExtractedData().put(newKey, value);
+            }
         });
         scanPassportCallback.onComplete(passportResponseModel);
     }

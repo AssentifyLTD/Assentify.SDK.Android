@@ -1,6 +1,19 @@
 package com.assentify.sdk.Core.Constants
 
+const val  FullNameKey = "FullName"
 
+
+fun getSelectedWords(input: String, numberOfWords: Int): String {
+    if (input.isBlank()) return ""
+    val words = input.trim().split("\\s+".toRegex())
+    return words.take(numberOfWords).joinToString(" ")
+}
+
+fun getRemainingWords(input: String, numberOfWords: Int): String {
+    if (input.isBlank()) return ""
+    val words = input.trim().split("\\s+".toRegex())
+    return if (words.size <= numberOfWords) "" else words.drop(numberOfWords).joinToString(" ")
+}
 object Language {
     const val English = "en"
     const val Arabic = "ar"

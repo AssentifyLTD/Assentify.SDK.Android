@@ -2,44 +2,50 @@ package com.assentify.sdk.ScanOther;
 
 import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionLimit;
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
-import static  com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getRemainingWords;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWords;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import  com.assentify.sdk.CameraPreview;
+
+import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
-import  com.assentify.sdk.CheckEnvironment.DetectZoom;
-import  com.assentify.sdk.Core.Constants.BlockType;
-import  com.assentify.sdk.Core.Constants.ConstantsValues;
-import  com.assentify.sdk.Core.Constants.EnvironmentalConditions;
-import  com.assentify.sdk.Core.Constants.HubConnectionFunctions;
-import  com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.CheckEnvironment.DetectZoom;
+import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.Core.Constants.ConstantsValues;
+import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
+import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.LivenessType;
-import  com.assentify.sdk.Core.Constants.MotionType;
-import  com.assentify.sdk.Core.Constants.RemoteProcessing;
-import  com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
+import com.assentify.sdk.Core.Constants.MotionType;
+import com.assentify.sdk.Core.Constants.RemoteProcessing;
+import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
 import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
-import  com.assentify.sdk.Core.Constants.ZoomType;
-import  com.assentify.sdk.Core.FileUtils.ImageUtils;
+import com.assentify.sdk.Core.Constants.ZoomType;
+import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
-import  com.assentify.sdk.Models.BaseResponseDataModel;
-import  com.assentify.sdk.CheckEnvironment.DetectMotion;
-import  com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
+import com.assentify.sdk.Models.BaseResponseDataModel;
+import com.assentify.sdk.CheckEnvironment.DetectMotion;
+import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
-import  com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.ScanPassport.PassportExtractedModel;
 import com.assentify.sdk.ScanPassport.PassportResponseModel;
 import com.assentify.sdk.ScanPassport.ScanPassport;
-import  com.assentify.sdk.tflite.Classifier;
+import com.assentify.sdk.tflite.Classifier;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,7 +59,7 @@ import java.util.concurrent.Executors;
 import io.sentry.SentryLevel;
 import kotlin.Pair;
 
-public class ScanOther  extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
+public class ScanOther extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
 
 
     private ScanOtherCallback scanOtherCallback;
@@ -76,7 +82,8 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
     Boolean processMrz;
-    Boolean performLivenessDetection;
+    Boolean performLivenessDocument;
+    Boolean performLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
@@ -84,20 +91,22 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
 
     String language;
 
-    private  String other = "Other";
+    private String other = "Other";
 
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
-    private  int videoCounter = -1;
+    private int videoCounter = -1;
 
     private OtherResponseModel otherResponseModel;
 
     private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
     private boolean isRectFInsideTheScreen = false;
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public ScanOther(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
-                     Boolean performLivenessDetection,
+                     Boolean performLivenessDocument,
+                     Boolean performLivenessFace,
                      Boolean saveCapturedVideo,
                      Boolean storeCapturedDocument,
                      Boolean storeImageStream,
@@ -106,7 +115,8 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
         this.processMrz = processMrz;
-        this.performLivenessDetection = performLivenessDetection;
+        this.performLivenessDocument = performLivenessDocument;
+        this.performLivenessFace = performLivenessFace;
         this.saveCapturedVideo = saveCapturedVideo;
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
@@ -124,6 +134,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         }
 
     }
+
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
@@ -145,11 +156,11 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             }
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-            if(isRectFInsideTheScreen){
-                setRectFCustomColor(ConstantsValues.DetectColor ,environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide(),start);
+            if (isRectFInsideTheScreen) {
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(),environmentalConditions.getEnableDetect(),environmentalConditions.getEnableGuide(),start);
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
         }
 
         checkEnvironment();
@@ -158,50 +169,47 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     }
 
 
-
-
-
     protected void checkEnvironment() {
         if (getActivity() != null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (hasFaceOrCard() && start) {
-                startRecording();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (hasFaceOrCard() && start) {
+                    startRecording();
+                }
             }
-        }
-        ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
-        DetectMotion detectMotion = new DetectMotion();
-        DetectZoom detectZoom = new DetectZoom();
-        brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
-        if (motionRectF.size() >= 2) {
-            if (results.isEmpty()) {
-                motionRectF.clear();
-                sendingFlagsZoom.clear();
-                sendingFlagsMotion.clear();
-                motion = MotionType.NO_DETECT;
-                zoom = ZoomType.NO_DETECT;
-            } else {
-                motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
-                zoom = detectZoom.calculatePercentageChangeWidth(motionRectF.get(motionRectF.size() - 1));
-                if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-                    sendingFlagsMotion.add(MotionType.SENDING);
-                    sendingFlagsZoom.add(ZoomType.SENDING);
-                } else {
+            ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
+            DetectMotion detectMotion = new DetectMotion();
+            DetectZoom detectZoom = new DetectZoom();
+            brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
+            if (motionRectF.size() >= 2) {
+                if (results.isEmpty()) {
+                    motionRectF.clear();
                     sendingFlagsZoom.clear();
                     sendingFlagsMotion.clear();
-                }
-            }
-        }
-        if (environmentalConditions.checkConditions(
-                brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionLimit   && sendingFlagsZoom.size() > ZoomLimit) {
-                    if (hasFaceOrCard()) {
-                        stopRecording();
+                    motion = MotionType.NO_DETECT;
+                    zoom = ZoomType.NO_DETECT;
+                } else {
+                    motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
+                    zoom = detectZoom.calculatePercentageChangeWidth(motionRectF.get(motionRectF.size() - 1));
+                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
+                        sendingFlagsMotion.add(MotionType.SENDING);
+                        sendingFlagsZoom.add(ZoomType.SENDING);
+                    } else {
+                        sendingFlagsZoom.clear();
+                        sendingFlagsMotion.clear();
                     }
                 }
-
             }
-        }
+            if (environmentalConditions.checkConditions(
+                    brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionLimit && sendingFlagsZoom.size() > ZoomLimit) {
+                        if (hasFaceOrCard()) {
+                            stopRecording();
+                        }
+                    }
+
+                }
+            }
 
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -219,7 +227,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other,eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other, eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -230,13 +238,12 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
                     sendingFlagsMotion.clear();
 
 
-
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         start = false;
                         Map<String, String> transformedProperties = new HashMap<>();
                         Map<String, String> transformedDetails = new HashMap<>();
-                        OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(),transformedProperties,transformedDetails);
-                         otherResponseModel = new OtherResponseModel(
+                        OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties, transformedDetails);
+                        otherResponseModel = new OtherResponseModel(
                                 BaseResponseDataModel.getDestinationEndpoint(),
                                 otherExtractedModel,
                                 BaseResponseDataModel.getError(),
@@ -247,17 +254,17 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
                         } else {
                             Map<String, String> propertiesToTranslate = new HashMap<>();
                             otherExtractedModel.getAdditionalDetails().forEach((key, value) -> {
-                                propertiesToTranslate.put(key,value.toString());
+                                propertiesToTranslate.put(key, value.toString());
                             });
 
                             otherExtractedModel.getOutputProperties().forEach((key, value) -> {
-                                propertiesToTranslate.put(key,value.toString());
+                                propertiesToTranslate.put(key, value.toString());
                             });
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
                             translated.setCallback(ScanOther.this);
                             translated.languageTransformation(
                                     language,
-                                    preparePropertiesToTranslate(language,propertiesToTranslate)
+                                    preparePropertiesToTranslate(language, propertiesToTranslate)
                             );
                         }
 
@@ -329,13 +336,11 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     }
 
 
-
     @Override
     public synchronized void onDestroy() {
         super.onDestroy();
         this.createBase64.shutdown();
     }
-
 
 
     public boolean hasFaceOrCard() {
@@ -362,6 +367,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         }
         return hasFace;
     }
+
     // TODO Later
     @Override
     protected void onStopRecordVideo() {
@@ -374,7 +380,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             });
         }
 
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other,"onSend", "");
+        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other, "onSend", "");
 
         start = false;
         videoCounter = videoCounter + 1;
@@ -387,10 +393,11 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
                     "",
                     "",
                     "ConnectionId",
-                    getVideoPath(configModel, other,videoCounter),
+                    getVideoPath(configModel, other, videoCounter),
                     hasFace(),
                     processMrz,
-                    performLivenessDetection,
+                    performLivenessDocument,
+                    performLivenessFace,
                     saveCapturedVideo,
                     storeCapturedDocument,
                     false,
@@ -399,28 +406,54 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             );
         });
 
-       // remoteProcessing.uploadVideo(videoCounter, video, configModel, other);
+        // remoteProcessing.uploadVideo(videoCounter, video, configModel, other);
     }
 
+    String nameKey = "";
+    int nameWordCount = 0;
+    String surnameKey = "";
     @Override
     public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
         getIgnoredProperties(Objects.requireNonNull(otherResponseModel.getOtherExtractedModel().getOutputProperties())).forEach((key, value) -> {
-            properties.put(key,value);
+            properties.put(key, value);
         });
+
+        Objects.requireNonNull(otherResponseModel.getOtherExtractedModel().getOutputProperties()).forEach(
+                (key, value) -> {
+                    if(key.contains(IdentificationDocumentCaptureKeys.name)){
+                        nameKey = key;
+                        nameWordCount = value.toString().trim().isEmpty() ? 0 : value.toString().trim().split("\\s+").length;
+                    }
+                    if(key.contains(IdentificationDocumentCaptureKeys.surname)){
+                        surnameKey = key;
+                    }
+                }
+        );
+
         otherResponseModel.getOtherExtractedModel().getTransformedProperties().clear();
         otherResponseModel.getOtherExtractedModel().getTransformedDetails().clear();
         otherResponseModel.getOtherExtractedModel().getExtractedData().clear();
         properties.forEach((key, value) -> {
-            if(key.contains("OnBoardMe_IdentificationDocumentCapture")){
-                otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(key,value);
+            if (key.contains("OnBoardMe_IdentificationDocumentCapture") || key.equals(FullNameKey)) {
+                if (key.equals(FullNameKey)) {
+                    if(!nameKey.isEmpty()){
+                        otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(nameKey, getSelectedWords(value.toString(),nameWordCount));
+                        otherResponseModel.getOtherExtractedModel().getExtractedData().put("name", getSelectedWords(value.toString(),nameWordCount));
+                    }
+                    if(!surnameKey.isEmpty()){
+                        otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(surnameKey, getRemainingWords(value.toString(),nameWordCount));
+                        otherResponseModel.getOtherExtractedModel().getExtractedData().put("surname", getRemainingWords(value.toString(),nameWordCount));
+                    }
+
+                } else {
+                otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(key, value);
                 String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
                         .replace("_", " ");
-                otherResponseModel.getOtherExtractedModel().getExtractedData().put(newKey,value);
-            }else {
-                otherResponseModel.getOtherExtractedModel().getTransformedDetails().put(key,value);
+                otherResponseModel.getOtherExtractedModel().getExtractedData().put(newKey, value);}
+            } else {
+                otherResponseModel.getOtherExtractedModel().getTransformedDetails().put(key, value);
             }
         });
-
         scanOtherCallback.onComplete(otherResponseModel);
     }
 
@@ -429,7 +462,7 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
         scanOtherCallback.onComplete(otherResponseModel);
     }
 
-    public void stopScanning(){
+    public void stopScanning() {
         closeCamera();
     }
 
