@@ -260,7 +260,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
 
                     } else {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE);
                         switch (eventName) {
                             case HubConnectionTargets.ON_ERROR:
                                 scanPassportCallback.onError(BaseResponseDataModel);

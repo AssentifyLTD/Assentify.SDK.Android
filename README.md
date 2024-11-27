@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.57**
+- Performance improvements
+
 **0.0.56**
 - Adding the face liveness check parameter
 - Adding the Document liveness check parameter
