@@ -76,7 +76,8 @@ class RemoteProcessing {
         clipsPath: String,
         checkForFace: Boolean,
         processMrz: Boolean,
-        performLivenessDetection: Boolean,
+        performLivenessDoc: Boolean,
+        performLivenessFace: Boolean,
         saveCapturedVideo: Boolean,
         storeCapturedDocument: Boolean,
         isVideo: Boolean,
@@ -100,11 +101,11 @@ class RemoteProcessing {
             RequestBody.create("text/plain".toMediaTypeOrNull(), templateId),
             RequestBody.create(
                 "text/plain".toMediaTypeOrNull(),
-                performLivenessDetection.toString()
+                performLivenessDoc.toString()
             ),
             RequestBody.create(
                 "text/plain".toMediaTypeOrNull(),
-                performLivenessDetection.toString()
+                performLivenessFace.toString()
             ),
             RequestBody.create("text/plain".toMediaTypeOrNull(), processMrz.toString()),
             RequestBody.create("text/plain".toMediaTypeOrNull(), "false"),

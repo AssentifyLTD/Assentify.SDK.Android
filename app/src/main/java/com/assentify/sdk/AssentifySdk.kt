@@ -2,6 +2,7 @@ package  com.assentify.sdk
 
 import LanguageTransformationModel
 import TransformationModel
+import android.util.Log
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
@@ -43,7 +44,8 @@ class AssentifySdk(
     private val assentifySdkCallback: AssentifySdkCallback?,
     private var processMrz: Boolean? = null,
     private var storeCapturedDocument: Boolean? = null,
-    private var performLivenessDetection: Boolean? = null,
+    private var performLivenessDocument: Boolean? = null,
+    private var performLivenessFace: Boolean? = null,
     private var storeImageStream: Boolean? = null,
     private var saveCapturedVideoID: Boolean? = null,
     private var saveCapturedVideoFace: Boolean? = null,
@@ -59,12 +61,25 @@ class AssentifySdk(
     private var templates: List<TemplatesByCountry> = emptyList();
 
     init {
-        require(apiKey.isNotBlank() && apiKey.isNotEmpty()) { "ApiKey must not be blank or null" }
-        require(interaction.isNotBlank() && interaction.isNotEmpty()) { "Interaction must not be blank or null" }
-        require(tenantIdentifier.isNotBlank() && apiKey.isNotEmpty()) { "TenantIdentifier must not be blank or null" }
-        require(environmentalConditions != null) { "EnvironmentalConditions must not be  null" }
-        require(assentifySdkCallback != null) { "AssentifySdkCallback must not be  null" }
-        validateKey()
+        if (apiKey.isBlank()) {
+            Log.e("AssentifySdk Init Error " , "ApiKey must not be blank or null")
+        }
+        if (interaction.isBlank()) {
+            Log.e("AssentifySdk Init Error " , "Interaction must not be blank or null")
+        }
+        if (tenantIdentifier.isBlank()) {
+            Log.e("AssentifySdk Init Error " , "TenantIdentifier must not be blank or null")
+        }
+        if (environmentalConditions == null) {
+            Log.e("AssentifySdk Init Error " , "EnvironmentalConditions must not be null")
+        }
+        if (assentifySdkCallback == null) {
+            Log.e("AssentifySdk Init Error " , "AssentifySdkCallback must not be null")
+        }
+        if (apiKey.isNotBlank() && interaction.isNotBlank() && tenantIdentifier.isNotBlank()) {
+            validateKey()
+
+        }
     }
 
 
@@ -82,6 +97,10 @@ class AssentifySdk(
                     GlobalScope.launch {
                         configModel.stepDefinitions.forEach { item ->
                             if (item.stepDefinition == "IdentificationDocumentCapture") {
+                                if (performLivenessDocument == null) {
+                                    performLivenessDocument =
+                                        item.customization.PerformLivenessDetection;
+                                }
                                 if (processMrz == null) {
                                     processMrz = item.customization.ProcessMrz;
                                 }
@@ -94,8 +113,8 @@ class AssentifySdk(
                                 }
                             }//
                             if (item.stepDefinition == "FaceImageAcquisition") {
-                                if (performLivenessDetection == null) {
-                                    performLivenessDetection =
+                                if (performLivenessFace == null) {
+                                    performLivenessFace =
                                         item.customization.PerformLivenessDetection;
                                 }
                                 if (storeImageStream == null) {
@@ -116,10 +135,10 @@ class AssentifySdk(
                                 SentryLevel.ERROR
                             )
                         }
-                        if (performLivenessDetection == null || storeImageStream == null || saveCapturedVideoFace == null) {
-                            assentifySdkCallback!!.onAssentifySdkInitError("Please Configure The FaceImageAcquisition { performLivenessDetection , storeImageStream , saveCapturedVideo }  ");
+                        if (performLivenessDocument == null || performLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
+                            assentifySdkCallback!!.onAssentifySdkInitError("Please Configure The FaceImageAcquisition { performLivenessDocument , performLivenessFace , storeImageStream , saveCapturedVideo }  ");
                             SentryManager.registerEvent(
-                                SentryKeys.Initialized + ":" + "Please Configure The FaceImageAcquisition { performLivenessDetection , storeImageStream , saveCapturedVideo }  ",
+                                SentryKeys.Initialized + ":" + "Please Configure The FaceImageAcquisition { performLivenessDocument , performLivenessFace ,  storeImageStream , saveCapturedVideo }  ",
                                 SentryLevel.ERROR
                             )
 
@@ -186,7 +205,8 @@ class AssentifySdk(
                 environmentalConditions,
                 apiKey,
                 processMrz,
-                performLivenessDetection,
+                performLivenessDocument,
+                performLivenessFace,
                 saveCapturedVideoID,
                 storeCapturedDocument,
                 storeImageStream, language
@@ -207,7 +227,8 @@ class AssentifySdk(
                 configModel,
                 environmentalConditions, apiKey,
                 processMrz,
-                performLivenessDetection,
+                performLivenessDocument,
+                performLivenessFace,
                 saveCapturedVideoID,
                 storeCapturedDocument,
                 storeImageStream,
@@ -230,7 +251,8 @@ class AssentifySdk(
                 configModel,
                 environmentalConditions, apiKey,
                 processMrz,
-                performLivenessDetection,
+                performLivenessDocument,
+                performLivenessFace,
                 saveCapturedVideoID,
                 storeCapturedDocument,
                 storeImageStream,
@@ -243,13 +265,18 @@ class AssentifySdk(
         }
     }
 
-    fun startFaceMatch(faceMatchCallback: FaceMatchCallback, image: String,showCountDown:Boolean = true): FaceMatch {
+    fun startFaceMatch(
+        faceMatchCallback: FaceMatchCallback,
+        image: String,
+        showCountDown: Boolean = true
+    ): FaceMatch {
         if (isKeyValid) {
             faceMatch = FaceMatch(
                 configModel,
                 environmentalConditions, apiKey,
                 processMrz,
-                performLivenessDetection,
+                performLivenessDocument,
+                performLivenessFace,
                 saveCapturedVideoFace,
                 storeCapturedDocument,
                 storeImageStream,
@@ -290,7 +317,7 @@ class AssentifySdk(
         }
     }
 
-   private fun getTemplatesByCountry() {
+    private fun getTemplatesByCountry() {
         val remoteService = RemoteClient.remoteIdPowerService
         val call: Call<List<Templates>> = remoteService.getTemplates()
 
@@ -315,7 +342,7 @@ class AssentifySdk(
                     }
 
 
-                   templates = filterToSupportedCountries(
+                    templates = filterToSupportedCountries(
                         templatesByCountry
                     )!!;
 
@@ -427,6 +454,6 @@ class AssentifySdk(
     }
 
 
-    fun getTemplates () = templates;
+    fun getTemplates() = templates;
 
 }

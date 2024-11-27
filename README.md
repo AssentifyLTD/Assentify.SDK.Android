@@ -39,6 +39,12 @@ dependencies {
 
 ## Versions
 
+**0.0.56**
+- Adding the face liveness check parameter
+- Adding the Document liveness check parameter
+- Enhance the translate feature
+- Null check for the initialization parameters
+
 **0.0.55**
 - Handel the intermittent internet connectivity
 
