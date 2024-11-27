@@ -278,7 +278,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         faceMatchCallback.onComplete(faceResponseModel);
                         start = false;
                     } else
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE);
                     switch (eventName) {
                         case HubConnectionTargets.ON_ERROR:
                             faceMatchCallback.onError(BaseResponseDataModel);
