@@ -6,6 +6,8 @@ import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getRemainingWords;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWords;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
@@ -408,7 +410,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
     }
 
     String nameKey = "";
-    int nameLength = 0;
+    int nameWordCount = 0;
     String surnameKey = "";
     @Override
     public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
@@ -420,7 +422,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                 (key, value) -> {
                     if(key.contains(IdentificationDocumentCaptureKeys.name)){
                         nameKey = key;
-                        nameLength = value.toString().length();
+                        nameWordCount = value.toString().trim().isEmpty() ? 0 : value.toString().trim().split("\\s+").length;
                     }
                     if(key.contains(IdentificationDocumentCaptureKeys.surname)){
                         surnameKey = key;
@@ -435,12 +437,12 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
             if (key.contains("OnBoardMe_IdentificationDocumentCapture") || key.equals(FullNameKey)) {
                 if (key.equals(FullNameKey)) {
                     if(!nameKey.isEmpty()){
-                      otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(nameKey, value.substring(0,nameLength));
-                      otherResponseModel.getOtherExtractedModel().getExtractedData().put("name", value.substring(0,nameLength));
+                        otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(nameKey, getSelectedWords(value.toString(),nameWordCount));
+                        otherResponseModel.getOtherExtractedModel().getExtractedData().put("name", getSelectedWords(value.toString(),nameWordCount));
                     }
                     if(!surnameKey.isEmpty()){
-                        otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(surnameKey, value.substring(nameLength+1));
-                        otherResponseModel.getOtherExtractedModel().getExtractedData().put("surname", value.substring(nameLength+1));
+                        otherResponseModel.getOtherExtractedModel().getTransformedProperties().put(surnameKey, getRemainingWords(value.toString(),nameWordCount));
+                        otherResponseModel.getOtherExtractedModel().getExtractedData().put("surname", getRemainingWords(value.toString(),nameWordCount));
                     }
 
                 } else {

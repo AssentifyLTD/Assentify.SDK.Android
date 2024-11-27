@@ -6,10 +6,13 @@ import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getRemainingWords;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWords;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -388,7 +391,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         // remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
     }
     String nameKey = "";
-    int nameLength = 0;
+    int nameWordCount = 0;
     String surnameKey = "";
 
     @Override
@@ -402,7 +405,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 (key, value) -> {
                     if(key.contains(IdentificationDocumentCaptureKeys.name)){
                         nameKey = key;
-                        nameLength = value.toString().length();
+                        nameWordCount = value.toString().trim().isEmpty() ? 0 : value.toString().trim().split("\\s+").length;
                     }
                     if(key.contains(IdentificationDocumentCaptureKeys.surname)){
                         surnameKey = key;
@@ -415,12 +418,12 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         properties.forEach((key, value) -> {
             if (key.equals(FullNameKey)) {
                 if(!nameKey.isEmpty()){
-                    passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(nameKey, value.substring(0,nameLength));
-                    passportResponseModel.getPassportExtractedModel().getExtractedData().put("name", value.substring(0,nameLength));
+                    passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(nameKey, getSelectedWords(value.toString(),nameWordCount));
+                    passportResponseModel.getPassportExtractedModel().getExtractedData().put("name", getSelectedWords(value.toString(),nameWordCount));
                 }
                 if(!surnameKey.isEmpty()){
-                    passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(surnameKey, value.substring(nameLength+1));
-                    passportResponseModel.getPassportExtractedModel().getExtractedData().put("surname", value.substring(nameLength+1));
+                    passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(surnameKey, getRemainingWords(value.toString(),nameWordCount));
+                    passportResponseModel.getPassportExtractedModel().getExtractedData().put("surname", getRemainingWords(value.toString(),nameWordCount));
                 }
             } else {
                 passportResponseModel.getPassportExtractedModel().getTransformedProperties().put(key, value);

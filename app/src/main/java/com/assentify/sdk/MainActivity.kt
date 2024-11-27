@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
          }
 
 
-/*    fun startAssentifySdk() {
+  /* fun startAssentifySdk() {
         var scanID = assentifySdk.startScanPassport(
             this@MainActivity,
             Language.Arabic// This activity implemented from from IDCardCallback
@@ -192,10 +192,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
 
     }*/
 
-    /*  fun startAssentifySdk() {
+   /*  fun startAssentifySdk() {
           var scanID = assentifySdk.startScanOther(
               this@MainActivity,
-              Language.Arabic// This activity implemented from from IDCardCallback
+              Language.English// This activity implemented from from IDCardCallback
           );
           var fragmentManager = supportFragmentManager
           var transaction = fragmentManager.beginTransaction()
@@ -217,14 +217,22 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback {
         Log.e("IDSCAN", "onRetry: ")
     }
 
-    /*   override fun onComplete(dataModel: OtherResponseModel) {
-           Log.e("IDSCAN extractedData", "onComplete: " + dataModel.otherExtractedModel!!.extractedData )
-           Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.otherExtractedModel!!.outputProperties )
-           Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.otherExtractedModel!!.transformedProperties )
+ /*     override fun onComplete(dataModel: OtherResponseModel) {
+          dataModel.otherExtractedModel?.extractedData?.forEach { (key, value) ->
+              Log.e("IDSCAN ", "extractedData Key: $key, Value: $value")
+          }
+
+          dataModel.otherExtractedModel?.outputProperties?.forEach { (key, value) ->
+              Log.e("IDSCAN ", "outputProperties Key: $key, Value: $value")
+          }
+
+          dataModel.otherExtractedModel?.transformedProperties?.forEach { (key, value) ->
+              Log.e("IDSCAN ", "transformedProperties Key: $key, Value: $value")
+          }
        }*/
 
 
-  /*  override fun onComplete(dataModel: PassportResponseModel) {
+ /*   override fun onComplete(dataModel: PassportResponseModel) {
         dataModel.passportExtractedModel?.extractedData?.forEach { (key, value) ->
             Log.e("IDSCAN ", "extractedData Key: $key, Value: $value")
         }

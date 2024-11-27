@@ -7,6 +7,8 @@ import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getRemainingWords;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWords;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
@@ -444,7 +446,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     }
 
     String nameKey = "";
-    int nameLength = 0;
+    int nameWordCount = 0;
     String surnameKey = "";
 
     @Override
@@ -457,7 +459,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 (key, value) -> {
                     if(key.contains(IdentificationDocumentCaptureKeys.name)){
                         nameKey = key;
-                        nameLength = value.toString().length();
+                        nameWordCount = value.toString().trim().isEmpty() ? 0 : value.toString().trim().split("\\s+").length;
                     }
                     if(key.contains(IdentificationDocumentCaptureKeys.surname)){
                         surnameKey = key;
@@ -471,12 +473,12 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
             if (key.equals(FullNameKey)) {
                 if(!nameKey.isEmpty()){
-                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(nameKey, value.substring(0,nameLength));
-                    idResponseModel.getIDExtractedModel().getExtractedData().put("name", value.substring(0,nameLength));
+                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(nameKey, getSelectedWords(value.toString(),nameWordCount));
+                    idResponseModel.getIDExtractedModel().getExtractedData().put("name", getSelectedWords(value.toString(),nameWordCount));
                 }
                 if(!surnameKey.isEmpty()){
-                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(surnameKey, value.substring(nameLength+1));
-                    idResponseModel.getIDExtractedModel().getExtractedData().put("surname", value.substring(nameLength+1));
+                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(surnameKey, getRemainingWords(value.toString(),nameWordCount));
+                    idResponseModel.getIDExtractedModel().getExtractedData().put("surname", getRemainingWords(value.toString(),nameWordCount));
                 }
             }else {
                 idResponseModel.getIDExtractedModel().getTransformedProperties().put(key, value);
