@@ -210,7 +210,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
 
             if (this.showCountDownView) {
-                if (!hasFaceOrCard()) {
+                if (!hasFaceOrCard() || !isRectFInsideTheScreen) {
                     stopCountDown();
                     isCountDownStarted = true;
                 }
