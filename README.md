@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.58**
+- Face match improvements
+
 **0.0.57**
 - Performance improvements
 
