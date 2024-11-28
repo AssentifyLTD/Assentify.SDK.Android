@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
             ImageToBase64Converter().execute(image).get()
         face = assentifySdk.startFaceMatch(
             this@MainActivity, // This activity implemented from from FaceMatchCallback
-            base64Image, showCountDown = false // Target  Image
+            base64Image, showCountDown = true // Target  Image
         );
         Thread.sleep(1000)
         var fragmentManager = supportFragmentManager
