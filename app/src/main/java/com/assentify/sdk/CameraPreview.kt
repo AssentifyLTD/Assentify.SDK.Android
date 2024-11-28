@@ -87,7 +87,8 @@ abstract class CameraPreview : Fragment() {
     private var videoCapture: VideoCapture<Recorder>? = null;
     private var recording: Recording? = null
     private val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-    private var counter = 0;
+    private var countDownTimer: CountDownTimer? = null
+    private var counter = 3;
 
 
     @SuppressLint("MissingInflatedId")
@@ -250,7 +251,7 @@ abstract class CameraPreview : Fragment() {
                     listScaleRectF,
                     previewView.width,
                     previewView.height,
-                    )
+                )
 
 
 
@@ -467,12 +468,15 @@ abstract class CameraPreview : Fragment() {
     // TODO Later
     //  protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
     protected abstract fun onStopRecordVideo()
+
+
     protected fun showCountDown(
         callback: CountDownCallback,
         color: String,
         isCountDownStarted: Boolean,
     ) {
         if (isCountDownStarted) {
+            counter = 3;
             requireActivity().runOnUiThread {
                 val countDownContainer =
                     requireActivity().findViewById<View>(R.id.countDownContainer) as LinearLayout
@@ -481,25 +485,34 @@ abstract class CameraPreview : Fragment() {
                     requireActivity().findViewById<View>(R.id.countDownText) as TextView
                 countDownText.visibility = View.VISIBLE
                 countDownText.setTextColor(Color.parseColor(color))
-                var counter = 3;
-                Handler(Looper.getMainLooper()).postDelayed({
-                    object : CountDownTimer(3000, 1000) {
-                        override fun onTick(millisUntilFinished: Long) {
-                            countDownText.text = counter.toString()
-                            counter--;
-                        }
+                countDownText.text = ""
+                countDownTimer = object : CountDownTimer(3000, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        countDownText.text = counter.toString()
+                        counter--
+                    }
 
-                        override fun onFinish() {
-                            countDownText.visibility = View.GONE
-                            // Call the callback's method
-                            callback.onCountDownFinished()
-                        }
-                    }.start()
-                }, 1000)
+                    override fun onFinish() {
+                        countDownText.visibility = View.GONE
+                        // Call the callback's method
+                        callback.onCountDownFinished()
+                    }
+                }.also {
+                    it.start()
+                }
+
             }
         }
-
     }
 
+    protected fun stopCountDown() {
+        countDownTimer?.cancel() // Cancel the countdown
+        countDownTimer = null
+        requireActivity().runOnUiThread {
+            val countDownText =
+                requireActivity().findViewById<View>(R.id.countDownText) as TextView
+            countDownText.visibility = View.GONE
+        }
+    }
 
 }
