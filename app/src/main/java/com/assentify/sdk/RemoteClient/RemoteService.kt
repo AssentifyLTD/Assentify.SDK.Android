@@ -50,6 +50,14 @@ interface RemoteSigningService {
     @GET("Tokens/{templateId}")
     @Headers("Content-Type: application/json")
     fun getTokens(
+        @Header("X-Api-Key") apiKey: String,
+        @Header("X-Source-Agent") userAgent: String,
+        @Header("X-Flow-Instance-Id") flowInstanceId: String,
+        @Header("X-Tenant-Identifier") tenantIdentifier: String,
+        @Header("X-Block-Identifier") blockIdentifier: String,
+        @Header("X-Instance-Id") instanceId: String,
+        @Header("X-Flow-Identifier") flowIdentifier: String,
+        @Header("X-Instance-Hash") instanceHash: String,
         @Path("templateId") templateId: Int,
     ): Call<List<DocumentTokensModel>>;
 

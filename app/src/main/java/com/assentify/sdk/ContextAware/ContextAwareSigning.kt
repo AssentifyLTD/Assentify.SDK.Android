@@ -1,6 +1,7 @@
 package com.assentify.sdk.CheckEnvironment
 
 
+import android.util.Log
 import  com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
@@ -64,12 +65,19 @@ class ContextAwareSigning(
 
    private  fun getTokens(documentId: Int) {
         val remoteService = remoteSigningService
-        val call = remoteService.getTokens(documentId)
+        val call = remoteService.getTokens(  apiKey, "SDK",
+            configModel.flowInstanceId,
+            configModel.tenantIdentifier,
+            configModel.blockIdentifier,
+            configModel.instanceId,
+            configModel.flowIdentifier,
+            configModel.instanceHash,documentId)
         call.enqueue(object : Callback<List<DocumentTokensModel>> {
             override fun onResponse(
                 call: Call<List<DocumentTokensModel>>,
                 response: Response<List<DocumentTokensModel>>
             ) {
+                Log.e("ContextAwareSigning","getTokens ${response}");
                 if (response.isSuccessful) {
                     contextAwareSigningCallback.onHasTokens(response.body()!!);
                 }

@@ -57,7 +57,7 @@ class AssentifySdk(
     private lateinit var scanOther: ScanOther;
     private lateinit var faceMatch: FaceMatch;
     private lateinit var configModel: ConfigModel;
-    private var stepID: Int = -1;
+    private var contextAwareSigningStepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
 
     init {
@@ -93,7 +93,7 @@ class AssentifySdk(
             ) {
                 if (response.isSuccessful) {
                     configModel = response.body()!!
-                    getTemplatesByCountry();
+                    getTemplatesByCountry()
                     GlobalScope.launch {
                         configModel.stepDefinitions.forEach { item ->
                             if (item.stepDefinition == "IdentificationDocumentCapture") {
@@ -125,7 +125,7 @@ class AssentifySdk(
                                 }
                             }
                             if (item.stepDefinition == "ContextAwareSigning") {
-                                stepID = item.stepId;
+                                contextAwareSigningStepID = item.stepId;
                             }
                         }
                         if (processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
@@ -169,6 +169,7 @@ class AssentifySdk(
                 response: Response<ValidateKeyModel>
             ) {
                 if (response.isSuccessful) {
+
                     if (response.body() != null && response.body()!!.statusCode == 200 && response.body()!!.isSuccessful) {
                         isKeyValid = true;
                         getStart()
@@ -296,7 +297,7 @@ class AssentifySdk(
                 contextAwareSigningCallback,
                 tenantIdentifier,
                 interaction,
-                stepID,
+                contextAwareSigningStepID,
                 configModel!!,
                 apiKey
             )
