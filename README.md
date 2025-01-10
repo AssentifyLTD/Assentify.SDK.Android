@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.60**
+- Context Aware Signing Step
+
 **0.0.59**
 - Face match improvements
 

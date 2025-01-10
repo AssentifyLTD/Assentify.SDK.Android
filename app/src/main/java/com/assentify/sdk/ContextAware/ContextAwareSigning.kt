@@ -62,7 +62,7 @@ class ContextAwareSigning(
     }
 
 
-   private  fun getTokens(documentId: Int) {
+    private  fun getTokens(documentId: Int) {
         val remoteService = remoteSigningService
         val call = remoteService.getTokens(documentId)
         call.enqueue(object : Callback<List<DocumentTokensModel>> {
@@ -113,10 +113,11 @@ class ContextAwareSigning(
 
     fun signature(
         documentInstanceId: Int,
+        documentId: Int,
         signature: String,
     ) {
         val signatureRequestModel = SignatureRequestModel(
-            documentId = templateId,
+            documentId = documentId,
             documentInstanceId = documentInstanceId,
             documentName = "documentName",
             username = "UserId",

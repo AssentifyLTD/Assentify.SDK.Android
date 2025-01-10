@@ -47,7 +47,7 @@ interface RemoteSigningService {
         @Query("templateType") templateType: Int
     ): Call<List<DocumentTemplatesModel>>;
 
-    @GET("Tokens/{templateId}")
+    @GET("Tokens/sdk/gettokens/{templateId}")
     @Headers("Content-Type: application/json")
     fun getTokens(
         @Path("templateId") templateId: Int,
