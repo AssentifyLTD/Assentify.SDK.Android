@@ -6,12 +6,12 @@
 
 ## Example
 
-[To run the example project](https://onedrive.live.com/?authkey=%21AMzZrtiLMczPWx0&id=1FA5B54185CEA738%21274&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
+[To run the example project](https://github.com/AssentifyLTD/Assentify.Android.Demo)
 
 
 ## Documentation
 
-[Assentify Sdk Documentation](https://onedrive.live.com/?authkey=%21AN2IEg459j8AyA0&id=1FA5B54185CEA738%21271&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
+[Assentify Sdk Documentation](https://drive.google.com/file/d/1lAF0xgcg-akgivOpT-F3eVBp5Gda2vmr/view?usp=sharing)
 
 ## Installation
 
@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+
+**0.0.61-Alpha**
+- Flow Config
 
 **0.0.60**
 - Context Aware Signing Step
