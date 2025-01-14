@@ -2,6 +2,7 @@ package  com.assentify.sdk
 
 import LanguageTransformationModel
 import TransformationModel
+import android.content.Context
 import android.util.Log
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
@@ -9,6 +10,7 @@ import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
 import com.assentify.sdk.Core.Constants.SentryKeys
 import com.assentify.sdk.Core.Constants.SentryManager
+import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
@@ -29,6 +31,7 @@ import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
+import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
 import io.sentry.SentryLevel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -37,11 +40,11 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class AssentifySdk(
-    private val apiKey: String,
-    private val tenantIdentifier: String,
-    private val interaction: String,
-    private val environmentalConditions: EnvironmentalConditions?,
-    private val assentifySdkCallback: AssentifySdkCallback?,
+    private var apiKey: String? = null,
+    private var tenantIdentifier: String? = null,
+    private var interaction: String? = null,
+    private val environmentalConditions: EnvironmentalConditions,
+    private val assentifySdkCallback: AssentifySdkCallback,
     private var processMrz: Boolean? = null,
     private var storeCapturedDocument: Boolean? = null,
     private var performLivenessDocument: Boolean? = null,
@@ -49,6 +52,7 @@ class AssentifySdk(
     private var storeImageStream: Boolean? = null,
     private var saveCapturedVideoID: Boolean? = null,
     private var saveCapturedVideoFace: Boolean? = null,
+    private var context: Context? = null,
 ) {
 
     private var isKeyValid: Boolean = false;
@@ -56,113 +60,47 @@ class AssentifySdk(
     private lateinit var scanIDCard: ScanIDCard;
     private lateinit var scanOther: ScanOther;
     private lateinit var faceMatch: FaceMatch;
-    private lateinit var configModel: ConfigModel;
+    private var configModel: ConfigModel? = null;
     private var stepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
+    private lateinit var readJSONFromAsset: ReadJSONFromAsset;
 
     init {
-        if (apiKey.isBlank()) {
-            Log.e("AssentifySdk Init Error " , "ApiKey must not be blank or null")
-        }
-        if (interaction.isBlank()) {
-            Log.e("AssentifySdk Init Error " , "Interaction must not be blank or null")
-        }
-        if (tenantIdentifier.isBlank()) {
-            Log.e("AssentifySdk Init Error " , "TenantIdentifier must not be blank or null")
-        }
-        if (environmentalConditions == null) {
-            Log.e("AssentifySdk Init Error " , "EnvironmentalConditions must not be null")
-        }
-        if (assentifySdkCallback == null) {
-            Log.e("AssentifySdk Init Error " , "AssentifySdkCallback must not be null")
-        }
-        if (apiKey.isNotBlank() && interaction.isNotBlank() && tenantIdentifier.isNotBlank()) {
-            validateKey()
-
-        }
-    }
-
-
-    private fun getStart() {
-        val remoteService = RemoteClient.remoteApiService
-        val call = remoteService.getStart(interaction)
-        call.enqueue(object : Callback<ConfigModel> {
-            override fun onResponse(
-                call: Call<ConfigModel>,
-                response: Response<ConfigModel>
-            ) {
-                if (response.isSuccessful) {
-                    configModel = response.body()!!
-                    getTemplatesByCountry();
-                    GlobalScope.launch {
-                        configModel.stepDefinitions.forEach { item ->
-                            if (item.stepDefinition == "IdentificationDocumentCapture") {
-                                if (performLivenessDocument == null) {
-                                    performLivenessDocument =
-                                        item.customization.PerformLivenessDetection;
-                                }
-                                if (processMrz == null) {
-                                    processMrz = item.customization.ProcessMrz;
-                                }
-                                if (storeCapturedDocument == null) {
-                                    storeCapturedDocument =
-                                        item.customization.StoreCapturedDocument;
-                                }
-                                if (saveCapturedVideoID == null) {
-                                    saveCapturedVideoID = item.customization.SaveCapturedVideo;
-                                }
-                            }//
-                            if (item.stepDefinition == "FaceImageAcquisition") {
-                                if (performLivenessFace == null) {
-                                    performLivenessFace =
-                                        item.customization.PerformLivenessDetection;
-                                }
-                                if (storeImageStream == null) {
-                                    storeImageStream = item.customization.StoreImageStream;
-                                }
-                                if (saveCapturedVideoFace == null) {
-                                    saveCapturedVideoFace = item.customization.SaveCapturedVideo;
-                                }
-                            }
-                            if (item.stepDefinition == "ContextAwareSigning") {
-                                stepID = item.stepId;
-                            }
-                        }
-                        if (processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
-                            assentifySdkCallback!!.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { processMrz , storeCapturedDocument , saveCapturedVideo }  ");
-                            SentryManager.registerEvent(
-                                SentryKeys.Initialized + ":" + "Please Configure The IdentificationDocumentCapture { processMrz , storeCapturedDocument , saveCapturedVideo }  ",
-                                SentryLevel.ERROR
-                            )
-                        }
-                        if (performLivenessDocument == null || performLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
-                            assentifySdkCallback!!.onAssentifySdkInitError("Please Configure The FaceImageAcquisition { performLivenessDocument , performLivenessFace , storeImageStream , saveCapturedVideo }  ");
-                            SentryManager.registerEvent(
-                                SentryKeys.Initialized + ":" + "Please Configure The FaceImageAcquisition { performLivenessDocument , performLivenessFace ,  storeImageStream , saveCapturedVideo }  ",
-                                SentryLevel.ERROR
-                            )
-
-                        }
-
-                    }
-                }
+        if (context != null) {
+            readJSONFromAsset = ReadJSONFromAsset(context = context!!);
+            val jsonString = readJSONFromAsset.readJSONFromAssets("assentify_config.json")
+            if(jsonString.isNotEmpty()){
+                configModel = decodeConfigModelFromJson(jsonString)!!;
+                interaction = configModel!!.instanceHash;
+                tenantIdentifier = configModel!!.tenantIdentifier;
+                apiKey = "TODO"
+                isKeyValid = true;
+                iniSdk();
+            }else{
+                assentifySdkCallback.onAssentifySdkInitError("Please Configure The assentify_config.json File ");
 
             }
-
-            override fun onFailure(call: Call<ConfigModel>, t: Throwable) {
-                SentryManager.registerEvent(
-                    SentryKeys.Initialized + ":" + t.message,
-                    SentryLevel.ERROR
-                )
-                assentifySdkCallback!!.onAssentifySdkInitError(t.message!!);
+        }
+        if (configModel == null) {
+            if (apiKey.isNullOrEmpty()) {
+                Log.e("AssentifySdk Init Error ", "ApiKey must not be empty or null")
             }
-        })
-    }
+            if (interaction.isNullOrEmpty()) {
+                Log.e("AssentifySdk Init Error ", "Interaction must not be empty or null")
+            }
+            if (tenantIdentifier.isNullOrEmpty()) {
+                Log.e("AssentifySdk Init Error ", "TenantIdentifier must not be empty or null")
+            }
+            if (!apiKey.isNullOrEmpty() && !interaction.isNullOrEmpty() && !tenantIdentifier.isNullOrEmpty()) {
+                validateKey()
+            }
+        }
 
+    }
 
     private fun validateKey() {
         val remoteService = remoteAuthenticationService
-        val call = remoteService.validateKey(apiKey, tenantIdentifier, "SDK")
+        val call = remoteService.validateKey(apiKey!!, tenantIdentifier!!, "SDK")
         call.enqueue(object : Callback<ValidateKeyModel> {
             override fun onResponse(
                 call: Call<ValidateKeyModel>,
@@ -175,7 +113,7 @@ class AssentifySdk(
                     }
                 } else {
                     isKeyValid = false;
-                    assentifySdkCallback!!.onAssentifySdkInitError("Invalid Keys");
+                    assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
                     SentryManager.registerEvent(
                         SentryKeys.KeyValidation + ":" + "Invalid Keys ",
                         SentryLevel.ERROR
@@ -190,11 +128,90 @@ class AssentifySdk(
                     SentryKeys.KeyValidation + ":" + t.message,
                     SentryLevel.ERROR
                 )
-                assentifySdkCallback!!.onAssentifySdkInitError("Invalid Keys");
+                assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
+            }
+        })
+    }
+    private fun getStart() {
+        val remoteService = RemoteClient.remoteApiService
+        val call = remoteService.getStart(interaction!!)
+        call.enqueue(object : Callback<ConfigModel> {
+            override fun onResponse(
+                call: Call<ConfigModel>,
+                response: Response<ConfigModel>
+            ) {
+                if (response.isSuccessful) {
+                    configModel = response.body()!!
+                    iniSdk();
+                }
+
+            }
+
+            override fun onFailure(call: Call<ConfigModel>, t: Throwable) {
+                SentryManager.registerEvent(
+                    SentryKeys.Initialized + ":" + t.message,
+                    SentryLevel.ERROR
+                )
+                assentifySdkCallback.onAssentifySdkInitError(t.message!!);
             }
         })
     }
 
+
+    private  fun iniSdk(){
+        getTemplatesByCountry();
+        GlobalScope.launch {
+            configModel!!.stepDefinitions.forEach { item ->
+                if (item.stepDefinition == "IdentificationDocumentCapture") {
+                    if (performLivenessDocument == null) {
+                        performLivenessDocument =
+                            item.customization.documentLiveness;
+                    }
+                    if (processMrz == null) {
+                        processMrz = item.customization.processMrz;
+                    }
+                    if (storeCapturedDocument == null) {
+                        storeCapturedDocument =
+                            item.customization.storeCapturedDocument;
+                    }
+                    if (saveCapturedVideoID == null) {
+                        saveCapturedVideoID = item.customization.saveCapturedVideo;
+                    }
+                }//
+                if (item.stepDefinition == "FaceImageAcquisition") {
+                    if (performLivenessFace == null) {
+                        performLivenessFace =
+                            item.customization.performLivenessDetection;
+                    }
+                    if (storeImageStream == null) {
+                        storeImageStream = item.customization.storeImageStream;
+                    }
+                    if (saveCapturedVideoFace == null) {
+                        saveCapturedVideoFace = item.customization.saveCapturedVideo;
+                    }
+                }
+                if (item.stepDefinition == "ContextAwareSigning") {
+                    stepID = item.stepId;
+                }
+            }
+            if (performLivenessDocument == null || processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
+                assentifySdkCallback.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { performLivenessDocument ,processMrz , storeCapturedDocument , saveCapturedVideo }  ");
+                SentryManager.registerEvent(
+                    SentryKeys.Initialized + ":" + "Please Configure The IdentificationDocumentCapture { performLivenessDocument,  processMrz , storeCapturedDocument , saveCapturedVideo }  ",
+                    SentryLevel.ERROR
+                )
+            }
+            if ( performLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
+                assentifySdkCallback.onAssentifySdkInitError("Please Configure The FaceImageAcquisition {  performLivenessFace , storeImageStream , saveCapturedVideo }  ");
+                SentryManager.registerEvent(
+                    SentryKeys.Initialized + ":" + "Please Configure The FaceImageAcquisition {   performLivenessFace ,  storeImageStream , saveCapturedVideo }  ",
+                    SentryLevel.ERROR
+                )
+
+            }
+
+        }
+    }
     fun startScanPassport(
         scanPassportCallback: ScanPassportCallback,
         language: String = Language.NON
@@ -294,11 +311,11 @@ class AssentifySdk(
         if (isKeyValid) {
             return ContextAwareSigning(
                 contextAwareSigningCallback,
-                tenantIdentifier,
-                interaction,
+                tenantIdentifier!!,
+                interaction!!,
                 stepID,
                 configModel!!,
-                apiKey
+                apiKey!!
             )
         } else {
             throw Exception("Invalid Keys")
@@ -311,7 +328,7 @@ class AssentifySdk(
         submitRequestModel: List<SubmitRequestModel>,
     ): SubmitData {
         if (isKeyValid) {
-            return SubmitData(apiKey, submitDataCallback, submitRequestModel, configModel!!)
+            return SubmitData(apiKey!!, submitDataCallback, submitRequestModel, configModel!!)
         } else {
             throw Exception("Invalid Keys")
         }
@@ -346,7 +363,7 @@ class AssentifySdk(
                         templatesByCountry
                     )!!;
 
-                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel);
+                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
                 }
             }
 
@@ -388,7 +405,7 @@ class AssentifySdk(
     private fun filterToSupportedCountries(dataList: List<TemplatesByCountry>?): List<TemplatesByCountry>? {
         var selectedCountries: List<String> = emptyList();
         var supportedIdCards: List<String> = emptyList();
-        configModel.stepDefinitions.forEach { step ->
+        configModel!!.stepDefinitions.forEach { step ->
             if (step.stepDefinition == "IdentificationDocumentCapture") {
                 step.customization.identificationDocuments!!.forEach { docStep ->
                     if (docStep.key == "IdentificationDocument.IdCard") {
@@ -442,7 +459,7 @@ class AssentifySdk(
         languageTransformationData: List<LanguageTransformationModel>
     ) {
         if (isKeyValid) {
-            val translated = LanguageTransformation(apiKey);
+            val translated = LanguageTransformation(apiKey!!);
             translated.setCallback(translatedCallback)
             translated.languageTransformation(
                 language,
