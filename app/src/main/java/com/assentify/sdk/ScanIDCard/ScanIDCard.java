@@ -188,7 +188,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
             if (isRectFInsideTheScreen) {
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
+            }else {
+                setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
+
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
         }
