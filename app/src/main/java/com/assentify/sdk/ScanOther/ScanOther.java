@@ -158,6 +158,8 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
             if (isRectFInsideTheScreen) {
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+            }else {
+                setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
         } else {
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);

@@ -418,51 +418,12 @@ abstract class CameraPreview : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun startRecording() {
-        // TODO Later
-//        val videoCapture = this.videoCapture ?: return
-//        if (recording != null) {
-//            return
-//        }
-//
-//        val cacheDir = requireContext().cacheDir
-//        val fileName = "video_${System.currentTimeMillis()}.mp4"
-//        val file = File(cacheDir, fileName)
-//
-//        recording = videoCapture.output
-//            .prepareRecording(requireContext(), FileOutputOptions.Builder(file).build())
-//            .apply {
-//                // Enable Audio for recording
-//
-//            }
-//            .start(ContextCompat.getMainExecutor(requireContext())) { recordEvent ->
-//                when (recordEvent) {
-//                    is VideoRecordEvent.Start -> {
-//                    }
-//
-//                    is VideoRecordEvent.Finalize -> {
-//
-//                        if (!recordEvent.hasError()) {
-//                            val videoBytes = file.readBytes()
-//                            val base64Encoded = Base64.getEncoder().encodeToString(videoBytes)
-//                           // onStopRecordVideo(base64Encoded, file)
-//                            onStopRecordVideo()
-//                        } else {
-//                            recording?.close()
-//                            recording = null
-//                        }
-//                    }
-//                }
-//            }
     }
 
 
     fun stopRecording() {
         // TODO Later
         onStopRecordVideo()
-//
-//        val curRecording = recording ?: return
-//        curRecording.stop()
-//        recording = null
     }
 
     // TODO Later
