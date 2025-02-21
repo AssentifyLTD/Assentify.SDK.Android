@@ -6,7 +6,7 @@ apply plugin: 'maven-publish'
 android {
     compileSdkVersion 34
     defaultConfig {
-       // applicationId "com.assentify.sdk"
+      //  applicationId "com.assentify.sdk"
 
         minSdkVersion 24
         targetSdkVersion 34
@@ -102,6 +102,8 @@ dependencies {
     implementation 'io.sentry:sentry-android:6.8.0'
 
     implementation 'dev.keiji.jp2:jp2-android:1.0.5'
+
+    implementation 'com.google.mlkit:face-detection:16.1.7'
 
 
 
