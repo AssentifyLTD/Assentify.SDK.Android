@@ -39,7 +39,7 @@ dependencies {
 
 ## Versions
 
-**0.0.61**
+**0.0.61-Beta**
 - Face match improvements
 - Face liveness improvements
 - Flow Config
