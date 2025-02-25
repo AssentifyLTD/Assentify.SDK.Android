@@ -236,7 +236,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     isCountDownStarted = true;
                 }
             }
-       /*  if (environmentalConditions.checkConditions(
+         if (environmentalConditions.checkConditions(
                     brightness
             )== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && faceEvent == FaceEvents.Good) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -263,7 +263,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
                     }
                 }
-            }*/
+            }
 
 
             getActivity().runOnUiThread(new Runnable() {
