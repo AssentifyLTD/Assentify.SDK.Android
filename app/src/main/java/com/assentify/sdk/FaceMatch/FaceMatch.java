@@ -36,6 +36,7 @@ import com.assentify.sdk.tflite.Classifier;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceEventCallback;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceQualityCheck;
 import com.assentify.sdk.tflite.Liveness.CheckLiveness;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -181,7 +182,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
 
         if (motion == MotionType.SENDING) {
-            if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good &&  zoom == ZoomType.SENDING) {
+            if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
                 if (performLivenessFace && start) {
                     livenessCheckArray.add(normalImage);
                 }
@@ -235,7 +236,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     isCountDownStarted = true;
                 }
             }
-         if (environmentalConditions.checkConditions(
+       /*  if (environmentalConditions.checkConditions(
                     brightness
             )== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && faceEvent == FaceEvents.Good) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -262,7 +263,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
                     }
                 }
-            }
+            }*/
 
 
             getActivity().runOnUiThread(new Runnable() {
@@ -273,7 +274,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                     brightness
                             ),
                             sendingFlags.isEmpty() ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
-                            !start ? FaceEvents.Good : faceEvent ,zoom
+                            !start ? FaceEvents.Good : faceEvent, zoom
                     );
                 }
             });
