@@ -21,6 +21,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
@@ -156,7 +157,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 motionRectF.add(rectFCard);
             }
         }
-        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
+        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
             if (isRectFInsideTheScreen) {
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }else {
@@ -203,7 +204,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness) && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
+                    brightness)== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionLimit && sendingFlagsZoom.size() > ZoomLimit) {
                         if (hasFaceOrCard()) {
@@ -217,7 +218,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 @Override
                 public void run() {
                     scanPassportCallback.onEnvironmentalConditionsChange(
-                            brightness,
+                            environmentalConditions.checkConditions(
+                                    brightness),
                             sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
                             zoom);
                 }

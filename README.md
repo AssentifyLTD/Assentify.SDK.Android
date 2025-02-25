@@ -11,7 +11,7 @@
 
 ## Documentation
 
-[Assentify Sdk Documentation](https://drive.google.com/file/d/1lAF0xgcg-akgivOpT-F3eVBp5Gda2vmr/view?usp=sharing)
+[Assentify Sdk Documentation](https://drive.google.com/file/d/1DmE-2OlLbo-gh5b2p1tFDm5cJMrsPK7J/view?usp=sharing)
 
 ## Installation
 
@@ -38,6 +38,12 @@ dependencies {
 ```
 
 ## Versions
+
+**0.0.61**
+- Face events improvements
+- Face zoom improvements
+- Face brightness improvements
+- Face liveness improvements
 
 **0.0.61-Beta**
 - Face match improvements

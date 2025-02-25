@@ -15,8 +15,12 @@ object ConstantsValues {
     const val ModelLiveModelFileName = "check-liveness.tflite";
     const val FaceCheckQualityThresholdPositive = 5;
     const val FaceCheckQualityThresholdNegative = -5;
-
+    const val PREDICTION_LOW_PERCENTAGE: Float = 50.0f;
+    const val PREDICTION_HIGH_PERCENTAGE: Float = 100.0f;
+    const val BRIGHTNESS_HIGH_THRESHOLD: Float = 180.0f;
+    const val BRIGHTNESS_LOW_THRESHOLD: Float = 50.0f;
 }
+
 
 fun getVideoPath(configModel:ConfigModel,template:String,videoCounter:Int): String? {
     return  configModel.tenantIdentifier + "/" + configModel.blockIdentifier + "/" + configModel.instanceId + "/" + template  + "/" + "try_${videoCounter}"  + "/" +"${videoCounter}.mp4"
