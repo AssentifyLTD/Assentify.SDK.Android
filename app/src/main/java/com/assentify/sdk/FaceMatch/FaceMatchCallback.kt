@@ -1,7 +1,9 @@
 package   com.assentify.sdk.FaceMatch
 
+import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import  com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.ScanOther.OtherResponseModel
 
@@ -46,9 +48,10 @@ interface FaceMatchCallback {
     fun onUploadFailed(dataModel: BaseResponseDataModel) {}
 
     fun onEnvironmentalConditionsChange(
-        brightness: Double,
+        brightnessEvents: BrightnessEvents,
         motion: MotionType,
         faceEvents: FaceEvents,
+        zoomType: ZoomType,
     ) {
     }
 }

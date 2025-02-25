@@ -1,5 +1,6 @@
 package   com.assentify.sdk.ScanOther
 
+import com.assentify.sdk.Core.Constants.BrightnessEvents
 import  com.assentify.sdk.Core.Constants.MotionType
 import  com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
@@ -46,7 +47,7 @@ interface ScanOtherCallback {
     fun onUploadFailed(dataModel: BaseResponseDataModel){}
 
     fun onEnvironmentalConditionsChange(
-        brightness: Double,
+        brightnessEvents: BrightnessEvents,
         motion: MotionType,
         zoom: ZoomType,
     ){}
