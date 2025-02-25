@@ -1,5 +1,6 @@
 package com.assentify.sdk.FaceMatch;
 
+import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 
 import android.graphics.Bitmap;
@@ -11,7 +12,9 @@ import androidx.annotation.NonNull;
 
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
+import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.FaceEvents;
@@ -22,6 +25,7 @@ import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.SentryKeys;
 import com.assentify.sdk.Core.Constants.SentryManager;
+import com.assentify.sdk.Core.Constants.ZoomType;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.Models.BaseResponseDataModel;
 import com.assentify.sdk.CheckEnvironment.DetectMotion;
@@ -69,11 +73,14 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     Boolean showCountDownView = true;
     Boolean isCountDownStarted = true;
     private MotionType motion = MotionType.NO_DETECT;
+
+    private ZoomType zoom = ZoomType.NO_DETECT;
     private RectF rectFCard = new RectF();
     private List<RectF> motionRectF = new ArrayList<>();
 
     private List<MotionType> sendingFlags = new ArrayList<>();
 
+    private List<ZoomType> sendingFlagsZoom = new ArrayList<>();
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
     private String faceMatch = "FaceMatch";
@@ -174,7 +181,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
 
         if (motion == MotionType.SENDING) {
-            if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good) {
+            if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good &&  zoom == ZoomType.SENDING) {
                 if (performLivenessFace && start) {
                     livenessCheckArray.add(normalImage);
                 }
@@ -199,19 +206,25 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
             ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
             DetectMotion detectMotion = new DetectMotion();
+            DetectZoom detectZoom = new DetectZoom();
             brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
 
             if (motionRectF.size() >= 2) {
                 if (results.isEmpty()) {
                     motionRectF.clear();
                     sendingFlags.clear();
+                    sendingFlagsZoom.clear();
                     motion = MotionType.NO_DETECT;
+                    zoom = ZoomType.NO_DETECT;
                 } else {
                     motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
-                    if (motion == MotionType.SENDING) {
+                    zoom = detectZoom.calculateFacePercentageChangeWidth(motionRectF.get(motionRectF.size() - 1));
+                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
                         sendingFlags.add(MotionType.SENDING);
+                        sendingFlagsZoom.add(ZoomType.SENDING);
                     } else {
                         sendingFlags.clear();
+                        sendingFlagsZoom.clear();
                     }
                 }
             }
@@ -222,11 +235,11 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     isCountDownStarted = true;
                 }
             }
-         /* if (environmentalConditions.checkConditions(
+         if (environmentalConditions.checkConditions(
                     brightness
-            )) {
+            )== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && faceEvent == FaceEvents.Good) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen && faceEvent == FaceEvents.Good) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen  && sendingFlagsZoom.size() > ZoomLimit) {
                         if (hasFaceOrCard()) {
                             if (this.showCountDownView) {
                                 showCountDown(new CountDownCallback() {
@@ -249,16 +262,18 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
                     }
                 }
-            }*/
+            }
 
 
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     faceMatchCallback.onEnvironmentalConditionsChange(
-                            brightness,
+                            environmentalConditions.checkConditions(
+                                    brightness
+                            ),
                             sendingFlags.isEmpty() ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
-                            !start ? FaceEvents.Good : faceEvent
+                            !start ? FaceEvents.Good : faceEvent ,zoom
                     );
                 }
             });
@@ -278,7 +293,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     bitmaps.clear();
                     motionRectF.clear();
                     sendingFlags.clear();
-
+                    sendingFlagsZoom.clear();
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                         FaceResponseModel faceResponseModel = new FaceResponseModel(

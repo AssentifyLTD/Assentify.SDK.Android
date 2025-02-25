@@ -21,6 +21,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
@@ -233,7 +234,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness) && motion == MotionType.SENDING && isRectFInsideTheScreen) {
+                    brightness)== BrightnessEvents.Good && motion == MotionType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > ZoomLimit && sendingFlagsMotion.size() > MotionLimit) {
                         if (hasFaceOrCard()) {
@@ -248,7 +249,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 @Override
                 public void run() {
                     idCardCallback.onEnvironmentalConditionsChange(
-                            brightness,
+                            environmentalConditions.checkConditions(
+                                    brightness),
                             sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
 
                             zoom);

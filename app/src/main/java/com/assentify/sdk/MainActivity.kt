@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.Language
@@ -68,31 +69,26 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
         ) {
 
             val environmentalConditions = EnvironmentalConditions(
-                true,
-                true,
-                500.0f,
-                00.0f,
-                50.0f,
-                100.0f,
-                "#FFFFFF",
-                "#FFC400",
-
-                );
+                enableDetect = true, /** Default  true **/
+                enableGuide = true, /** Default  true **/
+                CustomColor = "#FFFFFF",
+                HoldHandColor = "#FFC400",
+            );
 
 
             assentifySdk = AssentifySdk(
-                "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
-                "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
-                "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
+                "",
+                "",
+                "",
                 environmentalConditions,
                 this,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
+                true,/** Default value from flow configuration **/
+                true, /** Default value from flow configuration **/
+                true,/** Default value from flow configuration **/
+                true, /** Default value from flow configuration **/
+                true, /** Default value from flow configuration **/
+                true, /** Default value from flow configuration **/
+                true, /** Default value from flow configuration **/
             );
 
         } else {
@@ -281,11 +277,12 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
     }
 
     override fun onEnvironmentalConditionsChange(
-        brightness: Double,
+        brightnessEvents: BrightnessEvents,
         motion: MotionType,
-        faceEvents: FaceEvents
+        faceEvents: FaceEvents,
+        zoomType: ZoomType
     ) {
-        runOnUiThread { textView.text = faceEvents.toString() }
+        runOnUiThread { textView.text = "Brightness Events:"+ brightnessEvents.toString() + "\n\n" + "Face Events :"+ faceEvents.toString() + "\n\n" + "Zoom Events :" +faceEvents.toString() }
     }
 
     override fun onRequestPermissionsResult(
