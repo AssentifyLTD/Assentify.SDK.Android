@@ -406,7 +406,8 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    "IdentificationDocumentCapture"
+                    "IdentificationDocumentCapture",
+                    new ArrayList<>()
             );
         });
 

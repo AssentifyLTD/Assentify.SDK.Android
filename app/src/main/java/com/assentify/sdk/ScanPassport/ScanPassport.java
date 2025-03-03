@@ -388,7 +388,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    "IdentificationDocumentCapture"
+                    "IdentificationDocumentCapture",
+                    new ArrayList<>()
             );
         });
 

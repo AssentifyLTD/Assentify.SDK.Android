@@ -443,7 +443,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    "IdentificationDocumentCapture"
+                    "IdentificationDocumentCapture",
+                    new ArrayList<>()
             );
         });
 

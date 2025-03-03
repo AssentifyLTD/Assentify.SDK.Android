@@ -83,8 +83,16 @@ class RemoteProcessing {
         isVideo: Boolean,
         storeImageStream: Boolean,
         stepDefinition: String,
+        clipParts: List<String>,
     ) {
         val traceIdentifier = UUID.randomUUID().toString()
+
+        val clips = arrayListOf<String>()
+
+        clipParts.map { clip ->
+            clips.add(clip)
+        }
+
 
         val call = RemoteClient.remoteWidgetsService.starProcessing(
             url,
@@ -121,7 +129,7 @@ class RemoteProcessing {
             RequestBody.create("text/plain".toMediaTypeOrNull(), storeCapturedDocument.toString()),
             RequestBody.create("text/plain".toMediaTypeOrNull(), traceIdentifier),
             RequestBody.create("text/plain".toMediaTypeOrNull(), selfieImage),
-
+            clips,
             )
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
