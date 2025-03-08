@@ -77,9 +77,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
 
 
             assentifySdk = AssentifySdk(
-                "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
-                "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
-                "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
+                "z8zY4zgWnPqFDI2U05OeR6KMdDPAqqsBdVUU9hJAKZBEekIRNGgcJ8ItJJt1glsCY6IoDGkJScHEJmxRCNBEQ",
+                "318e2ca7-fde8-4c47-bbcc-0c94b905630f",
+                "77686B18F8337CF753183AE2DFE00C0F575879B450EAD98186F124666E27D038",
                 environmentalConditions,
                 this,
                 true,/** Default value from flow configuration **/
@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
         startAssentifySdk();
     }
 
-    fun startAssentifySdk() {
+  fun startAssentifySdk() {
 
         val image =
             "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
         }
     */
 
-    /*   fun startAssentifySdk() {
+/*     fun startAssentifySdk() {
           var scanID = assentifySdk.startScanPassport(
               this@MainActivity,
               Language.Arabic// This activity implemented from from IDCardCallback
@@ -187,13 +187,11 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
     }
 
 
-    /*
-        override fun onComplete(dataModel: PassportResponseModel) {
-            Log.e("IDSCAN extractedData", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
-            Log.e("IDSCAN outputProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
-            Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.transformedProperties )
-        }
-    */
+/*        override fun onComplete(dataModel: PassportResponseModel) {
+            Log.e("IDSCAN", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
+            Log.e("IDSCAN", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
+            Log.e("IDSCAN", "onComplete: " + dataModel.passportExtractedModel!!.transformedProperties )
+        }*/
 
 
     override fun onComplete(dataModel: FaceResponseModel) {
@@ -282,7 +280,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
         faceEvents: FaceEvents,
         zoomType: ZoomType
     ) {
-        runOnUiThread { textView.text = "Brightness Events : "+ brightnessEvents.toString() + "\n\n" + "Face Events : "+ faceEvents.toString() + "\n\n" + "Zoom Events : " + zoomType.toString() }
+        runOnUiThread { textView.text = "Brightness Events : "+ brightnessEvents.toString() +  "\n\n" + "Zoom Events : " + zoomType.toString()  +  "\n\n" + "Face Events : " + faceEvents.toString()}
     }
 
     override fun onRequestPermissionsResult(

@@ -6,6 +6,8 @@ import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -194,7 +196,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
                 if (performLivenessFace && start) {
                     if(livenessCheckArray.size()<localLivenessLimit){
-                        livenessCheckArray.add(normalImage);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            livenessCheckArray.add(normalImage);
+                        }, 100);
                         if (checkIsLive.preprocessAndPredict(normalImage) == LivenessType.LIVE) {
                             livenessTypeResults.add(LivenessType.LIVE);
                         }

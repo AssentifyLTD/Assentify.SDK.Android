@@ -1,12 +1,12 @@
 package com.assentify.sdk.Core.Constants
 
 import android.util.Log
-import  com.assentify.sdk.Core.Constants.Routes.BaseUrls
+import com.assentify.sdk.Core.Constants.Routes.BaseUrls
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.parseDataToBaseResponseDataModel
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback
-import  com.assentify.sdk.RemoteClient.Models.ConfigModel
-import  com.assentify.sdk.RemoteClient.RemoteClient
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.RemoteClient
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -87,10 +87,11 @@ class RemoteProcessing {
     ) {
         val traceIdentifier = UUID.randomUUID().toString()
 
-        val clips = arrayListOf<String>()
-
-        clipParts.map { clip ->
-            clips.add(clip)
+        val clips = clipParts.mapIndexed { index, clip ->
+            MultipartBody.Part.createFormData(
+                "clips[$index]",
+                clip
+            )
         }
 
 
