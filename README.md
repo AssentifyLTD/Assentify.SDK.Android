@@ -45,13 +45,15 @@ dependencies {
 - Parameters change :EnvironmentalConditions
 
 **0.0.62**
-- Face liveness improvements
-
-**0.0.61**
 - Face events improvements
 - Face zoom improvements
 - Face brightness improvements
 - Face liveness improvements
+
+**0.0.61**
+- Face match improvements
+- Face liveness improvements
+- Flow Config
 
 **0.0.61-Beta**
 - Face match improvements
