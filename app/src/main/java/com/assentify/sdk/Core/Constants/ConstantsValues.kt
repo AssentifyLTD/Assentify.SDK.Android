@@ -19,6 +19,7 @@ object ConstantsValues {
     const val PREDICTION_HIGH_PERCENTAGE: Float = 100.0f;
     const val BRIGHTNESS_HIGH_THRESHOLD: Float = 180.0f;
     const val BRIGHTNESS_LOW_THRESHOLD: Float = 50.0f;
+    const val LIVENESS_THRESHOLD  = 0.9;
 }
 
 

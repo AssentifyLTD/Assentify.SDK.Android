@@ -14,7 +14,6 @@ import com.gemalto.jp2.JP2Encoder;
 
 public class ImageUtils {
 
-    static final int kMaxChannelValue = 262143;
 
 
     public static String convertBitmapToBase64(Bitmap inputImage, BlockType blockType, Context context) {
@@ -31,6 +30,34 @@ public class ImageUtils {
 
 
     public static String bitmapToBase64(Bitmap bitmap, boolean isLossless, int visualQuality) {
+        try {
+            byte[] jp2Data;
+            if (isLossless) {
+                jp2Data = new JP2Encoder(bitmap).encode();
+            } else {
+                jp2Data = new JP2Encoder(bitmap)
+                        .setVisualQuality(visualQuality)
+                        .encode();
+            }
+            return Base64.encodeToString(jp2Data, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String convertClipsBitmapToBase64(Bitmap inputImage, BlockType blockType, Context context) {
+        Bitmap bitmap = inputImage;
+       if (blockType == BlockType.FACE_MATCH) {
+            bitmap = rotateBitmap(bitmap, 270);
+        } else {
+            bitmap = rotateBitmap(bitmap, 90);
+
+        }
+        return bitmapClipsToBase64(bitmap,false,40);
+    }
+
+    public static String bitmapClipsToBase64(Bitmap bitmap, boolean isLossless, int visualQuality) {
         try {
             byte[] jp2Data;
             if (isLossless) {
