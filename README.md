@@ -39,10 +39,13 @@ dependencies {
 
 ## Versions
 
+**0.0.63**
+- Face liveness improvements
+- Parameters change :onEnvironmentalConditionsChange
+- Parameters change :EnvironmentalConditions
+
 **0.0.62**
 - Face liveness improvements
-- Parameters change :onEnvironmentalConditionsChange 
-- Parameters change :EnvironmentalConditions
 
 **0.0.61**
 - Face events improvements
