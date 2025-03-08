@@ -130,6 +130,7 @@ interface RemoteWidgetsService {
 
     @POST
     @Multipart
+    @JvmSuppressWildcards
     @Headers("Accept: application/json, text/plain, */*")
     fun starProcessing(
         @Url url: String,
@@ -160,6 +161,7 @@ interface RemoteWidgetsService {
         @Part("storeCapturedDocument") storeCapturedDocument: RequestBody,
         @Part("traceIdentifier") traceIdentifier: RequestBody,
         @Part("selfieImage") selfieImage: RequestBody,
+        @Part clips: List<MultipartBody.Part>
     ): Call<ResponseBody>
 }
 

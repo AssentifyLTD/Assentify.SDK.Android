@@ -11,7 +11,7 @@
 
 ## Documentation
 
-[Assentify Sdk Documentation](https://drive.google.com/file/d/1DmE-2OlLbo-gh5b2p1tFDm5cJMrsPK7J/view?usp=sharing)
+[Assentify Sdk Documentation](https://drive.google.com/file/d/1LUrXUR3Bs8fvc169-t5c0uqbBT2-fYkZ/view?usp=drive_link)
 
 ## Installation
 
@@ -38,6 +38,11 @@ dependencies {
 ```
 
 ## Versions
+
+**0.0.63**
+- Face liveness improvements
+- Parameters change :onEnvironmentalConditionsChange
+- Parameters change :EnvironmentalConditions
 
 **0.0.62**
 - Face events improvements

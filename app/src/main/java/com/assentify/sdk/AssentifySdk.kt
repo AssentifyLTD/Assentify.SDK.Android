@@ -8,8 +8,6 @@ import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
-import com.assentify.sdk.Core.Constants.SentryKeys
-import com.assentify.sdk.Core.Constants.SentryManager
 import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
@@ -32,7 +30,6 @@ import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
-import io.sentry.SentryLevel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -114,20 +111,11 @@ class AssentifySdk(
                 } else {
                     isKeyValid = false;
                     assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
-                    SentryManager.registerEvent(
-                        SentryKeys.KeyValidation + ":" + "Invalid Keys ",
-                        SentryLevel.ERROR
-                    )
-
                 }
             }
 
             override fun onFailure(call: Call<ValidateKeyModel>, t: Throwable) {
                 isKeyValid = false;
-                SentryManager.registerEvent(
-                    SentryKeys.KeyValidation + ":" + t.message,
-                    SentryLevel.ERROR
-                )
                 assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
             }
         })
@@ -148,10 +136,6 @@ class AssentifySdk(
             }
 
             override fun onFailure(call: Call<ConfigModel>, t: Throwable) {
-                SentryManager.registerEvent(
-                    SentryKeys.Initialized + ":" + t.message,
-                    SentryLevel.ERROR
-                )
                 assentifySdkCallback.onAssentifySdkInitError(t.message!!);
             }
         })
@@ -196,17 +180,9 @@ class AssentifySdk(
             }
             if (performLivenessDocument == null || processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
                 assentifySdkCallback.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { performLivenessDocument ,processMrz , storeCapturedDocument , saveCapturedVideo }  ");
-                SentryManager.registerEvent(
-                    SentryKeys.Initialized + ":" + "Please Configure The IdentificationDocumentCapture { performLivenessDocument,  processMrz , storeCapturedDocument , saveCapturedVideo }  ",
-                    SentryLevel.ERROR
-                )
             }
             if ( performLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
                 assentifySdkCallback.onAssentifySdkInitError("Please Configure The FaceImageAcquisition {  performLivenessFace , storeImageStream , saveCapturedVideo }  ");
-                SentryManager.registerEvent(
-                    SentryKeys.Initialized + ":" + "Please Configure The FaceImageAcquisition {   performLivenessFace ,  storeImageStream , saveCapturedVideo }  ",
-                    SentryLevel.ERROR
-                )
 
             }
 
@@ -368,10 +344,6 @@ class AssentifySdk(
             }
 
             override fun onFailure(call: Call<List<Templates>>, t: Throwable) {
-                SentryManager.registerEvent(
-                    SentryKeys.HasTemplates + ":" + t.message,
-                    SentryLevel.ERROR
-                )
             }
         })
     }
