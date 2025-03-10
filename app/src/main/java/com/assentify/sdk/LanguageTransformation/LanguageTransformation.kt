@@ -1,10 +1,11 @@
 package com.assentify.sdk.LanguageTransformation
 
-import LanguageTransformationModel
-import TransformationModel
+
 import android.util.Log
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
+import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,6 +34,7 @@ public class LanguageTransformation(private var apiKey: String) {
                 response: Response<List<LanguageTransformationModel>>
             ) {
                 if (response.isSuccessful) {
+                    Log.e("IDSCAN", "${response.body()}")
                     val responseBody = response.body()
                     if (responseBody != null) {
                         callback!!.onTranslatedSuccess(mergeKeyValue(responseBody));
