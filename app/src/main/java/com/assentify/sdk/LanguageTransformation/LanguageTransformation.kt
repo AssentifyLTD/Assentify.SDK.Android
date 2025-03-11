@@ -34,7 +34,6 @@ public class LanguageTransformation(private var apiKey: String) {
                 response: Response<List<LanguageTransformationModel>>
             ) {
                 if (response.isSuccessful) {
-                    Log.e("IDSCAN", "${response.body()}")
                     val responseBody = response.body()
                     if (responseBody != null) {
                         callback!!.onTranslatedSuccess(mergeKeyValue(responseBody));
