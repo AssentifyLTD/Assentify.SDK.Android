@@ -1,12 +1,12 @@
 package com.assentify.sdk.Core.Constants
 
 import android.util.Log
-import  com.assentify.sdk.Core.Constants.Routes.BaseUrls
+import com.assentify.sdk.Core.Constants.Routes.BaseUrls
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.parseDataToBaseResponseDataModel
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback
-import  com.assentify.sdk.RemoteClient.Models.ConfigModel
-import  com.assentify.sdk.RemoteClient.RemoteClient
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.RemoteClient
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -76,14 +76,24 @@ class RemoteProcessing {
         clipsPath: String,
         checkForFace: Boolean,
         processMrz: Boolean,
-        performLivenessDetection: Boolean,
+        performLivenessDoc: Boolean,
+        performLivenessFace: Boolean,
         saveCapturedVideo: Boolean,
         storeCapturedDocument: Boolean,
         isVideo: Boolean,
         storeImageStream: Boolean,
         stepDefinition: String,
+        clipParts: List<String>,
     ) {
         val traceIdentifier = UUID.randomUUID().toString()
+
+        val clips = clipParts.mapIndexed { index, clip ->
+            MultipartBody.Part.createFormData(
+                "clips[$index]",
+                clip
+            )
+        }
+
 
         val call = RemoteClient.remoteWidgetsService.starProcessing(
             url,
@@ -100,11 +110,11 @@ class RemoteProcessing {
             RequestBody.create("text/plain".toMediaTypeOrNull(), templateId),
             RequestBody.create(
                 "text/plain".toMediaTypeOrNull(),
-                performLivenessDetection.toString()
+                performLivenessDoc.toString()
             ),
             RequestBody.create(
                 "text/plain".toMediaTypeOrNull(),
-                performLivenessDetection.toString()
+                performLivenessFace.toString()
             ),
             RequestBody.create("text/plain".toMediaTypeOrNull(), processMrz.toString()),
             RequestBody.create("text/plain".toMediaTypeOrNull(), "false"),
@@ -120,7 +130,7 @@ class RemoteProcessing {
             RequestBody.create("text/plain".toMediaTypeOrNull(), storeCapturedDocument.toString()),
             RequestBody.create("text/plain".toMediaTypeOrNull(), traceIdentifier),
             RequestBody.create("text/plain".toMediaTypeOrNull(), selfieImage),
-
+            clips,
             )
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(

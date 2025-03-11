@@ -6,10 +6,12 @@
 
 ## Example
 
-[To run the example project](https://onedrive.live.com/?authkey=%21AMzZrtiLMczPWx0&id=1FA5B54185CEA738%21274&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
+[To run the example project](https://github.com/AssentifyLTD/Assentify.Android.Demo)
 
-## Documentation 
-[Assentify Sdk Documentation](https://onedrive.live.com/?authkey=%21AN2IEg459j8AyA0&id=1FA5B54185CEA738%21271&cid=1FA5B54185CEA738&parId=root&parQt=sharedby&o=OneUp)
+
+## Documentation
+
+[Assentify Sdk Documentation](https://drive.google.com/file/d/1LUrXUR3Bs8fvc169-t5c0uqbBT2-fYkZ/view?usp=drive_link)
 
 ## Installation
 
@@ -37,11 +39,62 @@ dependencies {
 
 ## Versions
 
-**0.0.52**
-- Enhance The Translation / Transliteration Feature
+**0.0.63**
+- Face liveness improvements
+- Parameters change :onEnvironmentalConditionsChange
+- Parameters change :EnvironmentalConditions
 
-**0.0.51**
-- Enhance The Image lossless compression Algorithm
+**0.0.62**
+- Face events improvements
+- Face zoom improvements
+- Face brightness improvements
+- Face liveness improvements
+
+**0.0.61**
+- Face match improvements
+- Face liveness improvements
+- Flow Config
+
+**0.0.61-Beta**
+- Face match improvements
+- Face liveness improvements
+- Flow Config
+
+**0.0.61-Alpha**
+- Flow Config
+
+**0.0.60**
+- Context Aware Signing Step
+
+**0.0.59**
+- Face match improvements
+
+**0.0.58**
+- Face match improvements
+
+**0.0.57**
+- Performance improvements
+
+**0.0.56**
+- Adding the face liveness check parameter
+- Adding the Document liveness check parameter
+- Enhance the translate feature
+- Null check for the initialization parameters
+
+**0.0.55**
+- Handel the intermittent internet connectivity
+
+**0.0.55-Alpha**
+- Local face liveness check
+
+**0.0.54**
+- Matching The Templates With The Admin Portal Selected Templates
+
+**0.0.53**
+- Removing the Detect and Guide during the Transmitting process
+
+**0.0.52**
+- bug fixes and performance improvements
 
 **0.0.50**
 - Enhance The Image lossless compression Algorithm

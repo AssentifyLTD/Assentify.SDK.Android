@@ -6,11 +6,13 @@ import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getRemainingWords;
+import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWords;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,16 +21,17 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
+import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
-import com.assentify.sdk.Core.Constants.SentryKeys;
-import com.assentify.sdk.Core.Constants.SentryManager;
 import com.assentify.sdk.Core.Constants.ZoomType;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
@@ -56,7 +59,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import io.sentry.SentryLevel;
 import kotlin.Pair;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -90,7 +92,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     Boolean processMrz;
-    Boolean performLivenessDetection;
+    Boolean performLivenessDocument;
+    Boolean performLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
@@ -114,7 +117,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
-                      Boolean performLivenessDetection,
+                      Boolean performLivenessDocument,
+                      Boolean performLivenessFace,
                       Boolean saveCapturedVideo,
                       Boolean storeCapturedDocument,
                       Boolean storeImageStream,
@@ -125,7 +129,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
         this.processMrz = processMrz;
-        this.performLivenessDetection = performLivenessDetection;
+        this.performLivenessDocument = performLivenessDocument;
+        this.performLivenessFace = performLivenessFace;
         this.saveCapturedVideo = saveCapturedVideo;
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
@@ -143,7 +148,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     private void changeTemplateId(String templateId) {
-        SentryManager.INSTANCE.registerEvent(SentryKeys.ID, SentryLevel.INFO);
         this.templateId = templateId;
         createBase64 = Executors.newSingleThreadExecutor();
         highQualityBitmaps.clear();
@@ -178,12 +182,15 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 motionRectF.add(rectFCard);
             }
         }
-        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
+        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
             if (isRectFInsideTheScreen) {
-                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
+            }else {
+                setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
+
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide());
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
         }
 
         checkEnvironment();
@@ -223,7 +230,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness) && motion == MotionType.SENDING && isRectFInsideTheScreen) {
+                    brightness)== BrightnessEvents.Good && motion == MotionType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > ZoomLimit && sendingFlagsMotion.size() > MotionLimit) {
                         if (hasFaceOrCard()) {
@@ -238,7 +245,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 @Override
                 public void run() {
                     idCardCallback.onEnvironmentalConditionsChange(
-                            brightness,
+                            environmentalConditions.checkConditions(
+                                    brightness),
                             sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
 
                             zoom);
@@ -251,7 +259,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -408,7 +415,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 }
             });
         }
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, "onSend", "");
 
         start = false;
         videoCounter = videoCounter + 1;
@@ -425,30 +431,62 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     getVideoPath(configModel, this.templateId, videoCounter),
                     false,
                     processMrz,
-                    performLivenessDetection,
+                    performLivenessDocument,
+                    performLivenessFace,
                     saveCapturedVideo,
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    "IdentificationDocumentCapture"
+                    "IdentificationDocumentCapture",
+                    new ArrayList<>()
             );
         });
 
       //  remoteProcessing.uploadVideo(videoCounter, video, configModel, this.templateId);
     }
 
+    String nameKey = "";
+    int nameWordCount = 0;
+    String surnameKey = "";
+
     @Override
     public void onTranslatedSuccess(@Nullable Map<String, String> properties) {
         getIgnoredProperties(Objects.requireNonNull(idResponseModel.getIDExtractedModel().getOutputProperties())).forEach((key, value) -> {
             properties.put(key, value);
         });
+
+        Objects.requireNonNull(idResponseModel.getIDExtractedModel().getOutputProperties()).forEach(
+                (key, value) -> {
+                    if(key.contains(IdentificationDocumentCaptureKeys.name)){
+                        nameKey = key;
+                        nameWordCount = value.toString().trim().isEmpty() ? 0 : value.toString().trim().split("\\s+").length;
+                    }
+                    if(key.contains(IdentificationDocumentCaptureKeys.surname)){
+                        surnameKey = key;
+                    }
+                }
+        );
+
         idResponseModel.getIDExtractedModel().getTransformedProperties().clear();
         idResponseModel.getIDExtractedModel().getExtractedData().clear();
         properties.forEach((key, value) -> {
-            idResponseModel.getIDExtractedModel().getTransformedProperties().put(key, value);
-            String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
-                    .replace("_", " ");
-            idResponseModel.getIDExtractedModel().getExtractedData().put(newKey, value);
+
+            if (key.equals(FullNameKey)) {
+                if(!nameKey.isEmpty()){
+                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(nameKey, getSelectedWords(value.toString(),nameWordCount));
+                    idResponseModel.getIDExtractedModel().getExtractedData().put("name", getSelectedWords(value.toString(),nameWordCount));
+                }
+                if(!surnameKey.isEmpty()){
+                    idResponseModel.getIDExtractedModel().getTransformedProperties().put(surnameKey, getRemainingWords(value.toString(),nameWordCount));
+                    idResponseModel.getIDExtractedModel().getExtractedData().put("surname", getRemainingWords(value.toString(),nameWordCount));
+                }
+            }else {
+                idResponseModel.getIDExtractedModel().getTransformedProperties().put(key, value);
+                String newKey = key.substring(key.indexOf("IdentificationDocumentCapture_") + "IdentificationDocumentCapture_".length())
+                        .replace("_", " ");
+                idResponseModel.getIDExtractedModel().getExtractedData().put(newKey, value);
+            }
+
         });
 
 

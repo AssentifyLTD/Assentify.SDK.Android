@@ -502,17 +502,44 @@ fun preparePropertiesToTranslate(
     properties: Map<String, Any>
 ): TransformationModel {
     val languageTransformationModels = mutableListOf<LanguageTransformationModel>()
+    var name = "";
+    var surname = "";
+    properties.forEach { key, value ->
+        if (key.contains(IdentificationDocumentCaptureKeys.name)) {
+            name = value.toString();
+        }
+        if (key.contains(IdentificationDocumentCaptureKeys.surname)) {
+            surname = value.toString();
+        }
+    }
+    val  fulName =  name+" "+surname
+
     properties.forEach { key, value ->
         if (!ignoredKeys(key)) {
-            languageTransformationModels.add(
-                LanguageTransformationModel(
-                    languageTransformationEnum = getLanguageTransformationEnum(key),
-                    key = key,
-                    value = value.toString(),
-                    language = language,
-                    dataType = getLDataType(key),
+            if (!key.contains(IdentificationDocumentCaptureKeys.name) && !key.contains(
+                    IdentificationDocumentCaptureKeys.surname
                 )
-            )
+            ) {
+                languageTransformationModels.add(
+                    LanguageTransformationModel(
+                        languageTransformationEnum = getLanguageTransformationEnum(key),
+                        key = key,
+                        value = value.toString(),
+                        language = language,
+                        dataType = getLDataType(key),
+                    )
+                )
+            }else{
+                languageTransformationModels.add(
+                    LanguageTransformationModel(
+                        languageTransformationEnum =LanguageTransformationEnum.Transliteration,
+                        key = FullNameKey,
+                        value = fulName,
+                        language = language,
+                        dataType =DataType.Text,
+                    )
+                )
+            }
         }
     }
 

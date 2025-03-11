@@ -11,13 +11,17 @@ object ConstantsValues {
     const val LabelFileName = "file:///android_asset/classes.txt"
     const val IsQuantized = false
     const val InputSize = 256
-    const val FolderImagesName = "TempImages";
-    const val FolderVideosName = "TempVideos";
-    const val ImageName = "TEMP"
-    const val VideoName = "VID"
-    const val MINIMUM_CONFIDENCE_TF_OD_API = 0.3f
-
+    const val InputFaceModelsSize = 224
+    const val ModelLiveModelFileName = "check-liveness.tflite";
+    const val FaceCheckQualityThresholdPositive = 5;
+    const val FaceCheckQualityThresholdNegative = -5;
+    const val PREDICTION_LOW_PERCENTAGE: Float = 50.0f;
+    const val PREDICTION_HIGH_PERCENTAGE: Float = 100.0f;
+    const val BRIGHTNESS_HIGH_THRESHOLD: Float = 180.0f;
+    const val BRIGHTNESS_LOW_THRESHOLD: Float = 50.0f;
+    const val LIVENESS_THRESHOLD  = 0.9;
 }
+
 
 fun getVideoPath(configModel:ConfigModel,template:String,videoCounter:Int): String? {
     return  configModel.tenantIdentifier + "/" + configModel.blockIdentifier + "/" + configModel.instanceId + "/" + template  + "/" + "try_${videoCounter}"  + "/" +"${videoCounter}.mp4"

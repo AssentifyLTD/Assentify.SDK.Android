@@ -47,7 +47,7 @@ interface RemoteSigningService {
         @Query("templateType") templateType: Int
     ): Call<List<DocumentTemplatesModel>>;
 
-    @GET("Tokens/{templateId}")
+    @GET("Tokens/sdk/gettokens/{templateId}")
     @Headers("Content-Type: application/json")
     fun getTokens(
         @Path("templateId") templateId: Int,
@@ -130,6 +130,7 @@ interface RemoteWidgetsService {
 
     @POST
     @Multipart
+    @JvmSuppressWildcards
     @Headers("Accept: application/json, text/plain, */*")
     fun starProcessing(
         @Url url: String,
@@ -160,6 +161,7 @@ interface RemoteWidgetsService {
         @Part("storeCapturedDocument") storeCapturedDocument: RequestBody,
         @Part("traceIdentifier") traceIdentifier: RequestBody,
         @Part("selfieImage") selfieImage: RequestBody,
+        @Part clips: List<MultipartBody.Part>
     ): Call<ResponseBody>
 }
 

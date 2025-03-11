@@ -15,7 +15,8 @@ data class ConfigModel(
     val defaultLanguageId: Int,
     val instanceId: String,
     val userStateStepMap: Map<String, List<UserState>>,
-    val stepDefinitions: List<StepDefinitions>
+    val stepDefinitions: List<StepDefinitions>,
+    val stepMap: List<StepMap>
 )
 
 data class UserState(
@@ -44,18 +45,31 @@ data class OutputProperties(
 )
 
 data class Customization(
-    val ProcessMrz: Boolean?,
-    val StoreCapturedDocument: Boolean?,
-    val PerformLivenessDetection: Boolean?,
-    val StoreImageStream: Boolean?,
-    val SaveCapturedVideo: Boolean?,
+    val processMrz: Boolean?,
+    val documentLiveness: Boolean?,
+    val storeCapturedDocument: Boolean?,
+    val performLivenessDetection: Boolean?,
+    val storeImageStream: Boolean?,
+    val saveCapturedVideo: Boolean?,
     val identificationDocuments: List<IdentificationDocuments>?
 )
 
+data class StepMap(
+    val id: Int,
+    val stepType: Int,
+    val stepName: String,
+    val stepDefinition: String,
+    val parentStepId: Int?,
+    val branches: Any?,
+    val numberOfBranches: Int?,
+    val isVirtual: Boolean,
+    val stepMapBranches: Any?
+)
 
 data class IdentificationDocuments(
   val key: String?, // IdentificationDocument.IdCard
   val selectedCountries: List<String>?,
+  val supportedIdCards: List<String>,
 
 )
 
@@ -68,3 +82,11 @@ fun encodeStepDefinitionsToJson(data: List<StepDefinitions>): String {
     }
 }
 
+fun decodeConfigModelFromJson(jsonString: String): ConfigModel? {
+    return try {
+        val gson = Gson()
+        gson.fromJson(jsonString, ConfigModel::class.java)
+    } catch (e: Exception) {
+        null
+    }
+}
