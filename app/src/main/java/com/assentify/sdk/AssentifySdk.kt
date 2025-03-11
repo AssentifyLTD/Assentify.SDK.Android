@@ -1,7 +1,7 @@
 package  com.assentify.sdk
 
-import LanguageTransformationModel
-import TransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions

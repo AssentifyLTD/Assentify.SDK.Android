@@ -1,7 +1,7 @@
 package com.assentify.sdk.LanguageTransformation
 
-import LanguageTransformationModel
-import TransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import android.util.Log
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback

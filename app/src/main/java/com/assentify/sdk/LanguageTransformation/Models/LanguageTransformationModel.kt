@@ -1,3 +1,4 @@
+package com.assentify.sdk.LanguageTransformation.Models
 data class LanguageTransformationModel(
     val languageTransformationEnum: Int,
     val key: String,
