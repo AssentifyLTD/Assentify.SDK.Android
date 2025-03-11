@@ -1,7 +1,7 @@
 package  com.assentify.sdk
 
-import LanguageTransformationModel
-import TransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import android.content.Context
 import android.util.Log
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning

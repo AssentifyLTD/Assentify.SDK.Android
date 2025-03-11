@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.64**
+- Language bug fixes
+
 **0.0.63**
 - Face liveness improvements
 - Parameters change :onEnvironmentalConditionsChange
