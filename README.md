@@ -40,7 +40,7 @@ dependencies {
 ## Versions
 
 **0.0.64**
-- Bug fixing
+- Language bug fixes
 
 **0.0.63**
 - Face liveness improvements
