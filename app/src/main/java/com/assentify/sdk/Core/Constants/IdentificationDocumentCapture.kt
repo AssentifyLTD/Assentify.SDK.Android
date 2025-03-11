@@ -1,8 +1,8 @@
 package com.assentify.sdk.Core.Constants
 
 import DataType
-import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
-import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
+import LanguageTransformationModel
+import TransformationModel
 import android.util.Log
 
 
