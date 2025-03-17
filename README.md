@@ -38,8 +38,11 @@ dependencies {
 ```
 
 ## Versions
+**0.0.66**
+- Face zoom threshold improvements
+
 **0.0.65**
--  Face events threshold improvements
+- Face events threshold improvements
 
 **0.0.64**
 - Language bug fixes
