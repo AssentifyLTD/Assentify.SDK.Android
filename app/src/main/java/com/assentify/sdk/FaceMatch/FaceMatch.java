@@ -173,8 +173,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             });
         } else {
             if (start) {
-                livenessCheckArray.clear();
-                livenessTypeResults.clear();
                 faceEvent = FaceEvents.NO_DETECT;
             }
         }
@@ -198,22 +196,15 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         if (checkIsLive.preprocessAndPredict(normalImage) == LivenessType.LIVE) {
                             livenessTypeResults.add(LivenessType.LIVE);
                         }
+                        Log.e("livenessCheckArray", String.valueOf(livenessCheckArray.size()));
                     }
                 }
                 highQualityBitmaps.add(normalImage);
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             } else {
-                if (start) {
-                    livenessCheckArray.clear();
-                    livenessTypeResults.clear();
-                }
                 setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
         } else {
-            if (start) {
-                livenessCheckArray.clear();
-                livenessTypeResults.clear();
-            }
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
         }
 
