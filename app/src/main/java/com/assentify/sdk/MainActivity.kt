@@ -63,9 +63,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanNfcCallback 
         }
 
 
-        if (BuildConfig.DEBUG) {
-            Thread.setDefaultUncaughtExceptionHandler(CustomExceptionHandler(this));
-        }
         info = findViewById(R.id.info)
         faceImageView = findViewById(R.id.faceImageView)
         loadingLayout = findViewById(R.id.loading_layout)
@@ -225,20 +222,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanNfcCallback 
         }
     }
 
-  /** CustomExceptionHandler **/
-    class CustomExceptionHandler(private val context: Context) : Thread.UncaughtExceptionHandler {
-        override fun uncaughtException(thread: Thread, throwable: Throwable) {
-            // Show the crash message on screen
-            val intent = Intent(context, CrashActivity::class.java)
-            intent.putExtra("error", Log.getStackTraceString(throwable))
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-
-            // Prevent the app from closing
-            Process.killProcess(Process.myPid())
-            System.exit(10)
-        }
-    }
 
 /** onRequestPermissionsResult **/
 

@@ -216,24 +216,24 @@ class ScanNfc(
         passportResponseModel!!.passportExtractedModel?.outputProperties?.forEach { (key, value) ->
             when {
                 key.contains(IdentificationDocumentCaptureKeys.name) -> {
-                    outputProperties[key] = mRZInfo.secondaryIdentifier
-                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.name = mRZInfo.secondaryIdentifier
+                    outputProperties[key] = mRZInfo.secondaryIdentifier.replace("<", "")
+                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.name = mRZInfo.secondaryIdentifier.replace("<", "")
                 }
                 key.contains(IdentificationDocumentCaptureKeys.surname) -> {
-                    outputProperties[key] = mRZInfo.primaryIdentifier
-                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.surname = mRZInfo.primaryIdentifier
+                    outputProperties[key] = mRZInfo.primaryIdentifier.replace("<", "")
+                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.surname = mRZInfo.primaryIdentifier.replace("<", "")
                 }
                 key.contains(IdentificationDocumentCaptureKeys.nationality) -> {
                     outputProperties[key] = mRZInfo.nationality
-                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.nationality = mRZInfo.nationality
+                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.nationality = mRZInfo.nationality.replace("<", "")
                 }
                 key.contains(IdentificationDocumentCaptureKeys.documentNumber) -> {
-                    outputProperties[key] = mRZInfo.documentNumber
-                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.documentNumber = mRZInfo.documentNumber
+                    outputProperties[key] = mRZInfo.documentNumber.replace("<", "")
+                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.documentNumber = mRZInfo.documentNumber.replace("<", "")
                 }
                 key.contains(IdentificationDocumentCaptureKeys.sex) -> {
-                    outputProperties[key] = mRZInfo.gender.name
-                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.sex = mRZInfo.gender.name
+                    outputProperties[key] = mRZInfo.gender.name.replace("<", "")
+                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.sex = mRZInfo.gender.name.replace("<", "")
                 }
                 /**Date**/
                 /* key.contains(IdentificationDocumentCaptureKeys.birthDate) -> {

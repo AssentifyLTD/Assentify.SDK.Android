@@ -1,7 +1,7 @@
 package com.assentify.sdk.ScanPassport;
 
-import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionLimit;
-import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
+import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionPassportLimit;
+import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomPassportLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -201,7 +201,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             if (environmentalConditions.checkConditions(
                     brightness)== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionLimit && sendingFlagsZoom.size() > ZoomLimit) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionPassportLimit && sendingFlagsZoom.size() > ZoomPassportLimit) {
                         if (hasFaceOrCard()) {
                             stopRecording();
                         }
@@ -215,7 +215,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     scanPassportCallback.onEnvironmentalConditionsChange(
                             environmentalConditions.checkConditions(
                                     brightness),
-                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
+                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionPassportLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
                             zoom);
                 }
             });

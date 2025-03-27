@@ -3,6 +3,7 @@ import android.graphics.RectF
 import android.util.Log
 import  com.assentify.sdk.Core.Constants.ZoomType
 const val ZoomLimit = 5;
+const val ZoomPassportLimit = 5;
 class DetectZoom{
     fun calculatePercentageChangeWidth(rect: RectF): ZoomType {
         val aspectRatioDifference = rect.width();
