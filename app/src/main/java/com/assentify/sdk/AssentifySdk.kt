@@ -1,5 +1,6 @@
 package  com.assentify.sdk
 
+import android.app.Activity
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import android.content.Context
@@ -30,6 +31,8 @@ import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
+import com.assentify.sdk.ScanNFC.ScanNfc
+import com.assentify.sdk.ScanNFC.ScanNfcCallback
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -66,14 +69,14 @@ class AssentifySdk(
         if (context != null) {
             readJSONFromAsset = ReadJSONFromAsset(context = context!!);
             val jsonString = readJSONFromAsset.readJSONFromAssets("assentify_config.json")
-            if(jsonString.isNotEmpty()){
+            if (jsonString.isNotEmpty()) {
                 configModel = decodeConfigModelFromJson(jsonString)!!;
                 interaction = configModel!!.instanceHash;
                 tenantIdentifier = configModel!!.tenantIdentifier;
                 apiKey = "TODO"
                 isKeyValid = true;
                 iniSdk();
-            }else{
+            } else {
                 assentifySdkCallback.onAssentifySdkInitError("Please Configure The assentify_config.json File ");
 
             }
@@ -120,6 +123,7 @@ class AssentifySdk(
             }
         })
     }
+
     private fun getStart() {
         val remoteService = RemoteClient.remoteApiService
         val call = remoteService.getStart(interaction!!)
@@ -142,7 +146,7 @@ class AssentifySdk(
     }
 
 
-    private  fun iniSdk(){
+    private fun iniSdk() {
         getTemplatesByCountry();
         GlobalScope.launch {
             configModel!!.stepDefinitions.forEach { item ->
@@ -181,13 +185,14 @@ class AssentifySdk(
             if (performLivenessDocument == null || processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
                 assentifySdkCallback.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { performLivenessDocument ,processMrz , storeCapturedDocument , saveCapturedVideo }  ");
             }
-            if ( performLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
+            if (performLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
                 assentifySdkCallback.onAssentifySdkInitError("Please Configure The FaceImageAcquisition {  performLivenessFace , storeImageStream , saveCapturedVideo }  ");
 
             }
 
         }
     }
+
     fun startScanPassport(
         scanPassportCallback: ScanPassportCallback,
         language: String = Language.NON
@@ -296,6 +301,18 @@ class AssentifySdk(
         } else {
             throw Exception("Invalid Keys")
         }
+    }
+
+    fun startScanNfc(
+        scanNfcCallback: ScanNfcCallback,
+        languageCode: String = Language.NON,
+        apiKey:String = "",
+    ): ScanNfc {
+        return ScanNfc(
+            scanNfcCallback = scanNfcCallback,
+            languageCode = languageCode,
+            apiKey =apiKey,
+        )
     }
 
 
