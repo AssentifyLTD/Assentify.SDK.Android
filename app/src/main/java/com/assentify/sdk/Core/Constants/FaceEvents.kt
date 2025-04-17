@@ -10,3 +10,15 @@ enum class FaceEvents {
     Good,
     NO_DETECT,
 }
+
+enum class ActiveLiveEvents {
+    YawLeft,
+    YawRight,
+    PitchUp,
+    PitchDown,
+}
+
+fun getRandomEvents(): Set<ActiveLiveEvents> {
+    val allEvents = ActiveLiveEvents.values().toList()
+    return allEvents.shuffled().take(3).toSet()
+}

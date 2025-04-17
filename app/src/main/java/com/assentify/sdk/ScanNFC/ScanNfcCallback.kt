@@ -9,7 +9,7 @@ interface ScanNfcCallback {
 
     fun onStartNfcScan()
 
-    fun onCompleteNfcScan(dataModel: PassportResponseModel, finalBitmap:Bitmap)
+    fun onCompleteNfcScan(dataModel: PassportResponseModel)
 
     fun onErrorNfcScan(dataModel: PassportResponseModel,message: String)
 

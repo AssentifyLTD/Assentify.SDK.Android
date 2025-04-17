@@ -159,5 +159,9 @@ public class ImageUtils {
     }
 
 
-
+    public static Bitmap resizeBitmap(Bitmap bitmap, int targetWidth) {
+        float aspectRatio = (float)bitmap.getHeight() / bitmap.getWidth();
+        int targetHeight = Math.round(targetWidth * aspectRatio);
+        return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
+    }
 }

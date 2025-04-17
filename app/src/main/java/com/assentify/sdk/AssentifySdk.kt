@@ -306,12 +306,14 @@ class AssentifySdk(
     fun startScanNfc(
         scanNfcCallback: ScanNfcCallback,
         languageCode: String = Language.NON,
-        apiKey:String = "",
+        context:Context,
     ): ScanNfc {
         return ScanNfc(
             scanNfcCallback = scanNfcCallback,
             languageCode = languageCode,
-            apiKey =apiKey,
+            apiKey = apiKey!!,
+            context = context,
+            appConfiguration = configModel!!,
         )
     }
 

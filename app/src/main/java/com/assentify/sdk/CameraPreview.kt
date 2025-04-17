@@ -89,7 +89,7 @@ abstract class CameraPreview : Fragment() {
     private val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     private var countDownTimer: CountDownTimer? = null
     private var counter = 3;
-
+    private var isActiveLiveEnabled: Boolean = false
 
     @SuppressLint("MissingInflatedId")
     override fun onCreateView(
@@ -116,6 +116,10 @@ abstract class CameraPreview : Fragment() {
 
     fun frontCamera() {
         frontCamera = true
+    }
+
+    fun  enableActiveLive(value:Boolean){
+        isActiveLiveEnabled = value;
     }
 
 
@@ -182,21 +186,23 @@ abstract class CameraPreview : Fragment() {
                             requireActivity().findViewById(R.id.transmitting_container)
                     }
                     if (enableGuide) {
-                        if (frontCamera) {
-                            if (faceContainer == null) {
-                                faceContainer =
-                                    requireActivity().findViewById(R.id.face_container)
-                                faceContainer!!.visibility = View.VISIBLE
-                            } else {
-                                faceContainer!!.visibility = View.VISIBLE
-                            }
-                            if (faceBackground == null) {
-                                faceBackground =
-                                    requireActivity().findViewById(R.id.face_background)
-                                faceBackground!!.visibility = View.VISIBLE
-                            } else {
-                                faceBackground!!.visibility = View.VISIBLE
-                            }
+                       if (frontCamera) {
+                                if(!this.isActiveLiveEnabled){
+                                if (faceContainer == null) {
+                                    faceContainer =
+                                        requireActivity().findViewById(R.id.face_container)
+                                    faceContainer!!.visibility = View.VISIBLE
+                                } else {
+                                    faceContainer!!.visibility = View.VISIBLE
+                                }
+                                if (faceBackground == null) {
+                                    faceBackground =
+                                        requireActivity().findViewById(R.id.face_background)
+                                    faceBackground!!.visibility = View.VISIBLE
+                                } else {
+                                    faceBackground!!.visibility = View.VISIBLE
+                                }
+                        }
 
                         } else {
                             if (cardContainer == null) {
@@ -353,56 +359,58 @@ abstract class CameraPreview : Fragment() {
         enableGuide: Boolean,
         notTransmitting: Boolean,
     ) {
-        requireActivity().runOnUiThread {
-            if (this.isVisible) {
-                rectangleOverlayView.setCustomColor(color)
-                if (notTransmitting) {
-                    this.enableDetect = enableDetect;
-                    this.enableGuide = enableGuide;
-                    if (transmittingContainer != null) {
-                        transmittingContainer!!.visibility = View.GONE
-                    }
-                } else {
-                    this.enableDetect = false;
-                    this.enableGuide = false;
-                    if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
-                        faceBackground!!.visibility = View.GONE
-                    }
-                    if (faceContainer != null && faceContainer!!.visibility == View.VISIBLE) {
-                        faceContainer!!.visibility = View.GONE
-                    }
-                    if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                        cardBackground!!.visibility = View.GONE
-                    }
-                    if (cardContainer != null && cardContainer!!.visibility == View.VISIBLE) {
-                        cardContainer!!.visibility = View.GONE
-                    }
-                    if (transmittingContainer != null) {
-                        transmittingContainer!!.visibility = View.VISIBLE
-                    }
-                }
-
-                if (this.enableGuide) {
-                    if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
-                        val layerDrawable = ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.face_background,
-                            null
-                        ) as LayerDrawable
-                        val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
-                        shapeDrawable.setStroke(10, Color.parseColor(color))
-                        faceBackground!!.setBackground(layerDrawable)
+        if(!this.isActiveLiveEnabled){
+            requireActivity().runOnUiThread {
+                if (this.isVisible) {
+                    rectangleOverlayView.setCustomColor(color)
+                    if (notTransmitting) {
+                        this.enableDetect = enableDetect;
+                        this.enableGuide = enableGuide;
+                        if (transmittingContainer != null) {
+                            transmittingContainer!!.visibility = View.GONE
+                        }
+                    } else {
+                        this.enableDetect = false;
+                        this.enableGuide = false;
+                        if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                            faceBackground!!.visibility = View.GONE
+                        }
+                        if (faceContainer != null && faceContainer!!.visibility == View.VISIBLE) {
+                            faceContainer!!.visibility = View.GONE
+                        }
+                        if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                            cardBackground!!.visibility = View.GONE
+                        }
+                        if (cardContainer != null && cardContainer!!.visibility == View.VISIBLE) {
+                            cardContainer!!.visibility = View.GONE
+                        }
+                        if (transmittingContainer != null) {
+                            transmittingContainer!!.visibility = View.VISIBLE
+                        }
                     }
 
-                    if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                        val drawableCard = ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.card_background,
-                            null
-                        ) as VectorDrawable
-                        val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
-                        DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
-                        cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                    if (this.enableGuide) {
+                        if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                            val layerDrawable = ResourcesCompat.getDrawable(
+                                resources,
+                                R.drawable.face_background,
+                                null
+                            ) as LayerDrawable
+                            val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                            shapeDrawable.setStroke(10, Color.parseColor(color))
+                            faceBackground!!.setBackground(layerDrawable)
+                        }
+
+                        if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                            val drawableCard = ResourcesCompat.getDrawable(
+                                resources,
+                                R.drawable.card_background,
+                                null
+                            ) as VectorDrawable
+                            val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                            DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                            cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                        }
                     }
                 }
             }

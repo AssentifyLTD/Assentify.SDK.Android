@@ -18,12 +18,16 @@ import com.assentify.sdk.Core.Constants.getSelectedWords
 import com.assentify.sdk.Core.Constants.preparePropertiesToTranslate
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
+import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.sf.scuba.smartcards.CardService
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import org.apache.commons.io.IOUtils
 import org.jmrtd.BACKey
 import org.jmrtd.BACKeySpec
@@ -37,19 +41,33 @@ import org.jmrtd.lds.icao.DG1File
 import org.jmrtd.lds.icao.DG2File
 import org.jmrtd.lds.icao.MRZInfo
 import org.jmrtd.lds.iso19794.FaceImageInfo
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
+import java.io.File
 import java.io.InputStream
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import android.content.Context
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import org.json.JSONObject
+import java.net.URLEncoder
 
 class ScanNfc(
     private val scanNfcCallback: ScanNfcCallback,
     private val languageCode : String,
     private val apiKey:String,
+    private val context:Context,
+    private val appConfiguration: ConfigModel,
 ) : LanguageTransformationCallback {
 
 
     private var passportResponseModel: PassportResponseModel? = null;
-    private var finalBitmap: Bitmap? = null
 
     /** isNfcSupported **/
     fun isNfcSupported(activity: Activity): Boolean {
@@ -74,12 +92,26 @@ class ScanNfc(
                 intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
             }
             if (tag?.techList?.contains(ConstantsValues.NfcTechTag) == true) {
-                val bacKey: BACKeySpec = BACKey("LR2285833", "940208", "310927")
+                 val bacKey: BACKeySpec = BACKey(
+                      dataModel.passportExtractedModel?.identificationDocumentCapture?.documentNumber.toString(),
+                      formatDateToMRZ(dataModel.passportExtractedModel?.identificationDocumentCapture?.birthDate.toString()),
+                      formatDateToMRZ(dataModel.passportExtractedModel?.identificationDocumentCapture?.expiryDate.toString()),
+                  )
                 ReadTask(IsoDep.get(tag), bacKey).start()
                 scanNfcCallback.onStartNfcScan();
 
             }
         }
+    }
+    private fun formatDateToMRZ(dateStr: String): String {
+        val parts = dateStr.split("/")
+        if (parts.size != 3) {
+            throw IllegalArgumentException("Invalid date format. Expected DD/MM/YYYY")
+        }
+        val day = parts[0].padStart(2, '0')
+        val month = parts[1].padStart(2, '0')
+        val year = parts[2].takeLast(2)
+        return "$year$month$day"
     }
 
     /** ReadTask **/
@@ -134,7 +166,7 @@ class ScanNfc(
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
-                        scanNfcCallback.onErrorNfcScan(passportResponseModel!!,e.message!!);
+                        //scanNfcCallback.onErrorNfcScan(passportResponseModel!!,e.message!!);
                     }
                 }
                 service.sendSelectApplet(paceSucceeded)
@@ -177,14 +209,14 @@ class ScanNfc(
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    scanNfcCallback.onErrorNfcScan(passportResponseModel!!,e.message!!);
+                   // scanNfcCallback.onErrorNfcScan(passportResponseModel!!,e.message!!);
                 }
             }
         }
 
         private fun onPostExecute(exception: Exception?) {
             if (exception == null) {
-                if (chipAuthSucceeded) {
+                try {
                     val mrzInfo = dg1File.mrzInfo
                     val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
                     dg2File.faceInfos.forEach {
@@ -197,18 +229,86 @@ class ScanNfc(
                         val buffer = ByteArray(imageLength)
                         dataInputStream.readFully(buffer, 0, imageLength)
                         val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
-                        finalBitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
+                        val finalBitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
+                        uploadImage(finalBitmap,mrzInfo)
                     }
 
-                    replaceDataWithNfcData(mrzInfo);
-                } else {
-                    scanNfcCallback.onErrorNfcScan(passportResponseModel!!,"Chip Auth Not Succeeded ");
+                } catch (e:Exception) {
+                    scanNfcCallback.onErrorNfcScan(passportResponseModel!!,"Chip Auth Not Succeeded");
                 }
             } else {
                 scanNfcCallback.onErrorNfcScan(passportResponseModel!!,exception.message!!);
             }
         }
     }
+
+    /** Upload Image **/
+   private fun uploadImage(
+        bitmap:Bitmap,
+        mrzInfo: MRZInfo,
+    ) {
+        val (image, fileName) =  createTimestampedTempFile(bitmap)!!;
+        val fileRequestBody = RequestBody.create(null,image)
+        val filePart = MultipartBody.Part.createFormData(
+            "asset", fileName, fileRequestBody
+        )
+
+        val path = URLEncoder.encode("${appConfiguration.tenantIdentifier}/${appConfiguration.blockIdentifier}/${appConfiguration.instanceId}/${fileName}", "UTF-8")
+        val call = RemoteClient.remoteBlobStorageService.uploadImageFile(
+            apiKey = apiKey,
+            tenantId = appConfiguration.tenantIdentifier,
+            blockId = appConfiguration.blockIdentifier,
+            instanceId = appConfiguration.instanceId,
+            filePath = path,
+            asset = filePart,
+        )
+
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null) {
+                        val responseBodyString = responseBody.string()
+                        val jsonObject = JSONObject(responseBodyString)
+                        val uploadedUrl = jsonObject.getString("url")
+                        passportResponseModel!!.passportExtractedModel?.faces = mutableListOf<String>();
+                        val faces = mutableListOf<String>()
+                        faces.add(uploadedUrl);
+                        passportResponseModel!!.passportExtractedModel?.faces = faces;
+                        replaceDataWithNfcData(mrzInfo);
+                    }
+                }else{
+                    replaceDataWithNfcData(mrzInfo);
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                replaceDataWithNfcData(mrzInfo);
+            }
+        })
+
+    }
+
+    private fun createTimestampedTempFile(bitmap: Bitmap): Pair<File, String>? {
+        return try {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "IMG_${timeStamp}.jpg"
+            val tempFile = File(context.cacheDir, fileName)
+            FileOutputStream(tempFile).use { fos ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, fos)  // 85% quality
+                fos.flush()
+            }
+
+            Pair(tempFile, fileName)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
 
     /** Replace Data With Nfc Data **/
     private fun replaceDataWithNfcData(mRZInfo: MRZInfo) {
@@ -235,15 +335,6 @@ class ScanNfc(
                     outputProperties[key] = mRZInfo.gender.name.replace("<", "")
                     passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.sex = mRZInfo.gender.name.replace("<", "")
                 }
-                /**Date**/
-                /* key.contains(IdentificationDocumentCaptureKeys.birthDate) -> {
-                    outputProperties[key] = mRZInfo.dateOfBirth
-                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.birthDate = mRZInfo.dateOfBirth
-                }
-                key.contains(IdentificationDocumentCaptureKeys.expiryDate) -> {
-                    outputProperties[key] = mRZInfo.dateOfExpiry
-                    passportResponseModel!!.passportExtractedModel?.identificationDocumentCapture?.expiryDate = mRZInfo.dateOfExpiry
-                }*/
                 else -> outputProperties[key] = value
             }
         }
@@ -264,7 +355,7 @@ class ScanNfc(
         passportResponseModel!!.passportExtractedModel?.extractedData = extractedData
 
         if (languageCode == Language.NON) {
-            scanNfcCallback.onCompleteNfcScan(passportResponseModel!!,finalBitmap!!)
+            scanNfcCallback.onCompleteNfcScan(passportResponseModel!!)
         } else {
             if(apiKey.isNotEmpty()){
                 val translated = LanguageTransformation(apiKey);
@@ -272,19 +363,18 @@ class ScanNfc(
                 translated.languageTransformation(languageCode,
                     preparePropertiesToTranslate(languageCode, passportResponseModel!!.passportExtractedModel?.outputProperties!!))
             }else{
-                scanNfcCallback.onCompleteNfcScan(passportResponseModel!!,finalBitmap!!)
+                scanNfcCallback.onCompleteNfcScan(passportResponseModel!!)
             }
         }
 
 
     }
 
-
     /** Language Transformation **/
-    var nameKey: String = ""
-    var nameWordCount: Int = 0
-    var surnameKey: String = ""
-  override fun onTranslatedSuccess(properties: Map<String, String>?) {
+    private var nameKey: String = ""
+    private var nameWordCount: Int = 0
+    private var surnameKey: String = ""
+    override fun onTranslatedSuccess(properties: Map<String, String>?) {
         properties?.let { props ->
 
             passportResponseModel!!.passportExtractedModel?.outputProperties?.forEach { (key, value) ->
@@ -335,12 +425,12 @@ class ScanNfc(
             passportResponseModel!!.passportExtractedModel?.extractedData = tempExtractedData
         }
 
-        scanNfcCallback.onCompleteNfcScan(passportResponseModel!!,finalBitmap!!)
+        scanNfcCallback.onCompleteNfcScan(passportResponseModel!!)
+    }
+    override fun onTranslatedError(properties: Map<String, String>?) {
+        scanNfcCallback.onCompleteNfcScan(passportResponseModel!!)
     }
 
-    override fun onTranslatedError(properties: Map<String, String>?) {
-        scanNfcCallback.onCompleteNfcScan(passportResponseModel!!,finalBitmap!!)
-    }
 
 
 }
