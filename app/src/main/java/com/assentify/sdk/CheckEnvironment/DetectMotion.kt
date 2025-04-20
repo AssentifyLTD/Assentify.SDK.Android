@@ -5,6 +5,7 @@ import android.util.Log
 import com.assentify.sdk.Core.Constants.MotionType
 
 const val MotionLimit = 5;
+const val MotionPassportLimit = 10;
 class DetectMotion {
 
     fun calculatePercentageChange(rect1: RectF, rect2: RectF): MotionType {

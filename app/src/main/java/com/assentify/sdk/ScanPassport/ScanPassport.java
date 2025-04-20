@@ -1,7 +1,7 @@
 package com.assentify.sdk.ScanPassport;
 
-import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionLimit;
-import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
+import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionPassportLimit;
+import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomPassportLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -33,6 +33,7 @@ import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
 import com.assentify.sdk.Core.Constants.ZoomType;
+import com.assentify.sdk.Core.FileUtils.AssetsAudioPlayer;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
@@ -97,6 +98,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
     private boolean isRectFInsideTheScreen = false;
 
+    private AssetsAudioPlayer audioPlayer;
+
     public ScanPassport(
             ConfigModel configModel,
             EnvironmentalConditions environmentalConditions, String apiKey,
@@ -135,6 +138,12 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
+        if (audioPlayer == null) {
+            if (getActivity() != null) {
+                audioPlayer = new AssetsAudioPlayer(getActivity());
+            }
+        }
+
         this.results = results;
         if (hasFaceOrCard()) {
             highQualityBitmaps.add(normalImage);
@@ -144,6 +153,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 }
             });
         }
+
         this.croppedBitmap = croppedBitmap;
         for (final Classifier.Recognition result : results) {
             final RectF location = result.getLocation();
@@ -201,7 +211,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             if (environmentalConditions.checkConditions(
                     brightness)== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionLimit && sendingFlagsZoom.size() > ZoomLimit) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionPassportLimit && sendingFlagsZoom.size() > ZoomPassportLimit) {
                         if (hasFaceOrCard()) {
                             stopRecording();
                         }
@@ -215,7 +225,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     scanPassportCallback.onEnvironmentalConditionsChange(
                             environmentalConditions.checkConditions(
                                     brightness),
-                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
+                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionPassportLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
                             zoom);
                 }
             });
@@ -329,6 +339,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     public synchronized void onDestroy() {
         super.onDestroy();
         this.createBase64.shutdown();
+        if (audioPlayer != null) {
+            audioPlayer.stopAudio();
+        }
     }
 
 
@@ -364,6 +377,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         start = false;
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
+            audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
             remoteProcessing.starProcessing(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
                     ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),

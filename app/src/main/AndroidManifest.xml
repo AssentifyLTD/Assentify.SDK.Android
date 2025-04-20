@@ -17,6 +17,11 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+
+
     <application
         android:debuggable="false"
         android:extractNativeLibs="true"
@@ -26,35 +31,22 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="HardcodedDebugMode">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
 
-        <meta-data
-            android:name="io.sentry.dsn"
-            android:value="https://4a19cbdb27d1b951d8c8b04cce125b8d@o4507430254673920.ingest.us.sentry.io/4507486592696320" /> <!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
-        <meta-data
-            android:name="io.sentry.traces.user-interaction.enable"
-            android:value="true" /> <!-- enable screenshot for crashes -->
-        <meta-data
-            android:name="io.sentry.attach-screenshot"
-            android:value="true" /> <!-- enable view hierarchy for crashes -->
-        <meta-data
-            android:name="io.sentry.attach-view-hierarchy"
-            android:value="true" /> <!-- enable the performance API by setting a sample-rate, adjust in production env -->
-        <meta-data
-            android:name="io.sentry.traces.sample-rate"
-            android:value="1.0" /> <!-- enable profiling when starting transactions, adjust in production env -->
-        <meta-data
-            android:name="io.sentry.traces.profiling.sample-rate"
-            android:value="1.0" />
+        <activity
+            android:name=".CrashActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

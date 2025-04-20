@@ -6,22 +6,32 @@ apply plugin: 'maven-publish'
 android {
     compileSdkVersion 34
     defaultConfig {
-        applicationId "com.assentify.sdk"
+      applicationId "com.assentify.sdk"
 
         minSdkVersion 24
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
+        multiDexEnabled = true
         android.ndkVersion "25.1.8937393"
     }
 
 
+    signingConfigs {
+        create("release") {
+            keyAlias = "release-key"
+            keyPassword = "00000000"
+            storeFile = file("release-key.jks")
+            storePassword = "00000000"
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
-            debuggable false
+            minifyEnabled true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     aaptOptions {
@@ -99,13 +109,17 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
     implementation group: 'com.lambdaworks', name: 'scrypt', version: '1.4.0'
-
     implementation 'dev.keiji.jp2:jp2-android:1.0.5'
-
     implementation 'com.google.mlkit:face-detection:16.1.7'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.28'
 
-
-
+    // NFC
+    implementation("net.sf.scuba:scuba-sc-android:0.0.20")
+    implementation("org.jmrtd:jmrtd:0.7.27")
+    implementation("commons-io:commons-io:2.11.0")
+    implementation("org.bouncycastle:bcprov-jdk15on:1.65")
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.65")
+    implementation("com.github.mhshams:jnbis:1.1.0")
 
 }
 

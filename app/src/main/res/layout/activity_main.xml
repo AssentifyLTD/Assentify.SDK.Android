@@ -23,6 +23,7 @@
             app:elevation="0dp" />
 
     </LinearLayout>
+
     <TextView
         android:id="@+id/textView"
         android:textSize="30dp"
@@ -30,4 +31,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:ignore="MissingConstraints"></TextView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

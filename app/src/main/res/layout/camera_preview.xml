@@ -37,7 +37,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:background="@color/shadow"/>
 
         <LinearLayout
@@ -54,7 +54,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="2"
+                    android:layout_weight="1.5"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -79,7 +79,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="2"
+                    android:layout_weight="1.5"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -90,7 +90,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:background="@color/shadow"/>
 
     </LinearLayout>
@@ -198,5 +198,91 @@
                 android:text=""
                 android:textSize="130sp" />
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/activeLiveLayout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        >
+
+        <LinearLayout
+            android:id="@+id/successLinearLayout"
+            android:layout_width="0dp"
+            android:visibility="gone"
+            android:layout_height="match_parent"
+            android:layout_weight="20">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/success_layout"
+                android:visibility="visible"
+                tools:ignore="MissingConstraints" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/errorLinearLayout"
+            android:layout_width="0dp"
+            android:visibility="gone"
+            android:layout_height="match_parent"
+            android:layout_weight="20">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/error_layout"
+                android:visibility="visible"
+                tools:ignore="MissingConstraints" />
+        </LinearLayout>
+
+
+
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/lookUp"
+            android:visibility="gone"
+            android:layout_width="600dp"
+            android:layout_height="600dp"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:src="@drawable/up"
+            tools:ignore="MissingConstraints" />
+
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/lookDown"
+            android:visibility="gone"
+            android:layout_width="600dp"
+            android:layout_height="600dp"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:src="@drawable/down"
+            tools:ignore="MissingConstraints" />
+
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/lookRight"
+            android:visibility="gone"
+            android:layout_width="600dp"
+            android:layout_height="600dp"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:src="@drawable/right"
+            tools:ignore="MissingConstraints" />
+
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/lookLeft"
+            android:visibility="gone"
+            android:layout_width="600dp"
+            android:layout_height="600dp"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:src="@drawable/left"
+            tools:ignore="MissingConstraints" />
+
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

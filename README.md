@@ -11,7 +11,7 @@
 
 ## Documentation
 
-[Assentify Sdk Documentation](https://drive.google.com/file/d/1LUrXUR3Bs8fvc169-t5c0uqbBT2-fYkZ/view?usp=drive_link)
+[Assentify Sdk Documentation](https://drive.google.com/file/d/1PNK-LohaaObrFKDPTDXUN7hhhLDDw-Zz/view?usp=drive_link)
 
 ## Installation
 
@@ -38,6 +38,10 @@ dependencies {
 ```
 
 ## Versions
+**0.0.67**
+- Nfc scanning
+- Active liveness 
+
 **0.0.66**
 - Face zoom threshold improvements
 
