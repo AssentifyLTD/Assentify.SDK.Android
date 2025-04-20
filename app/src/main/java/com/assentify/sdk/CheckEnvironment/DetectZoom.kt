@@ -22,13 +22,13 @@ class DetectZoom{
 
     fun calculateFacePercentageChangeWidth(rect: RectF): ZoomType {
         val aspectRatioDifference = rect.width();
-        if (aspectRatioDifference in 150f..200f) {
+        if (aspectRatioDifference in 120f..150f) {
             return ZoomType.SENDING
         }
-        if (aspectRatioDifference < 150f) {
+        if (aspectRatioDifference < 120f) {
             return ZoomType.ZOOM_IN
         }
-        if (aspectRatioDifference > 200f) {
+        if (aspectRatioDifference > 150f) {
             return ZoomType.ZOOM_OUT
         }
         return ZoomType.NO_DETECT

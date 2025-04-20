@@ -111,6 +111,7 @@ dependencies {
     implementation group: 'com.lambdaworks', name: 'scrypt', version: '1.4.0'
     implementation 'dev.keiji.jp2:jp2-android:1.0.5'
     implementation 'com.google.mlkit:face-detection:16.1.7'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.28'
 
     // NFC
     implementation("net.sf.scuba:scuba-sc-android:0.0.20")

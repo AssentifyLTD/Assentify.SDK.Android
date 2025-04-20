@@ -5,7 +5,7 @@ import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 object ConstantsValues {
     const val CardName = "Card"
     const val FaceName = "Face"
-    const val DetectColor = "#499C5B"
+    const val DetectColor = "#00FF00"
     const val ModelFileName = "best-fp16.tflite"
     const val AssetsPath = "file:///android_asset/"
     const val LabelFileName = "file:///android_asset/classes.txt"
@@ -21,6 +21,9 @@ object ConstantsValues {
     const val BRIGHTNESS_LOW_THRESHOLD: Float = 50.0f;
     const val LIVENESS_THRESHOLD  = 0.9;
     const val NfcTechTag  = "android.nfc.tech.IsoDep";
+    const val AudioFaceSuccess  = "audio_face_success.mp3";
+    const val AudioCardSuccess  = "audio_card_success.mp3";
+    const val AudioWrong = "audio_wrong.mp3";
 }
 
 

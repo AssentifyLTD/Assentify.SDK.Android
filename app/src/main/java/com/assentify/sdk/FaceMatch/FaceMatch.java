@@ -8,8 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -24,10 +22,10 @@ import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.FaceEvents;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
-import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.ZoomType;
+import com.assentify.sdk.Core.FileUtils.AssetsAudioPlayer;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.Models.BaseResponseDataModel;
 import com.assentify.sdk.CheckEnvironment.DetectMotion;
@@ -37,7 +35,6 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.tflite.Classifier;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceEventCallback;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceQualityCheck;
-import com.assentify.sdk.tflite.Liveness.CheckLiveness;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -93,19 +90,14 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
     private boolean isRectFInsideTheScreen = false;
 
-    private CheckLiveness checkIsLive = null;
-    private LivenessType livenessType = LivenessType.NON;
     private FaceQualityCheck faceQualityCheck = null;
     private FaceEvents faceEvent = FaceEvents.NO_DETECT;
 
-    private List<LivenessType> livenessTypeResults = new ArrayList<>();
-
-    private int localLivenessLimit;
 
     private Map<FaceEvents, Boolean> eventCompletionMap = new EnumMap<>(FaceEvents.class);
+    Boolean startActiveLiveCheck = true;
 
-    private Handler livnessHandler;
-    private Runnable livnessRunnable;
+    private AssetsAudioPlayer audioPlayer;
 
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
@@ -119,11 +111,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.apiKey = apiKey;
         this.performLivenessFace = performLivenessFace;
         if (this.performLivenessFace) {
-            localLivenessLimit = 12;
             fillCompletionMap();
             enableActiveLive(true);
         } else {
-            localLivenessLimit = 0;
+            startActiveLiveCheck = false;
             eventCompletionMap = new HashMap<>();
         }
         frontCamera();
@@ -155,13 +146,19 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
+        if (startActiveLiveCheck && performLivenessFace) {
+            nextMove();
+        }else {
+            faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.Good);
 
-        if (checkIsLive == null) {
-            checkIsLive = new CheckLiveness();
-            checkIsLive.loadTfliteModel(requireContext());
         }
         if (faceQualityCheck == null) {
             faceQualityCheck = new FaceQualityCheck();
+        }
+        if (audioPlayer == null) {
+            if (getActivity() != null) {
+                audioPlayer = new AssetsAudioPlayer(getActivity());
+            }
         }
 
 
@@ -171,8 +168,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 @Override
                 public void onFaceEventDetected(FaceEvents result) {
                     faceEvent = result;
-                   isSpecificItemFlagEqualTo(faceEvent);
-                   areAllEventsDone();
+                    if (startActiveLiveCheck && performLivenessFace) {
+                        isSpecificItemFlagEqualTo(faceEvent);
+                    }
                 }
             });
             listScaleRectF.forEach((item) -> {
@@ -197,11 +195,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
         if (motion == MotionType.SENDING) {
             if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
-                if (performLivenessFace && start) {
-                    if (livenessTypeResults.size() < localLivenessLimit) {
-                        livenessTypeResults.add(checkIsLive.preprocessAndPredict(normalImage));
-                    }
-                }
                 highQualityBitmaps.add(normalImage);
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             } else {
@@ -257,7 +250,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     brightness
             ) == BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && faceEvent == FaceEvents.Good) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen && sendingFlagsZoom.size() > ZoomLimit && livenessTypeResults.size() == localLivenessLimit) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen && sendingFlagsZoom.size() > ZoomLimit) {
                         if (hasFaceOrCard()) {
                             if (this.showCountDownView) {
                                 showCountDown(new CountDownCallback() {
@@ -292,7 +285,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                     brightness
                             ),
                             sendingFlags.isEmpty() ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
-                            !start ? FaceEvents.Good : faceEvent, zoom
+                            !start && areAllEventsDone() ? FaceEvents.Good : faceEvent, zoom
                     );
                 }
             });
@@ -307,7 +300,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 @Override
                 public void run() {
                     highQualityBitmaps.clear();
-                    livenessTypeResults.clear();
                     motionRectF.clear();
                     sendingFlags.clear();
                     sendingFlagsZoom.clear();
@@ -391,6 +383,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     public synchronized void onDestroy() {
         super.onDestroy();
         this.createBase64.shutdown();
+        if (audioPlayer != null) {
+            audioPlayer.stopAudio();
+        }
     }
 
 
@@ -422,47 +417,27 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             });
         }
         videoCounter = videoCounter + 1;
-        livenessType = LivenessType.NON;
         createBase64.execute(() -> {
-            if (performLivenessFace) {
-                long liveCount = livenessTypeResults.stream()
-                        .filter(type -> type == LivenessType.LIVE)
-                        .count();
-                if ((double) liveCount / localLivenessLimit > ConstantsValues.LIVENESS_THRESHOLD) {
-                    livenessType = LivenessType.LIVE;
-                }
-            } else {
-                livenessType = LivenessType.LIVE;
-            }
-            if (livenessType == LivenessType.LIVE) {
-                remoteProcessing.starProcessing(
-                        HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
-                        "",
-                        ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.FACE_MATCH, getActivity()),
-                        configModel,
-                        "",
-                        this.secondImage,
-                        "ConnectionId",
-                        getVideoPath(configModel, faceMatch, videoCounter),
-                        hasFace(),
-                        processMrz,
-                        performLivenessDocument,
-                        performLivenessFace,
-                        saveCapturedVideo,
-                        storeCapturedDocument,
-                        true,
-                        storeImageStream,
-                        "FaceImageAcquisition",
-                        new ArrayList<>()
-                );
-            } else {
-                this.onMessageReceived(HubConnectionTargets.ON_LIVENESS_UPDATE, new BaseResponseDataModel(
-                        HubConnectionTargets.ON_LIVENESS_UPDATE,
-                        "",
-                        "",
-                        false
-                ));
-            }
+            remoteProcessing.starProcessing(
+                    HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
+                    "",
+                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.FACE_MATCH, getActivity()),
+                    configModel,
+                    "",
+                    this.secondImage,
+                    "ConnectionId",
+                    getVideoPath(configModel, faceMatch, videoCounter),
+                    hasFace(),
+                    processMrz,
+                    performLivenessDocument,
+                    performLivenessFace,
+                    saveCapturedVideo,
+                    storeCapturedDocument,
+                    true,
+                    storeImageStream,
+                    "FaceImageAcquisition",
+                    new ArrayList<>()
+            );
         });
 
         // remoteProcessing.uploadVideo(videoCounter, video, configModel, faceMatch);
@@ -474,6 +449,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     private void fillCompletionMap() {
+        start = false;
+        eventCompletionMap = new HashMap<>();
         for (ActiveLiveEvents event : getRandomEvents()) {
             if (event == ActiveLiveEvents.PitchUp) {
                 eventCompletionMap.put(FaceEvents.PitchUp, false);
@@ -488,7 +465,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 eventCompletionMap.put(FaceEvents.YawLeft, false);
             }
         }
-        Log.e("IDSCAN" ,eventCompletionMap.toString());
     }
 
     private void isSpecificItemFlagEqualTo(
@@ -497,28 +473,87 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 .filter(entry -> !entry.getValue())
                 .findFirst()
                 .ifPresent(entry -> {
-                    if(entry.getKey() == targetEvent){
-                        livnessHandler = new Handler(Looper.getMainLooper());
-                        livnessRunnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                eventCompletionMap.put(entry.getKey(), true);
-                                Log.e("IDSCAN" ,"eventCompletionMap " +  eventCompletionMap.toString());
-                            }
-                        };
-                        livnessHandler.postDelayed(livnessRunnable, 5000);
-                    }else {
-                        if (livnessHandler != null && livnessRunnable != null) {
-                            livnessHandler.removeCallbacks(livnessRunnable);
+                    if (entry.getKey() == targetEvent) {
+                        eventCompletionMap.put(entry.getKey(), true);
+                        successActiveLive();
+                    } else {
+                        if (targetEvent != FaceEvents.NO_DETECT &&
+                                targetEvent != FaceEvents.Good &&
+                                targetEvent != FaceEvents.RollRight &&
+                                targetEvent != FaceEvents.RollLeft) {
+                            resetActiveLive();
                         }
                     }
-           } );
+                });
+    }
 
+    private void successActiveLive() {
+        audioPlayer.playAudio(ConstantsValues.AudioFaceSuccess);
+        startActiveLiveCheck = false;
+        showSuccessLiveCheck();
+        if (areAllEventsDone()) {
+            start = true;
+            enableActiveLive(false);
+        } else {
+            new Handler().postDelayed(
+                    new Runnable() {
+                        public void run() {
+                            startActiveLiveCheck = true;
+                        }
+                    },
+                    3000
+            );
+
+        }
+    }
+
+    private void resetActiveLive() {
+        audioPlayer.playAudio(ConstantsValues.AudioWrong);
+        startActiveLiveCheck = false;
+        fillCompletionMap();
+        showErrorLiveCheck();
+        new Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        startActiveLiveCheck = true;
+                    }
+                },
+                3000
+        );
 
     }
 
+    private void nextMove() {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    eventCompletionMap.entrySet().stream()
+                            .filter(entry -> !entry.getValue())
+                            .findFirst()
+                            .ifPresent(entry -> {
+
+                                if (entry.getKey() == FaceEvents.PitchUp) {
+                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.PitchUp);
+                                }
+                                if (entry.getKey() == FaceEvents.PitchDown) {
+                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.PitchDown);
+                                }
+                                if (entry.getKey() == FaceEvents.YawRight) {
+                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.YawRight);
+                                }
+                                if (entry.getKey() == FaceEvents.YawLeft) {
+                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.YawLeft);
+                                }
+                                setActiveLiveMove(entry.getKey());
+                            });
+
+                }
+            });
+        }
+    }
+
     private boolean areAllEventsDone() {
-        if (eventCompletionMap.isEmpty()) return true;
         for (boolean isDone : eventCompletionMap.values()) {
             if (!isDone) {
                 return false;

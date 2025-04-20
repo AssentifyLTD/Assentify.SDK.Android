@@ -24,56 +24,12 @@
 
     </LinearLayout>
 
-
-
-    <LinearLayout
-        android:id="@+id/infoLayout"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/textView"
+        android:textSize="30dp"
+        android:textColor="@color/design_default_color_error"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="8dp"
-        android:layout_gravity="top"
-        tools:ignore="MissingConstraints">
-
-        <TextView
-            android:id="@+id/info"
-            android:layout_width="300dp"
-            android:layout_height="wrap_content"
-            android:maxLines="3"
-            android:textColor="@color/design_default_color_error"
-            android:textIsSelectable="true"
-            android:padding="8dp" />
-
-        <Button
-            android:id="@+id/copy_button"
-            android:layout_width="100dp"
-            android:layout_height="40dp"
-            android:text="Copy"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="4dp" />
-    </LinearLayout>
-
-
-    <ProgressBar
-        android:id="@+id/loading_layout"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="36dp"
-        app:layout_constraintTop_toBottomOf="@+id/info"
-        tools:ignore="MissingConstraints,NotSibling"
-        tools:layout_editor_absoluteX="154dp" />
-
-    <ImageView
-        android:id="@+id/faceImageView"
-        android:layout_width="277dp"
-        android:layout_height="235dp"
-        android:layout_marginTop="52dp"
-        android:contentDescription="Face Image"
-        app:layout_constraintTop_toBottomOf="@+id/loading_layout"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="57dp" />
+        tools:ignore="MissingConstraints"></TextView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

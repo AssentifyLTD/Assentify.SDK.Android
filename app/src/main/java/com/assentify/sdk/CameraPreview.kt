@@ -11,9 +11,6 @@ import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Surface
 import android.view.View
@@ -30,30 +27,26 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
-import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
-import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import com.assentify.sdk.Core.Constants.ConstantsValues
-import com.assentify.sdk.Core.Constants.LivenessType
+import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.FileUtils.ImageUtils
 import com.assentify.sdk.FaceMatch.CountDownCallback
 import com.assentify.sdk.tflite.Classifier
 import com.assentify.sdk.tflite.Classifier.Recognition
 import com.assentify.sdk.tflite.DetectorFactory
-import com.assentify.sdk.tflite.Liveness.CheckLiveness
 import com.assentify.sdk.tflite.YoloV5Classifier
 import com.google.common.util.concurrent.ListenableFuture
-import java.io.File
-import java.util.Base64
+import pl.droidsonroids.gif.GifImageView
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -90,7 +83,13 @@ abstract class CameraPreview : Fragment() {
     private var countDownTimer: CountDownTimer? = null
     private var counter = 3;
     private var isActiveLiveEnabled: Boolean = false
-
+    private var activeLiveLayout: LinearLayout? = null;
+    private var errorLinearLayout: LinearLayout? = null;
+    private var successLinearLayout: LinearLayout? = null;
+    private var lookUp: GifImageView? = null;
+    private var lookDown: GifImageView? = null;
+    private var lookRight: GifImageView? = null;
+    private var lookLeft: GifImageView? = null;
     @SuppressLint("MissingInflatedId")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -116,10 +115,6 @@ abstract class CameraPreview : Fragment() {
 
     fun frontCamera() {
         frontCamera = true
-    }
-
-    fun  enableActiveLive(value:Boolean){
-        isActiveLiveEnabled = value;
     }
 
 
@@ -187,7 +182,7 @@ abstract class CameraPreview : Fragment() {
                     }
                     if (enableGuide) {
                        if (frontCamera) {
-                                if(!this.isActiveLiveEnabled){
+                             if(!this.isActiveLiveEnabled){
                                 if (faceContainer == null) {
                                     faceContainer =
                                         requireActivity().findViewById(R.id.face_container)
@@ -202,7 +197,7 @@ abstract class CameraPreview : Fragment() {
                                 } else {
                                     faceBackground!!.visibility = View.VISIBLE
                                 }
-                        }
+                              }
 
                         } else {
                             if (cardContainer == null) {
@@ -418,6 +413,81 @@ abstract class CameraPreview : Fragment() {
 
     }
 
+
+    fun  enableActiveLive(value:Boolean){
+        isActiveLiveEnabled = value;
+        if(!this.isActiveLiveEnabled){
+            activeLiveLayout =
+                requireActivity().findViewById(R.id.activeLiveLayout)
+            activeLiveLayout!!.visibility = View.GONE
+            clearLiveUi();
+        }
+    }
+
+    fun showSuccessLiveCheck(){
+        if(isActiveLiveEnabled) {
+            clearLiveUi();
+            successLinearLayout =
+                requireActivity().findViewById(R.id.successLinearLayout)
+            successLinearLayout!!.visibility = View.VISIBLE
+
+        }
+    }
+
+
+    fun  showErrorLiveCheck(){
+        if(isActiveLiveEnabled) {
+            clearLiveUi();
+            errorLinearLayout =
+                requireActivity().findViewById(R.id.errorLinearLayout)
+            errorLinearLayout!!.visibility = View.VISIBLE
+        }
+    }
+
+    fun setActiveLiveMove(
+        event: FaceEvents,
+    ){
+        if(isActiveLiveEnabled){
+            requireActivity().runOnUiThread {
+                activeLiveLayout =
+                    requireActivity().findViewById(R.id.activeLiveLayout)
+                activeLiveLayout!!.visibility = View.VISIBLE
+                clearLiveUi();
+                if (event == FaceEvents.PitchUp) {
+                    lookUp!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.PitchDown) {
+                    lookDown!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.YawRight) {
+                    lookRight!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.YawLeft) {
+                    lookLeft!!.visibility = View.VISIBLE
+                }
+            }
+        }
+
+    }
+
+   fun  clearLiveUi(){
+       errorLinearLayout =
+            requireActivity().findViewById(R.id.errorLinearLayout)
+       errorLinearLayout!!.visibility = View.GONE
+
+       successLinearLayout =
+            requireActivity().findViewById(R.id.successLinearLayout)
+       successLinearLayout!!.visibility = View.GONE
+
+        lookUp =    requireActivity().findViewById(R.id.lookUp)
+        lookDown=   requireActivity().findViewById(R.id.lookDown)
+        lookRight=    requireActivity().findViewById(R.id.lookRight)
+        lookLeft=   requireActivity().findViewById(R.id.lookLeft)
+        lookUp!!.visibility = View.GONE
+        lookDown!!.visibility = View.GONE
+        lookRight!!.visibility = View.GONE
+        lookLeft!!.visibility = View.GONE
+    }
 
     fun capitalizeFirstLetter(input: String): String {
         if (input.isEmpty()) return input
