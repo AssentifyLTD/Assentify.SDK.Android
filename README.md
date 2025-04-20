@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+**0.0.68**
+- Active liveness animation
+
 **0.0.67**
 - Nfc scanning
 - Active liveness 
