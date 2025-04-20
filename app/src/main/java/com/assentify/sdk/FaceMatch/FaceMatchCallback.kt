@@ -1,5 +1,6 @@
 package   com.assentify.sdk.FaceMatch
 
+import com.assentify.sdk.Core.Constants.ActiveLiveEvents
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import  com.assentify.sdk.Core.Constants.MotionType
@@ -54,4 +55,6 @@ interface FaceMatchCallback {
         zoomType: ZoomType,
     ) {
     }
+
+    fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {}
 }

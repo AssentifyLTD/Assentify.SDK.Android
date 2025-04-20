@@ -33,6 +33,7 @@ import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
 import com.assentify.sdk.Core.Constants.ZoomType;
+import com.assentify.sdk.Core.FileUtils.AssetsAudioPlayer;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
@@ -115,6 +116,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
     private boolean isRectFInsideTheScreen = false;
 
+    private AssetsAudioPlayer audioPlayer;
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
                       Boolean performLivenessDocument,
@@ -163,6 +165,12 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
+
+        if (audioPlayer == null) {
+            if (getActivity() != null) {
+                audioPlayer = new AssetsAudioPlayer(getActivity());
+            }
+        }
 
         this.results = results;
 
@@ -375,6 +383,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     public synchronized void onDestroy() {
         super.onDestroy();
         this.createBase64.shutdown();
+        if (audioPlayer != null) {
+            audioPlayer.stopAudio();
+        }
     }
 
 
@@ -419,7 +430,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         start = false;
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
-
+            audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
             remoteProcessing.starProcessing(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.ID_CARD),
                     ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.ID_CARD, getActivity()),

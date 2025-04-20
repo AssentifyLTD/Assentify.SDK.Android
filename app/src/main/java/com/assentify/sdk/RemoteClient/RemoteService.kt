@@ -123,6 +123,19 @@ interface RemoteBlobStorageService {
         @Part("additionalValues") templateId: RequestBody,
         @Part("additionalValues") tryNumber: RequestBody,
     ): Call<ResponseBody>
+
+
+    @Multipart
+    @POST("v2/Document/UploadFile/userfiles/{path}?skipValidator=true")
+    fun uploadImageFile(
+        @Header("X-Api-Key") apiKey: String,
+        @Header("x-tenant-identifier") tenantId: String,
+        @Header("x-block-identifier") blockId: String,
+        @Header("x-instance-id") instanceId: String,
+        @Header("accept") accept: String = "text/plain",
+        @Path(value = "path", encoded = true) filePath: String,
+        @Part asset: MultipartBody.Part,
+    ): Call<ResponseBody>
 }
 
 interface RemoteWidgetsService {
