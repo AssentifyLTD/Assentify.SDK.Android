@@ -33,6 +33,7 @@ import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions
+import com.assentify.sdk.RemoteClient.Models.StepMap
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.IDExtractedModel
@@ -49,7 +50,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCallback {
+class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var scanID:ScanIDCard;
@@ -80,6 +81,8 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
             "#FFC400",
         );
 
+        /// E893390F6835D4E1D2F12126B7AA2B0ED996C056C8893BA267A7FE90A8452200
+        /// 2726A3681C0CAB2177AEDA50A70A96FD29757A20493AD02577B7578FE8EDE3CA
         assentifySdk = AssentifySdk(
             "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
             "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
@@ -102,16 +105,11 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         Log.e("MainActivity", "onAssentifySdkInitSuccess: "  )
-        val stepDefinitionsTemp: MutableList<StepDefinitions> = mutableListOf()
+        val stepDefinitionsTemp: MutableList<StepMap> = mutableListOf()
         configModel.stepDefinitions.forEach { item ->
-            stepDefinitionsTemp.add(StepDefinitions(
-                stepId = item.stepId,
-                stepDefinition = "",
-                customization = item.customization,
-                outputProperties = item.outputProperties
-            ))
+            Log.e("onAssentifySdkInitSuccess", item.toString() )
         }
-        Log.e("onAssentifySdkInitSuccess", stepDefinitionsTemp.toString() )
+
         startAssentifySdk();
     }
 /* fun startAssentifySdk() {
@@ -134,7 +132,7 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
 
     }*/
 
-   /* fun startAssentifySdk() {
+    fun startAssentifySdk() {
             var data: List<KycDocumentDetails> = listOf(
                 KycDocumentDetails(
                     name = "",
@@ -153,6 +151,7 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
                 this@MainActivity,// This activity implemented from from IDCardCallback
                 data, // List<KycDocumentDetails> || Your selected template ||,
                 Language.English ,// Optional the default is the doc language
+                 4337
             );
 
             var fragmentManager = supportFragmentManager
@@ -161,12 +160,13 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
             transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
             transaction.commit()
 
-        }*/
+        }
 
-   fun startAssentifySdk() {
+  /* fun startAssentifySdk() {
       var scanID = assentifySdk.startScanPassport(
           this@MainActivity,
-          Language.Arabic// This activity implemented from from IDCardCallback
+          Language.Arabic,
+          stepId = 4338
       );
       var fragmentManager = supportFragmentManager
       var transaction = fragmentManager.beginTransaction()
@@ -174,7 +174,7 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
       transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
       transaction.commit()
 
-  }
+  }*/
     override fun onError(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onError: ", )
     }
@@ -188,17 +188,17 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , ScanPassportCal
         Log.e("IDSCAN", "onRetry: ", )
     }
 
-  /* override fun onComplete(dataModel: IDResponseModel, order: Int) {
+   override fun onComplete(dataModel: IDResponseModel, order: Int) {
         Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
 
-    }*/
-
-    override fun onComplete(dataModel: PassportResponseModel) {
-        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
     }
+
+  /*  override fun onComplete(dataModel: PassportResponseModel) {
+        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
+    }*/
 
 /*     override fun onComplete(dataModel: FaceResponseModel) {
           Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )

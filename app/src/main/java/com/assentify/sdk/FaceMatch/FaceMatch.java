@@ -33,6 +33,7 @@ import com.assentify.sdk.CheckEnvironment.DetectMotion;
 import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
 import com.assentify.sdk.tflite.Classifier;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceEventCallback;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceQualityCheck;
@@ -72,6 +73,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     Boolean storeImageStream;
     ConfigModel configModel;
 
+    String stepId;
     Boolean showCountDownView = true;
     Boolean isCountDownStarted = true;
     private MotionType motion = MotionType.NO_DETECT;
@@ -129,6 +131,28 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.showCountDownView = showCountDownView;
+    }
+
+    public void setStepId(String stepId) {
+        this.stepId = stepId;
+        if(this.stepId==null){
+            long stepsCount = this.configModel.getStepDefinitions().stream()
+                    .filter(item -> item.getStepDefinition().equals("FaceImageAcquisition"))
+                    .count();
+
+            if(stepsCount==1){
+                for (StepDefinitions item : this.configModel.getStepDefinitions()) {
+                    if (item.getStepDefinition().equals("FaceImageAcquisition")) {
+                        this.stepId = String.valueOf(item.getStepId());
+                        break;
+                    }
+                }
+            }else {
+                if(this.stepId==null){
+                    throw new IllegalArgumentException("Step ID is required because multiple 'FaceImage Acquisition' steps are present.");
+                }
+            }
+        }
     }
 
 
@@ -440,7 +464,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     storeCapturedDocument,
                     true,
                     storeImageStream,
-                    "FaceImageAcquisition",
+                    stepId,
                     new ArrayList<>()
             );
         });
