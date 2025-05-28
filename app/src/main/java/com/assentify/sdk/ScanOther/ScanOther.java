@@ -42,6 +42,7 @@ import com.assentify.sdk.CheckEnvironment.DetectMotion;
 import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
 import com.assentify.sdk.ScanPassport.PassportExtractedModel;
 import com.assentify.sdk.ScanPassport.PassportResponseModel;
 import com.assentify.sdk.ScanPassport.ScanPassport;
@@ -90,6 +91,8 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
 
     String language;
 
+    String stepId;
+
     private String other = "Other";
 
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
@@ -123,6 +126,28 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.language = language;
+    }
+
+    public void setStepId(String stepId) {
+        this.stepId = stepId;
+        if(this.stepId==null){
+            long stepsCount = this.configModel.getStepDefinitions().stream()
+                    .filter(item -> item.getStepDefinition().equals("IdentificationDocumentCapture"))
+                    .count();
+
+            if(stepsCount==1){
+                for (StepDefinitions item : this.configModel.getStepDefinitions()) {
+                    if (item.getStepDefinition().equals("IdentificationDocumentCapture")) {
+                        this.stepId = String.valueOf(item.getStepId());
+                        break;
+                    }
+                }
+            }else {
+                if(this.stepId==null){
+                    throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
+                }
+            }
+        }
     }
 
     public void setScanOtherCallback(ScanOtherCallback scanOtherCallback) {
@@ -413,7 +438,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    "IdentificationDocumentCapture",
+                    stepId,
                     new ArrayList<>()
             );
         });

@@ -82,7 +82,7 @@ class RemoteProcessing {
         storeCapturedDocument: Boolean,
         isVideo: Boolean,
         storeImageStream: Boolean,
-        stepDefinition: String,
+        stepId: String,
         clipParts: List<String>,
     ) {
         val traceIdentifier = UUID.randomUUID().toString()
@@ -97,7 +97,7 @@ class RemoteProcessing {
 
         val call = RemoteClient.remoteWidgetsService.starProcessing(
             url,
-            appConfiguration.stepDefinitions.filter { it.stepDefinition == stepDefinition }.first().stepId.toString(),
+            stepId,
             appConfiguration.blockIdentifier,
             appConfiguration.flowIdentifier,
             appConfiguration.flowInstanceId,

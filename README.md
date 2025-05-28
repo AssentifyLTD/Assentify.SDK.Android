@@ -38,6 +38,11 @@ dependencies {
 ```
 
 ## Versions
+
+**0.0.69**
+- Active liveness improvements
+- Multiple Steps handling
+
 **0.0.68**
 - Active liveness animation
 

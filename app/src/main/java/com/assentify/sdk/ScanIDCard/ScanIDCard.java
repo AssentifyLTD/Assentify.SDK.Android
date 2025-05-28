@@ -43,6 +43,7 @@ import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails;
+import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
 import com.assentify.sdk.RemoteClient.Models.Templates;
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
 import com.assentify.sdk.RemoteClient.RemoteClient;
@@ -101,6 +102,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     ConfigModel configModel;
 
     private String language;
+
+    String stepId;
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
     private int videoCounter = -1;
@@ -146,6 +149,28 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             this.changeTemplateId(firstKycDocument.getTemplateProcessingKeyInformation());
         }
 
+    }
+
+    public void setStepId(String stepId) {
+        this.stepId = stepId;
+        if(this.stepId==null){
+            long stepsCount = this.configModel.getStepDefinitions().stream()
+                    .filter(item -> item.getStepDefinition().equals("IdentificationDocumentCapture"))
+                    .count();
+
+            if(stepsCount==1){
+                for (StepDefinitions item : this.configModel.getStepDefinitions()) {
+                    if (item.getStepDefinition().equals("IdentificationDocumentCapture")) {
+                        this.stepId = String.valueOf(item.getStepId());
+                        break;
+                    }
+                }
+            }else {
+                if(this.stepId==null){
+                    throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
+                }
+            }
+        }
     }
 
 
@@ -448,7 +473,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    "IdentificationDocumentCapture",
+                    stepId,
                     new ArrayList<>()
             );
         });
