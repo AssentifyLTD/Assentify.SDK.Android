@@ -7,6 +7,7 @@ import static com.assentify.sdk.Core.Constants.FaceEventsKt.getRandomEvents;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.os.CountDownTimer;
 import android.os.Handler;
 
 import androidx.annotation.NonNull;
@@ -95,7 +96,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     private Map<FaceEvents, Boolean> eventCompletionMap = new EnumMap<>(FaceEvents.class);
-    Boolean startActiveLiveCheck = true;
+   private volatile Boolean startActiveLiveCheck = true;
+   private volatile Boolean hasMoved  = true;
+   private CountDownTimer activeLiveTimer;
 
     private AssetsAudioPlayer audioPlayer;
 
@@ -146,7 +149,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
-        if (startActiveLiveCheck && performLivenessFace) {
+        if (startActiveLiveCheck && performLivenessFace && hasMoved) {
+            hasMoved = false;
             nextMove();
         }else {
             faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.Good);
@@ -386,6 +390,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         if (audioPlayer != null) {
             audioPlayer.stopAudio();
         }
+        faceQualityCheck.stop();
     }
 
 
@@ -488,40 +493,52 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     }
 
     private void successActiveLive() {
+        if (activeLiveTimer != null) {
+            activeLiveTimer.cancel();
+        }
         audioPlayer.playAudio(ConstantsValues.AudioFaceSuccess);
         startActiveLiveCheck = false;
         showSuccessLiveCheck();
-        if (areAllEventsDone()) {
+       if (areAllEventsDone()) {
             start = true;
             enableActiveLive(false);
         } else {
-            new Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            startActiveLiveCheck = true;
-                        }
-                    },
-                    3000
-            );
-
+            activeLiveTimer = new CountDownTimer(4000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                }
+                @Override
+                public void onFinish() {
+                    hasMoved = true;
+                    startActiveLiveCheck = true;
+                }
+            };
+            activeLiveTimer.start();
         }
     }
 
     private void resetActiveLive() {
-        audioPlayer.playAudio(ConstantsValues.AudioWrong);
+      if (activeLiveTimer != null) {
+            activeLiveTimer.cancel();
+        }
+       audioPlayer.playAudio(ConstantsValues.AudioWrong);
         startActiveLiveCheck = false;
-        fillCompletionMap();
         showErrorLiveCheck();
-        new Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        startActiveLiveCheck = true;
-                    }
-                },
-                3000
-        );
-
+       activeLiveTimer = new CountDownTimer(4000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+            }
+            @Override
+            public void onFinish() {
+                fillCompletionMap();
+                hasMoved = true;
+                startActiveLiveCheck = true;
+            }
+        };
+        activeLiveTimer.start();
     }
+
+
 
     private void nextMove() {
         if (getActivity() != null) {
