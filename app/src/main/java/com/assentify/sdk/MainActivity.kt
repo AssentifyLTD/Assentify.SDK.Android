@@ -33,6 +33,7 @@ import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions
+import com.assentify.sdk.RemoteClient.Models.StepMap
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.IDExtractedModel
@@ -49,7 +50,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallback {
+class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var scanID:ScanIDCard;
@@ -64,28 +65,6 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
             ) == PackageManager.PERMISSION_GRANTED
         ) {
 
-            val environmentalConditions = EnvironmentalConditions(
-                true,
-                true,
-                "#FFFFFF",
-                "#FFC400",
-            );
-
-
-            assentifySdk = AssentifySdk(
-                "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
-                "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
-                "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
-                environmentalConditions,
-                this,
-                true,
-                true,
-                false,
-                true,
-                true,
-                true,
-            );
-
         } else {
             ActivityCompat.requestPermissions(
                 this,
@@ -93,6 +72,30 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
+
+
+        val environmentalConditions = EnvironmentalConditions(
+            true,
+            true,
+            "#FFFFFF",
+            "#FFC400",
+        );
+
+        /// E893390F6835D4E1D2F12126B7AA2B0ED996C056C8893BA267A7FE90A8452200
+        /// 2726A3681C0CAB2177AEDA50A70A96FD29757A20493AD02577B7578FE8EDE3CA
+        assentifySdk = AssentifySdk(
+            "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
+            "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
+            "2726A3681C0CAB2177AEDA50A70A96FD29757A20493AD02577B7578FE8EDE3CA",
+            environmentalConditions,
+            this,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+        );
 
     }
 
@@ -102,10 +105,14 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         Log.e("MainActivity", "onAssentifySdkInitSuccess: "  )
-        Log.e("onAssentifySdkInitSuccess", assentifySdk.getTemplates().toString() )
+        val stepDefinitionsTemp: MutableList<StepMap> = mutableListOf()
+        configModel.stepDefinitions.forEach { item ->
+            Log.e("onAssentifySdkInitSuccess", item.toString() )
+        }
+
         startAssentifySdk();
     }
- fun startAssentifySdk() {
+/* fun startAssentifySdk() {
 
         val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
         val base64Image =
@@ -123,9 +130,9 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         transaction.addToBackStack(null)
         transaction.commit()
 
-    }
+    }*/
 
-  /*  fun startAssentifySdk() {
+    fun startAssentifySdk() {
             var data: List<KycDocumentDetails> = listOf(
                 KycDocumentDetails(
                     name = "",
@@ -144,6 +151,7 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
                 this@MainActivity,// This activity implemented from from IDCardCallback
                 data, // List<KycDocumentDetails> || Your selected template ||,
                 Language.English ,// Optional the default is the doc language
+                 4337
             );
 
             var fragmentManager = supportFragmentManager
@@ -152,12 +160,13 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
             transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
             transaction.commit()
 
-        }*/
+        }
 
-/*   fun startAssentifySdk() {
+  /* fun startAssentifySdk() {
       var scanID = assentifySdk.startScanPassport(
           this@MainActivity,
-          Language.Arabic// This activity implemented from from IDCardCallback
+          Language.Arabic,
+          stepId = 4338
       );
       var fragmentManager = supportFragmentManager
       var transaction = fragmentManager.beginTransaction()
@@ -179,23 +188,21 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         Log.e("IDSCAN", "onRetry: ", )
     }
 
-/*   override fun onComplete(dataModel: IDResponseModel, order: Int) {
-        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.extractedData )
+   override fun onComplete(dataModel: IDResponseModel, order: Int) {
+        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
 
+    }
+
+  /*  override fun onComplete(dataModel: PassportResponseModel) {
+        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
     }*/
 
-/*
-    override fun onComplete(dataModel: PassportResponseModel) {
-        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.extractedData )
-    }
-*/
-
-     override fun onComplete(dataModel: FaceResponseModel) {
+/*     override fun onComplete(dataModel: FaceResponseModel) {
           Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
-      }
+      }*/
 
     override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {
 
@@ -260,16 +267,16 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
     }
 
 
-/*    override fun onEnvironmentalConditionsChange(
-        brightnessEvents: BrightnessEvents,
-        motion: MotionType,
-        zoomType: ZoomType,
+ /*  override fun onEnvironmentalConditionsChange(
+       brightnessEvents: BrightnessEvents,
+       motion: MotionType,
+       faceEvents: FaceEvents,
+       zoomType: ZoomType,
 
     ) {
-        runOnUiThread { textView.text =  "brightnessEvents : " + brightnessEvents.toString() + "\n" +  "motion : " + motion.toString() + "\n" +   "zoomType : " + zoomType.toString() + "\n"  }
-    }*/
+       runOnUiThread { textView.text =  "ActiveLiveEvents : " + faceEvents.toString() + "\n"   }    }*/
 
- /*   override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
+   /*override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
         runOnUiThread { textView.text =  "ActiveLiveEvents : " + activeLiveEvents.toString() + "\n"   }
 
     }*/

@@ -7,6 +7,7 @@ import static com.assentify.sdk.Core.Constants.FaceEventsKt.getRandomEvents;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.os.CountDownTimer;
 import android.os.Handler;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ import com.assentify.sdk.CheckEnvironment.DetectMotion;
 import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
+import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
 import com.assentify.sdk.tflite.Classifier;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceEventCallback;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceQualityCheck;
@@ -71,6 +73,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     Boolean storeImageStream;
     ConfigModel configModel;
 
+    String stepId;
     Boolean showCountDownView = true;
     Boolean isCountDownStarted = true;
     private MotionType motion = MotionType.NO_DETECT;
@@ -95,7 +98,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     private Map<FaceEvents, Boolean> eventCompletionMap = new EnumMap<>(FaceEvents.class);
-    Boolean startActiveLiveCheck = true;
+   private volatile Boolean startActiveLiveCheck = true;
+   private volatile Boolean hasMoved  = true;
+   private CountDownTimer activeLiveTimer;
 
     private AssetsAudioPlayer audioPlayer;
 
@@ -128,6 +133,28 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.showCountDownView = showCountDownView;
     }
 
+    public void setStepId(String stepId) {
+        this.stepId = stepId;
+        if(this.stepId==null){
+            long stepsCount = this.configModel.getStepDefinitions().stream()
+                    .filter(item -> item.getStepDefinition().equals("FaceImageAcquisition"))
+                    .count();
+
+            if(stepsCount==1){
+                for (StepDefinitions item : this.configModel.getStepDefinitions()) {
+                    if (item.getStepDefinition().equals("FaceImageAcquisition")) {
+                        this.stepId = String.valueOf(item.getStepId());
+                        break;
+                    }
+                }
+            }else {
+                if(this.stepId==null){
+                    throw new IllegalArgumentException("Step ID is required because multiple 'FaceImage Acquisition' steps are present.");
+                }
+            }
+        }
+    }
+
 
     public void setFaceMatchCallback(FaceMatchCallback faceMatchCallback) {
         this.faceMatchCallback = faceMatchCallback;
@@ -146,7 +173,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
-        if (startActiveLiveCheck && performLivenessFace) {
+        if (startActiveLiveCheck && performLivenessFace && hasMoved) {
+            hasMoved = false;
             nextMove();
         }else {
             faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.Good);
@@ -386,6 +414,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         if (audioPlayer != null) {
             audioPlayer.stopAudio();
         }
+        faceQualityCheck.stop();
     }
 
 
@@ -435,7 +464,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     storeCapturedDocument,
                     true,
                     storeImageStream,
-                    "FaceImageAcquisition",
+                    stepId,
                     new ArrayList<>()
             );
         });
@@ -488,40 +517,52 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     }
 
     private void successActiveLive() {
+        if (activeLiveTimer != null) {
+            activeLiveTimer.cancel();
+        }
         audioPlayer.playAudio(ConstantsValues.AudioFaceSuccess);
         startActiveLiveCheck = false;
         showSuccessLiveCheck();
-        if (areAllEventsDone()) {
+       if (areAllEventsDone()) {
             start = true;
             enableActiveLive(false);
         } else {
-            new Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            startActiveLiveCheck = true;
-                        }
-                    },
-                    3000
-            );
-
+            activeLiveTimer = new CountDownTimer(4000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                }
+                @Override
+                public void onFinish() {
+                    hasMoved = true;
+                    startActiveLiveCheck = true;
+                }
+            };
+            activeLiveTimer.start();
         }
     }
 
     private void resetActiveLive() {
-        audioPlayer.playAudio(ConstantsValues.AudioWrong);
+      if (activeLiveTimer != null) {
+            activeLiveTimer.cancel();
+        }
+       audioPlayer.playAudio(ConstantsValues.AudioWrong);
         startActiveLiveCheck = false;
-        fillCompletionMap();
         showErrorLiveCheck();
-        new Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        startActiveLiveCheck = true;
-                    }
-                },
-                3000
-        );
-
+       activeLiveTimer = new CountDownTimer(4000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+            }
+            @Override
+            public void onFinish() {
+                fillCompletionMap();
+                hasMoved = true;
+                startActiveLiveCheck = true;
+            }
+        };
+        activeLiveTimer.start();
     }
+
+
 
     private void nextMove() {
         if (getActivity() != null) {

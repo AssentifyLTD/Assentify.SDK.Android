@@ -1,8 +1,5 @@
 package  com.assentify.sdk
 
-import android.app.Activity
-import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
-import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import android.content.Context
 import android.util.Log
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
@@ -13,26 +10,28 @@ import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
+import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
+import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
+import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
+import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.ScanIDCard
+import com.assentify.sdk.ScanNFC.ScanNfc
+import com.assentify.sdk.ScanNFC.ScanNfcCallback
 import com.assentify.sdk.ScanOther.ScanOther
 import com.assentify.sdk.ScanOther.ScanOtherCallback
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
-import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
-import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
-import com.assentify.sdk.ScanNFC.ScanNfc
-import com.assentify.sdk.ScanNFC.ScanNfcCallback
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -195,7 +194,8 @@ class AssentifySdk(
 
     fun startScanPassport(
         scanPassportCallback: ScanPassportCallback,
-        language: String = Language.NON
+        language: String = Language.NON,
+        stepId: Int? = null,
     ): ScanPassport {
         if (isKeyValid) {
             scanPassport = ScanPassport(
@@ -209,6 +209,7 @@ class AssentifySdk(
                 storeCapturedDocument,
                 storeImageStream, language
             )
+            scanPassport.setStepId(stepId?.toString())
             scanPassport.setScanPassportCallback(scanPassportCallback)
             return scanPassport;
         } else {
@@ -218,7 +219,8 @@ class AssentifySdk(
 
     fun startScanIDCard(
         scnIDCardCallback: IDCardCallback,
-        kycDocumentDetails: List<KycDocumentDetails>, language: String = Language.NON
+        kycDocumentDetails: List<KycDocumentDetails>, language: String = Language.NON,
+        stepId: Int? = null,
     ): ScanIDCard {
         if (isKeyValid) {
             scanIDCard = ScanIDCard(
@@ -233,6 +235,7 @@ class AssentifySdk(
                 scnIDCardCallback,
                 kycDocumentDetails, language
             )
+            scanIDCard.setStepId(stepId?.toString())
             return scanIDCard;
         } else {
             throw Exception("Invalid Keys")
@@ -242,7 +245,8 @@ class AssentifySdk(
 
     fun startScanOther(
         scanPassportCallback: ScanOtherCallback,
-        language: String = Language.NON
+        language: String = Language.NON,
+        stepId: Int? = null,
     ): ScanOther {
         if (isKeyValid) {
             scanOther = ScanOther(
@@ -256,6 +260,7 @@ class AssentifySdk(
                 storeImageStream,
                 language
             )
+            scanOther.setStepId(stepId?.toString())
             scanOther.setScanOtherCallback(scanPassportCallback)
             return scanOther;
         } else {
@@ -266,7 +271,8 @@ class AssentifySdk(
     fun startFaceMatch(
         faceMatchCallback: FaceMatchCallback,
         image: String,
-        showCountDown: Boolean = true
+        showCountDown: Boolean = true,
+        stepId: Int? = null,
     ): FaceMatch {
         if (isKeyValid) {
             faceMatch = FaceMatch(
@@ -280,6 +286,7 @@ class AssentifySdk(
                 storeImageStream,
                 showCountDown,
             )
+            faceMatch.setStepId(stepId?.toString())
             faceMatch.setFaceMatchCallback(faceMatchCallback)
             faceMatch.setSecondImage(image)
             return faceMatch;
