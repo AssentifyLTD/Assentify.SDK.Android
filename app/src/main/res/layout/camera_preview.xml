@@ -54,7 +54,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1.5"
+                    android:layout_weight="1"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -62,7 +62,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="20">
+                    android:layout_weight="25">
 
                     <LinearLayout
                         android:id="@+id/face_background"
@@ -79,7 +79,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1.5"
+                    android:layout_weight="1"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -212,10 +212,10 @@
 
         <LinearLayout
             android:id="@+id/successLinearLayout"
-            android:layout_width="0dp"
-            android:visibility="gone"
-            android:layout_height="match_parent"
-            android:layout_weight="20">
+            android:layout_width="400dp"
+            android:layout_height="400dp"
+            android:padding="5dp"
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="match_parent"
@@ -228,10 +228,11 @@
 
         <LinearLayout
             android:id="@+id/errorLinearLayout"
-            android:layout_width="0dp"
+            android:layout_width="400dp"
+            android:layout_height="400dp"
+            android:padding="5dp"
             android:visibility="gone"
-            android:layout_height="match_parent"
-            android:layout_weight="20">
+            >
 
             <ImageView
                 android:layout_width="match_parent"
@@ -246,8 +247,8 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookUp"
             android:visibility="gone"
-            android:layout_width="600dp"
-            android:layout_height="600dp"
+            android:layout_width="500dp"
+            android:layout_height="500dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/up"
@@ -256,8 +257,8 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookDown"
             android:visibility="gone"
-            android:layout_width="600dp"
-            android:layout_height="600dp"
+            android:layout_width="500dp"
+            android:layout_height="500dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/down"
@@ -266,8 +267,8 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookRight"
             android:visibility="gone"
-            android:layout_width="600dp"
-            android:layout_height="600dp"
+            android:layout_width="500dp"
+            android:layout_height="500dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/right"
@@ -276,8 +277,8 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookLeft"
             android:visibility="gone"
-            android:layout_width="600dp"
-            android:layout_height="600dp"
+            android:layout_width="500dp"
+            android:layout_height="500dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/left"
@@ -285,4 +286,6 @@
 
 
     </LinearLayout>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

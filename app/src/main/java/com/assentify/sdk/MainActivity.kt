@@ -50,7 +50,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback{
+class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var scanID:ScanIDCard;
@@ -112,69 +112,68 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback{
 
         startAssentifySdk();
     }
-/* fun startAssentifySdk() {
+     fun startAssentifySdk() {
 
-        val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
-        val base64Image =
-            ImageToBase64Converter().execute(image).get()
-        var face = assentifySdk.startFaceMatch(
+            val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
+            val base64Image =
+                ImageToBase64Converter().execute(image).get()
+            var face = assentifySdk.startFaceMatch(
 
-            this@MainActivity,
-            // This activity implemented from from FaceMatchCallback
-            base64Image ,
-            true// Target  Image
-        );
-        var fragmentManager = supportFragmentManager
-        var transaction = fragmentManager.beginTransaction()
-        transaction.replace(R.id.fragmentContainer, face)
-        transaction.addToBackStack(null)
-        transaction.commit()
-
-    }*/
-
-    fun startAssentifySdk() {
-            var data: List<KycDocumentDetails> = listOf(
-                KycDocumentDetails(
-                    name = "",
-                    order = 0,
-                    templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
-                    templateSpecimen = ""
-                ),
-                KycDocumentDetails(
-                    name = "",
-                    order = 1,
-                    templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
-                    templateSpecimen = ""
-                ),
-            )
-             scanID = assentifySdk.startScanIDCard(
-                this@MainActivity,// This activity implemented from from IDCardCallback
-                data, // List<KycDocumentDetails> || Your selected template ||,
-                Language.English ,// Optional the default is the doc language
-                 4337
+                this@MainActivity,
+                // This activity implemented from from FaceMatchCallback
+                base64Image ,
+                true// Target  Image
             );
-
             var fragmentManager = supportFragmentManager
             var transaction = fragmentManager.beginTransaction()
-            transaction.replace(R.id.fragmentContainer, scanID)
-            transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+            transaction.replace(R.id.fragmentContainer, face)
+            transaction.addToBackStack(null)
             transaction.commit()
 
         }
 
-  /* fun startAssentifySdk() {
-      var scanID = assentifySdk.startScanPassport(
-          this@MainActivity,
-          Language.Arabic,
-          stepId = 4338
-      );
-      var fragmentManager = supportFragmentManager
-      var transaction = fragmentManager.beginTransaction()
-      transaction.replace(R.id.fragmentContainer, scanID)
-      transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
-      transaction.commit()
+/*    fun startAssentifySdk() {
+        var data: List<KycDocumentDetails> = listOf(
+            KycDocumentDetails(
+                name = "",
+                order = 0,
+                templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
+                templateSpecimen = ""
+            ),
+            KycDocumentDetails(
+                name = "",
+                order = 1,
+                templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
+                templateSpecimen = ""
+            ),
+        )
+        scanID = assentifySdk.startScanIDCard(
+            this@MainActivity,// This activity implemented from from IDCardCallback
+            data, // List<KycDocumentDetails> || Your selected template ||,
+            Language.English ,// Optional the default is the doc language
+        );
 
-  }*/
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, scanID)
+        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+        transaction.commit()
+
+    }*/
+
+    /* fun startAssentifySdk() {
+        var scanID = assentifySdk.startScanPassport(
+            this@MainActivity,
+            Language.Arabic,
+            stepId = 4338
+        );
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, scanID)
+        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+        transaction.commit()
+
+    }*/
     override fun onError(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onError: ", )
     }
@@ -188,21 +187,21 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback{
         Log.e("IDSCAN", "onRetry: ", )
     }
 
-   override fun onComplete(dataModel: IDResponseModel, order: Int) {
+ /*   override fun onComplete(dataModel: IDResponseModel, order: Int) {
         Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
 
-    }
-
-  /*  override fun onComplete(dataModel: PassportResponseModel) {
-        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
     }*/
 
-/*     override fun onComplete(dataModel: FaceResponseModel) {
-          Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
+    /*  override fun onComplete(dataModel: PassportResponseModel) {
+          Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
       }*/
+
+         override fun onComplete(dataModel: FaceResponseModel) {
+              Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
+          }
 
     override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {
 
@@ -267,19 +266,19 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , IDCardCallback{
     }
 
 
- /*  override fun onEnvironmentalConditionsChange(
-       brightnessEvents: BrightnessEvents,
-       motion: MotionType,
-       faceEvents: FaceEvents,
-       zoomType: ZoomType,
+    /*  override fun onEnvironmentalConditionsChange(
+          brightnessEvents: BrightnessEvents,
+          motion: MotionType,
+          faceEvents: FaceEvents,
+          zoomType: ZoomType,
 
-    ) {
-       runOnUiThread { textView.text =  "ActiveLiveEvents : " + faceEvents.toString() + "\n"   }    }*/
+       ) {
+          runOnUiThread { textView.text =  "ActiveLiveEvents : " + faceEvents.toString() + "\n"   }    }*/
 
-   /*override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
-        runOnUiThread { textView.text =  "ActiveLiveEvents : " + activeLiveEvents.toString() + "\n"   }
+    /*override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
+         runOnUiThread { textView.text =  "ActiveLiveEvents : " + activeLiveEvents.toString() + "\n"   }
 
-    }*/
+     }*/
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
