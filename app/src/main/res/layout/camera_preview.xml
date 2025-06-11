@@ -54,7 +54,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
+                    android:layout_weight="0.5"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -79,7 +79,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
+                    android:layout_weight="0.5"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -212,9 +212,10 @@
 
         <LinearLayout
             android:id="@+id/successLinearLayout"
-            android:layout_width="400dp"
-            android:layout_height="400dp"
-            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:visibility="gone">
 
             <ImageView
@@ -228,9 +229,10 @@
 
         <LinearLayout
             android:id="@+id/errorLinearLayout"
-            android:layout_width="400dp"
-            android:layout_height="400dp"
-            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:visibility="gone"
             >
 
@@ -247,8 +249,10 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookUp"
             android:visibility="gone"
-            android:layout_width="500dp"
-            android:layout_height="500dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/up"
@@ -257,8 +261,10 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookDown"
             android:visibility="gone"
-            android:layout_width="500dp"
-            android:layout_height="500dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/down"
@@ -267,8 +273,10 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookRight"
             android:visibility="gone"
-            android:layout_width="500dp"
-            android:layout_height="500dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/right"
@@ -277,8 +285,10 @@
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/lookLeft"
             android:visibility="gone"
-            android:layout_width="500dp"
-            android:layout_height="500dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
             android:layout_centerInParent="true"
             android:background="@null"
             android:src="@drawable/left"
@@ -286,6 +296,8 @@
 
 
     </LinearLayout>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
