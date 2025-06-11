@@ -8,6 +8,7 @@ android {
     defaultConfig {
      // applicationId "com.assentify.sdk"
 
+
         minSdkVersion 24
         targetSdkVersion 34
         versionCode 1
@@ -17,21 +18,13 @@ android {
     }
 
 
-    signingConfigs {
-        create("release") {
-            keyAlias = "release-key"
-            keyPassword = "00000000"
-            storeFile = file("release-key.jks")
-            storePassword = "00000000"
-        }
-    }
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources = true
+            minifyEnabled false
+            shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig = signingConfigs.getByName("release")
+
         }
     }
     aaptOptions {
