@@ -1,8 +1,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <vector
-            android:width="200dp"
-            android:height="200dp"
+            android:width="600dp"
+            android:height="600dp"
             android:viewportWidth="284"
             android:viewportHeight="284">
             <path
