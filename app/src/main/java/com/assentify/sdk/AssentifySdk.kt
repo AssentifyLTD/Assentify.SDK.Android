@@ -23,6 +23,7 @@ import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
 import com.assentify.sdk.ScanIDCard.IDCardCallback
+import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanNFC.ScanNfc
 import com.assentify.sdk.ScanNFC.ScanNfcCallback
@@ -30,6 +31,8 @@ import com.assentify.sdk.ScanOther.ScanOther
 import com.assentify.sdk.ScanOther.ScanOtherCallback
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
+import com.assentify.sdk.ScanQr.ScanQr
+import com.assentify.sdk.ScanQr.ScanQrCallback
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import kotlinx.coroutines.GlobalScope
@@ -57,6 +60,7 @@ class AssentifySdk(
     private var isKeyValid: Boolean = false;
     private lateinit var scanPassport: ScanPassport;
     private lateinit var scanIDCard: ScanIDCard;
+    private lateinit var scanQr: ScanQr;
     private lateinit var scanOther: ScanOther;
     private lateinit var faceMatch: FaceMatch;
     private var configModel: ConfigModel? = null;
@@ -242,6 +246,25 @@ class AssentifySdk(
         }
     }
 
+    fun startScanQr(
+   /*     scanQrCallback: ScanQrCallback,
+        dataModel: IDResponseModel,
+        kycDocumentDetails: List<KycDocumentDetails>,*/
+    ): ScanQr {
+        if (isKeyValid) {
+            scanQr = ScanQr(
+           /*     dataModel,
+                kycDocumentDetails,
+                this.configModel*/
+                environmentalConditions
+            )
+           // scanQr.setScanQrCallback(scanQrCallback)
+            return scanQr;
+        } else {
+            throw Exception("Invalid Keys")
+        }
+    }
+
 
     fun startScanOther(
         scanPassportCallback: ScanOtherCallback,
@@ -313,7 +336,7 @@ class AssentifySdk(
     fun startScanNfc(
         scanNfcCallback: ScanNfcCallback,
         languageCode: String = Language.NON,
-        context:Context,
+        context: Context,
     ): ScanNfc {
         return ScanNfc(
             scanNfcCallback = scanNfcCallback,

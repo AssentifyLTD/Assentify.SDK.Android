@@ -16,11 +16,11 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
-
-
     <uses-permission android:name="android.permission.NFC" />
-    <uses-feature android:name="android.hardware.nfc" android:required="true" />
 
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="true" />
 
     <application
         android:debuggable="false"
@@ -29,10 +29,42 @@
         android:installLocation="internalOnly"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
+        android:theme="@style/AppTheme"
         tools:ignore="HardcodedDebugMode">
 
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ScanPassportActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ScanIDActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ScanOtherActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".FaceMatchActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".NavToFace"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".KycActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

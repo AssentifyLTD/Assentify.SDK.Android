@@ -177,4 +177,70 @@ class RemoteProcessing {
     }
 
 
+    fun starQrProcessing(
+        url: String,
+        qrUrl: String,
+        templateId: String,
+        appConfiguration: ConfigModel,
+    ) {
+
+        val call = RemoteClient.remoteWidgetsService.starQrProcessing(
+            url,
+            appConfiguration.blockIdentifier,
+            appConfiguration.flowIdentifier,
+            appConfiguration.flowInstanceId,
+            appConfiguration.instanceHash,
+            appConfiguration.instanceId,
+            appConfiguration.tenantIdentifier,
+            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.tenantIdentifier),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.blockIdentifier),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.instanceId),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), templateId),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), qrUrl),
+
+        )
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()?.string() ?: ""
+                    val baseResponseDataModel = parseDataToBaseResponseDataModel(responseBody)
+                    callback!!.onMessageReceived(
+                        baseResponseDataModel.destinationEndpoint!!,
+                        baseResponseDataModel
+                    )
+
+                }else {
+                    val responseBody = response.body()?.string() ?: ""
+                    callback!!.onMessageReceived(
+                        HubConnectionTargets.ON_ERROR,
+                        BaseResponseDataModel(
+                            destinationEndpoint = HubConnectionTargets.ON_ERROR,
+                            response = "",
+                            error = "",
+                            success = false
+                        )
+                    );
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                callback!!.onMessageReceived(
+                    HubConnectionTargets.ON_ERROR,
+                    BaseResponseDataModel(
+                        destinationEndpoint = HubConnectionTargets.ON_ERROR,
+                        response = "",
+                        error = t.message,
+                        success = false
+                    )
+                );
+            }
+        })
+
+
+    }
+
 }

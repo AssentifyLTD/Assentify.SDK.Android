@@ -176,6 +176,25 @@ interface RemoteWidgetsService {
         @Part("selfieImage") selfieImage: RequestBody,
         @Part clips: List<MultipartBody.Part>
     ): Call<ResponseBody>
+
+    @POST
+    @Multipart
+    @JvmSuppressWildcards
+    @Headers("Accept: application/json, text/plain, */*")
+    fun starQrProcessing(
+        @Url url: String,
+        @Header("x-block-identifier") xBlockIdentifier: String,
+        @Header("x-flow-identifier") xFlowIdentifier: String,
+        @Header("x-flow-instance-id") xFlowInstanceId: String,
+        @Header("x-instance-hash") xInstanceHash: String,
+        @Header("x-instance-id") xInstanceId: String,
+        @Header("x-tenant-identifier") xTenantIdentifier: String,
+        @Part("tenantId") tenantId: RequestBody,
+        @Part("blockId") blockId: RequestBody,
+        @Part("instanceId") instanceId: RequestBody,
+        @Part("templateId") templateId: RequestBody,
+        @Part("qrUrl") qrUrl: RequestBody,
+    ): Call<ResponseBody>
 }
 
 interface RemoteTranslatedService {
