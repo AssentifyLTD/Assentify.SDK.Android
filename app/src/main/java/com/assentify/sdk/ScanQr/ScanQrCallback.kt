@@ -1,5 +1,6 @@
 package  com.assentify.sdk.ScanQr
 
+import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 
 
@@ -9,7 +10,7 @@ interface ScanQrCallback {
 
     fun onCompleteQrScan(dataModel: IDResponseModel)
 
-    fun onErrorQrScan(dataModel: IDResponseModel,message: String)
+    fun onErrorQrScan(message: String)
 
 
 }

@@ -52,7 +52,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback{
+class MainActivity : AppCompatActivity(),AssentifySdkCallback, ScanQrCallback , FaceMatchCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var passportClick: LinearLayout
@@ -83,7 +83,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback{
             "#FFFFFF",
             "#FFC400",
         );
-
         assentifySdk = AssentifySdk(
             "6YfQqRbSfTinDuyk7TfFAAdDL55t4EBId4Il2vOFQycl4KydnWsGkA76UNLI3GcrHW3nqoz1gvoewxqsJA",
             "45b09829-03da-4f2b-9f5b-08dc10ed75aa",
@@ -98,30 +97,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback{
             true,
         );
 
-        loadingText = findViewById(R.id.loadingText);
-        loadingText.visibility = View.VISIBLE
 
-        passportClick = findViewById(R.id.passportClick);
-        idClick = findViewById(R.id.idClick);
-        otherClick = findViewById(R.id.otherClick);
-
-
-        passportClick.visibility = View.GONE
-        idClick.visibility = View.GONE
-        otherClick.visibility = View.GONE
-
-        passportClick.setOnClickListener {
-            val intent = Intent(this, ScanPassportActivity::class.java);
-            startActivity(intent)
-        }
-        idClick.setOnClickListener {
-           val intent = Intent(this, KycActivity::class.java);
-            startActivity(intent)
-        }
-        otherClick.setOnClickListener {
-            val intent = Intent(this, ScanOtherActivity::class.java);
-            startActivity(intent)
-        }
 
     }
 
@@ -132,19 +108,112 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback{
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         Log.e("MainActivity", "onAssentifySdkInitSuccess: ")
         val stepDefinitionsTemp: MutableList<StepMap> = mutableListOf()
-        configModel.stepDefinitions.forEach { item ->
-            Log.e("onAssentifySdkInitSuccess", item.toString())
+        val template = assentifySdk.getTemplates();
+        template.forEach { item ->
+            Log.e("IDSCAN", item.name)
+            item.templates.forEach{ it ->
+                it.kycDocumentDetails.forEach{kyc->
+                    Log.e("IDSCAN",kyc.name )
+                    Log.e("IDSCAN",kyc.templateProcessingKeyInformation )
+                    Log.e("IDSCAN",kyc.hasQrCode.toString() )
+                }
+
+            }
+
         }
 
-        AssentifySdkObject.setAssentifySdkObject(assentifySdk);
+        startAssentifySdk();
+    }
 
-        KysModel.setKys(assentifySdk.getTemplates());
-        passportClick.visibility = View.VISIBLE
-        idClick.visibility = View.VISIBLE
-       //  otherClick.visibility = View.VISIBLE
-        loadingText.visibility = View.GONE
+    fun startAssentifySdk() {
+
+        val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
+        val base64Image =
+            ImageToBase64Converter().execute(image).get()
+        var face = assentifySdk.startFaceMatch(
+
+            this@MainActivity,
+            // This activity implemented from from FaceMatchCallback
+            base64Image ,
+            true// Target  Image
+        );
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, face)
+        transaction.addToBackStack(null)
+        transaction.commit()
 
     }
+
+   /* fun startAssentifySdk() {
+        var data: List<KycDocumentDetails> = listOf(
+            KycDocumentDetails(
+                name = "",
+                order = 0,
+                templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
+                templateSpecimen = "",
+                hasQrCode = false
+            ),
+            KycDocumentDetails(
+                name = "",
+                order = 1,
+                templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
+                templateSpecimen = "",
+                hasQrCode = false
+            ),
+        )
+       val scanID = assentifySdk.startScanIDCard(
+            this@MainActivity,// This activity implemented from from IDCardCallback
+            data, // List<KycDocumentDetails> || Your selected template ||,
+            Language.English ,// Optional the default is the doc language
+        );
+
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, scanID)
+        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+        transaction.commit()
+
+    }*/
+
+
+  /*  fun startAssentifySdk() {
+        var scanID = assentifySdk.startScanPassport(
+            this@MainActivity,
+            Language.Arabic,
+        );
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, scanID)
+        transaction.addToBackStack(null) // Optional: Adds the transaction to the back stack
+        transaction.commit()
+
+    }*/
+
+  /*  fun startAssentifySdk() {
+
+        var data: List<KycDocumentDetails> = listOf(
+            KycDocumentDetails(
+                name = "",
+                order = 0,
+                templateProcessingKeyInformation = "a1ec8a0d-067c-4ce1-8420-820d7789cf83",
+                templateSpecimen = "",
+                hasQrCode = false
+            ),
+        )
+        var face = assentifySdk.startScanQr(
+
+            this@MainActivity,
+            data ,
+            language = Language.English
+        );
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, face)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+    }*/
 
 
 
@@ -161,10 +230,85 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback{
         }
     }
 
+    override fun onStartQrScan() {
+        Log.e("IDSCAN", "onStartQrScan")
+    }
+
+    override fun onCompleteQrScan(dataModel: IDResponseModel) {
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.imageUrl.toString())
+    }
+
+    override fun onErrorQrScan(message: String) {
+        Log.e("IDSCAN", "onErrorQrScan")
+    }
+
+    override fun onError(dataModel: BaseResponseDataModel) {
+
+    }
+
+    override fun onSend() {
+
+    }
+
+    override fun onRetry(dataModel: BaseResponseDataModel) {
+
+    }
+
+    override fun onComplete(dataModel: FaceResponseModel) {
+        Log.e("IDSCAN", dataModel.faceExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.faceExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.faceExtractedModel?.baseImageFace.toString())
+    }
+
+ /*   override fun onComplete(dataModel: IDResponseModel, order: Int) {
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.imageUrl.toString())
+    }
+
+    override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
+        TODO("Not yet implemented")
+    }*/
+
+  /*  override fun onComplete(dataModel: PassportResponseModel) {
+        Log.e("IDSCAN", dataModel.passportExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.passportExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.passportExtractedModel?.imageUrl.toString())
+    }*/
+
 
 }
 
 
 
+class ImageToBase64Converter : AsyncTask<String, Void, String>() {
 
+    override fun doInBackground(vararg params: String): String? {
+        val imageUrl = params[0]
+        return try {
+            val url = URL(imageUrl)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val input: InputStream = connection.inputStream
+            val bitmap: Bitmap = BitmapFactory.decodeStream(input)
+
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+            val byteArray: ByteArray = byteArrayOutputStream.toByteArray()
+            Base64.encodeToString(byteArray, Base64.DEFAULT)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    override fun onPostExecute(base64Image: String?) {
+        // You can handle the result here if needed
+        // For example, you can use the result in another function or class
+    }
+}
 

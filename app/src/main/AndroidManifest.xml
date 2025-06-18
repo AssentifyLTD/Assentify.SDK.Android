@@ -41,30 +41,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ScanPassportActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name=".ScanIDActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name=".ScanOtherActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name=".FaceMatchActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name=".NavToFace"
-            android:exported="false"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name=".KycActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

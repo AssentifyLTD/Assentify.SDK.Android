@@ -17,6 +17,7 @@ data class KycDocumentDetails(
     val name: String,
     var order:Int,
     var templateSpecimen:String,
+    var hasQrCode:Boolean,
     val templateProcessingKeyInformation: String,
 )
 

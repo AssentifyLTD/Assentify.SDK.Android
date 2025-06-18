@@ -16,7 +16,7 @@ object HubConnectionFunctions {
                 "api/IdentificationDocument/FaceMatchWithImage";
             }
             BlockType.QR -> {
-                "api/IdentificationDocument/Qr";
+                "api/IdentificationDocument/ReadIdQrCode";
             }
 
         }

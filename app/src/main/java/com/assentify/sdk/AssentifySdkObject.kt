@@ -1,8 +1,6 @@
 package  com.assentify.sdk
 
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions
-import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
-import com.assentify.sdk.RemoteClient.Models.Templates
 
 object AssentifySdkObject {
     private lateinit var assentifySdk: AssentifySdk
@@ -50,27 +48,6 @@ object StepDefinitionsModel {
 
     fun getStepDefinitionsModel() : List<StepDefinitions>{
         return this.stepDefinitions
-    }
-
-}
-
-object KysModel {
-    private lateinit var kys: List<TemplatesByCountry >;
-    private lateinit var selected: Templates;
-    fun setKys(kys: List<TemplatesByCountry>) {
-        this.kys = kys;
-    }
-
-    fun getKys() : List<TemplatesByCountry >{
-        return this.kys
-    }
-
-    fun setSelected(selected: Templates ){
-        this.selected = selected;
-    }
-
-    fun getSelected() : Templates{
-        return this.selected
     }
 
 }

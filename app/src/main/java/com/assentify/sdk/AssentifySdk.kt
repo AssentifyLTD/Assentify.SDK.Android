@@ -247,18 +247,25 @@ class AssentifySdk(
     }
 
     fun startScanQr(
-   /*     scanQrCallback: ScanQrCallback,
-        dataModel: IDResponseModel,
-        kycDocumentDetails: List<KycDocumentDetails>,*/
+        scanQrCallback: ScanQrCallback,
+        kycDocumentDetails: List<KycDocumentDetails>,
+        language: String = Language.NON,
+        stepId: Int? = null,
     ): ScanQr {
         if (isKeyValid) {
             scanQr = ScanQr(
-           /*     dataModel,
                 kycDocumentDetails,
-                this.configModel*/
-                environmentalConditions
+                apiKey,
+                language,
+                configModel,
+                environmentalConditions,
+                performLivenessDocument,
+                saveCapturedVideoFace,
+                storeCapturedDocument,
+                storeImageStream,
             )
-           // scanQr.setScanQrCallback(scanQrCallback)
+           scanQr.setScanQrCallback(scanQrCallback)
+           scanQr.setStepId(stepId?.toString())
             return scanQr;
         } else {
             throw Exception("Invalid Keys")

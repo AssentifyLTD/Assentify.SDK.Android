@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+**0.0.71**
+- Qr Scanning
+
 **0.0.70**
 - Active Liveness Design Improvements
 - Face Layout Improvements
