@@ -5,4 +5,5 @@ enum class BlockType {
     ID_CARD,
     OTHER,
     FACE_MATCH,
+    QR,
 }

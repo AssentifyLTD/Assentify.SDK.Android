@@ -31,7 +31,6 @@ import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
-import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
 import com.assentify.sdk.Core.Constants.ZoomType;
 import com.assentify.sdk.Core.FileUtils.AssetsAudioPlayer;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;

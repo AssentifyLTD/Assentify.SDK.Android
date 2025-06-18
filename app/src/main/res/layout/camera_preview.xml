@@ -54,7 +54,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.5"
+                    android:layout_weight="0.7"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -79,7 +79,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.5"
+                    android:layout_weight="0.7"
                     android:background="@color/shadow">
 
                 </LinearLayout>
@@ -114,12 +114,15 @@
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/card_container_top"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="@color/shadow"/>
+            android:background="@color/shadow"
+            android:orientation="horizontal" />
 
         <LinearLayout
+            android:id="@+id/card_container_middle"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1.2"
@@ -131,10 +134,12 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
+                    android:id="@+id/card_container_left"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@color/shadow">
+                    android:background="@color/shadow"
+                    android:orientation="horizontal">
 
                 </LinearLayout>
 
@@ -153,10 +158,12 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/card_container_right"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@color/shadow">
+                    android:background="@color/shadow"
+                    android:orientation="horizontal">
 
                 </LinearLayout>
 
@@ -164,10 +171,12 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/card_container_bottom"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="@color/shadow"/>
+            android:background="@color/shadow"
+            android:orientation="horizontal" />
 
     </LinearLayout>
 

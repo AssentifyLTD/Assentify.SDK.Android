@@ -14,6 +14,9 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.http.Header
+import retrofit2.http.Part
+import retrofit2.http.Url
 import java.io.File
 import java.util.UUID
 
@@ -175,6 +178,81 @@ class RemoteProcessing {
 
 
     }
+
+    fun starQrProcessing(
+        url: String,
+        videoClip: String,
+        appConfiguration: ConfigModel,
+        templateId: String,
+        connectionId: String,
+        stepId: String,
+        metadata: String,
+    ) {
+        val call = RemoteClient.remoteWidgetsService.starQrProcessing(
+            url,
+            stepId,
+            appConfiguration.blockIdentifier,
+            appConfiguration.flowIdentifier,
+            appConfiguration.flowInstanceId,
+            appConfiguration.instanceHash,
+            appConfiguration.instanceId,
+            appConfiguration.tenantIdentifier,
+            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.tenantIdentifier),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.blockIdentifier),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.instanceId),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), templateId),
+            RequestBody.create(
+                "text/plain".toMediaTypeOrNull(),
+                "true"
+            ),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), videoClip),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), connectionId),
+            RequestBody.create("text/plain".toMediaTypeOrNull(), metadata),
+        )
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()?.string() ?: ""
+                    val baseResponseDataModel = parseDataToBaseResponseDataModel(responseBody)
+                    callback!!.onMessageReceived(
+                        baseResponseDataModel.destinationEndpoint!!,
+                        baseResponseDataModel
+                    )
+
+                }else {
+                    val responseBody = response.body()?.string() ?: ""
+                    callback!!.onMessageReceived(
+                        HubConnectionTargets.ON_ERROR,
+                        BaseResponseDataModel(
+                            destinationEndpoint = HubConnectionTargets.ON_ERROR,
+                            response = "",
+                            error = "",
+                            success = false
+                        )
+                    );
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                callback!!.onMessageReceived(
+                    HubConnectionTargets.ON_ERROR,
+                    BaseResponseDataModel(
+                        destinationEndpoint = HubConnectionTargets.ON_ERROR,
+                        response = "",
+                        error = t.message,
+                        success = false
+                    )
+                );
+            }
+        })
+
+
+    }
+
 
 
 }

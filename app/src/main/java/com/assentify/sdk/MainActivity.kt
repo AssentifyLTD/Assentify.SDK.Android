@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContentProviderCompat.requireContext
@@ -43,6 +44,7 @@ import com.assentify.sdk.ScanOther.ScanOtherCallback
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
+import com.assentify.sdk.ScanQr.ScanQrCallback
 import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -50,15 +52,16 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallback{
+class MainActivity : AppCompatActivity(),AssentifySdkCallback, ScanQrCallback , FaceMatchCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
-    private lateinit var scanID:ScanIDCard;
-    private lateinit var textView: TextView;
+    private lateinit var passportClick: LinearLayout
+    private lateinit var idClick: LinearLayout
+    private lateinit var otherClick: LinearLayout
+    private lateinit var loadingText: LinearLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        textView = findViewById(R.id.textView)
         if (ContextCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.CAMERA
@@ -80,13 +83,10 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
             "#FFFFFF",
             "#FFC400",
         );
-
-        /// E893390F6835D4E1D2F12126B7AA2B0ED996C056C8893BA267A7FE90A8452200
-        /// 2726A3681C0CAB2177AEDA50A70A96FD29757A20493AD02577B7578FE8EDE3CA
         assentifySdk = AssentifySdk(
-            "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
-            "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
-            "2726A3681C0CAB2177AEDA50A70A96FD29757A20493AD02577B7578FE8EDE3CA",
+            "6YfQqRbSfTinDuyk7TfFAAdDL55t4EBId4Il2vOFQycl4KydnWsGkA76UNLI3GcrHW3nqoz1gvoewxqsJA",
+            "45b09829-03da-4f2b-9f5b-08dc10ed75aa",
+            "EC1D0856245C8FF13A1428AA0CC2820FE91D33BA317BCB4568CEECCF0E448641",
             environmentalConditions,
             this,
             true,
@@ -97,57 +97,72 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
             true,
         );
 
+
+
     }
 
     override fun onAssentifySdkInitError(message: String) {
-        Log.e("MainActivity", "onAssentifySdkInitError: " + message )
+        Log.e("MainActivity", "onAssentifySdkInitError: " + message)
     }
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
-        Log.e("MainActivity", "onAssentifySdkInitSuccess: "  )
+        Log.e("MainActivity", "onAssentifySdkInitSuccess: ")
         val stepDefinitionsTemp: MutableList<StepMap> = mutableListOf()
-        configModel.stepDefinitions.forEach { item ->
-            Log.e("onAssentifySdkInitSuccess", item.toString() )
+        val template = assentifySdk.getTemplates();
+        template.forEach { item ->
+            Log.e("IDSCAN", item.name)
+            item.templates.forEach{ it ->
+                it.kycDocumentDetails.forEach{kyc->
+                    Log.e("IDSCAN",kyc.name )
+                    Log.e("IDSCAN",kyc.templateProcessingKeyInformation )
+                    Log.e("IDSCAN",kyc.hasQrCode.toString() )
+                }
+
+            }
+
         }
 
         startAssentifySdk();
     }
-     fun startAssentifySdk() {
 
-            val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
-            val base64Image =
-                ImageToBase64Converter().execute(image).get()
-            var face = assentifySdk.startFaceMatch(
+    fun startAssentifySdk() {
 
-                this@MainActivity,
-                // This activity implemented from from FaceMatchCallback
-                base64Image ,
-                true// Target  Image
-            );
-            var fragmentManager = supportFragmentManager
-            var transaction = fragmentManager.beginTransaction()
-            transaction.replace(R.id.fragmentContainer, face)
-            transaction.addToBackStack(null)
-            transaction.commit()
+        val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
+        val base64Image =
+            ImageToBase64Converter().execute(image).get()
+        var face = assentifySdk.startFaceMatch(
 
-        }
+            this@MainActivity,
+            // This activity implemented from from FaceMatchCallback
+            base64Image ,
+            true// Target  Image
+        );
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, face)
+        transaction.addToBackStack(null)
+        transaction.commit()
 
-/*    fun startAssentifySdk() {
+    }
+
+   /* fun startAssentifySdk() {
         var data: List<KycDocumentDetails> = listOf(
             KycDocumentDetails(
                 name = "",
                 order = 0,
                 templateProcessingKeyInformation = "75b683bb-eb81-4965-b3f0-c5e5054865e7",
-                templateSpecimen = ""
+                templateSpecimen = "",
+                hasQrCode = false
             ),
             KycDocumentDetails(
                 name = "",
                 order = 1,
                 templateProcessingKeyInformation = "eae46fac-1763-4d31-9acc-c38d29fe56e4",
-                templateSpecimen = ""
+                templateSpecimen = "",
+                hasQrCode = false
             ),
         )
-        scanID = assentifySdk.startScanIDCard(
+       val scanID = assentifySdk.startScanIDCard(
             this@MainActivity,// This activity implemented from from IDCardCallback
             data, // List<KycDocumentDetails> || Your selected template ||,
             Language.English ,// Optional the default is the doc language
@@ -161,11 +176,11 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
 
     }*/
 
-    /* fun startAssentifySdk() {
+
+  /*  fun startAssentifySdk() {
         var scanID = assentifySdk.startScanPassport(
             this@MainActivity,
             Language.Arabic,
-            stepId = 4338
         );
         var fragmentManager = supportFragmentManager
         var transaction = fragmentManager.beginTransaction()
@@ -174,111 +189,33 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         transaction.commit()
 
     }*/
-    override fun onError(dataModel: BaseResponseDataModel) {
-        Log.e("IDSCAN", "onError: ", )
-    }
 
-    override fun onSend() {
-        Log.e("IDSCAN", "onSend: ", )
+  /*  fun startAssentifySdk() {
 
-    }
+        var data: List<KycDocumentDetails> = listOf(
+            KycDocumentDetails(
+                name = "",
+                order = 0,
+                templateProcessingKeyInformation = "a1ec8a0d-067c-4ce1-8420-820d7789cf83",
+                templateSpecimen = "",
+                hasQrCode = false
+            ),
+        )
+        var face = assentifySdk.startScanQr(
 
-    override fun onRetry(dataModel: BaseResponseDataModel) {
-        Log.e("IDSCAN", "onRetry: ", )
-    }
-
- /*   override fun onComplete(dataModel: IDResponseModel, order: Int) {
-        Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.iDExtractedModel!!.outputProperties )
-    }
-
-    override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
+            this@MainActivity,
+            data ,
+            language = Language.English
+        );
+        var fragmentManager = supportFragmentManager
+        var transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, face)
+        transaction.addToBackStack(null)
+        transaction.commit()
 
     }*/
 
-    /*  override fun onComplete(dataModel: PassportResponseModel) {
-          Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.passportExtractedModel!!.outputProperties )
-      }*/
 
-         override fun onComplete(dataModel: FaceResponseModel) {
-              Log.e("IDSCAN transformedProperties", "onComplete: " + dataModel.faceExtractedModel!!.extractedData )
-          }
-
-    override fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onStatusUpdated(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onUpdated(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
-
-    }
-
-
-
-    override fun onCardDetected(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onMrzExtracted(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onMrzDetected(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onNoMrzDetected(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onFaceDetected(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onNoFaceDetected(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onFaceExtracted(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onQualityCheckAvailable(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onDocumentCaptured(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onDocumentCropped(dataModel: BaseResponseDataModel) {
-
-    }
-
-    override fun onUploadFailed(dataModel: BaseResponseDataModel) {
-
-    }
-
-
-    /*  override fun onEnvironmentalConditionsChange(
-          brightnessEvents: BrightnessEvents,
-          motion: MotionType,
-          faceEvents: FaceEvents,
-          zoomType: ZoomType,
-
-       ) {
-          runOnUiThread { textView.text =  "ActiveLiveEvents : " + faceEvents.toString() + "\n"   }    }*/
-
-    /*override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
-         runOnUiThread { textView.text =  "ActiveLiveEvents : " + activeLiveEvents.toString() + "\n"   }
-
-     }*/
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -293,7 +230,58 @@ class MainActivity : AppCompatActivity() ,AssentifySdkCallback , FaceMatchCallba
         }
     }
 
+    override fun onStartQrScan() {
+        Log.e("IDSCAN", "onStartQrScan")
+    }
+
+    override fun onCompleteQrScan(dataModel: IDResponseModel) {
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.imageUrl.toString())
+    }
+
+    override fun onErrorQrScan(message: String) {
+        Log.e("IDSCAN", "onErrorQrScan")
+    }
+
+    override fun onError(dataModel: BaseResponseDataModel) {
+
+    }
+
+    override fun onSend() {
+
+    }
+
+    override fun onRetry(dataModel: BaseResponseDataModel) {
+
+    }
+
+    override fun onComplete(dataModel: FaceResponseModel) {
+        Log.e("IDSCAN", dataModel.faceExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.faceExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.faceExtractedModel?.baseImageFace.toString())
+    }
+
+ /*   override fun onComplete(dataModel: IDResponseModel, order: Int) {
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.iDExtractedModel?.imageUrl.toString())
+    }
+
+    override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
+        TODO("Not yet implemented")
+    }*/
+
+  /*  override fun onComplete(dataModel: PassportResponseModel) {
+        Log.e("IDSCAN", dataModel.passportExtractedModel?.outputProperties.toString())
+        Log.e("IDSCAN", dataModel.passportExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.passportExtractedModel?.imageUrl.toString())
+    }*/
+
+
 }
+
+
 
 class ImageToBase64Converter : AsyncTask<String, Void, String>() {
 
@@ -323,6 +311,4 @@ class ImageToBase64Converter : AsyncTask<String, Void, String>() {
         // For example, you can use the result in another function or class
     }
 }
-
-
 

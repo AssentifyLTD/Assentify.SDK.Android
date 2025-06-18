@@ -7,7 +7,6 @@
     tools:context=".MainActivity">
 
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,12 +23,6 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/textView"
-        android:textSize="30dp"
-        android:textColor="@color/design_default_color_error"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:ignore="MissingConstraints"></TextView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
