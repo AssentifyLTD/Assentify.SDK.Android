@@ -6,7 +6,7 @@ apply plugin: 'maven-publish'
 android {
     compileSdkVersion 34
     defaultConfig {
-     // applicationId "com.assentify.sdk"
+      //  applicationId "com.assentify.sdk"
 
 
         minSdkVersion 24
@@ -27,6 +27,7 @@ android {
 
         }
     }
+
     aaptOptions {
         noCompress "tflite"
     }
@@ -113,6 +114,10 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk15on:1.65")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.65")
     implementation("com.github.mhshams:jnbis:1.1.0")
+
+    // Qr
+    implementation 'com.google.mlkit:barcode-scanning:17.3.0'
+
 
 }
 
