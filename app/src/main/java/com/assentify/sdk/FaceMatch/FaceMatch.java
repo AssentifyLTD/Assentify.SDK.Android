@@ -478,23 +478,35 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     private void fillCompletionMap() {
-        start = false;
-        eventCompletionMap = new HashMap<>();
-        for (ActiveLiveEvents event : getRandomEvents()) {
-            if (event == ActiveLiveEvents.PitchUp) {
-                eventCompletionMap.put(FaceEvents.PitchUp, false);
+        showInitLayoutFace();
+        activeLiveTimer = new CountDownTimer(4000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
             }
-            if (event == ActiveLiveEvents.PitchDown) {
-                eventCompletionMap.put(FaceEvents.PitchDown, false);
+            @Override
+            public void onFinish() {
+                start = false;
+                eventCompletionMap = new HashMap<>();
+                for (ActiveLiveEvents event : getRandomEvents()) {
+                    if (event == ActiveLiveEvents.PitchUp) {
+                        eventCompletionMap.put(FaceEvents.PitchUp, false);
+                    }
+                    if (event == ActiveLiveEvents.PitchDown) {
+                        eventCompletionMap.put(FaceEvents.PitchDown, false);
+                    }
+                    if (event == ActiveLiveEvents.YawRight) {
+                        eventCompletionMap.put(FaceEvents.YawRight, false);
+                    }
+                    if (event == ActiveLiveEvents.YawLeft) {
+                        eventCompletionMap.put(FaceEvents.YawLeft, false);
+                    }
+                }
             }
-            if (event == ActiveLiveEvents.YawRight) {
-                eventCompletionMap.put(FaceEvents.YawRight, false);
-            }
-            if (event == ActiveLiveEvents.YawLeft) {
-                eventCompletionMap.put(FaceEvents.YawLeft, false);
-            }
-        }
+        };
+
     }
+
+
 
     private void isSpecificItemFlagEqualTo(
             FaceEvents targetEvent) {

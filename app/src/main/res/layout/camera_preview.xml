@@ -219,6 +219,24 @@
         android:gravity="center"
         >
 
+
+
+        <LinearLayout
+            android:id="@+id/initFaceLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/init_face_layout"
+                android:visibility="visible"
+                tools:ignore="MissingConstraints" />
+        </LinearLayout>
+
         <LinearLayout
             android:id="@+id/successLinearLayout"
             android:layout_width="match_parent"
