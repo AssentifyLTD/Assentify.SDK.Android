@@ -98,9 +98,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     private Map<FaceEvents, Boolean> eventCompletionMap = new EnumMap<>(FaceEvents.class);
-   private volatile Boolean startActiveLiveCheck = true;
-   private volatile Boolean hasMoved  = true;
-   private CountDownTimer activeLiveTimer;
+    private volatile Boolean startActiveLiveCheck = true;
+    private volatile Boolean hasMoved  = true;
+    private CountDownTimer activeLiveTimer;
 
     private AssetsAudioPlayer audioPlayer;
 
@@ -478,35 +478,23 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     private void fillCompletionMap() {
-        showInitLayoutFace();
-        activeLiveTimer = new CountDownTimer(4000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
+        start = false;
+        eventCompletionMap = new HashMap<>();
+        for (ActiveLiveEvents event : getRandomEvents()) {
+            if (event == ActiveLiveEvents.PitchUp) {
+                eventCompletionMap.put(FaceEvents.PitchUp, false);
             }
-            @Override
-            public void onFinish() {
-                start = false;
-                eventCompletionMap = new HashMap<>();
-                for (ActiveLiveEvents event : getRandomEvents()) {
-                    if (event == ActiveLiveEvents.PitchUp) {
-                        eventCompletionMap.put(FaceEvents.PitchUp, false);
-                    }
-                    if (event == ActiveLiveEvents.PitchDown) {
-                        eventCompletionMap.put(FaceEvents.PitchDown, false);
-                    }
-                    if (event == ActiveLiveEvents.YawRight) {
-                        eventCompletionMap.put(FaceEvents.YawRight, false);
-                    }
-                    if (event == ActiveLiveEvents.YawLeft) {
-                        eventCompletionMap.put(FaceEvents.YawLeft, false);
-                    }
-                }
+            if (event == ActiveLiveEvents.PitchDown) {
+                eventCompletionMap.put(FaceEvents.PitchDown, false);
             }
-        };
-
+            if (event == ActiveLiveEvents.YawRight) {
+                eventCompletionMap.put(FaceEvents.YawRight, false);
+            }
+            if (event == ActiveLiveEvents.YawLeft) {
+                eventCompletionMap.put(FaceEvents.YawLeft, false);
+            }
+        }
     }
-
-
 
     private void isSpecificItemFlagEqualTo(
             FaceEvents targetEvent) {
@@ -535,7 +523,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         audioPlayer.playAudio(ConstantsValues.AudioFaceSuccess);
         startActiveLiveCheck = false;
         showSuccessLiveCheck();
-       if (areAllEventsDone()) {
+        if (areAllEventsDone()) {
             start = true;
             enableActiveLive(false);
         } else {
@@ -554,13 +542,13 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     }
 
     private void resetActiveLive() {
-      if (activeLiveTimer != null) {
+        if (activeLiveTimer != null) {
             activeLiveTimer.cancel();
         }
-       audioPlayer.playAudio(ConstantsValues.AudioWrong);
+        audioPlayer.playAudio(ConstantsValues.AudioWrong);
         startActiveLiveCheck = false;
         showErrorLiveCheck();
-       activeLiveTimer = new CountDownTimer(4000, 1000) {
+        activeLiveTimer = new CountDownTimer(4000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
             }
