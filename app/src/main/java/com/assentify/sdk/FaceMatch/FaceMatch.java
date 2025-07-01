@@ -517,54 +517,64 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     }
 
     private void successActiveLive() {
-        if (activeLiveTimer != null) {
-            activeLiveTimer.cancel();
-        }
-        audioPlayer.playAudio(ConstantsValues.AudioFaceSuccess);
-        startActiveLiveCheck = false;
-        showSuccessLiveCheck();
-       if (areAllEventsDone()) {
-            start = true;
-            enableActiveLive(false);
-        } else {
-            activeLiveTimer = new CountDownTimer(4000, 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                }
-                @Override
-                public void onFinish() {
-                    hasMoved = true;
-                    startActiveLiveCheck = true;
-                }
-            };
-            activeLiveTimer.start();
+        if(startActiveLiveCheck) {
+            if (activeLiveTimer != null) {
+                activeLiveTimer.cancel();
+            }
+            audioPlayer.playAudio(ConstantsValues.AudioFaceSuccess);
+            startActiveLiveCheck = false;
+            showSuccessLiveCheck();
+            if (areAllEventsDone()) {
+                start = true;
+                enableActiveLive(false);
+            } else {
+                activeLiveTimer = new CountDownTimer(4000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        hasMoved = true;
+                        startActiveLiveCheck = true;
+                    }
+                };
+                activeLiveTimer.start();
+            }
         }
     }
 
     private void resetActiveLive() {
-      if (activeLiveTimer != null) {
-            activeLiveTimer.cancel();
+       if( startActiveLiveCheck){
+          if (activeLiveTimer != null) {
+              activeLiveTimer.cancel();
+          }
+          audioPlayer.playAudio(ConstantsValues.AudioWrong);
+          startActiveLiveCheck = false;
+          showErrorLiveCheck();
+          activeLiveTimer = new CountDownTimer(4000, 1000) {
+              @Override
+              public void onTick(long millisUntilFinished) {
+              }
+              @Override
+              public void onFinish() {
+                  fillCompletionMap();
+                  hasMoved = true;
+                  startActiveLiveCheck = true;
+              }
+          };
+          activeLiveTimer.start();
         }
-       audioPlayer.playAudio(ConstantsValues.AudioWrong);
-        startActiveLiveCheck = false;
-        showErrorLiveCheck();
-       activeLiveTimer = new CountDownTimer(4000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-            }
-            @Override
-            public void onFinish() {
-                fillCompletionMap();
-                hasMoved = true;
-                startActiveLiveCheck = true;
-            }
-        };
-        activeLiveTimer.start();
+
     }
 
 
 
     private void nextMove() {
+        startActiveLiveCheck = false;
+        if (activeLiveTimer != null) {
+            activeLiveTimer.cancel();
+        }
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -588,10 +598,21 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                 }
                                 setActiveLiveMove(entry.getKey());
                             });
+                    activeLiveTimer = new CountDownTimer(4000, 1000) {
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+                        }
 
+                        @Override
+                        public void onFinish() {
+                            startActiveLiveCheck = true;
+                        }
+                    };
+                    activeLiveTimer.start();
                 }
             });
         }
+
     }
 
     private boolean areAllEventsDone() {

@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+**0.0.72**
+- Face events improvements
+
 **0.0.71**
 - Qr Scanning
 
