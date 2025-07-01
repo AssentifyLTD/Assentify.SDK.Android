@@ -550,14 +550,14 @@ abstract class CameraPreview : Fragment() {
             }
         }
     }
-
     protected fun stopCountDown() {
-        countDownTimer?.cancel() // Cancel the countdown
+        countDownTimer?.cancel()
         countDownTimer = null
         requireActivity().runOnUiThread {
-            val countDownText =
-                requireActivity().findViewById<View>(R.id.countDownText) as TextView
-            countDownText.visibility = View.GONE
+            val countDownText = requireActivity().findViewById<TextView?>(R.id.countDownText)
+            if (countDownText != null) {
+                countDownText.visibility = View.GONE
+            }
         }
     }
 

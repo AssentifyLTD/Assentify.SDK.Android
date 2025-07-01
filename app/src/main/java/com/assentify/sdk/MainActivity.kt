@@ -84,9 +84,9 @@ class MainActivity : AppCompatActivity(),AssentifySdkCallback, ScanQrCallback , 
             "#FFC400",
         );
         assentifySdk = AssentifySdk(
-            "6YfQqRbSfTinDuyk7TfFAAdDL55t4EBId4Il2vOFQycl4KydnWsGkA76UNLI3GcrHW3nqoz1gvoewxqsJA",
-            "45b09829-03da-4f2b-9f5b-08dc10ed75aa",
-            "EC1D0856245C8FF13A1428AA0CC2820FE91D33BA317BCB4568CEECCF0E448641",
+            "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
+            "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
+            "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
             environmentalConditions,
             this,
             true,
