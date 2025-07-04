@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity(),AssentifySdkCallback, ScanQrCallback , 
             this,
             true,
             true,
+            true,
             false,
             true,
             true,
@@ -216,6 +217,9 @@ class MainActivity : AppCompatActivity(),AssentifySdkCallback, ScanQrCallback , 
     }*/
 
 
+    override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
+        Log.e("IDSCAN", "onLivenessUpdate")
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

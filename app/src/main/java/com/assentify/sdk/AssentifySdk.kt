@@ -50,7 +50,8 @@ class AssentifySdk(
     private var processMrz: Boolean? = null,
     private var storeCapturedDocument: Boolean? = null,
     private var performLivenessDocument: Boolean? = null,
-    private var performLivenessFace: Boolean? = null,
+    private var performActiveLivenessFace: Boolean? = null,
+    private var performPassiveLivenessFace: Boolean? = null,
     private var storeImageStream: Boolean? = null,
     private var saveCapturedVideoID: Boolean? = null,
     private var saveCapturedVideoFace: Boolean? = null,
@@ -170,8 +171,8 @@ class AssentifySdk(
                     }
                 }//
                 if (item.stepDefinition == "FaceImageAcquisition") {
-                    if (performLivenessFace == null) {
-                        performLivenessFace =
+                    if (performPassiveLivenessFace == null) {
+                        performPassiveLivenessFace =
                             item.customization.performLivenessDetection;
                     }
                     if (storeImageStream == null) {
@@ -188,7 +189,7 @@ class AssentifySdk(
             if (performLivenessDocument == null || processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
                 assentifySdkCallback.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { performLivenessDocument ,processMrz , storeCapturedDocument , saveCapturedVideo }  ");
             }
-            if (performLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
+            if (performPassiveLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
                 assentifySdkCallback.onAssentifySdkInitError("Please Configure The FaceImageAcquisition {  performLivenessFace , storeImageStream , saveCapturedVideo }  ");
 
             }
@@ -208,7 +209,7 @@ class AssentifySdk(
                 apiKey,
                 processMrz,
                 performLivenessDocument,
-                performLivenessFace,
+                performPassiveLivenessFace,
                 saveCapturedVideoID,
                 storeCapturedDocument,
                 storeImageStream, language
@@ -232,7 +233,7 @@ class AssentifySdk(
                 environmentalConditions, apiKey,
                 processMrz,
                 performLivenessDocument,
-                performLivenessFace,
+                performPassiveLivenessFace,
                 saveCapturedVideoID,
                 storeCapturedDocument,
                 storeImageStream,
@@ -284,7 +285,7 @@ class AssentifySdk(
                 environmentalConditions, apiKey,
                 processMrz,
                 performLivenessDocument,
-                performLivenessFace,
+                performPassiveLivenessFace,
                 saveCapturedVideoID,
                 storeCapturedDocument,
                 storeImageStream,
@@ -310,7 +311,8 @@ class AssentifySdk(
                 environmentalConditions, apiKey,
                 processMrz,
                 performLivenessDocument,
-                performLivenessFace,
+                performActiveLivenessFace,
+                performPassiveLivenessFace,
                 saveCapturedVideoFace,
                 storeCapturedDocument,
                 storeImageStream,
