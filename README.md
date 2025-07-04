@@ -38,6 +38,10 @@ dependencies {
 ```
 
 ## Versions
+
+**0.0.73**
+- Face Liveness flags control
+
 **0.0.72**
 - Face events improvements
 
