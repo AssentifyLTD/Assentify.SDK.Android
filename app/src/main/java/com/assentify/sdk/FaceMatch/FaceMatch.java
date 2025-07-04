@@ -68,6 +68,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     Boolean processMrz;
     Boolean performLivenessDocument;
     Boolean performLivenessFace;
+
+    Boolean performPassiveLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
@@ -108,6 +110,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                      Boolean processMrz,
                      Boolean performLivenessDocument,
                      Boolean performLivenessFace,
+                     Boolean performPassiveLivenessFace,
                      Boolean saveCapturedVideo,
                      Boolean storeCapturedDocument,
                      Boolean storeImageStream,
@@ -115,6 +118,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     ) {
         this.apiKey = apiKey;
         this.performLivenessFace = performLivenessFace;
+        this.performPassiveLivenessFace = performPassiveLivenessFace;
         if (this.performLivenessFace) {
             fillCompletionMap();
             enableActiveLive(true);
@@ -459,7 +463,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     hasFace(),
                     processMrz,
                     performLivenessDocument,
-                    performLivenessFace,
+                    performPassiveLivenessFace,
                     saveCapturedVideo,
                     storeCapturedDocument,
                     true,
