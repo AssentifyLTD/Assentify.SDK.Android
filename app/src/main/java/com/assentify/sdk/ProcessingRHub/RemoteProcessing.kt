@@ -97,8 +97,6 @@ class RemoteProcessing {
             )
         }
 
-        Log.e("LockHere",performLivenessFace.toString());
-
 
         val call = RemoteClient.remoteWidgetsService.starProcessing(
             url,
