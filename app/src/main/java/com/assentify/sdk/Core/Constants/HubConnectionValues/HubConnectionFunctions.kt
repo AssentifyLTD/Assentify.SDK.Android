@@ -4,7 +4,7 @@ object HubConnectionFunctions {
     fun etHubConnectionFunction(blockType: BlockType): String {
         return when (blockType) {
             BlockType.READ_PASSPORT -> {
-                "api/IdentificationDocument/ReadPassport";
+                "v2/api/IdentificationDocument/ReadPassport";
             }
             BlockType.ID_CARD -> {
                 "api/IdentificationDocument/ReadId";

@@ -455,9 +455,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
             audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
-            remoteProcessing.starProcessing(
+            remoteProcessing.starProcessingBytes(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.ID_CARD),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.ID_CARD, getActivity()),
+                    ImageUtils.compressAndRotateBitmap(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.ID_CARD, getActivity()),
                     "",
                     configModel,
                     this.templateId,
@@ -472,8 +472,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    stepId,
-                    new ArrayList<>()
+                    stepId
             );
         });
 

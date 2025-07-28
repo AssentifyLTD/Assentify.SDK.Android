@@ -401,9 +401,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
             audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
-            remoteProcessing.starProcessing(
+            remoteProcessing.starProcessingBytes(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
+                    ImageUtils.compressAndRotateBitmap(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT,getActivity()),
                     "",
                     configModel,
                     "",
@@ -418,8 +418,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    stepId,
-                    new ArrayList<>()
+                    stepId
             );
         });
 

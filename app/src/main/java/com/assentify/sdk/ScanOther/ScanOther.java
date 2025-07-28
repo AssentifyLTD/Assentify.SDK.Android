@@ -420,9 +420,9 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
             audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
-            remoteProcessing.starProcessing(
+            remoteProcessing.starProcessingBytes(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.OTHER),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.OTHER, getActivity()),
+                    ImageUtils.compressAndRotateBitmap(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.OTHER, getActivity()),
                     "",
                     configModel,
                     "",
@@ -437,8 +437,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                     storeCapturedDocument,
                     false,
                     storeImageStream,
-                    stepId,
-                    new ArrayList<>()
+                    stepId
             );
         });
 
