@@ -38,6 +38,13 @@ dependencies {
 ```
 
 ## Versions
+
+**0.0.75**
+- Wink Liveness
+- Liveness Controller
+- Motion Controller
+- Brightness Controller
+
 **0.0.74**
 - Detect improvements
 

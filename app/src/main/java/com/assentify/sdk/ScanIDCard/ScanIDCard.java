@@ -1,7 +1,6 @@
 package com.assentify.sdk.ScanIDCard;
 
 
-import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionLimit;
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
@@ -214,7 +213,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 motionRectF.add(rectFCard);
             }
         }
-        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
+        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness,environmentalConditions) == BrightnessEvents.Good) {
             if (isRectFInsideTheScreen) {
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),start);
             }else {
@@ -262,9 +261,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness)== BrightnessEvents.Good && motion == MotionType.SENDING && isRectFInsideTheScreen) {
+                    brightness,environmentalConditions)== BrightnessEvents.Good && motion == MotionType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > ZoomLimit && sendingFlagsMotion.size() > MotionLimit) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsZoom.size() > ZoomLimit && sendingFlagsMotion.size() > environmentalConditions.getMotionCardLimit()) {
                         if (hasFaceOrCard()) {
                             stopRecording();
                         }
@@ -278,8 +277,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 public void run() {
                     idCardCallback.onEnvironmentalConditionsChange(
                             environmentalConditions.checkConditions(
-                                    brightness),
-                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
+                                    brightness,environmentalConditions),
+                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > environmentalConditions.getMotionCardLimit() ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
 
                             zoom);
                 }

@@ -1,5 +1,7 @@
 package com.assentify.sdk.Core.Constants
 
+import android.util.Log
+
 
 class EnvironmentalConditions(
 
@@ -9,7 +11,15 @@ class EnvironmentalConditions(
 
 
     var CustomColor: String,
-    var HoldHandColor: String
+    var HoldHandColor: String,
+
+    var MotionCardLimit: Int = 10,
+    var MotionPassportLimit: Int = 15,
+
+    var BRIGHTNESS_HIGH_THRESHOLD: Int = 180,
+    var BRIGHTNESS_LOW_THRESHOLD: Int = 50,
+
+    var activeLiveType: ActiveLiveType = ActiveLiveType.NON,
 ) {
 
 
@@ -20,10 +30,11 @@ class EnvironmentalConditions(
 
     fun checkConditions(
         brightness: Double,
+        environmentalConditions: EnvironmentalConditions,
     ): BrightnessEvents {
         return when {
-            brightness < ConstantsValues.BRIGHTNESS_LOW_THRESHOLD -> BrightnessEvents.TooDark
-            brightness > ConstantsValues.BRIGHTNESS_HIGH_THRESHOLD -> BrightnessEvents.TooBright
+            brightness < environmentalConditions.BRIGHTNESS_LOW_THRESHOLD -> BrightnessEvents.TooDark
+            brightness > environmentalConditions.BRIGHTNESS_HIGH_THRESHOLD -> BrightnessEvents.TooBright
             else -> BrightnessEvents.Good
         }
     }
