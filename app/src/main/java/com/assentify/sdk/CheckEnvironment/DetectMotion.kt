@@ -4,8 +4,8 @@ import android.graphics.RectF
 import android.util.Log
 import com.assentify.sdk.Core.Constants.MotionType
 
-const val MotionLimit = 10;
-const val MotionPassportLimit = 15;
+/// MotionLimit = 10;
+/// MotionPassportLimit = 15;
 class DetectMotion {
 
     fun calculatePercentageChange(rect1: RectF, rect2: RectF): MotionType {

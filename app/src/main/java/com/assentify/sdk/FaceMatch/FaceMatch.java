@@ -16,6 +16,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents;
+import com.assentify.sdk.Core.Constants.ActiveLiveType;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
@@ -119,7 +120,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.apiKey = apiKey;
         this.performLivenessFace = performLivenessFace;
         this.performPassiveLivenessFace = performPassiveLivenessFace;
-        if (this.performLivenessFace) {
+        this.environmentalConditions = environmentalConditions;
+        if (this.performLivenessFace && this.environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
             fillCompletionMap();
             enableActiveLive(true);
         } else {
@@ -127,7 +129,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             eventCompletionMap = new HashMap<>();
         }
         frontCamera();
-        this.environmentalConditions = environmentalConditions;
         this.processMrz = processMrz;
         this.performLivenessDocument = performLivenessDocument;
         this.saveCapturedVideo = saveCapturedVideo;
@@ -177,11 +178,13 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
-        if (startActiveLiveCheck && performLivenessFace && hasMoved) {
+        if (startActiveLiveCheck && performLivenessFace && hasMoved &&  this.environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
             hasMoved = false;
             nextMove();
         }else {
-            faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.Good);
+            if(areAllEventsDone()){
+                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.Good);
+            }
 
         }
         if (faceQualityCheck == null) {
@@ -196,15 +199,29 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
         this.results = results;
         if (hasFaceOrCard()) {
-            faceQualityCheck.checkQuality(normalImage, new FaceEventCallback() {
+          faceQualityCheck.checkQualityAction(normalImage, new FaceEventCallback() {
                 @Override
                 public void onFaceEventDetected(FaceEvents result) {
                     faceEvent = result;
-                    if (startActiveLiveCheck && performLivenessFace) {
-                        isSpecificItemFlagEqualTo(faceEvent);
+                    if (startActiveLiveCheck && performLivenessFace &&  environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
+                        if(environmentalConditions.getActiveLiveType() == ActiveLiveType.Actions){
+                            isSpecificItemFlagEqualToActions(faceEvent);
+                        }
                     }
                 }
             });
+            if(environmentalConditions.getActiveLiveType() == ActiveLiveType.Wink){
+                faceQualityCheck.checkQualityWink(normalImage, new FaceEventCallback() {
+                    @Override
+                    public void onFaceEventDetected(FaceEvents result) {
+                        if (startActiveLiveCheck && performLivenessFace &&  environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
+                                isSpecificItemFlagEqualToWink(result);
+                        }
+                    }
+                });
+            }
+
+
             listScaleRectF.forEach((item) -> {
                 if (item.component2().contains(ConstantsValues.FaceName)) {
                     isRectFInsideTheScreen = detectIfInsideTheScreen.isRectFWithinMargins(item.component1(), previewWidth, previewHeight);
@@ -226,7 +243,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
 
         if (motion == MotionType.SENDING) {
-            if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
+            if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness,environmentalConditions) == BrightnessEvents.Good) {
                 highQualityBitmaps.add(normalImage);
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             } else {
@@ -279,7 +296,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness
+                    brightness,environmentalConditions
             ) == BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && faceEvent == FaceEvents.Good) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen && sendingFlagsZoom.size() > ZoomLimit) {
@@ -314,7 +331,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 public void run() {
                     faceMatchCallback.onEnvironmentalConditionsChange(
                             environmentalConditions.checkConditions(
-                                    brightness
+                                    brightness,environmentalConditions
                             ),
                             sendingFlags.isEmpty() ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
                             !start && areAllEventsDone() ? FaceEvents.Good : faceEvent, zoom
@@ -484,7 +501,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private void fillCompletionMap() {
         start = false;
         eventCompletionMap = new HashMap<>();
-        for (ActiveLiveEvents event : getRandomEvents()) {
+        for (ActiveLiveEvents event : getRandomEvents(environmentalConditions.getActiveLiveType())) {
             if (event == ActiveLiveEvents.PitchUp) {
                 eventCompletionMap.put(FaceEvents.PitchUp, false);
             }
@@ -497,10 +514,20 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             if (event == ActiveLiveEvents.YawLeft) {
                 eventCompletionMap.put(FaceEvents.YawLeft, false);
             }
+            if (event == ActiveLiveEvents.WinkLeft) {
+                eventCompletionMap.put(FaceEvents.WinkLeft, false);
+            }
+            if (event == ActiveLiveEvents.WinkRight) {
+                eventCompletionMap.put(FaceEvents.WinkRight, false);
+            }
+            if (event == ActiveLiveEvents.Wink) {
+                eventCompletionMap.put(FaceEvents.Wink, false);
+            }
         }
+
     }
 
-    private void isSpecificItemFlagEqualTo(
+    private void isSpecificItemFlagEqualToActions(
             FaceEvents targetEvent) {
         eventCompletionMap.entrySet().stream()
                 .filter(entry -> !entry.getValue())
@@ -513,7 +540,50 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         if (targetEvent != FaceEvents.NO_DETECT &&
                                 targetEvent != FaceEvents.Good &&
                                 targetEvent != FaceEvents.RollRight &&
-                                targetEvent != FaceEvents.RollLeft) {
+                                targetEvent != FaceEvents.RollLeft &&
+                                targetEvent != FaceEvents.Wink &&
+                                targetEvent != FaceEvents.WinkLeft &&
+                                targetEvent != FaceEvents.WinkRight
+                        ) {
+                            resetActiveLive();
+                        }
+                    }
+                });
+    }
+
+    private void isSpecificItemFlagEqualToWink(
+            FaceEvents targetEvent) {
+        eventCompletionMap.entrySet().stream()
+                .filter(entry -> !entry.getValue())
+                .findFirst()
+                .ifPresent(entry -> {
+                    FaceEvents currentKey = entry.getKey();
+                    if(currentKey == FaceEvents.Wink){
+                        FaceEvents lastKey = null;
+                        for (FaceEvents key : eventCompletionMap.keySet()) {
+                            lastKey = key;
+                        }
+                        if(lastKey == FaceEvents.WinkRight){
+                            currentKey = FaceEvents.WinkLeft;
+                        }else {
+                            currentKey = FaceEvents.WinkRight;
+
+                        }
+                    }
+
+                    if (currentKey == targetEvent) {
+                        eventCompletionMap.put(entry.getKey(), true);
+                        successActiveLive();
+                    } else {
+                        if (targetEvent != FaceEvents.NO_DETECT &&
+                                targetEvent != FaceEvents.Good &&
+                                targetEvent != FaceEvents.RollRight &&
+                                targetEvent != FaceEvents.RollLeft &&
+                                targetEvent != FaceEvents.PitchDown &&
+                                targetEvent != FaceEvents.PitchUp &&
+                                targetEvent != FaceEvents.YawLeft &&
+                                targetEvent != FaceEvents.YawRight
+                        ) {
                             resetActiveLive();
                         }
                     }
@@ -587,7 +657,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             .filter(entry -> !entry.getValue())
                             .findFirst()
                             .ifPresent(entry -> {
-
                                 if (entry.getKey() == FaceEvents.PitchUp) {
                                     faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.PitchUp);
                                 }
@@ -600,7 +669,29 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                 if (entry.getKey() == FaceEvents.YawLeft) {
                                     faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.YawLeft);
                                 }
-                                setActiveLiveMove(entry.getKey());
+                                if (entry.getKey() == FaceEvents.WinkLeft) {
+                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkLeft);
+                                }
+                                if (entry.getKey() == FaceEvents.WinkRight) {
+                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkRight);
+                                }
+                                if (entry.getKey() == FaceEvents.Wink) {
+                                    FaceEvents lastKey = null;
+                                    for (FaceEvents key : eventCompletionMap.keySet()) {
+                                        lastKey = key;
+                                    }
+                                    if (lastKey == FaceEvents.WinkRight) {
+                                        faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkLeft);
+                                        setActiveLiveMove(FaceEvents.WinkLeft);
+                                    } else {
+                                        faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkRight);
+                                        setActiveLiveMove(FaceEvents.WinkRight);
+
+                                    }
+                                }
+                                if (entry.getKey() != FaceEvents.Wink) {
+                                    setActiveLiveMove(entry.getKey());
+                                }
                             });
                     activeLiveTimer = new CountDownTimer(4000, 1000) {
                         @Override
