@@ -1,6 +1,5 @@
 package com.assentify.sdk.ScanPassport;
 
-import static com.assentify.sdk.CheckEnvironment.DetectMotionKt.MotionPassportLimit;
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomPassportLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
@@ -185,7 +184,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 motionRectF.add(rectFCard);
             }
         }
-        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness) == BrightnessEvents.Good) {
+        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness,environmentalConditions) == BrightnessEvents.Good) {
             if (isRectFInsideTheScreen) {
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }else {
@@ -232,9 +231,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 }
             }
             if (environmentalConditions.checkConditions(
-                    brightness)== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
+                    brightness,environmentalConditions)== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > MotionPassportLimit && sendingFlagsZoom.size() > ZoomPassportLimit) {
+                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > environmentalConditions.getMotionPassportLimit() && sendingFlagsZoom.size() > ZoomPassportLimit) {
                         if (hasFaceOrCard()) {
                             stopRecording();
                         }
@@ -247,8 +246,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 public void run() {
                     scanPassportCallback.onEnvironmentalConditionsChange(
                             environmentalConditions.checkConditions(
-                                    brightness),
-                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > MotionPassportLimit ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
+                                    brightness,environmentalConditions),
+                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > environmentalConditions.getMotionPassportLimit() ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
                             zoom);
                 }
             });

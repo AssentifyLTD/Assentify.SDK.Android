@@ -22,10 +22,26 @@ class FaceQualityCheck {
         FaceDetection.getClient(options)
     }
 
+    private val faceDetectorWink: FaceDetector by lazy {
+        val options = FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
+            .setContourMode(FaceDetectorOptions.CONTOUR_MODE_NONE)
+            .setMinFaceSize(0.15f)
+            .enableTracking()
+            .build()
+        FaceDetection.getClient(options)
+    }
+
+
     private var lastProcessedTime = 0L
     var throttleDelayMillis: Long = 400L
 
-    fun checkQuality(bitmapImage: Bitmap, callback: FaceEventCallback) {
+    private var lastProcessedTimeWink = 0L
+    var throttleDelayMillisWink: Long = 400L
+
+    fun checkQualityAction(bitmapImage: Bitmap, callback: FaceEventCallback) {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastProcessedTime < throttleDelayMillis) {
             return // Skip this frame
@@ -85,6 +101,50 @@ class FaceQualityCheck {
                 callback.onFaceEventDetected(FaceEvents.NO_DETECT)
             }
     }
+
+    fun checkQualityWink(bitmapImage: Bitmap, callback: FaceEventCallback) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastProcessedTimeWink < throttleDelayMillisWink) {
+            return // Skip this frame
+        }
+        lastProcessedTimeWink = currentTime
+        val image = InputImage.fromBitmap(ImageUtils.rotateBitmap(bitmapImage, 270f), 0)
+
+        faceDetectorWink.process(image)
+            .addOnSuccessListener { faces ->
+                if (faces.isEmpty()) {
+                    callback.onFaceEventDetected(FaceEvents.NO_DETECT)
+                    return@addOnSuccessListener
+                }
+
+                for (face in faces) {
+                    val leftProb = face.leftEyeOpenProbability ?: -1f
+                    val rightProb = face.rightEyeOpenProbability ?: -1f
+
+                    val isRightWink = leftProb > 0.8f && rightProb < 0.3f
+                    val isLeftWink = rightProb > 0.8f && leftProb < 0.3f
+
+                    when {
+                        isRightWink -> {
+                            callback.onFaceEventDetected(FaceEvents.WinkLeft)
+                            return@addOnSuccessListener
+                        }
+                        isLeftWink -> {
+                            callback.onFaceEventDetected(FaceEvents.WinkRight)
+                            return@addOnSuccessListener
+                        }
+                        else -> {
+                            callback.onFaceEventDetected(FaceEvents.NO_DETECT)
+                            return@addOnSuccessListener
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                callback.onFaceEventDetected(FaceEvents.NO_DETECT)
+            }
+    }
+
 
     fun stop() {
         faceDetector.close()
