@@ -28,18 +28,8 @@
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
         android:requestLegacyExternalStorage="true"
-        android:theme="@style/AppTheme"
+        android:supportsRtl="true"
         tools:ignore="HardcodedDebugMode">
-
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
 
     </application>
