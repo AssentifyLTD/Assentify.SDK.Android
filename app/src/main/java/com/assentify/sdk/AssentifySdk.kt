@@ -51,7 +51,6 @@ class AssentifySdk(
     private var storeCapturedDocument: Boolean? = null,
     private var performLivenessDocument: Boolean? = null,
     private var performActiveLivenessFace: Boolean? = null,
-    private var performPassiveLivenessFace: Boolean? = null,
     private var storeImageStream: Boolean? = null,
     private var saveCapturedVideoID: Boolean? = null,
     private var saveCapturedVideoFace: Boolean? = null,
@@ -68,6 +67,7 @@ class AssentifySdk(
     private var stepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
+    private var performPassiveLivenessFace: Boolean? = null;
 
     init {
         if (context != null) {

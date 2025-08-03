@@ -94,7 +94,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
             environmentalConditions,
             assentifySdkCallback = this,
             performActiveLivenessFace = true,
-            performPassiveLivenessFace = false,
             performLivenessDocument = false,
             processMrz = false,
             storeCapturedDocument = false,
@@ -132,8 +131,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
 
         fun startAssentifySdk() {
 
-            val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
-            val base64Image =
+            val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg";            val base64Image =
                 ImageToBase64Converter().execute(image).get()
             var face = assentifySdk.startFaceMatch(
 
