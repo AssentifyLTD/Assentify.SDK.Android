@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.76**
+- Face Liveness improvements
+
 **0.0.75**
 - Wink Liveness
 - Liveness Controller
