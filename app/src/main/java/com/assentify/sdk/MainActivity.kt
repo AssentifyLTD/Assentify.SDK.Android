@@ -94,7 +94,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
             environmentalConditions,
             assentifySdkCallback = this,
             performActiveLivenessFace = true,
-            performLivenessDocument = false,
             processMrz = false,
             storeCapturedDocument = false,
             storeImageStream = false,
