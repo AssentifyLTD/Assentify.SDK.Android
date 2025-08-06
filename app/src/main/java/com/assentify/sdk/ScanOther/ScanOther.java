@@ -19,6 +19,7 @@ import androidx.annotation.RequiresApi;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
+import com.assentify.sdk.logging.ClaritySdk;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
@@ -27,7 +28,6 @@ import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
-import com.assentify.sdk.Core.Constants.LivenessType;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.ZoomType;
@@ -41,12 +41,8 @@ import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
-import com.assentify.sdk.ScanPassport.PassportExtractedModel;
-import com.assentify.sdk.ScanPassport.PassportResponseModel;
-import com.assentify.sdk.ScanPassport.ScanPassport;
 import com.assentify.sdk.tflite.Classifier;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -160,6 +156,11 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
+
+        if (getActivity() != null) {
+            ClaritySdk.INSTANCE.initialize(getActivity());
+        }
+
 
         if (audioPlayer == null) {
             if (getActivity() != null) {

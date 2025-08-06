@@ -43,3 +43,17 @@
 # General rules for reflection and serialization
 -keepattributes Signature,InnerClasses,EnclosingMethod
 -keepattributes *Annotation*
+
+# Preserve all classes and methods in Clarity SDK
+-keep class com.microsoft.clarity.** { *; }
+
+# Preserve all models and their members (in case of reflection use)
+-keepclassmembers class com.microsoft.clarity.** {
+    *;
+}
+
+# Keep annotations (in case Clarity uses them internally)
+-keepattributes *Annotation*
+
+# Don't warn about missing references inside the SDK
+-dontwarn com.microsoft.clarity.**

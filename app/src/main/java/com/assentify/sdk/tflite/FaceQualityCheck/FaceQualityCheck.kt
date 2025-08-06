@@ -102,7 +102,7 @@ class FaceQualityCheck {
             }
     }
 
-    fun checkQualityWink(bitmapImage: Bitmap, callback: FaceEventCallback) {
+    fun checkQualityWinkAndBLINK(bitmapImage: Bitmap, callback: FaceEventCallback) {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastProcessedTimeWink < throttleDelayMillisWink) {
             return // Skip this frame
@@ -123,8 +123,13 @@ class FaceQualityCheck {
 
                     val isRightWink = leftProb > 0.8f && rightProb < 0.3f
                     val isLeftWink = rightProb > 0.8f && leftProb < 0.3f
+                    val isBlink = leftProb < 0.3f && rightProb < 0.3f
 
                     when {
+                        isBlink -> {
+                            callback.onFaceEventDetected(FaceEvents.BLINK)
+                            return@addOnSuccessListener
+                        }
                         isRightWink -> {
                             callback.onFaceEventDetected(FaceEvents.WinkLeft)
                             return@addOnSuccessListener
@@ -144,6 +149,7 @@ class FaceQualityCheck {
                 callback.onFaceEventDetected(FaceEvents.NO_DETECT)
             }
     }
+
 
 
     fun stop() {

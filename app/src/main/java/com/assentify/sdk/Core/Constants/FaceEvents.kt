@@ -10,9 +10,9 @@ enum class FaceEvents {
     PitchUp,
     PitchDown,
     Good,
-    Wink,
     WinkLeft,
     WinkRight,
+    BLINK,
     NO_DETECT,
 }
 
@@ -21,34 +21,42 @@ enum class ActiveLiveEvents {
     YawRight,
     PitchUp,
     PitchDown,
-    Wink,
     WinkLeft,
     WinkRight,
+    BLINK,
     Good
 }
 
 enum class ActiveLiveType{
     Actions,
     Wink,
-    NON
+    BLINK ,
+    NONE
 }
 
-fun getRandomEvents(activeLiveType: ActiveLiveType): Set<ActiveLiveEvents> {
-    val allEvents  = getFilteredEventsByType(activeLiveType)
-    val randomEvents = mutableSetOf<ActiveLiveEvents>()
+fun getRandomEvents(
+    activeLiveType: ActiveLiveType,
+    activeLivenessCheckCount: Int
+): List<ActiveLiveEvents> {
+    val allEvents = getFilteredEventsByType(activeLiveType)
 
-    while (randomEvents.size < 3 && randomEvents.size < allEvents.size) {
+    // Edge case: empty list
+    if (allEvents.isEmpty()) return emptyList()
+
+    val randomEvents = mutableListOf<ActiveLiveEvents>()
+    repeat(activeLivenessCheckCount) {
         randomEvents.add(allEvents.random())
     }
     return randomEvents
 }
+
 
 fun getFilteredEventsByType(type: ActiveLiveType): List<ActiveLiveEvents> {
     return when (type) {
         ActiveLiveType.Actions -> {
             ActiveLiveEvents.values().filter {
                 it != ActiveLiveEvents.Good &&
-                        it != ActiveLiveEvents.Wink &&
+                        it != ActiveLiveEvents.BLINK &&
                         it != ActiveLiveEvents.WinkLeft &&
                         it != ActiveLiveEvents.WinkRight
             }
@@ -57,6 +65,7 @@ fun getFilteredEventsByType(type: ActiveLiveType): List<ActiveLiveEvents> {
         ActiveLiveType.Wink -> {
             ActiveLiveEvents.values().filter {
                 it != ActiveLiveEvents.Good &&
+                        it != ActiveLiveEvents.BLINK &&
                         it != ActiveLiveEvents.YawLeft &&
                         it != ActiveLiveEvents.YawRight &&
                         it != ActiveLiveEvents.PitchUp &&
@@ -64,7 +73,18 @@ fun getFilteredEventsByType(type: ActiveLiveType): List<ActiveLiveEvents> {
             }
         }
 
-        ActiveLiveType.NON -> {
+        ActiveLiveType.BLINK -> {
+            ActiveLiveEvents.values().filter {
+                it != ActiveLiveEvents.Good &&
+                        it != ActiveLiveEvents.YawLeft &&
+                        it != ActiveLiveEvents.YawRight &&
+                        it != ActiveLiveEvents.PitchUp &&
+                        it != ActiveLiveEvents.PitchDown &&
+                        it != ActiveLiveEvents.WinkLeft &&
+                        it != ActiveLiveEvents.WinkRight
+            }
+        }
+        ActiveLiveType.NONE -> {
             ActiveLiveEvents.values().filter {
                 it != ActiveLiveEvents.Good
             }

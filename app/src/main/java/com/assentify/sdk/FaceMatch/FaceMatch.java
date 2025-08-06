@@ -16,6 +16,8 @@ import androidx.annotation.NonNull;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
+import com.assentify.sdk.Core.Constants.FaceEventStatus;
+import com.assentify.sdk.logging.ClaritySdk;
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents;
 import com.assentify.sdk.Core.Constants.ActiveLiveType;
 import com.assentify.sdk.Core.Constants.BlockType;
@@ -45,7 +47,6 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -101,8 +102,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private FaceEvents faceEvent = FaceEvents.NO_DETECT;
 
 
-    private Map<FaceEvents, Boolean> eventCompletionMap = new EnumMap<>(FaceEvents.class);
-   private volatile Boolean startActiveLiveCheck = true;
+    private List<FaceEventStatus> eventCompletionList = new ArrayList<>();
+
+    private volatile Boolean startActiveLiveCheck = true;
    private volatile Boolean hasMoved  = true;
    private CountDownTimer activeLiveTimer;
 
@@ -128,12 +130,12 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.performLivenessFace = performLivenessFace;
         this.performPassiveLivenessFace = performPassiveLivenessFace;
         this.environmentalConditions = environmentalConditions;
-        if (this.performLivenessFace && this.environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
+        if (this.performLivenessFace && this.environmentalConditions.getActiveLiveType() != ActiveLiveType.NONE && environmentalConditions.getActiveLivenessCheckCount() != 0) {
             fillCompletionMap();
             enableActiveLive(true);
         } else {
             startActiveLiveCheck = false;
-            eventCompletionMap = new HashMap<>();
+            eventCompletionList =  new ArrayList<>();
         }
         frontCamera();
         this.processMrz = processMrz;
@@ -190,7 +192,12 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
-        if (startActiveLiveCheck && performLivenessFace && hasMoved &&  this.environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
+        if (getActivity() != null) {
+            ClaritySdk.INSTANCE.initialize(getActivity());
+        }
+
+
+        if (startActiveLiveCheck && performLivenessFace && hasMoved &&  this.environmentalConditions.getActiveLiveType() != ActiveLiveType.NONE && environmentalConditions.getActiveLivenessCheckCount() != 0) {
             hasMoved = false;
             nextMove();
         }else {
@@ -215,19 +222,19 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 @Override
                 public void onFaceEventDetected(FaceEvents result) {
                     faceEvent = result;
-                    if (startActiveLiveCheck && performLivenessFace &&  environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
+                    if (startActiveLiveCheck && performLivenessFace &&  environmentalConditions.getActiveLiveType() != ActiveLiveType.NONE && environmentalConditions.getActiveLivenessCheckCount() != 0) {
                         if(environmentalConditions.getActiveLiveType() == ActiveLiveType.Actions){
                             isSpecificItemFlagEqualToActions(faceEvent);
                         }
                     }
                 }
             });
-            if(environmentalConditions.getActiveLiveType() == ActiveLiveType.Wink){
-                faceQualityCheck.checkQualityWink(normalImage, new FaceEventCallback() {
+            if(environmentalConditions.getActiveLiveType() == ActiveLiveType.Wink || environmentalConditions.getActiveLiveType() == ActiveLiveType.BLINK){
+                faceQualityCheck.checkQualityWinkAndBLINK(normalImage, new FaceEventCallback() {
                     @Override
                     public void onFaceEventDetected(FaceEvents result) {
-                        if (startActiveLiveCheck && performLivenessFace &&  environmentalConditions.getActiveLiveType() != ActiveLiveType.NON) {
-                                isSpecificItemFlagEqualToWink(result);
+                        if (startActiveLiveCheck && performLivenessFace &&  environmentalConditions.getActiveLiveType() != ActiveLiveType.NONE && environmentalConditions.getActiveLivenessCheckCount() != 0) {
+                                isSpecificItemFlagEqualToWinkAndBLINK(result);
                         }
                     }
                 });
@@ -537,28 +544,28 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     private void fillCompletionMap() {
         start = false;
-        eventCompletionMap = new HashMap<>();
-        for (ActiveLiveEvents event : getRandomEvents(environmentalConditions.getActiveLiveType())) {
+        eventCompletionList = new ArrayList<>();
+        for (ActiveLiveEvents event : getRandomEvents(environmentalConditions.getActiveLiveType(),environmentalConditions.getActiveLivenessCheckCount())) {
             if (event == ActiveLiveEvents.PitchUp) {
-                eventCompletionMap.put(FaceEvents.PitchUp, false);
+                eventCompletionList.add(new FaceEventStatus(FaceEvents.PitchUp, false));
             }
             if (event == ActiveLiveEvents.PitchDown) {
-                eventCompletionMap.put(FaceEvents.PitchDown, false);
+                eventCompletionList.add(new FaceEventStatus(FaceEvents.PitchDown, false));
             }
             if (event == ActiveLiveEvents.YawRight) {
-                eventCompletionMap.put(FaceEvents.YawRight, false);
+                eventCompletionList.add(new FaceEventStatus(FaceEvents.YawRight, false));
             }
             if (event == ActiveLiveEvents.YawLeft) {
-                eventCompletionMap.put(FaceEvents.YawLeft, false);
+                eventCompletionList.add(new FaceEventStatus(FaceEvents.YawLeft, false));
             }
             if (event == ActiveLiveEvents.WinkLeft) {
-                eventCompletionMap.put(FaceEvents.WinkLeft, false);
+                eventCompletionList.add(new FaceEventStatus(FaceEvents.WinkLeft, false));
             }
             if (event == ActiveLiveEvents.WinkRight) {
-                eventCompletionMap.put(FaceEvents.WinkRight, false);
+                eventCompletionList.add(new FaceEventStatus(FaceEvents.WinkRight, false));
             }
-            if (event == ActiveLiveEvents.Wink) {
-                eventCompletionMap.put(FaceEvents.Wink, false);
+            if (event == ActiveLiveEvents.BLINK) {
+                eventCompletionList.add(new FaceEventStatus(FaceEvents.BLINK, false));
             }
         }
 
@@ -566,65 +573,53 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     private void isSpecificItemFlagEqualToActions(
             FaceEvents targetEvent) {
-        eventCompletionMap.entrySet().stream()
-                .filter(entry -> !entry.getValue())
-                .findFirst()
-                .ifPresent(entry -> {
-                    if (entry.getKey() == targetEvent) {
-                        eventCompletionMap.put(entry.getKey(), true);
-                        successActiveLive();
-                    } else {
-                        if (targetEvent != FaceEvents.NO_DETECT &&
-                                targetEvent != FaceEvents.Good &&
-                                targetEvent != FaceEvents.RollRight &&
-                                targetEvent != FaceEvents.RollLeft &&
-                                targetEvent != FaceEvents.Wink &&
-                                targetEvent != FaceEvents.WinkLeft &&
-                                targetEvent != FaceEvents.WinkRight
-                        ) {
-                            resetActiveLive();
-                        }
+        for (FaceEventStatus status : eventCompletionList) {
+            if (!status.isCompleted()) {
+                if(status.getEvent() == targetEvent){
+                    status.setCompleted(true);
+                    successActiveLive();
+                }else {
+                    if (targetEvent != FaceEvents.NO_DETECT &&
+                            targetEvent != FaceEvents.Good &&
+                            targetEvent != FaceEvents.RollRight &&
+                            targetEvent != FaceEvents.RollLeft &&
+                            targetEvent != FaceEvents.WinkLeft &&
+                            targetEvent != FaceEvents.WinkRight &&
+                            targetEvent != FaceEvents.BLINK
+                    ) {
+                        resetActiveLive();
                     }
-                });
+                }
+                break;
+            }
+        }
+
     }
 
-    private void isSpecificItemFlagEqualToWink(
+    private void isSpecificItemFlagEqualToWinkAndBLINK(
             FaceEvents targetEvent) {
-        eventCompletionMap.entrySet().stream()
-                .filter(entry -> !entry.getValue())
-                .findFirst()
-                .ifPresent(entry -> {
-                    FaceEvents currentKey = entry.getKey();
-                    if(currentKey == FaceEvents.Wink){
-                        FaceEvents lastKey = null;
-                        for (FaceEvents key : eventCompletionMap.keySet()) {
-                            lastKey = key;
-                        }
-                        if(lastKey == FaceEvents.WinkRight){
-                            currentKey = FaceEvents.WinkLeft;
-                        }else {
-                            currentKey = FaceEvents.WinkRight;
 
-                        }
+        for (FaceEventStatus status : eventCompletionList) {
+            if (!status.isCompleted()) {
+                if(status.getEvent() == targetEvent){
+                    status.setCompleted(true);
+                    successActiveLive();
+                }else {
+                    if (targetEvent != FaceEvents.NO_DETECT &&
+                            targetEvent != FaceEvents.Good &&
+                            targetEvent != FaceEvents.RollRight &&
+                            targetEvent != FaceEvents.RollLeft &&
+                            targetEvent != FaceEvents.PitchDown &&
+                            targetEvent != FaceEvents.PitchUp &&
+                            targetEvent != FaceEvents.YawLeft &&
+                            targetEvent != FaceEvents.YawRight
+                    ) {
+                        resetActiveLive();
                     }
-
-                    if (currentKey == targetEvent) {
-                        eventCompletionMap.put(entry.getKey(), true);
-                        successActiveLive();
-                    } else {
-                        if (targetEvent != FaceEvents.NO_DETECT &&
-                                targetEvent != FaceEvents.Good &&
-                                targetEvent != FaceEvents.RollRight &&
-                                targetEvent != FaceEvents.RollLeft &&
-                                targetEvent != FaceEvents.PitchDown &&
-                                targetEvent != FaceEvents.PitchUp &&
-                                targetEvent != FaceEvents.YawLeft &&
-                                targetEvent != FaceEvents.YawRight
-                        ) {
-                            resetActiveLive();
-                        }
-                    }
-                });
+                }
+                break;
+            }
+        }
     }
 
     private void successActiveLive() {
@@ -639,7 +634,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 start = true;
                 enableActiveLive(false);
             } else {
-                activeLiveTimer = new CountDownTimer(4000, 1000) {
+                activeLiveTimer = new CountDownTimer(3000, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                     }
@@ -663,7 +658,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
           audioPlayer.playAudio(ConstantsValues.AudioWrong);
           startActiveLiveCheck = false;
           showErrorLiveCheck();
-          activeLiveTimer = new CountDownTimer(4000, 1000) {
+          activeLiveTimer = new CountDownTimer(3000, 1000) {
               @Override
               public void onTick(long millisUntilFinished) {
               }
@@ -690,46 +685,34 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    eventCompletionMap.entrySet().stream()
-                            .filter(entry -> !entry.getValue())
-                            .findFirst()
-                            .ifPresent(entry -> {
-                                if (entry.getKey() == FaceEvents.PitchUp) {
-                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.PitchUp);
-                                }
-                                if (entry.getKey() == FaceEvents.PitchDown) {
-                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.PitchDown);
-                                }
-                                if (entry.getKey() == FaceEvents.YawRight) {
-                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.YawRight);
-                                }
-                                if (entry.getKey() == FaceEvents.YawLeft) {
-                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.YawLeft);
-                                }
-                                if (entry.getKey() == FaceEvents.WinkLeft) {
-                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkLeft);
-                                }
-                                if (entry.getKey() == FaceEvents.WinkRight) {
-                                    faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkRight);
-                                }
-                                if (entry.getKey() == FaceEvents.Wink) {
-                                    FaceEvents lastKey = null;
-                                    for (FaceEvents key : eventCompletionMap.keySet()) {
-                                        lastKey = key;
-                                    }
-                                    if (lastKey == FaceEvents.WinkRight) {
-                                        faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkLeft);
-                                        setActiveLiveMove(FaceEvents.WinkLeft);
-                                    } else {
-                                        faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkRight);
-                                        setActiveLiveMove(FaceEvents.WinkRight);
+                    for (FaceEventStatus status : eventCompletionList) {
+                        if (!status.isCompleted()) {
+                            if (status.getEvent() == FaceEvents.PitchUp) {
+                                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.PitchUp);
+                            }
+                            if (status.getEvent() == FaceEvents.PitchDown) {
+                                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.PitchDown);
+                            }
+                            if (status.getEvent() == FaceEvents.YawRight) {
+                                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.YawRight);
+                            }
+                            if (status.getEvent() == FaceEvents.YawLeft) {
+                                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.YawLeft);
+                            }
+                            if (status.getEvent() == FaceEvents.WinkLeft) {
+                                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkLeft);
+                            }
+                            if (status.getEvent() == FaceEvents.WinkRight) {
+                                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.WinkRight);
+                            }
+                            if (status.getEvent() == FaceEvents.BLINK) {
+                                faceMatchCallback.onCurrentLiveMoveChange(ActiveLiveEvents.BLINK);
+                            }
+                            setActiveLiveMove(status.getEvent());
+                            break;
+                        }
+                    }
 
-                                    }
-                                }
-                                if (entry.getKey() != FaceEvents.Wink) {
-                                    setActiveLiveMove(entry.getKey());
-                                }
-                            });
                     activeLiveTimer = new CountDownTimer(4000, 1000) {
                         @Override
                         public void onTick(long millisUntilFinished) {
@@ -748,13 +731,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     }
 
     private boolean areAllEventsDone() {
-        for (boolean isDone : eventCompletionMap.values()) {
-            if (!isDone) {
-                return false;
-            }
-        }
-        return true;
+        return eventCompletionList.stream().allMatch(FaceEventStatus::isCompleted);
     }
+
 
 
 }
