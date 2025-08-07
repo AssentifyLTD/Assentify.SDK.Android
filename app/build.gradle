@@ -117,8 +117,10 @@ dependencies {
     // Qr
     implementation 'com.google.mlkit:barcode-scanning:17.3.0'
 
-    //
+    // Logging
     implementation 'com.microsoft.clarity:clarity:3.+'
+    implementation "com.bugsnag:bugsnag-android:6.+"
+    implementation "com.bugsnag:bugsnag-android-performance:1.+"
 
 }
 

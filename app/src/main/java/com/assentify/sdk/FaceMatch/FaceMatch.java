@@ -17,6 +17,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.FaceEventStatus;
+import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.logging.ClaritySdk;
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents;
 import com.assentify.sdk.Core.Constants.ActiveLiveType;
@@ -194,6 +195,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
         if (getActivity() != null) {
             ClaritySdk.INSTANCE.initialize(getActivity());
+            BugsnagObject.INSTANCE.initialize(getActivity(),configModel);
         }
 
 
@@ -267,8 +269,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 if (performPassiveLivenessFace && start) {
                     if(livenessCheckArray.size()<localLivenessLimit){
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            livenessCheckArray.add(normalImage);
-                        }, 100);
+                            new Thread(() -> {
+                                livenessCheckArray.add(normalImage);
+                            }).start();
+                        }, ImageUtils.getDynamicDelay(getActivity()));
                     }
                 }
                 highQualityBitmaps.add(normalImage);

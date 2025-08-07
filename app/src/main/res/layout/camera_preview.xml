@@ -336,7 +336,7 @@
             android:paddingEnd="5dp"
             android:layout_centerInParent="true"
             android:background="@null"
-            android:src="@drawable/wink_left"
+            android:src="@drawable/blink"
             tools:ignore="MissingConstraints" />
 
     </LinearLayout>

@@ -44,7 +44,9 @@
 -keepattributes Signature,InnerClasses,EnclosingMethod
 -keepattributes *Annotation*
 
+########################################
 # Preserve all classes and methods in Clarity SDK
+#######################################
 -keep class com.microsoft.clarity.** { *; }
 
 # Preserve all models and their members (in case of reflection use)
@@ -57,3 +59,27 @@
 
 # Don't warn about missing references inside the SDK
 -dontwarn com.microsoft.clarity.**
+
+
+########################################
+# Bugsnag Core SDK
+########################################
+-keep class com.bugsnag.** { *; }
+
+# Keep any user-defined error callback methods
+-keepclassmembers class * {
+    public void onError(com.bugsnag.android.Event);
+}
+
+# Keep annotations (Bugsnag uses them internally)
+-keepattributes *Annotation*
+
+# Keep metadata keys like breadcrumb type if used manually
+-keepclassmembers class * {
+    @com.bugsnag.android.BreadcrumbType <fields>;
+}
+
+########################################
+# Bugsnag Performance SDK (optional)
+########################################
+-keep class com.bugsnag.android.performance.** { *; }
