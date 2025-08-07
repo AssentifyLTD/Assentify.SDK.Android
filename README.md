@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.78**
+- Blink improvements
+
 **0.0.77**
 - Blink Liveness
 - Face match improvements
