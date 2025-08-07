@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
+import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.logging.ClaritySdk;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
@@ -160,6 +161,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
         if (getActivity() != null) {
             ClaritySdk.INSTANCE.initialize(getActivity());
+            BugsnagObject.INSTANCE.initialize(getActivity(),configModel);
         }
 
 
