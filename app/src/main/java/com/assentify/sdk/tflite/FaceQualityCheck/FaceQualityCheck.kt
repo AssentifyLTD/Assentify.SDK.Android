@@ -154,5 +154,6 @@ class FaceQualityCheck {
 
     fun stop() {
         faceDetector.close()
+        faceDetectorWink.close()
     }
 }
