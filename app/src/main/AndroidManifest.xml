@@ -5,22 +5,16 @@
 
     <uses-sdk />
 
-    <uses-feature
-        android:glEsVersion="0x00030001"
-        android:required="true" />
-
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <uses-feature android:name="android.hardware.camera" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
-
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
-    <uses-feature
-        android:name="android.hardware.nfc"
-        android:required="true" />
+
+    <uses-feature android:glEsVersion="0x00030001" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
     <application
         android:debuggable="false"
@@ -28,8 +22,12 @@
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
         android:requestLegacyExternalStorage="true"
-        android:supportsRtl="true"
         tools:ignore="HardcodedDebugMode">
+
+        <meta-data
+            android:name="com.bugsnag.android.API_KEY"
+            android:value="3f6c4cb49612d7a335f669f735b74b8a"/>
+
 
 
     </application>

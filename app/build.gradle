@@ -6,6 +6,8 @@ apply plugin: 'maven-publish'
 android {
     compileSdkVersion 34
     defaultConfig {
+     // applicationId "com.assentify.sdk"
+
 
         minSdkVersion 24
         targetSdkVersion 34
@@ -116,6 +118,10 @@ dependencies {
     // Qr
     implementation 'com.google.mlkit:barcode-scanning:17.3.0'
 
+    // Logging
+    implementation 'com.microsoft.clarity:clarity:3.+'
+    implementation "com.bugsnag:bugsnag-android:6.+"
+    implementation "com.bugsnag:bugsnag-android-performance:1.+"
 
 }
 

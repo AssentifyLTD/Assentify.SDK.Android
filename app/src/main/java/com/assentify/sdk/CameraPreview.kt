@@ -92,6 +92,7 @@ abstract class CameraPreview : Fragment() {
     private var lookLeft: GifImageView? = null;
     private var winkLeft: GifImageView? = null;
     private var winkRight: GifImageView? = null;
+    private var blink: GifImageView? = null;
 
     // Card Layout
     private var layoutTop: LinearLayout? = null;
@@ -480,6 +481,10 @@ abstract class CameraPreview : Fragment() {
                 if (event == FaceEvents.WinkRight) {
                     winkRight!!.visibility = View.VISIBLE
                 }
+                if (event == FaceEvents.BLINK) {
+                    blink!!.visibility = View.VISIBLE
+                }
+
             }
         }
 
@@ -500,12 +505,14 @@ abstract class CameraPreview : Fragment() {
         lookLeft=   requireActivity().findViewById(R.id.lookLeft)
         winkLeft=   requireActivity().findViewById(R.id.winkLeft)
         winkRight=   requireActivity().findViewById(R.id.winkRight)
+        blink=   requireActivity().findViewById(R.id.blink)
         lookUp!!.visibility = View.GONE
         lookDown!!.visibility = View.GONE
         lookRight!!.visibility = View.GONE
         lookLeft!!.visibility = View.GONE
         winkLeft!!.visibility = View.GONE
         winkRight!!.visibility = View.GONE
+        blink!!.visibility = View.GONE
     }
 
     fun capitalizeFirstLetter(input: String): String {

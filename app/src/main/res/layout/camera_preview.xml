@@ -327,6 +327,17 @@
             android:src="@drawable/wink_right"
             tools:ignore="MissingConstraints" />
 
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/blink"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:src="@drawable/blink"
+            tools:ignore="MissingConstraints" />
 
     </LinearLayout>
 

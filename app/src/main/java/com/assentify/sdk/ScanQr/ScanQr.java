@@ -1,7 +1,6 @@
 package com.assentify.sdk.ScanQr;
 
 
-import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
@@ -15,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.logging.ClaritySdk;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
@@ -26,7 +26,6 @@ import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
 import com.assentify.sdk.ScanIDCard.IDExtractedModel;
-import com.assentify.sdk.ScanIDCard.ScanIDCard;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
@@ -131,6 +130,10 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
+        if (getActivity() != null) {
+            ClaritySdk.INSTANCE.initialize(getActivity());
+        }
+
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override

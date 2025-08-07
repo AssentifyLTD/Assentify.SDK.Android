@@ -24,6 +24,7 @@ object ConstantsValues {
     const val AudioFaceSuccess  = "audio_face_success.mp3";
     const val AudioCardSuccess  = "audio_card_success.mp3";
     const val AudioWrong = "audio_wrong.mp3";
+    const val ClarityProjectId = "spm0s4tjn6";
 }
 
 
