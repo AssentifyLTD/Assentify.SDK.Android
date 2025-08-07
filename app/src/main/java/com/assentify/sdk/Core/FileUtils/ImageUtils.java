@@ -1,5 +1,6 @@
 package com.assentify.sdk.Core.FileUtils;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -164,4 +165,25 @@ public class ImageUtils {
         int targetHeight = Math.round(targetWidth * aspectRatio);
         return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
     }
+
+    public static int getDynamicDelay(Context context) {
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+
+        long totalRamMB = memoryInfo.totalMem / (1024L * 1024L);
+
+        boolean isLowRam = totalRamMB <= 1024 || cpuCores <= 2;
+
+        if (isLowRam) {
+            return 500;
+        } else if (totalRamMB <= 2048 || cpuCores <= 4) {
+            return 350;
+        } else {
+            return 100;
+        }
+    }
+
 }

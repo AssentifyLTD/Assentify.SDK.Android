@@ -36,6 +36,7 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions
 import com.assentify.sdk.RemoteClient.Models.StepMap
+import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.IDExtractedModel
@@ -46,6 +47,7 @@ import com.assentify.sdk.ScanPassport.PassportResponseModel
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.ScanQr.ScanQrCallback
+import com.assentify.sdk.SubmitData.SubmitDataCallback
 import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -53,7 +55,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.security.auth.callback.PasswordCallback
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallback{
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallback,SubmitDataCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var passportClick: LinearLayout
@@ -83,9 +85,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
             true,
             "#FFFFFF",
             "#FFC400",
-            MotionPassportLimit = 15,
-            MotionCardLimit = 10,
-            activeLiveType = ActiveLiveType.Wink,
+            activeLiveType = ActiveLiveType.NONE,
+            activeLivenessCheckCount = 3
         );
         assentifySdk = AssentifySdk(
             "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
@@ -94,13 +95,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
             environmentalConditions,
             assentifySdkCallback = this,
             performActiveLivenessFace = true,
-            performLivenessDocument = false,
             processMrz = false,
             storeCapturedDocument = false,
             storeImageStream = false,
             saveCapturedVideoID = false,
             saveCapturedVideoFace = false,
         );
+
 
 
     }
@@ -255,6 +256,31 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
     }
 
     override fun onSend() {
+        runOnUiThread {
+            val submitRequestModel: MutableList<SubmitRequestModel> = mutableListOf();
+            submitRequestModel.add(
+                SubmitRequestModel(
+                    stepId = 1,
+                    stepDefinition = "s1",
+                    extractedInformation = mapOf("name" to "John", "age" to "30","age1" to "30")
+                )
+            )
+            submitRequestModel.add(
+                SubmitRequestModel(
+                    stepId = 2,
+                    stepDefinition = "s2",
+                    extractedInformation = mapOf("name" to "John","age" to "30")
+                )
+            )
+            submitRequestModel.add(
+                SubmitRequestModel(
+                    stepId = 3,
+                    stepDefinition = "s3",
+                    extractedInformation = mapOf("name" to "John",)
+                )
+            )
+            assentifySdk.startSubmitData(this,submitRequestModel);
+        }
 
     }
 
@@ -268,6 +294,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
           Log.e("IDSCAN", dataModel.faceExtractedModel?.baseImageFace.toString())
       }
 
+    override fun onSubmitError(message: String) {
+        Log.e("IDSCAN", "onSubmitError")
+    }
+
+    override fun onSubmitSuccess(message: String) {
+        Log.e("IDSCAN","onSubmitSuccess")
+    }
+
     /*  override fun onComplete(dataModel: IDResponseModel, order: Int) {
           Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
           Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
@@ -278,14 +312,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
           TODO("Not yet implemented")
       }*/
 
- /*   override fun onComplete(dataModel: PassportResponseModel) {
+  /*  override fun onComplete(dataModel: PassportResponseModel) {
         Log.e("IDSCAN", dataModel.passportExtractedModel?.outputProperties.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.extractedData.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.imageUrl.toString())
     }*/
 
 
-    override fun onEnvironmentalConditionsChange(
+ /*   override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
         faceEvents: FaceEvents,
@@ -296,7 +330,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
     override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
         Log.e("onEnvironmentalConditionsChange 2", activeLiveEvents.toString())
     }
-
+*/
 }
 
 

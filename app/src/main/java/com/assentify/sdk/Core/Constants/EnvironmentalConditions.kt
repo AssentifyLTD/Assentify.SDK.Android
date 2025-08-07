@@ -19,7 +19,9 @@ class EnvironmentalConditions(
     var BRIGHTNESS_HIGH_THRESHOLD: Int = 180,
     var BRIGHTNESS_LOW_THRESHOLD: Int = 50,
 
-    var activeLiveType: ActiveLiveType = ActiveLiveType.NON,
+    var activeLiveType: ActiveLiveType = ActiveLiveType.NONE,
+
+    var activeLivenessCheckCount : Int = 0,
 ) {
 
 

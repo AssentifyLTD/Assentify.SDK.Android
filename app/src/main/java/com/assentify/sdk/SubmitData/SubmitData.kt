@@ -4,6 +4,7 @@ import android.util.Log
 import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import  com.assentify.sdk.RemoteClient.RemoteClient
+import com.assentify.sdk.logging.BugsnagObject
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -34,25 +35,37 @@ class SubmitData(
             configModel.instanceHash,
             submitRequestModel
         );
+        BugsnagObject.logInfo("Data submission started. ${submitRequestModelLog(submitRequestModel)}",configModel)
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
                 call: Call<ResponseBody>,
                 response: Response<ResponseBody>
             ) {
-              val responseBody = response.body()?.string()
+                 val responseBody = response.body()?.string()
 
                 if (response.isSuccessful) {
+                    BugsnagObject.logInfo("Data submission success : Response Body $response",configModel)
                     submitDataCallback.onSubmitSuccess(response.message());
                 } else {
+                    BugsnagObject.logInfo("Data submission failed : Response Body $response",configModel)
                     submitDataCallback.onSubmitError(response.message());
                 }
 
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                BugsnagObject.logInfo("Data submission failed : Message ${t.message}",configModel)
                 submitDataCallback.onSubmitError(t.message!!);
             }
         })
+    }
+
+    private fun submitRequestModelLog(submitRequestModel: List<SubmitRequestModel>): Map<String, Any> {
+        val stepsMap = HashMap<String, Any>()
+        submitRequestModel.forEach {
+            stepsMap[it.stepDefinition +" : "+it.stepId.toString()] = "Extracted Information Size" +" : "+ it.extractedInformation.size.toLong()
+        }
+        return stepsMap
     }
 
 
