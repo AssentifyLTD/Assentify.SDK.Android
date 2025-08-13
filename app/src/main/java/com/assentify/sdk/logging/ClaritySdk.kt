@@ -10,14 +10,14 @@ object ClaritySdk {
 
     private var initialized = false
     fun initialize(activity: Activity) {
-        if (!initialized) {
-            val config = ClarityConfig(
-                projectId = ConstantsValues.ClarityProjectId,
-                logLevel = LogLevel.Verbose
-            )
-            Clarity.initialize(activity, config)
-            initialized = true
-        }
+    //    if (!initialized) {
+    //        val config = ClarityConfig(
+    //            projectId = ConstantsValues.ClarityProjectId,
+    //            logLevel = LogLevel.Verbose
+    //        )
+    //        Clarity.initialize(activity, config)
+    //        initialized = true
+    //    }
     }
 
 }

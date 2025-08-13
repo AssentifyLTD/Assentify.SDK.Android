@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -116,6 +117,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private List<Bitmap> livenessCheckArray = new ArrayList<>();
 
     private int localLivenessLimit;
+
+    private long lastProcessedTime = 0L;
 
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
@@ -268,11 +271,12 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             if (isRectFInsideTheScreen && faceEvent == FaceEvents.Good && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness,environmentalConditions) == BrightnessEvents.Good) {
                 if (performPassiveLivenessFace && start) {
                     if(livenessCheckArray.size()<localLivenessLimit){
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            new Thread(() -> {
-                                livenessCheckArray.add(normalImage);
-                            }).start();
-                        }, ImageUtils.getDynamicDelay(getActivity()));
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - lastProcessedTime > ImageUtils.getDynamicDelay(getActivity())) {
+                            livenessCheckArray.add(normalImage);
+                            lastProcessedTime = currentTime;
+                        }
+
                     }
                 }
                 highQualityBitmaps.add(normalImage);
