@@ -39,6 +39,10 @@ dependencies {
 
 ## Versions
 
+**0.0.80**
+- Log improvements
+- Bug fixes
+
 **0.0.79**
 - Blink improvements
 

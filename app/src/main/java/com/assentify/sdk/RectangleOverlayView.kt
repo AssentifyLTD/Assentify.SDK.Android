@@ -46,8 +46,9 @@ class RectangleOverlayView @JvmOverloads constructor(
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val paddingLeft = 20f // Adjust the padding value as needed
-        listRectF.forEach { (rectF, text) ->
+        val paddingLeft = 20f
+        val snapshot = ArrayList(listRectF)
+        snapshot.forEach { (rectF, text) ->
             val textWidth = textPaint.measureText(text)
             val textHeight = textPaint.textSize
             textPaint.color = rectangleColor!!;
