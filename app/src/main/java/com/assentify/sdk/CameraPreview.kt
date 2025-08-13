@@ -364,62 +364,65 @@ abstract class CameraPreview : Fragment() {
         enableGuide: Boolean,
         notTransmitting: Boolean,
     ) {
-        if(!this.isActiveLiveEnabled){
-            requireActivity().runOnUiThread {
-                if (this.isVisible) {
-                    rectangleOverlayView.setCustomColor(color)
-                    if (notTransmitting) {
-                        this.enableDetect = enableDetect;
-                        this.enableGuide = enableGuide;
-                        if (transmittingContainer != null) {
-                            transmittingContainer!!.visibility = View.GONE
-                        }
-                    } else {
-                        this.enableDetect = false;
-                        this.enableGuide = false;
-                        if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
-                            faceBackground!!.visibility = View.GONE
-                        }
-                        if (faceContainer != null && faceContainer!!.visibility == View.VISIBLE) {
-                            faceContainer!!.visibility = View.GONE
-                        }
-                        if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                            cardBackground!!.visibility = View.GONE
-                        }
-                        if (cardContainer != null && cardContainer!!.visibility == View.VISIBLE) {
-                            cardContainer!!.visibility = View.GONE
-                        }
-                        if (transmittingContainer != null) {
-                            transmittingContainer!!.visibility = View.VISIBLE
-                        }
-                    }
-
-                    if (this.enableGuide) {
-                        if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
-                            val layerDrawable = ResourcesCompat.getDrawable(
-                                resources,
-                                R.drawable.face_background,
-                                null
-                            ) as LayerDrawable
-                            val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
-                            shapeDrawable.setStroke(10, Color.parseColor(color))
-                            faceBackground!!.setBackground(layerDrawable)
+        if (isAdded) {
+            if(!this.isActiveLiveEnabled){
+                requireActivity().runOnUiThread {
+                    if (this.isVisible) {
+                        rectangleOverlayView.setCustomColor(color)
+                        if (notTransmitting) {
+                            this.enableDetect = enableDetect;
+                            this.enableGuide = enableGuide;
+                            if (transmittingContainer != null) {
+                                transmittingContainer!!.visibility = View.GONE
+                            }
+                        } else {
+                            this.enableDetect = false;
+                            this.enableGuide = false;
+                            if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                                faceBackground!!.visibility = View.GONE
+                            }
+                            if (faceContainer != null && faceContainer!!.visibility == View.VISIBLE) {
+                                faceContainer!!.visibility = View.GONE
+                            }
+                            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                                cardBackground!!.visibility = View.GONE
+                            }
+                            if (cardContainer != null && cardContainer!!.visibility == View.VISIBLE) {
+                                cardContainer!!.visibility = View.GONE
+                            }
+                            if (transmittingContainer != null) {
+                                transmittingContainer!!.visibility = View.VISIBLE
+                            }
                         }
 
-                        if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                            val drawableCard = ResourcesCompat.getDrawable(
-                                resources,
-                                R.drawable.card_background,
-                                null
-                            ) as VectorDrawable
-                            val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
-                            DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
-                            cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                        if (this.enableGuide) {
+                            if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                                val layerDrawable = ResourcesCompat.getDrawable(
+                                    resources,
+                                    R.drawable.face_background,
+                                    null
+                                ) as LayerDrawable
+                                val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                                shapeDrawable.setStroke(10, Color.parseColor(color))
+                                faceBackground!!.setBackground(layerDrawable)
+                            }
+
+                            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                                val drawableCard = ResourcesCompat.getDrawable(
+                                    resources,
+                                    R.drawable.card_background,
+                                    null
+                                ) as VectorDrawable
+                                val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                                DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                                cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                            }
                         }
                     }
                 }
             }
         }
+
 
     }
 
