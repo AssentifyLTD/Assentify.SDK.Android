@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.81**
+- Bug fixes
+
 **0.0.80**
 - Log improvements
 - Bug fixes

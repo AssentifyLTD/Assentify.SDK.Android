@@ -51,7 +51,12 @@ public class ParallelImageProcessing {
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         boolean isLowRam = am != null && am.isLowRamDevice();
 
-        return isLowRam ? 1 : Math.min(maxThreads, safeThreads);
+        if (isLowRam) {
+            return 1;
+        }
+
+        return Math.max(1, Math.min(maxThreads, safeThreads));
+
     }
 
 }

@@ -20,7 +20,6 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.logging.BugsnagObject;
-import com.assentify.sdk.logging.ClaritySdk;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
@@ -181,8 +180,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
 
         if (getActivity() != null) {
-            ClaritySdk.INSTANCE.initialize(getActivity());
-            BugsnagObject.INSTANCE.initialize(getActivity(),configModel);
+            BugsnagObject.INSTANCE.initialize(getActivity().getApplicationContext(),configModel);
         }
 
 
@@ -399,14 +397,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     }
 
 
-    @Override
-    public synchronized void onDestroy() {
-        super.onDestroy();
-        this.createBase64.shutdown();
-        if (audioPlayer != null) {
-            audioPlayer.stopAudio();
-        }
-    }
 
 
     public boolean hasFaceOrCard() {
@@ -555,6 +545,29 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     public void stopScanning(){
         closeCamera();
+    }
+
+
+    @Override
+    public void onPause() {
+        BugsnagObject.INSTANCE.pauseSession();
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        BugsnagObject.INSTANCE.resumeSession();
+        super.onResume();
+    }
+
+    @Override
+    public synchronized void onDestroy() {
+        BugsnagObject.INSTANCE.pauseSession();
+        super.onDestroy();
+        this.createBase64.shutdown();
+        if (audioPlayer != null) {
+            audioPlayer.stopAudio();
+        }
     }
 
 

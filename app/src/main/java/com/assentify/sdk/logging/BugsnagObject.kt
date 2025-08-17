@@ -1,6 +1,7 @@
 package com.assentify.sdk.logging
 
 import android.app.Activity
+import android.content.Context
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.bugsnag.android.Bugsnag
 import com.bugsnag.android.Severity
@@ -9,13 +10,17 @@ import com.bugsnag.android.performance.BugsnagPerformance
 
 object BugsnagObject {
 
-    private var initialized = false
-    fun initialize(activity: Activity,configModel:ConfigModel) {
-        if (!initialized) {
-            Bugsnag.start(activity.applicationContext)
-            BugsnagPerformance.start(activity.applicationContext)
-            logInfo("Sdk started successfully", configModel)
-            initialized = true
+    @Volatile private var initialized = false
+
+    fun initialize(context: Context, configModel: ConfigModel) {
+        synchronized(this) {
+            if (!initialized) {
+                Bugsnag.start(context.applicationContext)
+                BugsnagPerformance.start(context.applicationContext)
+                logInfo("Sdk started successfully", configModel)
+
+                initialized = true
+            }
         }
     }
 
@@ -23,8 +28,8 @@ object BugsnagObject {
     fun logInfo(message: String, configModel: ConfigModel) {
         Bugsnag.notify(Exception(message)) { event ->
             event.severity = Severity.INFO
-            event.context = extractConfigMap(message,configModel).toString()
-            extractConfigMap(message,configModel).forEach { (key, value) ->
+            event.context = extractConfigMap(message, configModel).toString()
+            extractConfigMap(message, configModel).forEach { (key, value) ->
                 event.addMetadata("configmodel", key, value)
             }
             true
@@ -38,7 +43,7 @@ object BugsnagObject {
     ) {
         Bugsnag.notify(exception) { event ->
             exception.message?.let {
-                extractConfigMap(it,configModel).forEach { (key, value) ->
+                extractConfigMap(it, configModel).forEach { (key, value) ->
                     event.addMetadata("configmodel", key, value)
                 }
             }
@@ -46,7 +51,18 @@ object BugsnagObject {
         }
     }
 
-    private fun extractConfigMap(message:String,configModel: ConfigModel): Map<String, Any> {
+    fun pauseSession() {
+        if (initialized) {
+            Bugsnag.pauseSession()
+        }
+    }
+    fun resumeSession() {
+        if (initialized) {
+            Bugsnag.resumeSession()
+        }
+    }
+
+    private fun extractConfigMap(message: String, configModel: ConfigModel): Map<String, Any> {
         return mapOf(
             "message" to message,
             "flowName" to configModel.flowName,

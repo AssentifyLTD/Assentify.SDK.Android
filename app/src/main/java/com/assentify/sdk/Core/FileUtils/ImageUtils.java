@@ -175,15 +175,50 @@ public class ImageUtils {
 
         long totalRamMB = memoryInfo.totalMem / (1024L * 1024L);
 
-        boolean isLowRam = totalRamMB <= 1024 || cpuCores <= 2;
+        // Very low-end devices: ≤1 GB RAM or ≤2 CPU cores
+        if (totalRamMB <= 1024 || cpuCores <= 2) {
+            return 700;
 
-        if (isLowRam) {
-            return 500;
+            // Low / mid-tier devices: 2 GB RAM or ≤4 cores
         } else if (totalRamMB <= 2048 || cpuCores <= 4) {
-            return 350;
+            return 400;
+         // Mid-range / decent devices: 4 GB RAM or ≤6 cores
+        } else if (totalRamMB <= 4096 || cpuCores <= 6) {
+            return 250;
+
+        // High-end devices: >4 GB RAM and >6 cores
         } else {
             return 100;
         }
     }
+
+    public static long getRecommendedDelayForFaceCheck(Context context) {
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+
+        long totalRamMB = memoryInfo.totalMem / (1024L * 1024L);
+        double ramGB = totalRamMB / 1024.0;
+
+        // Performance score = cores × GB RAM
+        double score = cpuCores * ramGB;
+
+        // Map score to delay (step-based for simplicity)
+        if (score >= 24) {
+            return 400L;  // Flagship (8 cores × 3GB+)
+        } else if (score >= 16) {
+            return 600L;  // High-mid (4 cores × 4GB)
+        } else if (score >= 8) {
+            return 700L;  // Mid (4 cores × 2GB)
+        } else if (score >= 4) {
+            return 800L;  // Low (2 cores × 2GB)
+        } else {
+            return 800L;  // Very low end
+        }
+    }
+
+
 
 }

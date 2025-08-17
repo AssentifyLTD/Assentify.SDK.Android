@@ -19,7 +19,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.logging.BugsnagObject;
-import com.assentify.sdk.logging.ClaritySdk;
+
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
@@ -160,8 +160,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
 
         if (getActivity() != null) {
-            ClaritySdk.INSTANCE.initialize(getActivity());
-            BugsnagObject.INSTANCE.initialize(getActivity(),configModel);
+            BugsnagObject.INSTANCE.initialize(getActivity().getApplicationContext(),configModel);
         }
 
 
@@ -362,14 +361,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     }
 
 
-    @Override
-    public synchronized void onDestroy() {
-        super.onDestroy();
-        this.createBase64.shutdown();
-        if (audioPlayer != null) {
-            audioPlayer.stopAudio();
-        }
-    }
+
 
 
     public boolean hasFaceOrCard() {
@@ -482,4 +474,28 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     public void stopScanning() {
         closeCamera();
     }
+
+    @Override
+    public void onPause() {
+        BugsnagObject.INSTANCE.pauseSession();
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        BugsnagObject.INSTANCE.resumeSession();
+        super.onResume();
+    }
+
+    @Override
+    public synchronized void onDestroy() {
+        BugsnagObject.INSTANCE.pauseSession();
+        super.onDestroy();
+        this.createBase64.shutdown();
+        if (audioPlayer != null) {
+            audioPlayer.stopAudio();
+        }
+    }
+
+
 }
