@@ -184,7 +184,9 @@ abstract class CameraPreview : Fragment() {
 
 
             imageAnalysisListener = ImageAnalysis.Analyzer { image ->
-                val scaleImage = ImageUtils.scaleBitmap(image.toBitmap(), sensorOrientation!!)
+                val bitmap = image.toBitmap()
+
+                val scaleImage = ImageUtils.scaleBitmap(bitmap, sensorOrientation!!)
                 requireActivity().runOnUiThread {
                     if (transmittingContainer == null) {
                         transmittingContainer =
@@ -257,14 +259,12 @@ abstract class CameraPreview : Fragment() {
 
                 processImage(
                     scaleImage!!,
-                    image.toBitmap(),
+                    bitmap,
                     results,
                     listScaleRectF,
                     previewView.width,
                     previewView.height,
                 )
-
-
 
 
 
@@ -296,6 +296,7 @@ abstract class CameraPreview : Fragment() {
             }
 
         }, ContextCompat.getMainExecutor(requireActivity()))
+
 
     }
 
