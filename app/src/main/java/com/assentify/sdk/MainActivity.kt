@@ -85,8 +85,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
             true,
             "#FFFFFF",
             "#FFC400",
-            activeLiveType = ActiveLiveType.NONE,
-            activeLivenessCheckCount = 1
+            activeLiveType = ActiveLiveType.BLINK,
+            activeLivenessCheckCount = 3
         );
         assentifySdk = AssentifySdk(
             "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
@@ -317,18 +317,27 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallbac
     }*/
 
 
- /*   override fun onEnvironmentalConditionsChange(
+    override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
         faceEvents: FaceEvents,
         zoomType: ZoomType
     ) {
-        Log.e("onEnvironmentalConditionsChange 1", faceEvents.toString())
+     /*   val faceTextView = findViewById<TextView>(R.id.faceEventText)
+
+        runOnUiThread {
+            faceTextView.text = faceEvents.name
+        }*/
     }
+
+
     override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
-        Log.e("onEnvironmentalConditionsChange 2", activeLiveEvents.toString())
+        val faceTextView = findViewById<TextView>(R.id.faceEventText)
+
+        runOnUiThread {
+            faceTextView.text = activeLiveEvents.name
+        }
     }
-*/
 }
 
 

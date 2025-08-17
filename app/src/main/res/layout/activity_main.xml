@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -19,10 +18,21 @@
             android:layout_height="match_parent"
             android:gravity="center_horizontal"
             app:cardBackgroundColor="@android:color/white"
-            app:elevation="0dp" />
+            app:elevation="0dp" >
+
+
+        </androidx.cardview.widget.CardView>
 
     </LinearLayout>
-
+    <TextView
+        android:id="@+id/faceEventText"
+        android:layout_width="364dp"
+        android:layout_height="99dp"
+        android:layout_margin="16dp"
+        android:gravity="center"
+        android:text="🙂"
+        android:textSize="40sp"
+        tools:ignore="MissingConstraints" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
