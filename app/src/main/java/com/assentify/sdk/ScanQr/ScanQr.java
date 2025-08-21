@@ -72,6 +72,10 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
     Boolean storeImageStream;
 
     String stepId;
+
+    public ScanQr() {
+    }
+
     public ScanQr(
             List<KycDocumentDetails> kycDocumentDetails,
             String apiKey,
