@@ -57,7 +57,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
 
 
     private ScanOtherCallback scanOtherCallback;
-    private final EnvironmentalConditions environmentalConditions;
+    private  EnvironmentalConditions environmentalConditions;
 
     private RectF rectFCard = new RectF();
     private double brightness;
@@ -99,6 +99,9 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
     private boolean isRectFInsideTheScreen = false;
 
     private AssetsAudioPlayer audioPlayer;
+
+    public ScanOther() {
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public ScanOther(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
@@ -202,7 +205,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
 
 
     protected void checkEnvironment() {
-        if (getActivity() != null) {
+        if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (hasFaceOrCard() && start) {
                     startRecording();

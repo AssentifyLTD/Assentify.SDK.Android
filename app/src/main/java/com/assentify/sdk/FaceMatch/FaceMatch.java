@@ -58,7 +58,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     private FaceMatchCallback faceMatchCallback;
-    private final EnvironmentalConditions environmentalConditions;
+    private  EnvironmentalConditions environmentalConditions;
     private String secondImage = "";
     private Bitmap croppedBitmap = null;
     private double brightness;
@@ -119,6 +119,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     private long lastProcessedTime = 0L;
 
+    public FaceMatch() {
+    }
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
                      Boolean performLivenessDocument,
@@ -224,7 +226,15 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             faceQualityCheck.checkFaceQualityAndExpressions(normalImage, new FaceEventCallback() {
                         @Override
                         public void onFaceEventDetected(FaceEvents result) {
-                            faceEvent = result;
+                            if(areAllEventsDone()){
+                                if(result == FaceEvents.BLINK){
+                                    faceEvent =  FaceEvents.Good;
+                                }else {
+                                    faceEvent = result;
+                                }
+                            }else {
+                                faceEvent = result;
+                            }
                             if (startActiveLiveCheck && performLivenessFace && environmentalConditions.getActiveLiveType() != ActiveLiveType.NONE && environmentalConditions.getActiveLivenessCheckCount() != 0) {
                                 if (environmentalConditions.getActiveLiveType() == ActiveLiveType.Actions) {
                                     isSpecificItemFlagEqualToActions(faceEvent);
@@ -289,7 +299,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     protected void checkEnvironment() {
-        if (getActivity() != null && !getActivity().isFinishing()) {
+        if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (hasFaceOrCard() && start) {
                     startRecording();

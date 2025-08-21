@@ -60,7 +60,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     ///
 
     private ScanPassportCallback scanPassportCallback;
-    private final EnvironmentalConditions environmentalConditions;
+    private  EnvironmentalConditions environmentalConditions;
 
     private RectF rectFCard = new RectF();
     private double brightness;
@@ -97,6 +97,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     private boolean isRectFInsideTheScreen = false;
 
     private AssetsAudioPlayer audioPlayer;
+
+    public ScanPassport() {
+    }
 
     public ScanPassport(
             ConfigModel configModel,
@@ -205,7 +208,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
 
     protected void checkEnvironment() {
-        if (getActivity() != null) {
+        if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (hasFaceOrCard() && start) {
                     startRecording();
