@@ -6,33 +6,43 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.bugsnag.android.Bugsnag
 import com.bugsnag.android.Severity
 import com.bugsnag.android.performance.BugsnagPerformance
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 
 object BugsnagObject {
 
     @Volatile private var initialized = false
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun initialize(context: Context, configModel: ConfigModel) {
         synchronized(this) {
             if (!initialized) {
-                Bugsnag.start(context.applicationContext)
-                BugsnagPerformance.start(context.applicationContext)
-                logInfo("Sdk started successfully", configModel)
+                appScope.launch {
+                    Bugsnag.start(context.applicationContext)
+                    BugsnagPerformance.start(context.applicationContext)
+                    logInfo("Sdk started successfully", configModel)
 
-                initialized = true
+                    initialized = true
+                }
             }
         }
     }
 
 
     fun logInfo(message: String, configModel: ConfigModel) {
-        Bugsnag.notify(Exception(message)) { event ->
-            event.severity = Severity.INFO
-            event.context = extractConfigMap(message, configModel).toString()
-            extractConfigMap(message, configModel).forEach { (key, value) ->
-                event.addMetadata("configmodel", key, value)
+        appScope.launch {
+            Bugsnag.notify(Exception(message)) { event ->
+                event.severity = Severity.INFO
+                event.context = extractConfigMap(message, configModel).toString()
+                extractConfigMap(message, configModel).forEach { (key, value) ->
+                    event.addMetadata("configmodel", key, value)
+                }
+                true
             }
-            true
         }
     }
 

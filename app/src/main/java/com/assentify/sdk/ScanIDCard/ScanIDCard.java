@@ -59,7 +59,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     private IDCardCallback idCardCallback;
-    private final EnvironmentalConditions environmentalConditions;
+    private  EnvironmentalConditions environmentalConditions;
     private String templateId;
 
     private RectF rectFCard = new RectF();
@@ -108,6 +108,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private boolean isRectFInsideTheScreen = false;
 
     private AssetsAudioPlayer audioPlayer;
+
+    public ScanIDCard() {
+    }
+
     public ScanIDCard(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                       Boolean processMrz,
                       Boolean performLivenessDocument,
@@ -226,7 +230,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     protected void checkEnvironment() {
-        if (getActivity() != null) {
+        if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (hasFaceOrCard() && start) {
                     startRecording();

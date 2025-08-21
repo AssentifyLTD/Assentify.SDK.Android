@@ -74,4 +74,12 @@ class RectangleOverlayView @JvmOverloads constructor(
         }
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = MeasureSpec.getSize(heightMeasureSpec)
+
+        setMeasuredDimension(width, height)
+    }
+
+
 }
