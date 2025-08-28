@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.84**
+- Face Match Improvements
+
 **0.0.83**
 - Bug fixes
 
