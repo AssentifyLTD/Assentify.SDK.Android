@@ -55,20 +55,15 @@ public class ImageUtils {
             bitmap = rotateBitmap(bitmap, 90);
 
         }
-        return bitmapClipsToBase64(bitmap,false,40);
+        return bitmapClipsToBase64(bitmap,40);
     }
 
-    public static String bitmapClipsToBase64(Bitmap bitmap, boolean isLossless, int visualQuality) {
+    public static String bitmapClipsToBase64(Bitmap bitmap, int visualQuality) {
         try {
-            byte[] jp2Data;
-            if (isLossless) {
-                jp2Data = new JP2Encoder(bitmap).encode();
-            } else {
-                jp2Data = new JP2Encoder(bitmap)
-                        .setVisualQuality(visualQuality)
-                        .encode();
-            }
-            return Base64.encodeToString(jp2Data, Base64.DEFAULT);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, visualQuality, byteArrayOutputStream); // quality 0..100
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+            return  Base64.encodeToString(byteArray, Base64.DEFAULT);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
