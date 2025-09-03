@@ -39,6 +39,11 @@ dependencies {
 
 ## Versions
 
+**0.0.85**
+- Manual Capture
+- Retry Logic
+- Support Low Capabilities Devices
+
 **0.0.84**
 - Face Match Improvements
 

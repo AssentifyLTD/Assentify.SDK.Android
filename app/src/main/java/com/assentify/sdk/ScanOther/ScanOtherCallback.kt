@@ -1,10 +1,19 @@
 package   com.assentify.sdk.ScanOther
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
+import com.assentify.sdk.Core.Constants.DoneFlags
 import  com.assentify.sdk.Core.Constants.MotionType
 import  com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.ScanPassport.PassportResponseModel
+import com.assentify.sdk.ScanPassport.ScanPassport
+import com.assentify.sdk.ScanPassport.ScanPassportManual
+
+sealed class ScanOtherResult {
+    data class Manual(val data: ScanOtherManual) : ScanOtherResult()
+    data class Auto(val data: ScanOther) : ScanOtherResult()
+}
+
 
 
 interface ScanOtherCallback {
@@ -14,7 +23,7 @@ interface ScanOtherCallback {
 
     fun onRetry(dataModel: BaseResponseDataModel)
 
-    fun onComplete(dataModel: OtherResponseModel)
+    fun onComplete(dataModel: OtherResponseModel,doneFlag:DoneFlags)
 
     fun onClipPreparationComplete(dataModel: BaseResponseDataModel){}
 

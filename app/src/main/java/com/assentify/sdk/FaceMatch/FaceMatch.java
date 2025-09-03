@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
+import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.FaceEventStatus;
 import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents;
@@ -121,6 +122,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     public FaceMatch() {
     }
+
+    int livnessRetryCount = 0;
+    int retryCount = 0;
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                      Boolean processMrz,
                      Boolean performLivenessDocument,
@@ -150,6 +154,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.showCountDownView = showCountDownView;
+        setEnvironmentalConditions(this.environmentalConditions);
         if (this.performPassiveLivenessFace) {
             localLivenessLimit = 12;
         } else {
@@ -413,16 +418,45 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         );
 
 
-                        faceMatchCallback.onComplete(faceResponseModel);
+                        faceMatchCallback.onComplete(faceResponseModel, DoneFlags.Success);
                         start = false;
+                    } else if(eventName.equals(HubConnectionTargets.ON_RETRY)){
+                        retryCount++;
+                        if (retryCount ==  environmentalConditions.getRetryCount()){
+                            FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+                            FaceResponseModel faceResponseModel = new FaceResponseModel(
+                                    BaseResponseDataModel.getDestinationEndpoint(),
+                                    faceExtractedModel,
+                                    BaseResponseDataModel.getError(),
+                                    BaseResponseDataModel.getSuccess()
+                            );
+                            faceMatchCallback.onComplete(faceResponseModel, DoneFlags.MatchFailed);
+                            start = false;
+                        }else {
+                            start = true;
+                            faceMatchCallback.onRetry(BaseResponseDataModel);
+                        }
+                    } else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)){
+                        livnessRetryCount++;
+                        if (livnessRetryCount ==  environmentalConditions.getFaceLivenessRetryCount()){
+                            FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
+                            FaceResponseModel faceResponseModel = new FaceResponseModel(
+                                    BaseResponseDataModel.getDestinationEndpoint(),
+                                    faceExtractedModel,
+                                    BaseResponseDataModel.getError(),
+                                    BaseResponseDataModel.getSuccess()
+                            );
+                            faceMatchCallback.onComplete(faceResponseModel, DoneFlags.LivenessFailed);
+                            start = false;
+                        }else {
+                            start = true;
+                            faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
+                        }
                     } else
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE);
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
                     switch (eventName) {
                         case HubConnectionTargets.ON_ERROR:
                             faceMatchCallback.onError(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_RETRY:
-                            faceMatchCallback.onRetry(BaseResponseDataModel);
                             break;
                         case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
                             faceMatchCallback.onClipPreparationComplete(BaseResponseDataModel);
@@ -432,9 +466,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             break;
                         case HubConnectionTargets.ON_UPDATE:
                             faceMatchCallback.onUpdated(BaseResponseDataModel);
-                            break;
-                        case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                            faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
                             break;
                         case HubConnectionTargets.ON_CARD_DETECTED:
                             faceMatchCallback.onCardDetected(BaseResponseDataModel);
