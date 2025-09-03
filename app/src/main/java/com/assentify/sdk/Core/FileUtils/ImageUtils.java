@@ -223,7 +223,7 @@ public class ImageUtils {
 
         int cores = Runtime.getRuntime().availableProcessors();
 
-        return (totalRamGB < 4) || (cores < 6);
+        return (totalRamGB < 8) || (cores < 6);
     }
 
 
