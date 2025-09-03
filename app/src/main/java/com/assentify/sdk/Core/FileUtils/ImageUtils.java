@@ -214,6 +214,18 @@ public class ImageUtils {
         }
     }
 
+    public static boolean isLowCapabilities(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+
+        long totalRamGB = memoryInfo.totalMem / (1024L * 1024L * 1024L);
+
+        int cores = Runtime.getRuntime().availableProcessors();
+
+        return (totalRamGB < 4) || (cores < 6);
+    }
+
 
 
 }

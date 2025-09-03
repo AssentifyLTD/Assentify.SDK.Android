@@ -1,10 +1,18 @@
 package   com.assentify.sdk.ScanIDCard
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
+import com.assentify.sdk.Core.Constants.DoneFlags
 import  com.assentify.sdk.Core.Constants.MotionType
 import  com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
 import  com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
+import com.assentify.sdk.ScanPassport.ScanPassport
+import com.assentify.sdk.ScanPassport.ScanPassportManual
+
+sealed class ScanIDCardResult {
+    data class Manual(val data: ScanIDCardManual) : ScanIDCardResult()
+    data class Auto(val data: ScanIDCard) : ScanIDCardResult()
+}
 
 
 interface IDCardCallback {
@@ -13,7 +21,7 @@ interface IDCardCallback {
     fun onSend()
 
     fun onRetry(dataModel: BaseResponseDataModel)
-    fun onComplete(dataModel: IDResponseModel,order:Int)
+    fun onComplete(dataModel: IDResponseModel,order:Int,doneFlags:DoneFlags)
     fun onWrongTemplate(dataModel: BaseResponseDataModel)
 
     fun onClipPreparationComplete(dataModel: BaseResponseDataModel){}

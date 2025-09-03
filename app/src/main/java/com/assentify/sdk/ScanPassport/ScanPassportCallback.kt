@@ -1,10 +1,15 @@
 package   com.assentify.sdk.ScanPassport
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
+import com.assentify.sdk.Core.Constants.DoneFlags
 import  com.assentify.sdk.Core.Constants.MotionType
 import  com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
 
+sealed class ScanPassportResult {
+    data class Manual(val data: ScanPassportManual) : ScanPassportResult()
+    data class Auto(val data: ScanPassport) : ScanPassportResult()
+}
 
 interface ScanPassportCallback {
     fun onError(dataModel: BaseResponseDataModel)
@@ -13,7 +18,7 @@ interface ScanPassportCallback {
 
     fun onRetry(dataModel: BaseResponseDataModel)
 
-    fun onComplete(dataModel: PassportResponseModel)
+    fun onComplete(dataModel: PassportResponseModel,doneFlag: DoneFlags)
 
     fun onClipPreparationComplete(dataModel: BaseResponseDataModel){}
 

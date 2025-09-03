@@ -11,21 +11,23 @@ import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWo
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
+import com.assentify.sdk.CheckEnvironment.DetectMotion;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
-import com.assentify.sdk.Core.Constants.DoneFlags;
-import com.assentify.sdk.FaceMatch.FaceExtractedModel;
-import com.assentify.sdk.FaceMatch.FaceResponseModel;
-import com.assentify.sdk.logging.BugsnagObject;
-
+import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
+import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
@@ -39,11 +41,10 @@ import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
 import com.assentify.sdk.Models.BaseResponseDataModel;
-import com.assentify.sdk.CheckEnvironment.DetectMotion;
-import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
+import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.tflite.Classifier;
 
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ import java.util.concurrent.Executors;
 import kotlin.Pair;
 
 
-public class ScanPassport extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
+public class ScanPassportManual extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
 
 
     ///
@@ -65,17 +66,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     private ScanPassportCallback scanPassportCallback;
     private  EnvironmentalConditions environmentalConditions;
 
-    private RectF rectFCard = new RectF();
-    private double brightness;
-    private MotionType motion = MotionType.NO_DETECT;
-    private ZoomType zoom = ZoomType.NO_DETECT;
-    private List<Bitmap> highQualityBitmaps = new ArrayList<>();
-    private Bitmap croppedBitmap;
-    private List<RectF> motionRectF = new ArrayList<>();
-    private List<MotionType> sendingFlagsMotion = new ArrayList<>();
-    private List<ZoomType> sendingFlagsZoom = new ArrayList<>();
+
     private RemoteProcessing remoteProcessing;
-    private boolean start = true;
     private String apiKey = "";
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
@@ -92,20 +84,19 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     private String readPassport = "ReadPassport";
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
-    private int videoCounter = -1;
 
     private PassportResponseModel passportResponseModel;
 
-    private DetectIfRectFInsideTheScreen detectIfInsideTheScreen = new DetectIfRectFInsideTheScreen();
-    private boolean isRectFInsideTheScreen = false;
-
-    private AssetsAudioPlayer audioPlayer;
+    private boolean start = true;
+    private Bitmap normalImage;
 
     int retryCount = 0;
-    public ScanPassport() {
+
+
+    public ScanPassportManual() {
     }
 
-    public ScanPassport(
+    public ScanPassportManual(
             ConfigModel configModel,
             EnvironmentalConditions environmentalConditions, String apiKey,
             Boolean processMrz,
@@ -161,109 +152,73 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
     }
 
-
     @Override
-    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
-
-
-        if (getActivity() != null) {
-            BugsnagObject.INSTANCE.initialize(getActivity().getApplicationContext(),configModel);
-        }
-
-
-        if (audioPlayer == null) {
-            if (getActivity() != null) {
-                audioPlayer = new AssetsAudioPlayer(getActivity());
-            }
-        }
-
-        this.results = results;
-        if (hasFaceOrCard()) {
-            highQualityBitmaps.add(normalImage);
-            listScaleRectF.forEach((item) -> {
-                if (item.component2().contains(ConstantsValues.CardName)) {
-                    isRectFInsideTheScreen = detectIfInsideTheScreen.isRectFWithinMargins(item.component1(), previewWidth, previewHeight);
-                }
-            });
-        }
-
-        this.croppedBitmap = croppedBitmap;
-        for (final Classifier.Recognition result : results) {
-            final RectF location = result.getLocation();
-            if (result.getDetectedClass() == 0) {
-                rectFCard = new RectF(location.left, location.top, location.right, location.bottom);
-                motionRectF.add(rectFCard);
-            }
-        }
-        if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness,environmentalConditions) == BrightnessEvents.Good) {
-            if (isRectFInsideTheScreen) {
-                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
-            }else {
-                setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
-            }
-        } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
-        }
-
-        checkEnvironment();
-
-
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+        super.onViewCreated(view, savedInstanceState);
     }
 
-
-    protected void checkEnvironment() {
-        if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (hasFaceOrCard() && start) {
-                    startRecording();
-                }
-            }
-            ImageBrightnessChecker imageBrightnessChecker = new ImageBrightnessChecker();
-            DetectMotion detectMotion = new DetectMotion();
-            DetectZoom detectZoom = new DetectZoom();
-            brightness = imageBrightnessChecker.getAverageBrightness(croppedBitmap);
-            if (motionRectF.size() >= 2) {
-                if (results.isEmpty()) {
-                    motionRectF.clear();
-                    sendingFlagsMotion.clear();
-                    sendingFlagsZoom.clear();
-                    motion = MotionType.NO_DETECT;
-                    zoom = ZoomType.NO_DETECT;
-                } else {
-                    motion = detectMotion.calculatePercentageChangePassport(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
-                    zoom = detectZoom.calculatePercentageChangeWidth(motionRectF.get(motionRectF.size() - 1));
-                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
-                        sendingFlagsMotion.add(MotionType.SENDING);
-                        sendingFlagsZoom.add(ZoomType.SENDING);
-                    } else {
-                        sendingFlagsMotion.clear();
-                        sendingFlagsZoom.clear();
-                    }
-                }
-            }
-            if (environmentalConditions.checkConditions(
-                    brightness,environmentalConditions)== BrightnessEvents.Good && motion == MotionType.SENDING && zoom == ZoomType.SENDING && isRectFInsideTheScreen) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (start && highQualityBitmaps.size() != 0 && sendingFlagsMotion.size() > environmentalConditions.getMotionPassportLimit() && sendingFlagsZoom.size() > ZoomPassportLimit) {
-                        if (hasFaceOrCard()) {
-                            stopRecording();
-                        }
-                    }
-                }
-            }
-
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    scanPassportCallback.onEnvironmentalConditionsChange(
-                            environmentalConditions.checkConditions(
-                                    brightness,environmentalConditions),
-                            sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > environmentalConditions.getMotionPassportLimit() ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
-                            zoom);
-                }
-            });
+    @Override
+    protected void processManualImage(@NonNull Bitmap normalImage) {
+        if (getActivity() != null) {
+            BugsnagObject.INSTANCE.initialize(getActivity().getApplicationContext(), configModel);
         }
+        this.normalImage = normalImage;
+    }
 
+    public void takePicture(){
+        if(this.start){
+            this.results = detectCardAndFace(normalImage);
+            if(hasFaceOrCard()){
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            scanPassportCallback.onSend();
+                        }
+                    });
+                }
+                start = false;
+                setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+                createBase64.execute(() -> {
+                    remoteProcessing.starProcessing(
+                            HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
+                            ImageUtils.convertBitmapToBase64(normalImage, BlockType.READ_PASSPORT, getActivity()),
+                            "",
+                            configModel,
+                            "",
+                            "",
+                            "ConnectionId",
+                            getVideoPath(configModel, readPassport, 0),
+                            true,
+                            processMrz,
+                            performLivenessDocument,
+                            performLivenessFace,
+                            saveCapturedVideo,
+                            storeCapturedDocument,
+                            false,
+                            storeImageStream,
+                            stepId,
+                            new ArrayList<>()
+                    );
+                });
+            }else {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            scanPassportCallback.onRetry(
+                                    new BaseResponseDataModel(
+                                            "onRetry",
+                                            "",
+                                            "",
+                                            false
+                                    ));
+                        }
+                    });
+                }
+            }
+        }
 
     }
 
@@ -274,12 +229,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    highQualityBitmaps.clear();
-                    motionRectF.clear();
-                    sendingFlagsMotion.clear();
-                    sendingFlagsZoom.clear();
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                        start = false;
                         Map<String, String> transformedProperties = new HashMap<>();
                         PassportExtractedModel passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
                         passportResponseModel = new PassportResponseModel(
@@ -289,10 +239,10 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 BaseResponseDataModel.getSuccess()
                         );
                         if (Objects.equals(language, Language.NON)) {
-                            scanPassportCallback.onComplete(passportResponseModel, DoneFlags.Success);
+                            scanPassportCallback.onComplete(passportResponseModel,DoneFlags.Success);
                         } else {
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
-                            translated.setCallback(ScanPassport.this);
+                            translated.setCallback(ScanPassportManual.this);
                             translated.languageTransformation(
                                     language,
                                     preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
@@ -300,7 +250,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                         }
 
 
-                    }  else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
+                    } else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
                         retryCount++;
                         if (retryCount == 3){
                             Map<String, String> transformedProperties = new HashMap<>();
@@ -322,6 +272,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                             start = false;
                         }else {
                             start = true;
+                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                             if(eventName.equals(HubConnectionTargets.ON_RETRY)){
                                 scanPassportCallback.onRetry(BaseResponseDataModel);
 
@@ -333,14 +284,14 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
                             }
                         }
-                    } else  {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE);
+                    } else   {
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR)  || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
+                        if(start){
+                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                        }
                         switch (eventName) {
                             case HubConnectionTargets.ON_ERROR:
                                 scanPassportCallback.onError(BaseResponseDataModel);
-                                break;
-                            case HubConnectionTargets.ON_RETRY:
-                                scanPassportCallback.onRetry(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
                                 scanPassportCallback.onClipPreparationComplete(BaseResponseDataModel);
@@ -350,9 +301,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 break;
                             case HubConnectionTargets.ON_UPDATE:
                                 scanPassportCallback.onUpdated(BaseResponseDataModel);
-                                break;
-                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_CARD_DETECTED:
                                 scanPassportCallback.onCardDetected(BaseResponseDataModel);
@@ -425,41 +373,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     // TODO Later
     @Override
     protected void onStopRecordVideo() {
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    scanPassportCallback.onSend();
-                }
-            });
-        }
-        start = false;
-        videoCounter = videoCounter + 1;
-        createBase64.execute(() -> {
-            audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
-            remoteProcessing.starProcessing(
-                    HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
-                    "",
-                    configModel,
-                    "",
-                    "",
-                    "ConnectionId",
-                    getVideoPath(configModel, readPassport, videoCounter),
-                    true,
-                    processMrz,
-                    performLivenessDocument,
-                    performLivenessFace,
-                    saveCapturedVideo,
-                    storeCapturedDocument,
-                    false,
-                    storeImageStream,
-                    stepId,
-                    new ArrayList<>()
-            );
-        });
-
-        // remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
     }
     String nameKey = "";
     int nameWordCount = 0;
@@ -532,10 +445,10 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         BugsnagObject.INSTANCE.pauseSession();
         super.onDestroy();
         this.createBase64.shutdown();
-        if (audioPlayer != null) {
-            audioPlayer.stopAudio();
-        }
+
     }
+
+
 
 
 }
