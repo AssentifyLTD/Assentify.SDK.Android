@@ -108,7 +108,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
         this.storeCapturedDocument = storeCapturedDocument;
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
-
+        setEnvironmentalConditions(this.environmentalConditions);
     }
 
     public void setStepId(String stepId) {
@@ -240,7 +240,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                         start = false;
                     } else if(eventName.equals(HubConnectionTargets.ON_RETRY)){
                         retryCount++;
-                        if (retryCount == 3){
+                        if (retryCount ==  environmentalConditions.getRetryCount()){
                             FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                             FaceResponseModel faceResponseModel = new FaceResponseModel(
                                     BaseResponseDataModel.getDestinationEndpoint(),
@@ -257,7 +257,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                         }
                     } else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)){
                         livnessRetryCount++;
-                        if (livnessRetryCount == 2){
+                        if (livnessRetryCount == environmentalConditions.getFaceLivenessRetryCount()){
                             FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                             FaceResponseModel faceResponseModel = new FaceResponseModel(
                                     BaseResponseDataModel.getDestinationEndpoint(),

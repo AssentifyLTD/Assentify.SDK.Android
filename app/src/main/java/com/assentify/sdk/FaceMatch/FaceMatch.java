@@ -154,6 +154,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.showCountDownView = showCountDownView;
+        setEnvironmentalConditions(this.environmentalConditions);
         if (this.performPassiveLivenessFace) {
             localLivenessLimit = 12;
         } else {
@@ -421,7 +422,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         start = false;
                     } else if(eventName.equals(HubConnectionTargets.ON_RETRY)){
                         retryCount++;
-                        if (retryCount == 3){
+                        if (retryCount ==  environmentalConditions.getRetryCount()){
                             FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                             FaceResponseModel faceResponseModel = new FaceResponseModel(
                                     BaseResponseDataModel.getDestinationEndpoint(),
@@ -437,7 +438,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         }
                     } else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)){
                         livnessRetryCount++;
-                        if (livnessRetryCount == 2){
+                        if (livnessRetryCount ==  environmentalConditions.getFaceLivenessRetryCount()){
                             FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                             FaceResponseModel faceResponseModel = new FaceResponseModel(
                                     BaseResponseDataModel.getDestinationEndpoint(),

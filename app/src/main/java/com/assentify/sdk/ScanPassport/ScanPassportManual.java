@@ -117,7 +117,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.language = language;
-
+        setEnvironmentalConditions(this.environmentalConditions);
     }
 
     public void setStepId(String stepId) {
@@ -252,7 +252,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
 
                     } else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
                         retryCount++;
-                        if (retryCount == 3){
+                        if (retryCount == environmentalConditions.getRetryCount()){
                             Map<String, String> transformedProperties = new HashMap<>();
                             PassportExtractedModel passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
                             passportResponseModel = new PassportResponseModel(

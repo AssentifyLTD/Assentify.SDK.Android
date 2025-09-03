@@ -196,7 +196,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanPassportResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context)) {
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
                 val scanPassportManual = ScanPassportManual(
                     configModel,
                     environmentalConditions,
@@ -241,7 +241,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanIDCardResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context)) {
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
                 val scanIDCardManual = ScanIDCardManual(
                     configModel,
                     environmentalConditions, apiKey,
@@ -312,7 +312,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanOtherResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context)) {
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
                 val scanOtherManual = ScanOtherManual(
                     configModel,
                     environmentalConditions, apiKey,
@@ -356,7 +356,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): FaceMatchResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context)) {
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
                 val faceMatchManual = FaceMatchManual(
                     configModel,
                     environmentalConditions, apiKey,

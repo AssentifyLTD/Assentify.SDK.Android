@@ -126,6 +126,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.language = language;
+        setEnvironmentalConditions(this.environmentalConditions);
     }
 
     public void setStepId(String stepId) {
@@ -309,7 +310,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
 
                     }  else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
                         retryCount++;
-                        if (retryCount == 3){
+                        if (retryCount == environmentalConditions.getRetryCount()){
                             Map<String, String> transformedProperties = new HashMap<>();
                             Map<String, String> transformedDetails = new HashMap<>();
                             OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties, transformedDetails);

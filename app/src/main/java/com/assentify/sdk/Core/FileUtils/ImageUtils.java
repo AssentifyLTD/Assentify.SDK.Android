@@ -11,6 +11,8 @@ import android.util.Log;
 import  com.assentify.sdk.Core.Constants.BlockType;
 import  com.assentify.sdk.Core.Constants.ConstantsValues;
 import java.io.ByteArrayOutputStream;
+
+import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.gemalto.jp2.JP2Encoder;
 
 public class ImageUtils {
@@ -214,7 +216,7 @@ public class ImageUtils {
         }
     }
 
-    public static boolean isLowCapabilities(Context context) {
+    public static boolean isLowCapabilities(Context context, EnvironmentalConditions environmentalConditions) {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
         activityManager.getMemoryInfo(memoryInfo);
@@ -223,7 +225,7 @@ public class ImageUtils {
 
         int cores = Runtime.getRuntime().availableProcessors();
 
-        return (totalRamGB < 8) || (cores < 6);
+        return (totalRamGB < environmentalConditions.getMinRam()) || (cores < environmentalConditions.getMinCPUCores());
     }
 
 

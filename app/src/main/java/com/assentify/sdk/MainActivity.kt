@@ -44,7 +44,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var passportClick: LinearLayout
@@ -98,7 +98,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
             "#FFFFFF",
             "#FFC400",
             activeLiveType = ActiveLiveType.NONE,
-            activeLivenessCheckCount = 1
+            activeLivenessCheckCount = 1,
+            minRam = 4
         );
         assentifySdk = AssentifySdk(
             "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
@@ -112,7 +113,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
             storeImageStream = false,
             saveCapturedVideoID = false,
             saveCapturedVideoFace = false,
-            context = applicationContext
+            context = applicationContext,
+
         );
         val takeImage = findViewById<Button>(R.id.takeImage)
 
@@ -154,7 +156,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
         startAssentifySdk();
     }
 
- /*       fun startAssentifySdk() {
+        fun startAssentifySdk() {
             val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg";            val base64Image =
                 ImageToBase64Converter().execute(image).get()
 
@@ -183,8 +185,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
             }
 
 
-        }*/
-    fun startAssentifySdk() {
+        }
+    /*fun startAssentifySdk() {
 
 
 
@@ -216,7 +218,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
              }
          }
 
-    }
+    }*/
 
 
    /* fun startAssentifySdk() {
@@ -248,7 +250,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
 
   }*/
 
-/*    fun startAssentifySdk() {
+  /*  fun startAssentifySdk() {
 
         when (val result = assentifySdk.startScanPassport(
             this@MainActivity,
@@ -377,13 +379,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
         Log.e("IDSCAN", dataModel.otherExtractedModel?.extractedData.toString())
     }*/
 
-     /* override fun onComplete(dataModel: FaceResponseModel,doneFlag:DoneFlags) {
+      override fun onComplete(dataModel: FaceResponseModel,doneFlag:DoneFlags) {
           Log.e("IDSCAN", dataModel.faceExtractedModel?.outputProperties.toString())
           Log.e("IDSCAN", dataModel.faceExtractedModel?.extractedData.toString())
           Log.e("IDSCAN", dataModel.faceExtractedModel?.baseImageFace.toString())
           Log.e("IDSCAN", doneFlag.toString())
           //f.closeCamera();
-      }*/
+      }
 
    /* override fun onSubmitError(message: String) {
         Log.e("IDSCAN", "onSubmitError")
@@ -393,7 +395,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
         Log.e("IDSCAN","onSubmitSuccess")
     }*/
 
-      override fun onComplete(dataModel: IDResponseModel, order: Int,doneFlag: DoneFlags) {
+/*      override fun onComplete(dataModel: IDResponseModel, order: Int,doneFlag: DoneFlags) {
           Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
           Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
           Log.e("IDSCAN", dataModel.iDExtractedModel?.imageUrl.toString())
@@ -401,13 +403,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
           Log.e("IDSCAN", order.toString())
            newOder = order+1;
 
-      }
+      }*/
 
-      override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
+/*      override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
           Log.e("IDSCAN", "onWrongTemplate")
-      }
+      }*/
 
-   /* override fun onComplete(dataModel: PassportResponseModel, doneFlag:DoneFlags) {
+ /*   override fun onComplete(dataModel: PassportResponseModel, doneFlag:DoneFlags) {
         Log.e("IDSCAN", dataModel.passportExtractedModel?.outputProperties.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.extractedData.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.imageUrl.toString())

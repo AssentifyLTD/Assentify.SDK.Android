@@ -122,7 +122,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
         this.idCardCallback = idCardCallback;
         this.kycDocumentDetails = kycDocumentDetails;
         this.language = language;
-
+        setEnvironmentalConditions(this.environmentalConditions);
         if (!this.kycDocumentDetails.isEmpty()) {
             KycDocumentDetails firstKycDocument = kycDocumentDetails.get(0);
             this.changeTemplateId(firstKycDocument.getTemplateProcessingKeyInformation());
@@ -269,7 +269,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
 
                     } else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
                         retryCount++;
-                        if (retryCount == 3){
+                        if (retryCount ==  environmentalConditions.getRetryCount()){
                             Map<String, String> transformedProperties = new HashMap<>();
                             IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
                             idResponseModel = new IDResponseModel(

@@ -24,8 +24,6 @@ import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
@@ -40,6 +38,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import com.assentify.sdk.Core.Constants.ConstantsValues
+import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.FileUtils.ImageUtils
 import com.assentify.sdk.FaceMatch.CountDownCallback
@@ -102,6 +101,7 @@ abstract class CameraPreview : Fragment() {
     private var layoutBottom: LinearLayout? = null;
     private var layoutLeft: LinearLayout? = null;
     private var layoutRight: LinearLayout? = null;
+    private var environmentalConditions: EnvironmentalConditions? = null;
     @SuppressLint("MissingInflatedId")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -121,7 +121,7 @@ abstract class CameraPreview : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         detector = DetectorFactory.getDetector(requireContext().assets)
-        if(ImageUtils.isLowCapabilities(context)){
+        if(ImageUtils.isLowCapabilities(context,this.environmentalConditions)){
             startCameraForManualCapture();
         }else{
             startCamera();
@@ -129,6 +129,9 @@ abstract class CameraPreview : Fragment() {
         cameraExecutor = Executors.newCachedThreadPool()
     }
 
+   fun  setEnvironmentalConditions(environmentalConditions:EnvironmentalConditions){
+        this.environmentalConditions = environmentalConditions
+    }
     fun frontCamera() {
         frontCamera = true
     }
