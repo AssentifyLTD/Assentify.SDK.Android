@@ -1,14 +1,19 @@
 package  com.assentify.sdk
 
+import android.app.ActivityManager
 import android.content.Context
 import android.util.Log
+import androidx.fragment.app.Fragment
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
+import com.assentify.sdk.Core.FileUtils.ImageUtils
 import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
+import com.assentify.sdk.FaceMatch.FaceMatchManual
+import com.assentify.sdk.FaceMatch.FaceMatchResult
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
@@ -25,12 +30,18 @@ import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanIDCard.ScanIDCard
+import com.assentify.sdk.ScanIDCard.ScanIDCardManual
+import com.assentify.sdk.ScanIDCard.ScanIDCardResult
 import com.assentify.sdk.ScanNFC.ScanNfc
 import com.assentify.sdk.ScanNFC.ScanNfcCallback
 import com.assentify.sdk.ScanOther.ScanOther
 import com.assentify.sdk.ScanOther.ScanOtherCallback
+import com.assentify.sdk.ScanOther.ScanOtherManual
+import com.assentify.sdk.ScanOther.ScanOtherResult
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
+import com.assentify.sdk.ScanPassport.ScanPassportManual
+import com.assentify.sdk.ScanPassport.ScanPassportResult
 import com.assentify.sdk.ScanQr.ScanQr
 import com.assentify.sdk.ScanQr.ScanQrCallback
 import com.assentify.sdk.SubmitData.SubmitData
@@ -40,6 +51,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 
 class AssentifySdk(
     private var apiKey: String? = null,
@@ -53,15 +65,11 @@ class AssentifySdk(
     private var storeImageStream: Boolean? = null,
     private var saveCapturedVideoID: Boolean? = null,
     private var saveCapturedVideoFace: Boolean? = null,
-    private var context: Context? = null,
+    private var context: Context,
 ) {
 
     private var isKeyValid: Boolean = false;
-    private lateinit var scanPassport: ScanPassport;
-    private lateinit var scanIDCard: ScanIDCard;
     private lateinit var scanQr: ScanQr;
-    private lateinit var scanOther: ScanOther;
-    private lateinit var faceMatch: FaceMatch;
     private var configModel: ConfigModel? = null;
     private var stepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
@@ -70,21 +78,6 @@ class AssentifySdk(
     private var performPassiveLivenessFace: Boolean? = null;
 
     init {
-        if (context != null) {
-            readJSONFromAsset = ReadJSONFromAsset(context = context!!);
-            val jsonString = readJSONFromAsset.readJSONFromAssets("assentify_config.json")
-            if (jsonString.isNotEmpty()) {
-                configModel = decodeConfigModelFromJson(jsonString)!!;
-                interaction = configModel!!.instanceHash;
-                tenantIdentifier = configModel!!.tenantIdentifier;
-                apiKey = "TODO"
-                isKeyValid = true;
-                iniSdk();
-            } else {
-                assentifySdkCallback.onAssentifySdkInitError("Please Configure The assentify_config.json File ");
-
-            }
-        }
         if (configModel == null) {
             if (apiKey.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "ApiKey must not be empty or null")
@@ -201,22 +194,42 @@ class AssentifySdk(
         scanPassportCallback: ScanPassportCallback,
         language: String = Language.NON,
         stepId: Int? = null,
-    ): ScanPassport {
+    ): ScanPassportResult {
         if (isKeyValid) {
-            scanPassport = ScanPassport(
-                configModel,
-                environmentalConditions,
-                apiKey,
-                processMrz,
-                performLivenessDocument,
-                performPassiveLivenessFace,
-                saveCapturedVideoID,
-                storeCapturedDocument,
-                storeImageStream, language
-            )
-            scanPassport.setStepId(stepId?.toString())
-            scanPassport.setScanPassportCallback(scanPassportCallback)
-            return scanPassport;
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+                val scanPassportManual = ScanPassportManual(
+                    configModel,
+                    environmentalConditions,
+                    apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoID,
+                    storeCapturedDocument,
+                    storeImageStream,
+                    language
+                )
+                scanPassportManual.setStepId(stepId?.toString())
+                scanPassportManual.setScanPassportCallback(scanPassportCallback)
+                return ScanPassportResult.Manual(scanPassportManual)
+            } else {
+                val scanPassport = ScanPassport(
+                    configModel,
+                    environmentalConditions,
+                    apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoID,
+                    storeCapturedDocument,
+                    storeImageStream, language
+                )
+                scanPassport.setStepId(stepId?.toString())
+                scanPassport.setScanPassportCallback(scanPassportCallback)
+                return ScanPassportResult.Auto(scanPassport)
+            }
+
+
         } else {
             throw Exception("Invalid Keys")
         }
@@ -226,22 +239,41 @@ class AssentifySdk(
         scnIDCardCallback: IDCardCallback,
         kycDocumentDetails: List<KycDocumentDetails>, language: String = Language.NON,
         stepId: Int? = null,
-    ): ScanIDCard {
+    ): ScanIDCardResult {
         if (isKeyValid) {
-            scanIDCard = ScanIDCard(
-                configModel,
-                environmentalConditions, apiKey,
-                processMrz,
-                performLivenessDocument,
-                performPassiveLivenessFace,
-                saveCapturedVideoID,
-                storeCapturedDocument,
-                storeImageStream,
-                scnIDCardCallback,
-                kycDocumentDetails, language
-            )
-            scanIDCard.setStepId(stepId?.toString())
-            return scanIDCard;
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+                val scanIDCardManual = ScanIDCardManual(
+                    configModel,
+                    environmentalConditions, apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoID,
+                    storeCapturedDocument,
+                    storeImageStream,
+                    scnIDCardCallback,
+                    kycDocumentDetails, language
+                )
+                scanIDCardManual.setStepId(stepId?.toString())
+                return ScanIDCardResult.Manual(scanIDCardManual);
+            } else {
+                val scanIDCard = ScanIDCard(
+                    configModel,
+                    environmentalConditions, apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoID,
+                    storeCapturedDocument,
+                    storeImageStream,
+                    scnIDCardCallback,
+                    kycDocumentDetails, language
+                )
+                scanIDCard.setStepId(stepId?.toString())
+                return ScanIDCardResult.Auto(scanIDCard);
+            }
+
+
         } else {
             throw Exception("Invalid Keys")
         }
@@ -265,8 +297,8 @@ class AssentifySdk(
                 storeCapturedDocument,
                 storeImageStream,
             )
-           scanQr.setScanQrCallback(scanQrCallback)
-           scanQr.setStepId(stepId?.toString())
+            scanQr.setScanQrCallback(scanQrCallback)
+            scanQr.setStepId(stepId?.toString())
             return scanQr;
         } else {
             throw Exception("Invalid Keys")
@@ -278,22 +310,40 @@ class AssentifySdk(
         scanPassportCallback: ScanOtherCallback,
         language: String = Language.NON,
         stepId: Int? = null,
-    ): ScanOther {
+    ): ScanOtherResult {
         if (isKeyValid) {
-            scanOther = ScanOther(
-                configModel,
-                environmentalConditions, apiKey,
-                processMrz,
-                performLivenessDocument,
-                performPassiveLivenessFace,
-                saveCapturedVideoID,
-                storeCapturedDocument,
-                storeImageStream,
-                language
-            )
-            scanOther.setStepId(stepId?.toString())
-            scanOther.setScanOtherCallback(scanPassportCallback)
-            return scanOther;
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+                val scanOtherManual = ScanOtherManual(
+                    configModel,
+                    environmentalConditions, apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoID,
+                    storeCapturedDocument,
+                    storeImageStream,
+                    language
+                )
+                scanOtherManual.setStepId(stepId?.toString())
+                scanOtherManual.setScanOtherCallback(scanPassportCallback)
+                return ScanOtherResult.Manual(scanOtherManual);
+            } else {
+                val scanOther = ScanOther(
+                    configModel,
+                    environmentalConditions, apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoID,
+                    storeCapturedDocument,
+                    storeImageStream,
+                    language
+                )
+                scanOther.setStepId(stepId?.toString())
+                scanOther.setScanOtherCallback(scanPassportCallback)
+                return ScanOtherResult.Auto(scanOther);
+            }
+
         } else {
             throw Exception("Invalid Keys")
         }
@@ -304,24 +354,44 @@ class AssentifySdk(
         image: String,
         showCountDown: Boolean = true,
         stepId: Int? = null,
-    ): FaceMatch {
+    ): FaceMatchResult {
         if (isKeyValid) {
-            faceMatch = FaceMatch(
-                configModel,
-                environmentalConditions, apiKey,
-                processMrz,
-                performLivenessDocument,
-                performActiveLivenessFace,
-                performPassiveLivenessFace,
-                saveCapturedVideoFace,
-                storeCapturedDocument,
-                storeImageStream,
-                showCountDown,
-            )
-            faceMatch.setStepId(stepId?.toString())
-            faceMatch.setFaceMatchCallback(faceMatchCallback)
-            faceMatch.setSecondImage(image)
-            return faceMatch;
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+                val faceMatchManual = FaceMatchManual(
+                    configModel,
+                    environmentalConditions, apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performActiveLivenessFace,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoFace,
+                    storeCapturedDocument,
+                    storeImageStream,
+                    showCountDown,
+                )
+                faceMatchManual.setStepId(stepId?.toString())
+                faceMatchManual.setFaceMatchCallback(faceMatchCallback)
+                faceMatchManual.setSecondImage(image)
+                return FaceMatchResult.Manual(faceMatchManual)
+            } else {
+                val faceMatch = FaceMatch(
+                    configModel,
+                    environmentalConditions, apiKey,
+                    processMrz,
+                    performLivenessDocument,
+                    performActiveLivenessFace,
+                    performPassiveLivenessFace,
+                    saveCapturedVideoFace,
+                    storeCapturedDocument,
+                    storeImageStream,
+                    showCountDown,
+                )
+                faceMatch.setStepId(stepId?.toString())
+                faceMatch.setFaceMatchCallback(faceMatchCallback)
+                faceMatch.setSecondImage(image)
+                return FaceMatchResult.Auto(faceMatch)
+            }
+
         } else {
             throw Exception("Invalid Keys")
         }
@@ -502,5 +572,6 @@ class AssentifySdk(
 
 
     fun getTemplates() = templates;
+
 
 }
