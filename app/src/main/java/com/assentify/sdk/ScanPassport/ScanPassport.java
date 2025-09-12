@@ -329,19 +329,17 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             }else {
-                                scanPassportCallback.onRetry(BaseResponseDataModel);
+                                scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
 
                             }
                         }
                     } else  {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE);
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
                         switch (eventName) {
                             case HubConnectionTargets.ON_ERROR:
                                 scanPassportCallback.onError(BaseResponseDataModel);
                                 break;
-                            case HubConnectionTargets.ON_RETRY:
-                                scanPassportCallback.onRetry(BaseResponseDataModel);
-                                break;
+
                             case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
                                 scanPassportCallback.onClipPreparationComplete(BaseResponseDataModel);
                                 break;
@@ -350,9 +348,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 break;
                             case HubConnectionTargets.ON_UPDATE:
                                 scanPassportCallback.onUpdated(BaseResponseDataModel);
-                                break;
-                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_CARD_DETECTED:
                                 scanPassportCallback.onCardDetected(BaseResponseDataModel);

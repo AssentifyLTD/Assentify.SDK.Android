@@ -20,6 +20,7 @@ interface ScanPassportCallback {
 
     fun onComplete(dataModel: PassportResponseModel,doneFlag: DoneFlags)
 
+    fun onWrongTemplate(dataModel: BaseResponseDataModel)
     fun onClipPreparationComplete(dataModel: BaseResponseDataModel){}
 
     fun onStatusUpdated(dataModel: BaseResponseDataModel){}

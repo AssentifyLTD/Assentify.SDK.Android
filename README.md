@@ -39,6 +39,10 @@ dependencies {
 
 ## Versions
 
+**0.0.86**
+- Callbacks Improvements
+- Captured Image Improvements
+
 **0.0.85**
 - Manual Capture
 - Retry Logic
