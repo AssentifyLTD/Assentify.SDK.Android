@@ -343,13 +343,10 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                             }
                         }
                     } else {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE);
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) ||  eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
                         switch (eventName) {
                             case HubConnectionTargets.ON_ERROR:
                                 scanOtherCallback.onError(BaseResponseDataModel);
-                                break;
-                            case HubConnectionTargets.ON_RETRY:
-                                scanOtherCallback.onRetry(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
                                 scanOtherCallback.onClipPreparationComplete(BaseResponseDataModel);
@@ -359,9 +356,6 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                                 break;
                             case HubConnectionTargets.ON_UPDATE:
                                 scanOtherCallback.onUpdated(BaseResponseDataModel);
-                                break;
-                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                                scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_CARD_DETECTED:
                                 scanOtherCallback.onCardDetected(BaseResponseDataModel);

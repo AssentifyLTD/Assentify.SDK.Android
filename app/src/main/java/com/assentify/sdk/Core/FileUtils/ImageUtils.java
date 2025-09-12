@@ -6,14 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.util.Base64;
-import android.util.Log;
-
 import  com.assentify.sdk.Core.Constants.BlockType;
 import  com.assentify.sdk.Core.Constants.ConstantsValues;
 import java.io.ByteArrayOutputStream;
 
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
-import com.gemalto.jp2.JP2Encoder;
 
 public class ImageUtils {
 
@@ -28,39 +25,23 @@ public class ImageUtils {
 
         }
 
-        return bitmapToBase64(bitmap,true,0);
-    }
-
-
-    public static String bitmapToBase64(Bitmap bitmap, boolean isLossless, int visualQuality) {
-        try {
-            byte[] jp2Data;
-            if (isLossless) {
-                jp2Data = new JP2Encoder(bitmap).encode();
-            } else {
-                jp2Data = new JP2Encoder(bitmap)
-                        .setVisualQuality(visualQuality)
-                        .encode();
-            }
-            return Base64.encodeToString(jp2Data, Base64.DEFAULT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return bitmapToBase64(bitmap,60);
     }
 
     public static String convertClipsBitmapToBase64(Bitmap inputImage, BlockType blockType, Context context) {
         Bitmap bitmap = inputImage;
-       if (blockType == BlockType.FACE_MATCH) {
+        if (blockType == BlockType.FACE_MATCH) {
             bitmap = rotateBitmap(bitmap, 270);
         } else {
             bitmap = rotateBitmap(bitmap, 90);
 
         }
-        return bitmapClipsToBase64(bitmap,40);
+
+        return bitmapToBase64(bitmap,40);
     }
 
-    public static String bitmapClipsToBase64(Bitmap bitmap, int visualQuality) {
+
+    public static String bitmapToBase64(Bitmap bitmap, int visualQuality) {
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, visualQuality, byteArrayOutputStream); // quality 0..100

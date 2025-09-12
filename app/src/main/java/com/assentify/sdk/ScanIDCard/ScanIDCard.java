@@ -360,13 +360,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                             }
                         }
                     }  else {
-                        start = eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) || eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE);
+                        start =  eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
                         switch (eventName) {
                             case HubConnectionTargets.ON_ERROR:
                                 idCardCallback.onError(BaseResponseDataModel);
-                                break;
-                            case HubConnectionTargets.ON_RETRY:
-                                idCardCallback.onRetry(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
                                 idCardCallback.onClipPreparationComplete(BaseResponseDataModel);
@@ -376,9 +373,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                                 break;
                             case HubConnectionTargets.ON_UPDATE:
                                 idCardCallback.onUpdated(BaseResponseDataModel);
-                                break;
-                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                                idCardCallback.onLivenessUpdate(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_CARD_DETECTED:
                                 idCardCallback.onCardDetected(BaseResponseDataModel);
@@ -413,9 +407,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                             case HubConnectionTargets.ON_UPLOAD_FAILED:
                                 idCardCallback.onUploadFailed(BaseResponseDataModel);
                                 break;
-                            case HubConnectionTargets.ON_WRONG_TEMPLATE:
-                                idCardCallback.onWrongTemplate(BaseResponseDataModel);
-                                break;
+
                             default:
                                 start = true;
                                 idCardCallback.onRetry(BaseResponseDataModel);
