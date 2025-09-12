@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'de.undercouch.download'
 apply plugin: 'maven-publish'
@@ -6,7 +6,7 @@ apply plugin: 'maven-publish'
 android {
     compileSdkVersion 34
     defaultConfig {
-       applicationId "com.assentify.sdk"
+      // applicationId "com.assentify.sdk"
 
         minSdkVersion 24
         targetSdkVersion 34
