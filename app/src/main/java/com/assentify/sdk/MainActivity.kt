@@ -12,13 +12,19 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.assentify.sdk.Core.Constants.ActiveLiveEvents
 import com.assentify.sdk.Core.Constants.ActiveLiveType
+import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
+import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.Language
+import com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.FaceMatch.FaceMatchManual
 import com.assentify.sdk.FaceMatch.FaceMatchResult
@@ -44,7 +50,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, FaceMatchCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var passportClick: LinearLayout
@@ -97,8 +103,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
             true,
             "#FFFFFF",
             "#FFC400",
-            activeLiveType = ActiveLiveType.NONE,
-            activeLivenessCheckCount = 1,
+            activeLiveType = ActiveLiveType.Actions,
+            activeLivenessCheckCount = 2,
             retryCount = 4,
             minRam = 2,
 
@@ -159,7 +165,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
         startAssentifySdk();
     }
 
-       /* fun startAssentifySdk() {
+        fun startAssentifySdk() {
             val  image = "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg";            val base64Image =
                 ImageToBase64Converter().execute(image).get()
 
@@ -188,8 +194,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
             }
 
 
-        }*/
-    fun startAssentifySdk() {
+        }
+ /*   fun startAssentifySdk() {
 
 
 
@@ -222,7 +228,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
          }
 
     }
-
+*/
 
    /* fun startAssentifySdk() {
 
@@ -382,13 +388,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
         Log.e("IDSCAN", dataModel.otherExtractedModel?.extractedData.toString())
     }*/
 
-     /* override fun onComplete(dataModel: FaceResponseModel,doneFlag:DoneFlags) {
+      override fun onComplete(dataModel: FaceResponseModel,doneFlag:DoneFlags) {
           Log.e("IDSCAN", dataModel.faceExtractedModel?.outputProperties.toString())
           Log.e("IDSCAN", dataModel.faceExtractedModel?.extractedData.toString())
           Log.e("IDSCAN", dataModel.faceExtractedModel?.baseImageFace.toString())
           Log.e("IDSCAN", doneFlag.toString())
           //f.closeCamera();
-      }*/
+      }
 
    /* override fun onSubmitError(message: String) {
         Log.e("IDSCAN", "onSubmitError")
@@ -398,7 +404,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
         Log.e("IDSCAN","onSubmitSuccess")
     }*/
 
-      override fun onComplete(dataModel: IDResponseModel, order: Int,doneFlag: DoneFlags) {
+/*      override fun onComplete(dataModel: IDResponseModel, order: Int,doneFlag: DoneFlags) {
           Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
           Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
           Log.e("IDSCAN", dataModel.iDExtractedModel?.imageUrl.toString())
@@ -410,7 +416,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
 
       override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
           Log.e("IDSCAN", "onWrongTemplate")
-      }
+      }*/
 
  /*   override fun onComplete(dataModel: PassportResponseModel, doneFlag:DoneFlags) {
         Log.e("IDSCAN", dataModel.passportExtractedModel?.outputProperties.toString())
@@ -421,27 +427,28 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback{
     }*/
 
 
-  /*  override fun onEnvironmentalConditionsChange(
+    override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
         faceEvents: FaceEvents,
-        zoomType: ZoomType
+        zoomType: ZoomType,
+        detectedFaces:Int
     ) {
         val faceTextView = findViewById<TextView>(R.id.faceEventText)
 
         runOnUiThread {
-            faceTextView.text = faceEvents.name
+            faceTextView.text = detectedFaces.toString()
         }
     }
 
 
     override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
-      *//*  val faceTextView = findViewById<TextView>(R.id.faceEventText)
+       /* val faceTextView = findViewById<TextView>(R.id.faceEventText)
 
         runOnUiThread {
             faceTextView.text = activeLiveEvents.name
-        }*//*
-    }*/
+        }*/
+    }
 }
 
 
