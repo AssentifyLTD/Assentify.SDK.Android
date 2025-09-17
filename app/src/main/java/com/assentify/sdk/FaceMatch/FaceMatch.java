@@ -227,7 +227,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
         this.results = results;
-        if (hasFaceOrCard()) {
+        if (hasFace()) {
             faceQualityCheck.checkFaceQualityAndExpressions(normalImage, new FaceEventCallback() {
                         @Override
                         public void onFaceEventDetected(FaceEvents result) {
@@ -259,6 +259,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         } else {
             if (start) {
                 livenessCheckArray.clear();
+                highQualityBitmaps.clear();
                 faceEvent = FaceEvents.NO_DETECT;
             }
         }
@@ -284,17 +285,21 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
                     }
                 }
-                highQualityBitmaps.add(normalImage);
+                if(start){
+                    highQualityBitmaps.add(normalImage);
+                }
                 setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             } else {
                 if (start) {
                     livenessCheckArray.clear();
+                    highQualityBitmaps.clear();
                 }
                 setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
             }
         } else {
             if (start) {
                 livenessCheckArray.clear();
+                highQualityBitmaps.clear();
             }
             setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
         }
@@ -306,7 +311,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     protected void checkEnvironment() {
         if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (hasFaceOrCard() && start) {
+                if (hasFace() && start) {
                     startRecording();
                 }
             }
@@ -323,7 +328,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         motion = MotionType.NO_DETECT;
                         zoom = ZoomType.NO_DETECT;
                     } else {
-                        motion = detectMotion.calculatePercentageChange(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
+                        motion = detectMotion.calculatePercentageChangeFace(motionRectF.get(motionRectF.size() - 2), motionRectF.get(motionRectF.size() - 1));
                         zoom = detectZoom.calculateFacePercentageChangeWidth(motionRectF.get(motionRectF.size() - 1));
                         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING) {
                             sendingFlags.add(MotionType.SENDING);
@@ -343,7 +348,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
 
             if (this.showCountDownView) {
-                if (!hasFaceOrCard() || !isRectFInsideTheScreen || faceEvent != FaceEvents.Good) {
+                if (!hasFace() || !isRectFInsideTheScreen || faceEvent != FaceEvents.Good) {
                     stopCountDown();
                     isCountDownStarted = true;
                 }
@@ -354,7 +359,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (start && highQualityBitmaps.size() != 0 && sendingFlags.size() > 2 && isRectFInsideTheScreen && sendingFlagsZoom.size() > ZoomLimit
                             && livenessCheckArray.size() == localLivenessLimit) {
-                        if (hasFaceOrCard()) {
+                        if (hasFace()) {
                             if (this.showCountDownView) {
                                 showCountDown(new CountDownCallback() {
                                     @Override
@@ -388,7 +393,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                     brightness, environmentalConditions
                             ),
                             sendingFlags.isEmpty() ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
-                            !start && areAllEventsDone() ? FaceEvents.Good : faceEvent, zoom
+                            !start && areAllEventsDone() ? FaceEvents.Good : faceEvent, zoom,faces()
                     );
                 }
             });
@@ -510,18 +515,18 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     }
 
 
-    public boolean hasFaceOrCard() {
-        return hasFace();
+    public boolean hasFace() {
+        return faces() == 1;
     }
 
-    public boolean hasFace() {
-        boolean hasFace = false;
+    public int faces() {
+        int faces = 0;
         for (Classifier.Recognition item : results) {
             if (item.getDetectedClass() == 1 && environmentalConditions.isPredictionValid(item.getConfidence())) {
-                hasFace = true;
+                faces = faces+1;
             }
         }
-        return hasFace;
+        return faces;
     }
 
     // TODO Later
@@ -540,16 +545,16 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         videoCounter = videoCounter + 1;
         clips = new ArrayList<>();
         createBase64.execute(() -> {
-            int middleIndex = highQualityBitmaps.size() / 2;
             BugsnagObject.INSTANCE.logInfo("Face match started : perform passive liveness face : " + performPassiveLivenessFace.toString(),configModel);
             if (performPassiveLivenessFace) {
                 runLivenessCheck();
+                int middleIndex = clips.size() / 2;
                 BugsnagObject.INSTANCE.logInfo("Face match started : clips size : " + clips.size(),configModel);
                 if (!clips.isEmpty()) {
                     remoteProcessing.starProcessing(
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
                             "",
-                            ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(middleIndex), BlockType.FACE_MATCH, getActivity()),
+                            clips.get(middleIndex),
                             configModel,
                             "",
                             this.secondImage,
@@ -578,6 +583,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 }
 
             } else {
+                int middleIndex = highQualityBitmaps.size() / 2;
                 BugsnagObject.INSTANCE.logInfo("Face match started : clips size : " + clips.size(),configModel);
                 remoteProcessing.starProcessing(
                         HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),

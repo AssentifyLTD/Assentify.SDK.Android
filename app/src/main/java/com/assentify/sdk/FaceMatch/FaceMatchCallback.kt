@@ -61,6 +61,7 @@ interface FaceMatchCallback {
         motion: MotionType,
         faceEvents: FaceEvents,
         zoomType: ZoomType,
+        detectedFaces:Int
     ) {
     }
 

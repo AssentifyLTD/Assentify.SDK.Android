@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+**0.0.87**
+- Face Match Improvements
+
 **0.0.86**
 - Callbacks Improvements
 - Captured Image Improvements
