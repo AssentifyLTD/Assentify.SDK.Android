@@ -73,10 +73,8 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
 
     Boolean processMrz;
     Boolean performLivenessDocument;
-    Boolean performLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
-    Boolean storeImageStream;
     ConfigModel configModel;
     String language;
     String stepId;
@@ -99,22 +97,10 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
     public ScanPassportManual(
             ConfigModel configModel,
             EnvironmentalConditions environmentalConditions, String apiKey,
-            Boolean processMrz,
-            Boolean performLivenessDocument,
-            Boolean performLivenessFace,
-            Boolean saveCapturedVideo,
-            Boolean storeCapturedDocument,
-            Boolean storeImageStream,
             String language
     ) {
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
-        this.processMrz = processMrz;
-        this.performLivenessDocument = performLivenessDocument;
-        this.performLivenessFace = performLivenessFace;
-        this.saveCapturedVideo = saveCapturedVideo;
-        this.storeCapturedDocument = storeCapturedDocument;
-        this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.language = language;
         setEnvironmentalConditions(this.environmentalConditions);
@@ -138,6 +124,24 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                 if(this.stepId==null){
                     throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
                 }
+            }
+        }
+        for (StepDefinitions item : configModel.getStepDefinitions()) {
+            if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                if (performLivenessDocument == null) {
+                    performLivenessDocument = item.getCustomization().getDocumentLiveness();
+                }
+                if (processMrz == null) {
+                    processMrz = item.getCustomization().getProcessMrz();
+                }
+                if (storeCapturedDocument == null) {
+                    storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
+                }
+                if (saveCapturedVideo == null) {
+                    saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
+                }
+
+
             }
         }
     }
@@ -193,11 +197,11 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                             true,
                             processMrz,
                             performLivenessDocument,
-                            performLivenessFace,
+                            true,
                             saveCapturedVideo,
                             storeCapturedDocument,
                             false,
-                            storeImageStream,
+                            true,
                             stepId,
                             new ArrayList<>()
                     );

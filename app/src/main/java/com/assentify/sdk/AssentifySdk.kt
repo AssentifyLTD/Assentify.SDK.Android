@@ -44,6 +44,8 @@ import com.assentify.sdk.ScanPassport.ScanPassportManual
 import com.assentify.sdk.ScanPassport.ScanPassportResult
 import com.assentify.sdk.ScanQr.ScanQr
 import com.assentify.sdk.ScanQr.ScanQrCallback
+import com.assentify.sdk.ScanQr.ScanQrManual
+import com.assentify.sdk.ScanQr.ScanQrResult
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import kotlinx.coroutines.GlobalScope
@@ -59,23 +61,16 @@ class AssentifySdk(
     private var interaction: String? = null,
     private val environmentalConditions: EnvironmentalConditions,
     private val assentifySdkCallback: AssentifySdkCallback,
-    private var processMrz: Boolean? = null,
-    private var storeCapturedDocument: Boolean? = null,
     private var performActiveLivenessFace: Boolean? = null,
-    private var storeImageStream: Boolean? = null,
-    private var saveCapturedVideoID: Boolean? = null,
-    private var saveCapturedVideoFace: Boolean? = null,
     private var context: Context,
 ) {
 
     private var isKeyValid: Boolean = false;
-    private lateinit var scanQr: ScanQr;
     private var configModel: ConfigModel? = null;
     private var stepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
-    private var performLivenessDocument: Boolean? = null;
-    private var performPassiveLivenessFace: Boolean? = null;
+
 
     init {
         if (configModel == null) {
@@ -147,44 +142,9 @@ class AssentifySdk(
         getTemplatesByCountry();
         GlobalScope.launch {
             configModel!!.stepDefinitions.forEach { item ->
-                if (item.stepDefinition == "IdentificationDocumentCapture") {
-                    if (performLivenessDocument == null) {
-                        performLivenessDocument =
-                            item.customization.documentLiveness;
-                    }
-                    if (processMrz == null) {
-                        processMrz = item.customization.processMrz;
-                    }
-                    if (storeCapturedDocument == null) {
-                        storeCapturedDocument =
-                            item.customization.storeCapturedDocument;
-                    }
-                    if (saveCapturedVideoID == null) {
-                        saveCapturedVideoID = item.customization.saveCapturedVideo;
-                    }
-                }//
-                if (item.stepDefinition == "FaceImageAcquisition") {
-                    if (performPassiveLivenessFace == null) {
-                        performPassiveLivenessFace =
-                            item.customization.performLivenessDetection;
-                    }
-                    if (storeImageStream == null) {
-                        storeImageStream = item.customization.storeImageStream;
-                    }
-                    if (saveCapturedVideoFace == null) {
-                        saveCapturedVideoFace = item.customization.saveCapturedVideo;
-                    }
-                }
                 if (item.stepDefinition == "ContextAwareSigning") {
                     stepID = item.stepId;
                 }
-            }
-            if (performLivenessDocument == null || processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
-                assentifySdkCallback.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { performLivenessDocument ,processMrz , storeCapturedDocument , saveCapturedVideo }  ");
-            }
-            if (performPassiveLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
-                assentifySdkCallback.onAssentifySdkInitError("Please Configure The FaceImageAcquisition {  performLivenessFace , storeImageStream , saveCapturedVideo }  ");
-
             }
 
         }
@@ -201,12 +161,6 @@ class AssentifySdk(
                     configModel,
                     environmentalConditions,
                     apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     language
                 )
                 scanPassportManual.setStepId(stepId?.toString())
@@ -217,12 +171,7 @@ class AssentifySdk(
                     configModel,
                     environmentalConditions,
                     apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream, language
+                    language
                 )
                 scanPassport.setStepId(stepId?.toString())
                 scanPassport.setScanPassportCallback(scanPassportCallback)
@@ -245,12 +194,6 @@ class AssentifySdk(
                 val scanIDCardManual = ScanIDCardManual(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     scnIDCardCallback,
                     kycDocumentDetails, language
                 )
@@ -260,12 +203,6 @@ class AssentifySdk(
                 val scanIDCard = ScanIDCard(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     scnIDCardCallback,
                     kycDocumentDetails, language
                 )
@@ -284,22 +221,32 @@ class AssentifySdk(
         kycDocumentDetails: List<KycDocumentDetails>,
         language: String = Language.NON,
         stepId: Int? = null,
-    ): ScanQr {
+    ): ScanQrResult {
         if (isKeyValid) {
-            scanQr = ScanQr(
-                kycDocumentDetails,
-                apiKey,
-                language,
-                configModel,
-                environmentalConditions,
-                performLivenessDocument,
-                saveCapturedVideoFace,
-                storeCapturedDocument,
-                storeImageStream,
-            )
-            scanQr.setScanQrCallback(scanQrCallback)
-            scanQr.setStepId(stepId?.toString())
-            return scanQr;
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+                val scanQrManual =  ScanQrManual(
+                    kycDocumentDetails,
+                    apiKey,
+                    language,
+                    configModel,
+                    environmentalConditions,
+                )
+                scanQrManual.setStepId(stepId?.toString())
+                scanQrManual.setScanQrCallback(scanQrCallback)
+                return ScanQrResult.Manual(scanQrManual);
+            } else {
+                val scanQr =  ScanQr(
+                    kycDocumentDetails,
+                    apiKey,
+                    language,
+                    configModel,
+                    environmentalConditions,
+                )
+                scanQr.setStepId(stepId?.toString())
+                scanQr.setScanQrCallback(scanQrCallback)
+                return ScanQrResult.Auto(scanQr);
+            }
+
         } else {
             throw Exception("Invalid Keys")
         }
@@ -316,12 +263,6 @@ class AssentifySdk(
                 val scanOtherManual = ScanOtherManual(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     language
                 )
                 scanOtherManual.setStepId(stepId?.toString())
@@ -331,12 +272,6 @@ class AssentifySdk(
                 val scanOther = ScanOther(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     language
                 )
                 scanOther.setStepId(stepId?.toString())
@@ -359,15 +294,8 @@ class AssentifySdk(
             if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
                 val faceMatchManual = FaceMatchManual(
                     configModel,
-                    environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performActiveLivenessFace,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoFace,
-                    storeCapturedDocument,
-                    storeImageStream,
-                    showCountDown,
+                    environmentalConditions,
+                    apiKey,
                 )
                 faceMatchManual.setStepId(stepId?.toString())
                 faceMatchManual.setFaceMatchCallback(faceMatchCallback)
@@ -377,13 +305,7 @@ class AssentifySdk(
                 val faceMatch = FaceMatch(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
                     performActiveLivenessFace,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoFace,
-                    storeCapturedDocument,
-                    storeImageStream,
                     showCountDown,
                 )
                 faceMatch.setStepId(stepId?.toString())
