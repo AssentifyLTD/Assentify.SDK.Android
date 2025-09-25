@@ -59,12 +59,7 @@ class AssentifySdk(
     private var interaction: String? = null,
     private val environmentalConditions: EnvironmentalConditions,
     private val assentifySdkCallback: AssentifySdkCallback,
-    private var processMrz: Boolean? = null,
-    private var storeCapturedDocument: Boolean? = null,
     private var performActiveLivenessFace: Boolean? = null,
-    private var storeImageStream: Boolean? = null,
-    private var saveCapturedVideoID: Boolean? = null,
-    private var saveCapturedVideoFace: Boolean? = null,
     private var context: Context,
 ) {
 
@@ -74,8 +69,7 @@ class AssentifySdk(
     private var stepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
-    private var performLivenessDocument: Boolean? = null;
-    private var performPassiveLivenessFace: Boolean? = null;
+
 
     init {
         if (configModel == null) {
@@ -147,44 +141,9 @@ class AssentifySdk(
         getTemplatesByCountry();
         GlobalScope.launch {
             configModel!!.stepDefinitions.forEach { item ->
-                if (item.stepDefinition == "IdentificationDocumentCapture") {
-                    if (performLivenessDocument == null) {
-                        performLivenessDocument =
-                            item.customization.documentLiveness;
-                    }
-                    if (processMrz == null) {
-                        processMrz = item.customization.processMrz;
-                    }
-                    if (storeCapturedDocument == null) {
-                        storeCapturedDocument =
-                            item.customization.storeCapturedDocument;
-                    }
-                    if (saveCapturedVideoID == null) {
-                        saveCapturedVideoID = item.customization.saveCapturedVideo;
-                    }
-                }//
-                if (item.stepDefinition == "FaceImageAcquisition") {
-                    if (performPassiveLivenessFace == null) {
-                        performPassiveLivenessFace =
-                            item.customization.performLivenessDetection;
-                    }
-                    if (storeImageStream == null) {
-                        storeImageStream = item.customization.storeImageStream;
-                    }
-                    if (saveCapturedVideoFace == null) {
-                        saveCapturedVideoFace = item.customization.saveCapturedVideo;
-                    }
-                }
                 if (item.stepDefinition == "ContextAwareSigning") {
                     stepID = item.stepId;
                 }
-            }
-            if (performLivenessDocument == null || processMrz == null || storeCapturedDocument == null || saveCapturedVideoID == null) {
-                assentifySdkCallback.onAssentifySdkInitError("Please Configure The IdentificationDocumentCapture { performLivenessDocument ,processMrz , storeCapturedDocument , saveCapturedVideo }  ");
-            }
-            if (performPassiveLivenessFace == null || storeImageStream == null || saveCapturedVideoFace == null) {
-                assentifySdkCallback.onAssentifySdkInitError("Please Configure The FaceImageAcquisition {  performLivenessFace , storeImageStream , saveCapturedVideo }  ");
-
             }
 
         }
@@ -201,12 +160,6 @@ class AssentifySdk(
                     configModel,
                     environmentalConditions,
                     apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     language
                 )
                 scanPassportManual.setStepId(stepId?.toString())
@@ -217,12 +170,7 @@ class AssentifySdk(
                     configModel,
                     environmentalConditions,
                     apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream, language
+                    language
                 )
                 scanPassport.setStepId(stepId?.toString())
                 scanPassport.setScanPassportCallback(scanPassportCallback)
@@ -245,12 +193,6 @@ class AssentifySdk(
                 val scanIDCardManual = ScanIDCardManual(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     scnIDCardCallback,
                     kycDocumentDetails, language
                 )
@@ -260,12 +202,6 @@ class AssentifySdk(
                 val scanIDCard = ScanIDCard(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     scnIDCardCallback,
                     kycDocumentDetails, language
                 )
@@ -292,10 +228,6 @@ class AssentifySdk(
                 language,
                 configModel,
                 environmentalConditions,
-                performLivenessDocument,
-                saveCapturedVideoFace,
-                storeCapturedDocument,
-                storeImageStream,
             )
             scanQr.setScanQrCallback(scanQrCallback)
             scanQr.setStepId(stepId?.toString())
@@ -316,12 +248,6 @@ class AssentifySdk(
                 val scanOtherManual = ScanOtherManual(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     language
                 )
                 scanOtherManual.setStepId(stepId?.toString())
@@ -331,12 +257,6 @@ class AssentifySdk(
                 val scanOther = ScanOther(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoID,
-                    storeCapturedDocument,
-                    storeImageStream,
                     language
                 )
                 scanOther.setStepId(stepId?.toString())
@@ -359,15 +279,8 @@ class AssentifySdk(
             if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
                 val faceMatchManual = FaceMatchManual(
                     configModel,
-                    environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
-                    performActiveLivenessFace,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoFace,
-                    storeCapturedDocument,
-                    storeImageStream,
-                    showCountDown,
+                    environmentalConditions,
+                    apiKey,
                 )
                 faceMatchManual.setStepId(stepId?.toString())
                 faceMatchManual.setFaceMatchCallback(faceMatchCallback)
@@ -377,13 +290,7 @@ class AssentifySdk(
                 val faceMatch = FaceMatch(
                     configModel,
                     environmentalConditions, apiKey,
-                    processMrz,
-                    performLivenessDocument,
                     performActiveLivenessFace,
-                    performPassiveLivenessFace,
-                    saveCapturedVideoFace,
-                    storeCapturedDocument,
-                    storeImageStream,
                     showCountDown,
                 )
                 faceMatch.setStepId(stepId?.toString())

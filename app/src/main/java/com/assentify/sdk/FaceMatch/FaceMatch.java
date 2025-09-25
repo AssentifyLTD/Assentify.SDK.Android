@@ -70,8 +70,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private String apiKey = "";
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
-    Boolean processMrz;
-    Boolean performLivenessDocument;
     Boolean performLivenessFace;
 
     Boolean performPassiveLivenessFace;
@@ -126,18 +124,11 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     int livnessRetryCount = 0;
     int retryCount = 0;
     public FaceMatch(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
-                     Boolean processMrz,
-                     Boolean performLivenessDocument,
                      Boolean performLivenessFace,
-                     Boolean performPassiveLivenessFace,
-                     Boolean saveCapturedVideo,
-                     Boolean storeCapturedDocument,
-                     Boolean storeImageStream,
                      Boolean showCountDownView
     ) {
         this.apiKey = apiKey;
         this.performLivenessFace = performLivenessFace;
-        this.performPassiveLivenessFace = performPassiveLivenessFace;
         this.environmentalConditions = environmentalConditions;
         if (this.performLivenessFace && this.environmentalConditions.getActiveLiveType() != ActiveLiveType.NONE && environmentalConditions.getActiveLivenessCheckCount() != 0) {
             fillCompletionMap();
@@ -147,19 +138,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             eventCompletionList = new ArrayList<>();
         }
         frontCamera();
-        this.processMrz = processMrz;
-        this.performLivenessDocument = performLivenessDocument;
-        this.saveCapturedVideo = saveCapturedVideo;
-        this.storeCapturedDocument = storeCapturedDocument;
-        this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.showCountDownView = showCountDownView;
         setEnvironmentalConditions(this.environmentalConditions);
-        if (this.performPassiveLivenessFace) {
-            localLivenessLimit = 12;
-        } else {
-            localLivenessLimit = 0;
-        }
+
     }
 
     public void setStepId(String stepId) {
@@ -181,6 +163,28 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     throw new IllegalArgumentException("Step ID is required because multiple 'FaceImage Acquisition' steps are present.");
                 }
             }
+        }
+        for (StepDefinitions item : configModel.getStepDefinitions()) {
+            if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                if (performPassiveLivenessFace == null) {
+                    performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
+                }
+                if (storeCapturedDocument == null) {
+                    storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
+                }
+                if (saveCapturedVideo == null) {
+                    saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
+                }
+                if (storeImageStream == null) {
+                    storeImageStream = item.getCustomization().getStoreImageStream();
+                }
+
+            }
+        }
+        if (this.performPassiveLivenessFace) {
+            localLivenessLimit = 12;
+        } else {
+            localLivenessLimit = 0;
         }
     }
 
@@ -561,8 +565,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             "ConnectionId",
                             getVideoPath(configModel, faceMatch, videoCounter),
                             hasFace(),
-                            processMrz,
-                            performLivenessDocument,
+                            true,
+                            true,
                             performPassiveLivenessFace,
                             saveCapturedVideo,
                             storeCapturedDocument,
@@ -595,8 +599,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         "ConnectionId",
                         getVideoPath(configModel, faceMatch, videoCounter),
                         hasFace(),
-                        processMrz,
-                        performLivenessDocument,
+                        true,
+                        true,
                         performPassiveLivenessFace,
                         saveCapturedVideo,
                         storeCapturedDocument,

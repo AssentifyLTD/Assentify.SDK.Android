@@ -66,10 +66,6 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
 
     private IDResponseModel idResponseModel;
     private EnvironmentalConditions environmentalConditions;
-    Boolean performLivenessDocument;
-    Boolean saveCapturedVideoFace;
-    Boolean storeCapturedDocument;
-    Boolean storeImageStream;
 
     String stepId;
 
@@ -81,11 +77,8 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
             String apiKey,
             String language,
             ConfigModel configModel,
-            EnvironmentalConditions environmentalConditions,
-            Boolean performLivenessDocument,
-            Boolean saveCapturedVideoFace,
-            Boolean storeCapturedDocument,
-            Boolean storeImageStream
+            EnvironmentalConditions environmentalConditions
+
 
     ) {
         this.language = language;
@@ -94,10 +87,6 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
         this.configModel = configModel;
         this.environmentalConditions = environmentalConditions;
         this.qrScanner = BarcodeScanning.getClient();
-        this.performLivenessDocument = performLivenessDocument;
-        this.saveCapturedVideoFace = saveCapturedVideoFace;
-        this.storeCapturedDocument = storeCapturedDocument;
-        this.storeImageStream = storeImageStream;
     }
 
     public void setScanQrCallback(ScanQrCallback scanQrCallback) {

@@ -75,7 +75,6 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
 
     Boolean processMrz;
     Boolean performLivenessDocument;
-    Boolean performLivenessFace;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     Boolean storeImageStream;
@@ -100,24 +99,12 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
     int retryCount = 0;
 
     public ScanIDCardManual(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
-                            Boolean processMrz,
-                            Boolean performLivenessDocument,
-                            Boolean performLivenessFace,
-                            Boolean saveCapturedVideo,
-                            Boolean storeCapturedDocument,
-                            Boolean storeImageStream,
                             IDCardCallback idCardCallback,
                             List<KycDocumentDetails> kycDocumentDetails,
                             String language
     ) {
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
-        this.processMrz = processMrz;
-        this.performLivenessDocument = performLivenessDocument;
-        this.performLivenessFace = performLivenessFace;
-        this.saveCapturedVideo = saveCapturedVideo;
-        this.storeCapturedDocument = storeCapturedDocument;
-        this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         this.idCardCallback = idCardCallback;
         this.kycDocumentDetails = kycDocumentDetails;
@@ -148,6 +135,26 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                 if(this.stepId==null){
                     throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
                 }
+            }
+        }
+        for (StepDefinitions item : configModel.getStepDefinitions()) {
+            if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                if (performLivenessDocument == null) {
+                    performLivenessDocument = item.getCustomization().getDocumentLiveness();
+                }
+                if (processMrz == null) {
+                    processMrz = item.getCustomization().getProcessMrz();
+                }
+                if (storeCapturedDocument == null) {
+                    storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
+                }
+                if (saveCapturedVideo == null) {
+                    saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
+                }
+                if (storeImageStream == null) {
+                    storeImageStream = item.getCustomization().getStoreImageStream();
+                }
+
             }
         }
     }
@@ -204,7 +211,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                             false,
                             processMrz,
                             performLivenessDocument,
-                            performLivenessFace,
+                            true,
                             saveCapturedVideo,
                             storeCapturedDocument,
                             false,
