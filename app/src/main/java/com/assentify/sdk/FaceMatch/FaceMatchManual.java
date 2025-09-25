@@ -64,13 +64,9 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
     private String apiKey = "";
     private List<? extends Classifier.Recognition> results = new ArrayList<>();
 
-    Boolean processMrz;
-    Boolean performLivenessDocument;
-    Boolean performLivenessFace;
 
     Boolean performPassiveLivenessFace;
     Boolean saveCapturedVideo;
-    Boolean storeCapturedDocument;
     Boolean storeImageStream;
     ConfigModel configModel;
 
@@ -87,26 +83,11 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
 
     public FaceMatchManual() {
     }
-    public FaceMatchManual(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
-                           Boolean processMrz,
-                           Boolean performLivenessDocument,
-                           Boolean performLivenessFace,
-                           Boolean performPassiveLivenessFace,
-                           Boolean saveCapturedVideo,
-                           Boolean storeCapturedDocument,
-                           Boolean storeImageStream,
-                           Boolean showCountDownView
+    public FaceMatchManual(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey
     ) {
         this.apiKey = apiKey;
-        this.performLivenessFace = performLivenessFace;
-        this.performPassiveLivenessFace = performPassiveLivenessFace;
         this.environmentalConditions = environmentalConditions;
         frontCamera();
-        this.processMrz = processMrz;
-        this.performLivenessDocument = performLivenessDocument;
-        this.saveCapturedVideo = saveCapturedVideo;
-        this.storeCapturedDocument = storeCapturedDocument;
-        this.storeImageStream = storeImageStream;
         this.configModel = configModel;
         setEnvironmentalConditions(this.environmentalConditions);
     }
@@ -129,6 +110,20 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                 if (this.stepId == null) {
                     throw new IllegalArgumentException("Step ID is required because multiple 'FaceImage Acquisition' steps are present.");
                 }
+            }
+        }
+        for (StepDefinitions item : configModel.getStepDefinitions()) {
+            if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                if (performPassiveLivenessFace == null) {
+                    performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
+                }
+                if (saveCapturedVideo == null) {
+                    saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
+                }
+                if (storeImageStream == null) {
+                    storeImageStream = item.getCustomization().getStoreImageStream();
+                }
+
             }
         }
     }
@@ -187,11 +182,11 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                             "ConnectionId",
                             getVideoPath(configModel, faceMatch, 0),
                             hasFace(),
-                            processMrz,
-                            performLivenessDocument,
+                            true,
+                            true,
                             performPassiveLivenessFace,
                             saveCapturedVideo,
-                            storeCapturedDocument,
+                            true,
                             true,
                             storeImageStream,
                             stepId,
