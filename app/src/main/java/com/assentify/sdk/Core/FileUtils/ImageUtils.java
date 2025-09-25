@@ -62,6 +62,7 @@ public class ImageUtils {
     }
 
 
+
     public static Matrix getTransformationMatrix(
             final int srcWidth,
             final int srcHeight,
@@ -209,6 +210,22 @@ public class ImageUtils {
         return (totalRamGB < environmentalConditions.getMinRam()) || (cores < environmentalConditions.getMinCPUCores());
     }
 
+    public static Bitmap cropFromMiddle(Bitmap source, int cropWidth, int cropHeight) {
+        if (source == null) return null;
+
+        int srcWidth = source.getWidth();
+        int srcHeight = source.getHeight();
+
+        // Ensure crop size does not exceed the bitmap size
+        cropWidth = Math.min(cropWidth, srcWidth);
+        cropHeight = Math.min(cropHeight, srcHeight);
+
+        // Calculate the top-left point (x, y) to start cropping from the center
+        int x = (srcWidth - cropWidth) / 2;
+        int y = (srcHeight - cropHeight) / 2;
+
+        return Bitmap.createBitmap(source, x, y, cropWidth, cropHeight);
+    }
 
 
 }

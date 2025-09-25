@@ -83,7 +83,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     Boolean performLivenessDocument;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
-    Boolean storeImageStream;
     ConfigModel configModel;
     String language;
     String stepId;
@@ -151,9 +150,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
                 }
-                if (storeImageStream == null) {
-                    storeImageStream = item.getCustomization().getStoreImageStream();
-                }
+
 
             }
         }
@@ -458,7 +455,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     saveCapturedVideo,
                     storeCapturedDocument,
                     false,
-                    storeImageStream,
+                    true,
                     stepId,
                     new ArrayList<>()
             );

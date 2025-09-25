@@ -44,6 +44,8 @@ import com.assentify.sdk.ScanPassport.ScanPassportManual
 import com.assentify.sdk.ScanPassport.ScanPassportResult
 import com.assentify.sdk.ScanQr.ScanQr
 import com.assentify.sdk.ScanQr.ScanQrCallback
+import com.assentify.sdk.ScanQr.ScanQrManual
+import com.assentify.sdk.ScanQr.ScanQrResult
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import kotlinx.coroutines.GlobalScope
@@ -64,7 +66,6 @@ class AssentifySdk(
 ) {
 
     private var isKeyValid: Boolean = false;
-    private lateinit var scanQr: ScanQr;
     private var configModel: ConfigModel? = null;
     private var stepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
@@ -220,18 +221,32 @@ class AssentifySdk(
         kycDocumentDetails: List<KycDocumentDetails>,
         language: String = Language.NON,
         stepId: Int? = null,
-    ): ScanQr {
+    ): ScanQrResult {
         if (isKeyValid) {
-            scanQr = ScanQr(
-                kycDocumentDetails,
-                apiKey,
-                language,
-                configModel,
-                environmentalConditions,
-            )
-            scanQr.setScanQrCallback(scanQrCallback)
-            scanQr.setStepId(stepId?.toString())
-            return scanQr;
+            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+                val scanQrManual =  ScanQrManual(
+                    kycDocumentDetails,
+                    apiKey,
+                    language,
+                    configModel,
+                    environmentalConditions,
+                )
+                scanQrManual.setStepId(stepId?.toString())
+                scanQrManual.setScanQrCallback(scanQrCallback)
+                return ScanQrResult.Manual(scanQrManual);
+            } else {
+                val scanQr =  ScanQr(
+                    kycDocumentDetails,
+                    apiKey,
+                    language,
+                    configModel,
+                    environmentalConditions,
+                )
+                scanQr.setStepId(stepId?.toString())
+                scanQr.setScanQrCallback(scanQrCallback)
+                return ScanQrResult.Auto(scanQr);
+            }
+
         } else {
             throw Exception("Invalid Keys")
         }

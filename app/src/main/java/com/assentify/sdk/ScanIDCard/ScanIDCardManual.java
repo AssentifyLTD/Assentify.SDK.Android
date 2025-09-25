@@ -77,7 +77,6 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
     Boolean performLivenessDocument;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
-    Boolean storeImageStream;
     ConfigModel configModel;
 
     private String language;
@@ -151,9 +150,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
                 }
-                if (storeImageStream == null) {
-                    storeImageStream = item.getCustomization().getStoreImageStream();
-                }
+
 
             }
         }
@@ -215,7 +212,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                             saveCapturedVideo,
                             storeCapturedDocument,
                             false,
-                            storeImageStream,
+                            true,
                             stepId,
                             new ArrayList<>()
                     );

@@ -86,7 +86,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     Boolean performLivenessDocument;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
-    Boolean storeImageStream;
     ConfigModel configModel;
 
     private String language;
@@ -167,9 +166,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
                 }
-                if (storeImageStream == null) {
-                    storeImageStream = item.getCustomization().getStoreImageStream();
-                }
+
 
             }
         }
@@ -487,7 +484,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     saveCapturedVideo,
                     storeCapturedDocument,
                     false,
-                    storeImageStream,
+                    true,
                     stepId,
                     new ArrayList<>()
             );

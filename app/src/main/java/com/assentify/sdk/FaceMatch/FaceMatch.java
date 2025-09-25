@@ -74,7 +74,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     Boolean performPassiveLivenessFace;
     Boolean saveCapturedVideo;
-    Boolean storeCapturedDocument;
     Boolean storeImageStream;
     ConfigModel configModel;
 
@@ -168,9 +167,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performPassiveLivenessFace == null) {
                     performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
-                }
-                if (storeCapturedDocument == null) {
-                    storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
                 }
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
@@ -569,7 +565,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             true,
                             performPassiveLivenessFace,
                             saveCapturedVideo,
-                            storeCapturedDocument,
+                            true,
                             true,
                             storeImageStream,
                             stepId,
@@ -603,7 +599,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         true,
                         performPassiveLivenessFace,
                         saveCapturedVideo,
-                        storeCapturedDocument,
+                        true,
                         true,
                         storeImageStream,
                         stepId,

@@ -74,7 +74,6 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
     Boolean performLivenessDocument;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
-    Boolean storeImageStream;
     ConfigModel configModel;
 
     String language;
@@ -140,9 +139,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
                 }
-                if (storeImageStream == null) {
-                    storeImageStream = item.getCustomization().getStoreImageStream();
-                }
+
 
             }
         }
@@ -205,7 +202,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                             saveCapturedVideo,
                             storeCapturedDocument,
                             false,
-                            storeImageStream,
+                            true,
                             stepId,
                             new ArrayList<>()
                     );

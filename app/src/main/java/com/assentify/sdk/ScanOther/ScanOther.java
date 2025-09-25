@@ -80,7 +80,6 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
     Boolean performLivenessDocument;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
-    Boolean storeImageStream;
     ConfigModel configModel;
 
     String language;
@@ -150,9 +149,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
                 }
-                if (storeImageStream == null) {
-                    storeImageStream = item.getCustomization().getStoreImageStream();
-                }
+
 
             }
         }
@@ -471,7 +468,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                     saveCapturedVideo,
                     storeCapturedDocument,
                     false,
-                    storeImageStream,
+                    true,
                     stepId,
                     new ArrayList<>()
             );

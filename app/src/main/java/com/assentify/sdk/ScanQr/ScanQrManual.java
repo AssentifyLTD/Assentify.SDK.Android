@@ -9,6 +9,9 @@ import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWo
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,24 +20,24 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
+import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
-import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
-import com.assentify.sdk.ScanIDCard.IDExtractedModel;
-import com.google.mlkit.vision.barcode.common.Barcode;
-import com.google.mlkit.vision.barcode.BarcodeScanner;
-import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.assentify.sdk.Models.BaseResponseDataModel;
 import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails;
+import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
+import com.assentify.sdk.ScanIDCard.IDExtractedModel;
 import com.assentify.sdk.ScanIDCard.IDResponseModel;
 import com.assentify.sdk.tflite.Classifier;
-import com.assentify.sdk.Core.Constants.HubConnectionTargets;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 
 import java.util.ArrayList;
@@ -43,11 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-
 import kotlin.Pair;
 
 
-public class ScanQr extends CameraPreview implements RemoteProcessingCallback , LanguageTransformationCallback {
+public class ScanQrManual extends CameraPreview implements RemoteProcessingCallback , LanguageTransformationCallback {
 
 
     private ScanQrCallback scanQrCallback;
@@ -69,10 +71,11 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
 
     String stepId;
 
-    public ScanQr() {
+    private Bitmap normalImage;
+    public ScanQrManual() {
     }
 
-    public ScanQr(
+    public ScanQrManual(
             List<KycDocumentDetails> kycDocumentDetails,
             String apiKey,
             String language,
@@ -88,6 +91,12 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
         this.environmentalConditions = environmentalConditions;
         this.qrScanner = BarcodeScanning.getClient();
         setEnvironmentalConditions(this.environmentalConditions);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+        super.onViewCreated(view, savedInstanceState);
     }
 
     public void setScanQrCallback(ScanQrCallback scanQrCallback) {
@@ -122,52 +131,22 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
     }
 
     @Override
-    protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
-
-
+    protected void processManualImage(@NonNull Bitmap normalImage) {
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  changeCardWeightLayout();
+                    changeCardWeightLayout();
                 }
             });
         }
         setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
 
-        if (this.start) {
-            this.start = false;
-            InputImage image = InputImage.fromBitmap(normalImage, 0);
-            this.qrScanner.process(image)
-                    .addOnSuccessListener(barcodes -> {
-                        if (barcodes != null && !barcodes.isEmpty()) {
-                            Barcode barcode = barcodes.get(0);
-                       if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    scanQrCallback.onStartQrScan();
-                                }
-                            });
-                        }
-                            remoteProcessing.starQrProcessing(
-                                    HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.QR),
-                                    ImageUtils.convertBitmapToBase64(normalImage, BlockType.FACE_MATCH, getActivity()),
-                                    configModel,
-                                    kycDocumentDetails.get(0).getTemplateProcessingKeyInformation(),
-                                    "ConnectionId",
-                                    this.stepId,
-                                    barcode.getRawValue()
-
-                            );
-                        }else {
-                            this.start = true;
-                        }
-                    });
-        }
-
+        this.normalImage = normalImage;
 
     }
+
+
 
     @Override
     protected void onStopRecordVideo() {
@@ -195,7 +174,7 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
                             scanQrCallback.onCompleteQrScan(idResponseModel);
                         } else {
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
-                            translated.setCallback(ScanQr.this);
+                            translated.setCallback(ScanQrManual.this);
                             translated.languageTransformation(
                                     language,
                                     preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
@@ -205,6 +184,7 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
 
                     } else {
                          start = true;
+                         manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                          scanQrCallback.onErrorQrScan(BaseResponseDataModel.getError());
                     }
 
@@ -263,5 +243,42 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
         scanQrCallback.onCompleteQrScan(idResponseModel);
+    }
+
+
+    public void takePicture() {
+        if (this.start) {
+            this.start = false;
+            Bitmap rotatedBitmap= ImageUtils.rotateBitmap(normalImage,90);
+            Bitmap cropped = ImageUtils.cropFromMiddle(rotatedBitmap, 300, 300);
+            InputImage image = InputImage.fromBitmap(cropped, 0);
+            this.qrScanner.process(image)
+                    .addOnSuccessListener(barcodes -> {
+                        if (barcodes != null && !barcodes.isEmpty()) {
+                            Barcode barcode = barcodes.get(0);
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        scanQrCallback.onStartQrScan();
+                                    }
+                                });
+                            }
+                            remoteProcessing.starQrProcessing(
+                                    HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.QR),
+                                    ImageUtils.convertBitmapToBase64(normalImage, BlockType.FACE_MATCH, getActivity()),
+                                    configModel,
+                                    kycDocumentDetails.get(0).getTemplateProcessingKeyInformation(),
+                                    "ConnectionId",
+                                    this.stepId,
+                                    barcode.getRawValue()
+
+                            );
+                        }else {
+                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                            this.start = true;
+                        }
+                    });
+        }
     }
 }
