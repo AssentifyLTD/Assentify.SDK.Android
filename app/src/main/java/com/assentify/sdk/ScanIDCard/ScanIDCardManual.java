@@ -2,6 +2,7 @@ package com.assentify.sdk.ScanIDCard;
 
 
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getIDTag;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -13,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -196,26 +198,26 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                 start = false;
                 setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
                 createBase64.execute(() -> {
-                    remoteProcessing.starProcessing(
+                    remoteProcessing.starProcessingIDs(
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.ID_CARD),
-                            ImageUtils.convertBitmapToBase64(normalImage, BlockType.ID_CARD, getActivity()),
-                            "",
+                            ImageUtils.convertBitmapToByteArray(normalImage, BlockType.READ_PASSPORT, getActivity()),
                             configModel,
                             this.templateId,
-                            "",
                             "ConnectionId",
                             getVideoPath(configModel, this.templateId, 0),
-                            false,
+                            true,
                             processMrz,
                             performLivenessDocument,
-                            true,
                             saveCapturedVideo,
                             storeCapturedDocument,
-                            false,
                             true,
                             stepId,
-                            new ArrayList<>()
+                            true,
+                            false,
+                            retryCount++,
+                            getIDTag(configModel,this.templateId)
                     );
+
                 });
             }else {
                 if (getActivity() != null) {
@@ -483,6 +485,12 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
 
     @Override
     protected void onStopRecordVideo() {
+    }
+
+    @Override
+    public void onUploadProgress(int progress) {
+        Log.e("IDSCAN onUploadProgress", String.valueOf(progress));
+
     }
 }
 

@@ -15,6 +15,31 @@ import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 public class ImageUtils {
 
 
+    /** Byte Array **/
+
+    public static  byte[] convertBitmapToByteArray(Bitmap inputImage, BlockType blockType, Context context) {
+        Bitmap bitmap = inputImage;
+        if (blockType == BlockType.FACE_MATCH) {
+            bitmap = rotateBitmap(bitmap, 270);
+        } else {
+            bitmap = rotateBitmap(bitmap, 90);
+
+        }
+
+        return bitmapToByteArray(bitmap,60);
+    }
+
+    public static  byte[] bitmapToByteArray(Bitmap bitmap, int visualQuality) {
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, visualQuality, byteArrayOutputStream); // quality 0..100
+            return byteArrayOutputStream.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    /**  **/
 
     public static String convertBitmapToBase64(Bitmap inputImage, BlockType blockType, Context context) {
         Bitmap bitmap = inputImage;

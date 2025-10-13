@@ -2,6 +2,7 @@ package com.assentify.sdk.ScanIDCard;
 
 
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getIDTag;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -12,6 +13,7 @@ import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWo
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,6 +64,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private IDCardCallback idCardCallback;
     private  EnvironmentalConditions environmentalConditions;
     private String templateId;
+    private String templateName;
 
     private RectF rectFCard = new RectF();
     private double brightness;
@@ -176,6 +179,11 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     public void changeTemplateId(String templateId) {
         this.retryCount = 0;
         this.templateId = templateId;
+        kycDocumentDetails.forEach((item) -> {
+            if(Objects.equals(this.templateId, item.getTemplateProcessingKeyInformation())){
+               this.templateName =  item.getName();
+            }
+        });
         createBase64 = Executors.newSingleThreadExecutor();
         highQualityBitmaps.clear();
         motionRectF.clear();
@@ -468,26 +476,26 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
             audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
-            remoteProcessing.starProcessing(
+            remoteProcessing.starProcessingIDs(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.ID_CARD),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.ID_CARD, getActivity()),
-                    "",
+                    ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
                     configModel,
                     this.templateId,
-                    "",
                     "ConnectionId",
-                    getVideoPath(configModel, this.templateId, videoCounter),
-                    false,
+                    getVideoPath(configModel, this.templateId, 0),
+                    true,
                     processMrz,
                     performLivenessDocument,
-                    true,
                     saveCapturedVideo,
                     storeCapturedDocument,
-                    false,
                     true,
                     stepId,
-                    new ArrayList<>()
+                    false,
+                    true,
+                    retryCount++,
+                    getIDTag(configModel,this.templateName)
             );
+
         });
 
       //  remoteProcessing.uploadVideo(videoCounter, video, configModel, this.templateId);
@@ -575,6 +583,11 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         }
     }
 
+    @Override
+    public void onUploadProgress(int progress) {
+        Log.e("IDSCAN onUploadProgress", String.valueOf(progress));
+
+    }
 
 }
 

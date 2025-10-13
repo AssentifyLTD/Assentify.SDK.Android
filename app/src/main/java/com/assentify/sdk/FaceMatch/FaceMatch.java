@@ -840,4 +840,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             faceQualityCheck.stop();
         }
     }
+
+    @Override
+    public void onUploadProgress(int progress) {
+        Log.e("IDSCAN onUploadProgress", String.valueOf(progress));
+
+    }
 }

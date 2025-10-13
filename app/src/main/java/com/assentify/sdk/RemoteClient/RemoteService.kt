@@ -200,6 +200,43 @@ interface RemoteWidgetsService {
         @Part("Metadata") metadata: RequestBody,
     ): Call<ResponseBody>
 
+
+    @POST
+    @Multipart
+    @JvmSuppressWildcards
+    @Headers("Accept: application/json, text/plain, */*")
+    fun starProcessingIDs(
+        @Url url: String,
+        @Header("x-step-id") stepID: String,
+        @Header("x-block-identifier") xBlockIdentifier: String,
+        @Header("x-flow-identifier") xFlowIdentifier: String,
+        @Header("x-flow-instance-id") xFlowInstanceId: String,
+        @Header("x-instance-hash") xInstanceHash: String,
+        @Header("x-instance-id") xInstanceId: String,
+        @Header("x-tenant-identifier") xTenantIdentifier: String,
+        @Part("tenantId") tenantId: RequestBody,
+        @Part("blockId") blockId: RequestBody,
+        @Part("instanceId") instanceId: RequestBody,
+        @Part("templateId") templateId: RequestBody,
+        @Part("livenessCheckEnabled") livenessCheckEnabled: RequestBody,
+        @Part("processMrz") processMrz: RequestBody,
+        @Part("DisableDataExtraction") disableDataExtraction: RequestBody,
+        @Part("storeImageStream") storeImageStream: RequestBody,
+        @Part("isVideo") isVideo: RequestBody,
+        @Part("clipsPath") clipsPath: RequestBody,
+        @Part("isMobile") isMobile: RequestBody,
+        @Part image: MultipartBody.Part,
+        @Part("checkForFace") checkForFace: RequestBody,
+        @Part("callerConnectionId") callerConnectionId: RequestBody,
+        @Part("saveCapturedVideo") saveCapturedVideo: RequestBody,
+        @Part("storeCapturedDocument") storeCapturedDocument: RequestBody,
+        @Part("traceIdentifier") traceIdentifier: RequestBody,
+        @Part("IsManualCapture") isManualCapture : RequestBody,
+        @Part("IsAutoCapture") isAutoCapture: RequestBody,
+        @Part("TryNumber") tryNumber: RequestBody,
+        @Part("Tag") tag  : RequestBody,
+    ): Call<ResponseBody>
+
 }
 
 interface RemoteTranslatedService {

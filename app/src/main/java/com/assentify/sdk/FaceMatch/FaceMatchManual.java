@@ -9,6 +9,7 @@ import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -378,5 +379,11 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
         if (this.createBase64 != null) {
             this.createBase64.shutdown();
         }
+    }
+
+    @Override
+    public void onUploadProgress(int progress) {
+        Log.e("IDSCAN onUploadProgress", String.valueOf(progress));
+
     }
 }

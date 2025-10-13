@@ -9,35 +9,22 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.assentify.sdk.Core.Constants.ActiveLiveEvents
 import com.assentify.sdk.Core.Constants.ActiveLiveType
-import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
-import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.Language
-import com.assentify.sdk.Core.Constants.MotionType
-import com.assentify.sdk.Core.Constants.ZoomType
-import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.FaceMatch.FaceMatchManual
-import com.assentify.sdk.FaceMatch.FaceMatchResult
-import com.assentify.sdk.FaceMatch.FaceResponseModel
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.StepMap
-import com.assentify.sdk.ScanIDCard.IDCardCallback
-import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
-import com.assentify.sdk.ScanIDCard.ScanIDCardResult
 import com.assentify.sdk.ScanOther.OtherResponseModel
 import com.assentify.sdk.ScanOther.ScanOtherCallback
 import com.assentify.sdk.ScanOther.ScanOtherManual
@@ -46,15 +33,13 @@ import com.assentify.sdk.ScanPassport.PassportResponseModel
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.ScanPassport.ScanPassportManual
 import com.assentify.sdk.ScanPassport.ScanPassportResult
-import com.assentify.sdk.ScanQr.ScanQrCallback
 import com.assentify.sdk.ScanQr.ScanQrManual
-import com.assentify.sdk.ScanQr.ScanQrResult
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCallback{
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var passportClick: LinearLayout
@@ -110,8 +95,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
             "#FFC400",
             activeLiveType = ActiveLiveType.NONE,
             activeLivenessCheckCount = 2,
-            retryCount = 4,
-            minRam = 2,
+            retryCount = 3,
+            minRam = 1
 
         );
         // F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A
@@ -130,7 +115,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
         val takeImage = findViewById<Button>(R.id.takeImage)
 
         takeImage.setOnClickListener {
-            scanQrManual.takePicture();
+            scanPassportManual.takePicture();
         }
 
        val nextPage  = findViewById<Button>(R.id.nextPage)
@@ -231,11 +216,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
 
     }*/
 
-   /* fun startAssentifySdk() {
+/*    fun startAssentifySdk() {
 
       when (val result = assentifySdk.startScanOther(
           this@MainActivity,
-          Language.Arabic,
       )) {
           is ScanOtherResult.Manual -> {
               Log.e("IDSCAN", "ScanOtherResult")
@@ -260,7 +244,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
 
   }*/
 
-/*    fun startAssentifySdk() {
+    fun startAssentifySdk() {
 
         when (val result = assentifySdk.startScanPassport(
             this@MainActivity,
@@ -287,9 +271,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
 
 
 
-    }*/
+    }
 
-      fun startAssentifySdk() {
+ /*     fun startAssentifySdk() {
 
           var data: List<KycDocumentDetails> = listOf(
               KycDocumentDetails(
@@ -325,7 +309,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
           }
 
 
-      }
+      }*/
 
 
     /*override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
@@ -345,7 +329,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
         }
     }
 
-    override fun onStartQrScan() {
+ /*   override fun onStartQrScan() {
         Log.e("IDSCAN", "onStartQrScan")
     }
 
@@ -357,9 +341,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
 
     override fun onErrorQrScan(message: String) {
         Log.e("IDSCAN", "onErrorQrScan")
-    }
+    }*/
 
-   /* override fun onError(dataModel: BaseResponseDataModel) {
+    override fun onError(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onError")
     }
 
@@ -370,11 +354,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
 
    override fun onRetry(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onRetry")
-    }*/
+    }
 
-   /* override fun onComplete(dataModel: OtherResponseModel) {
+  /*  override fun onComplete(dataModel: OtherResponseModel,doneFlag:DoneFlags) {
         Log.e("IDSCAN", dataModel.otherExtractedModel?.outputProperties.toString())
         Log.e("IDSCAN", dataModel.otherExtractedModel?.extractedData.toString())
+        Log.e("IDSCAN", dataModel.otherExtractedModel?.additionalDetails.toString())
+        Log.e("IDSCAN", doneFlag.toString())
     }*/
 
  /*     override fun onComplete(dataModel: FaceResponseModel,doneFlag:DoneFlags) {
@@ -406,14 +392,21 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
           Log.e("IDSCAN", "onWrongTemplate")
       }*/
 
- /*   override fun onComplete(dataModel: PassportResponseModel, doneFlag:DoneFlags) {
+    override fun onComplete(dataModel: PassportResponseModel, doneFlag:DoneFlags) {
         Log.e("IDSCAN", dataModel.passportExtractedModel?.outputProperties.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.extractedData.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.imageUrl.toString())
         Log.e("IDSCAN", doneFlag.toString())
 
-    }*/
+    }
+    override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
+        Log.e("IDSCAN", "onWrongTemplate")
+    }
 
+
+    override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
+        Log.e("IDSCAN", "onLivenessUpdate")
+    }
 
    /* override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
@@ -437,6 +430,11 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback{
             faceTextView.text = activeLiveEvents.name
         }*//*
     }*/
+
+    override fun onUploadingProgress(progress: Int) {
+        Log.e("IDSCAN ","Other onUploadProgress :" + progress.toString())
+    }
+
 }
 
 
@@ -467,5 +465,7 @@ class ImageToBase64Converter : AsyncTask<String, Void, String>() {
         // You can handle the result here if needed
         // For example, you can use the result in another function or class
     }
+
+
 }
 

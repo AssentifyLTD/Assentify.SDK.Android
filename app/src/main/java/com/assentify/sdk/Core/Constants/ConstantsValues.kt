@@ -32,3 +32,7 @@ fun getVideoPath(configModel:ConfigModel,template:String,videoCounter:Int): Stri
     return  configModel.tenantIdentifier + "/" + configModel.blockIdentifier + "/" + configModel.instanceId + "/" + template  + "/" + "try_${videoCounter}"  + "/" +"${videoCounter}.mp4"
 }
 
+fun getIDTag(configModel:ConfigModel,templateName:String): String? {
+    return  configModel.tenantIdentifier + "/" + configModel.instanceId + "," + templateName;
+}
+

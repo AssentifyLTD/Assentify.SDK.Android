@@ -1,6 +1,7 @@
 package com.assentify.sdk.ScanOther;
 
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getIDTag;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -12,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -186,25 +188,24 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                 start = false;
                 setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
                 createBase64.execute(() -> {
-                    remoteProcessing.starProcessing(
+                    remoteProcessing.starProcessingIDs(
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.OTHER),
-                            ImageUtils.convertBitmapToBase64(normalImage, BlockType.OTHER, getActivity()),
-                            "",
+                            ImageUtils.convertBitmapToByteArray(normalImage, BlockType.READ_PASSPORT, getActivity()),
                             configModel,
-                            "",
                             "",
                             "ConnectionId",
                             getVideoPath(configModel, other, 0),
-                            hasFace(),
+                            true,
                             processMrz,
                             performLivenessDocument,
-                            true,
                             saveCapturedVideo,
                             storeCapturedDocument,
-                            false,
                             true,
                             stepId,
-                            new ArrayList<>()
+                            true,
+                            false,
+                            retryCount,
+                            getIDTag(configModel,other)
                     );
                 });
             }else {
@@ -476,4 +477,9 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
         this.createBase64.shutdown();
     }
 
+    @Override
+    public void onUploadProgress(int progress) {
+        scanOtherCallback.onUploadingProgress(progress);
+
+    }
 }
