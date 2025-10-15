@@ -14,6 +14,7 @@ data class ConfigModel(
     val customProperties: Map<String, Any>,
     val defaultLanguageId: Int,
     val instanceId: String,
+    val applicationId: String,
     val userStateStepMap: Map<String, List<UserState>>,
     val stepDefinitions: List<StepDefinitions>,
     val stepMap: List<StepMap>
