@@ -4,6 +4,8 @@ import android.app.ActivityManager
 import android.content.Context
 import android.util.Log
 import androidx.fragment.app.Fragment
+import com.assentify.sdk.AssistedDataEntry.AssistedDataEntry
+import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
@@ -329,6 +331,20 @@ class AssentifySdk(
                 configModel!!,
                 apiKey!!
             )
+        } else {
+            throw Exception("Invalid Keys")
+        }
+    }
+
+    fun startAssistedDataEntry(assistedDataEntryCallback: AssistedDataEntryCallback,stepId: Int? = null,): AssistedDataEntry {
+        if (isKeyValid) {
+            val assistedDataEntry =  AssistedDataEntry(
+                apiKey!!,
+                configModel!!
+            )
+            assistedDataEntry.setStepId(stepId?.toString())
+            assistedDataEntry.setCallback(assistedDataEntryCallback)
+            return  assistedDataEntry;
         } else {
             throw Exception("Invalid Keys")
         }

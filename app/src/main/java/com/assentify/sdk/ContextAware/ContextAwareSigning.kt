@@ -28,13 +28,13 @@ class ContextAwareSigning(
     private var templateId = -1;
 
     init {
-        getStep()
+        getContextAwareSigningStep()
     }
 
 
-    private fun getStep() {
+    private fun getContextAwareSigningStep() {
         val remoteService = remoteGatewayService
-        val call = remoteService.getStep(
+        val call = remoteService.getContextAwareSigningStep(
             apiKey, "SDK",
             configModel.flowInstanceId,
             configModel.tenantIdentifier,

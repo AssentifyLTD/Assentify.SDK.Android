@@ -1,5 +1,6 @@
 package   com.assentify.sdk.RemoteClient
 
+import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryBaseModel
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
@@ -96,7 +97,7 @@ interface RemoteGatewayService {
 
     @GET("v1/ContextAwareSigning/GetStep/{ID}")
     @Headers("Content-Type: application/json")
-    fun getStep(
+    fun getContextAwareSigningStep(
         @Header("X-Api-Key") apiKey: String,
         @Header("X-Source-Agent") userAgent: String,
         @Header("X-Flow-Instance-Id") flowInstanceId: String,
@@ -107,6 +108,21 @@ interface RemoteGatewayService {
         @Header("X-Instance-Hash") instanceHash: String,
         @Path("ID") ID: Int,
     ): Call<ContextAwareSigningModel>;
+
+
+    @GET("v1/AssistedDataEntry/GetStep/{ID}")
+    @Headers("Content-Type: application/json")
+    fun getAssistedDataEntryStep(
+        @Header("X-Api-Key") apiKey: String,
+        @Header("X-Source-Agent") userAgent: String,
+        @Header("X-Flow-Instance-Id") flowInstanceId: String,
+        @Header("X-Tenant-Identifier") tenantIdentifier: String,
+        @Header("X-Block-Identifier") blockIdentifier: String,
+        @Header("X-Instance-Id") instanceId: String,
+        @Header("X-Flow-Identifier") flowIdentifier: String,
+        @Header("X-Instance-Hash") instanceHash: String,
+        @Path("ID") ID: String,
+    ): Call<AssistedDataEntryBaseModel>;
 }
 
 
