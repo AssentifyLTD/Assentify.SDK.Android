@@ -1,6 +1,12 @@
 package  com.assentify.sdk
 
-import com.assentify.sdk.RemoteClient.Models.StepDefinitions
+import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
+import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
+import com.assentify.sdk.Flow.Models.FlowCallBack
+import com.assentify.sdk.Flow.Models.LocalStepModel
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.Templates
+import com.assentify.sdk.ScanPassport.PassportResponseModel
 
 object AssentifySdkObject {
     private lateinit var assentifySdk: AssentifySdk
@@ -14,40 +20,123 @@ object AssentifySdkObject {
 
 }
 
-object OutputPropertiesModel {
-    private lateinit var outputPropertiesModel:Map<String, Any>;
-    fun setOutputPropertiesModel(extractedModel: Map<String, Any>) {
-        this.outputPropertiesModel = extractedModel;
+
+object FlowEnvironmentalConditionsObject {
+    private lateinit var flowEnvironmentalConditions: FlowEnvironmentalConditions;
+    fun setFlowEnvironmentalConditions(flowEnvironmentalConditions: FlowEnvironmentalConditions) {
+        this.flowEnvironmentalConditions = flowEnvironmentalConditions;
     }
 
-    fun getOutputPropertiesModel(): Map<String, Any> {
-        return this.outputPropertiesModel
-    }
-
-}
-
-object ExtractedModel {
-    private lateinit var extractedModel:Map<String, Any>;
-    fun setExtractedModel(extractedModel: Map<String, Any>) {
-        this.extractedModel = extractedModel;
-    }
-
-    fun getExtractedModel(): Map<String, Any> {
-        return this.extractedModel
+    fun getFlowEnvironmentalConditions(): FlowEnvironmentalConditions {
+        return this.flowEnvironmentalConditions
     }
 
 }
 
-
-
-object StepDefinitionsModel {
-    private lateinit var stepDefinitions: List<StepDefinitions>;
-    fun setStepDefinitionsModel(stepDefinitions: List<StepDefinitions>) {
-        this.stepDefinitions = stepDefinitions;
+object ConfigModelObject {
+    private lateinit var configModel: ConfigModel
+    fun setConfigModelObject(configModel: ConfigModel) {
+        this.configModel = configModel;
     }
 
-    fun getStepDefinitionsModel() : List<StepDefinitions>{
-        return this.stepDefinitions
+    fun getConfigModelObject(): ConfigModel {
+        return this.configModel
     }
 
 }
+
+
+object LocalStepsObject {
+    private var localSteps: MutableList<LocalStepModel> = mutableListOf()
+
+    fun setLocalSteps(localSteps: MutableList<LocalStepModel>) {
+        this.localSteps = localSteps
+    }
+
+    fun getLocalSteps(): MutableList<LocalStepModel> {
+        return localSteps
+    }
+}
+
+object SelectedTemplatesObject {
+    private lateinit var templates: Templates
+    fun setSelectedTemplatesObject(templates: Templates) {
+        this.templates = templates
+    }
+
+    fun getSelectedTemplatesObject(): Templates {
+        return templates
+    }
+}
+
+object ApiKeyObject {
+    private lateinit var apiKey: String
+    fun setApiKeyObject(templates: String) {
+        this.apiKey = templates
+    }
+
+    fun getApiKeyObject(): String {
+        return apiKey
+    }
+}
+
+
+object AssistedDataEntryPagesObject {
+    private var assistedDataEntryModel: AssistedDataEntryModel? = null
+
+    fun setAssistedDataEntryModelObject(model: AssistedDataEntryModel?) {
+        assistedDataEntryModel = model
+    }
+
+    fun getAssistedDataEntryModelObject(): AssistedDataEntryModel? = assistedDataEntryModel
+
+    fun clear() {
+        assistedDataEntryModel = null
+    }
+
+}
+
+
+object NfcPassportResponseModelObject {
+    private lateinit var passportResponseModel: PassportResponseModel
+    fun setPassportResponseModelObject(passportResponseModel: PassportResponseModel) {
+        this.passportResponseModel = passportResponseModel
+    }
+
+    fun getPassportResponseModelObject(): PassportResponseModel {
+        return passportResponseModel
+    }
+}
+
+
+object FlowCallbackObject {
+    private lateinit var flowCallback: FlowCallBack
+    fun setFlowCallbackObject(flowCallback: FlowCallBack) {
+        this.flowCallback = flowCallback
+    }
+
+    fun getFlowCallbackObject(): FlowCallBack {
+        return flowCallback
+    }
+}
+
+
+
+
+object Base64ImageObject {
+    private var image: String? = null
+
+    fun setImage(value: String?) {
+        image = value
+    }
+
+    fun getImage(): String? = image
+
+    fun clear() {
+        image = null
+    }
+
+}
+
+
+

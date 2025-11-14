@@ -14,6 +14,7 @@ data class ConfigModel(
     val customProperties: Map<String, Any>,
     val defaultLanguageId: Int,
     val instanceId: String,
+    val applicationId: String,
     val userStateStepMap: Map<String, List<UserState>>,
     val stepDefinitions: List<StepDefinitions>,
     val stepMap: List<StepMap>
@@ -38,6 +39,7 @@ data class StepDefinitions(
 data class OutputProperties(
     val id: Int,
     val key: String,
+    val keyIdentifier: String,
     val displayName: String,
     val isRequired: Boolean,
     val isExcluded: Boolean,
@@ -51,6 +53,7 @@ data class Customization(
     val performLivenessDetection: Boolean?,
     val storeImageStream: Boolean?,
     val saveCapturedVideo: Boolean?,
+    val outputProperties: List<OutputProperties>,
     val identificationDocuments: List<IdentificationDocuments>?
 )
 

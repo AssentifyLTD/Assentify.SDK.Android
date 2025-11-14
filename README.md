@@ -39,6 +39,10 @@ dependencies {
 
 ## Versions
 
+***0.0.89***
+1. *Add "applicationId" to the Config Model*
+2. *Change idType and idArmyStatus from Transliteration to Translation*
+
 ***0.0.88***
 1. *Simplified SDK Initialization*
     - You no longer need to pass the following parameters when initializing the SDK:

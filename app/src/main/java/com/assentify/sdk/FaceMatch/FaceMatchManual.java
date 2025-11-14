@@ -173,26 +173,20 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                 start = false;
                 setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
                 createBase64.execute(() -> {
-                    remoteProcessing.starProcessing(
+                    remoteProcessing.starProcessingFace(
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
-                            "",
-                            ImageUtils.convertBitmapToBase64(normalImage, BlockType.FACE_MATCH, getActivity()),
                             configModel,
-                            "",
-                            this.secondImage,
-                            "ConnectionId",
-                            getVideoPath(configModel, faceMatch, 0),
-                            hasFace(),
-                            true,
-                            true,
-                            performPassiveLivenessFace,
-                            saveCapturedVideo,
-                            true,
-                            true,
-                            storeImageStream,
                             stepId,
-                            new ArrayList<>()
+                            ImageUtils.convertBitmapToByteArray(normalImage, BlockType.FACE_MATCH, getActivity()),
+                            new ArrayList<>(),
+                            ImageUtils.base64ToByteArray(this.secondImage),
+                            performPassiveLivenessFace,
+                            livnessRetryCount,
+                            false,
+                            true,
+                            "ConnectionId"
                     );
+
                 });
             }else {
                 if (getActivity() != null) {
@@ -383,7 +377,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
 
     @Override
     public void onUploadProgress(int progress) {
-        Log.e("IDSCAN onUploadProgress", String.valueOf(progress));
+        faceMatchCallback.onUploadingProgress(progress);
 
     }
 }

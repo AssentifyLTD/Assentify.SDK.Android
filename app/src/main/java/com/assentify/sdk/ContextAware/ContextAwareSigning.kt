@@ -26,6 +26,7 @@ class ContextAwareSigning(
 
 
     private var templateId = -1;
+    private var contextAwareSigningModel :ContextAwareSigningModel? = null;
 
     init {
         getContextAwareSigningStep()
@@ -50,6 +51,7 @@ class ContextAwareSigning(
                 response: Response<ContextAwareSigningModel>
             ) {
                 if (response.isSuccessful) {
+                    contextAwareSigningModel = response.body();
                     templateId = response.body()!!.data.selectedTemplates[0]
                     getTokens(response.body()!!.data.selectedTemplates[0])
                 }
@@ -71,7 +73,7 @@ class ContextAwareSigning(
                 response: Response<List<DocumentTokensModel>>
             ) {
                 if (response.isSuccessful) {
-                    contextAwareSigningCallback.onHasTokens(response.body()!!);
+                    contextAwareSigningCallback.onHasTokens(response.body()!!,contextAwareSigningModel);
                 }
             }
 

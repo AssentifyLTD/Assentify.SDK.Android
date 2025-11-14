@@ -30,4 +30,11 @@ fun parseDataToBaseResponseDataModel(data: String): BaseResponseDataModel {
     )
 }
 
+fun getImageUrlFromBaseResponseDataModel(jsonString: String): String {
+    val json = JSONObject(jsonString)
+    val imageUrl = json.optString("ImageUrl", "")
+    return  imageUrl;
+}
+
+
 

@@ -437,7 +437,6 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         return hasFace;
     }
 
-    // TODO Later
     @Override
     protected void onStopRecordVideo() {
         if (getActivity() != null) {
@@ -472,7 +471,8 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                     false,
                     true,
                     retryCount,
-                    getIDTag(configModel,other)
+                    getIDTag(configModel,other),
+                    false
             );
         });
 

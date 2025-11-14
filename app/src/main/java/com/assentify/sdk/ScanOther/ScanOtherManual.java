@@ -205,7 +205,8 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                             true,
                             false,
                             retryCount,
-                            getIDTag(configModel,other)
+                            getIDTag(configModel,other),
+                            false
                     );
                 });
             }else {

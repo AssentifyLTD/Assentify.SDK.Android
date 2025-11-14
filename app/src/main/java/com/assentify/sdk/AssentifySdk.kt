@@ -1,14 +1,14 @@
 package  com.assentify.sdk
 
-import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
 import android.util.Log
-import androidx.fragment.app.Fragment
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntry
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
+import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
 import com.assentify.sdk.Core.FileUtils.ImageUtils
 import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
@@ -16,6 +16,8 @@ import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.FaceMatch.FaceMatchManual
 import com.assentify.sdk.FaceMatch.FaceMatchResult
+import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
+import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
@@ -26,11 +28,9 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
-import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
 import com.assentify.sdk.ScanIDCard.IDCardCallback
-import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
 import com.assentify.sdk.ScanIDCard.ScanIDCardResult
@@ -50,12 +50,9 @@ import com.assentify.sdk.ScanQr.ScanQrManual
 import com.assentify.sdk.ScanQr.ScanQrResult
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.File
 
 class AssentifySdk(
     private var apiKey: String? = null,
@@ -69,8 +66,7 @@ class AssentifySdk(
 
     private var isKeyValid: Boolean = false;
     private var configModel: ConfigModel? = null;
-    private var stepID: Int = -1;
-    private var templates: List<TemplatesByCountry> = emptyList();
+    private var allTemplates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
 
 
@@ -142,14 +138,6 @@ class AssentifySdk(
 
     private fun iniSdk() {
         getTemplatesByCountry();
-        GlobalScope.launch {
-            configModel!!.stepDefinitions.forEach { item ->
-                if (item.stepDefinition == "ContextAwareSigning") {
-                    stepID = item.stepId;
-                }
-            }
-
-        }
     }
 
     fun startScanPassport(
@@ -188,7 +176,8 @@ class AssentifySdk(
 
     fun startScanIDCard(
         scnIDCardCallback: IDCardCallback,
-        kycDocumentDetails: List<KycDocumentDetails>, language: String = Language.NON,
+        kycDocumentDetails: List<KycDocumentDetails>,
+        language: String = Language.NON,
         stepId: Int? = null,
     ): ScanIDCardResult {
         if (isKeyValid) {
@@ -321,13 +310,13 @@ class AssentifySdk(
         }
     }
 
-    fun startContextAwareSigning(contextAwareSigningCallback: ContextAwareSigningCallback): ContextAwareSigning {
+    fun startContextAwareSigning(contextAwareSigningCallback: ContextAwareSigningCallback,stepId: Int? = null,): ContextAwareSigning {
         if (isKeyValid) {
             return ContextAwareSigning(
                 contextAwareSigningCallback,
                 tenantIdentifier!!,
                 interaction!!,
-                stepID,
+                stepId!!,
                 configModel!!,
                 apiKey!!
             )
@@ -401,10 +390,7 @@ class AssentifySdk(
                     }
 
 
-                    templates = filterToSupportedCountries(
-                        templatesByCountry
-                    )!!;
-
+                    allTemplates = templatesByCountry;
                     assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
                 }
             }
@@ -440,11 +426,11 @@ class AssentifySdk(
     }
 
 
-    private fun filterToSupportedCountries(dataList: List<TemplatesByCountry>?): List<TemplatesByCountry>? {
+    private fun filterToSupportedCountries(dataList: List<TemplatesByCountry>?,stepID:Int): List<TemplatesByCountry>? {
         var selectedCountries: List<String> = emptyList();
         var supportedIdCards: List<String> = emptyList();
         configModel!!.stepDefinitions.forEach { step ->
-            if (step.stepDefinition == "IdentificationDocumentCapture") {
+            if (step.stepId == stepID) {
                 step.customization.identificationDocuments!!.forEach { docStep ->
                     if (docStep.key == "IdentificationDocument.IdCard") {
                         if (docStep.selectedCountries != null) {
@@ -509,7 +495,21 @@ class AssentifySdk(
     }
 
 
-    fun getTemplates() = templates;
+    fun getTemplates(stepID: Int): List<TemplatesByCountry> {
+        val stepTemplates = filterToSupportedCountries(allTemplates, stepID)
+        return stepTemplates ?: emptyList()
+    }
+    /** FLOW **/
 
+    // 1 _ Text && Icons are white
+
+    public fun startFlow(flowCallback: FlowCallBack, flowEnvironmentalConditions: FlowEnvironmentalConditions){
+         FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(flowEnvironmentalConditions);
+         ConfigModelObject.setConfigModelObject(configModel!!);
+         FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
+         ApiKeyObject.setApiKeyObject(apiKey!!);
+         val intent = Intent(context, BlockLoaderStepsComposeActivity::class.java)
+         context.startActivity(intent)
+    }
 
 }

@@ -13,7 +13,7 @@ object HubConnectionFunctions {
                 "v2/api/IdentificationDocument/Other";
             }
             BlockType.FACE_MATCH -> {
-                "api/IdentificationDocument/FaceMatchWithImage";
+                "v2/api/IdentificationDocument/FaceMatchWithImage";
             }
             BlockType.QR -> {
                 "v2/api/IdentificationDocument/ReadIdQrCode";

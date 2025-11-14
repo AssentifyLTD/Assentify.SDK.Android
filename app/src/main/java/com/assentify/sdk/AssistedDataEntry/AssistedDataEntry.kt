@@ -36,6 +36,8 @@ public  class AssistedDataEntry(private var apiKey: String,private var configMod
             } else {
                 requireNotNull(this.stepID) { "Step ID is required because multiple 'Assisted Data Entry' steps are present." }
             }
+        }else{
+            getAssistedDataEntryStep()
         }
 
     }

@@ -5,11 +5,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.util.Base64;
 import  com.assentify.sdk.Core.Constants.BlockType;
 import  com.assentify.sdk.Core.Constants.ConstantsValues;
 import java.io.ByteArrayOutputStream;
-
+import android.util.Base64;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 
 public class ImageUtils {
@@ -39,46 +38,34 @@ public class ImageUtils {
             return null;
         }
     }
+
+
+    public static byte[]  convertClipsBitmapByteArray(Bitmap inputImage, BlockType blockType, Context context) {
+        Bitmap bitmap = inputImage;
+        if (blockType == BlockType.FACE_MATCH) {
+            bitmap = rotateBitmap(bitmap, 270);
+        } else {
+            bitmap = rotateBitmap(bitmap, 90);
+
+        }
+
+        return bitmapToByteArray(bitmap,60);
+    }
+
+
+    public static byte[] base64ToByteArray(String base64String) {
+        if (base64String == null || base64String.isEmpty()) {
+            return new byte[0];
+        }
+        if (base64String.contains(",")) {
+            base64String = base64String.substring(base64String.indexOf(",") + 1);
+        }
+        return Base64.decode(base64String, Base64.DEFAULT);
+    }
+
+
+
     /**  **/
-
-    public static String convertBitmapToBase64(Bitmap inputImage, BlockType blockType, Context context) {
-        Bitmap bitmap = inputImage;
-        if (blockType == BlockType.FACE_MATCH) {
-            bitmap = rotateBitmap(bitmap, 270);
-        } else {
-            bitmap = rotateBitmap(bitmap, 90);
-
-        }
-
-        return bitmapToBase64(bitmap,60);
-    }
-
-    public static String convertClipsBitmapToBase64(Bitmap inputImage, BlockType blockType, Context context) {
-        Bitmap bitmap = inputImage;
-        if (blockType == BlockType.FACE_MATCH) {
-            bitmap = rotateBitmap(bitmap, 270);
-        } else {
-            bitmap = rotateBitmap(bitmap, 90);
-
-        }
-
-        return bitmapToBase64(bitmap,40);
-    }
-
-
-    public static String bitmapToBase64(Bitmap bitmap, int visualQuality) {
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, visualQuality, byteArrayOutputStream); // quality 0..100
-            byte[] byteArray = byteArrayOutputStream.toByteArray();
-            return  Base64.encodeToString(byteArray, Base64.DEFAULT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-
 
     public static Bitmap rotateBitmap(Bitmap source, float angle) {
         Matrix matrix = new Matrix();

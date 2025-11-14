@@ -89,7 +89,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private List<MotionType> sendingFlags = new ArrayList<>();
 
     private List<ZoomType> sendingFlagsZoom = new ArrayList<>();
-    private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
+    private ExecutorService createByteArray = Executors.newSingleThreadExecutor();
 
     private String faceMatch = "FaceMatch";
     private int videoCounter = -1;
@@ -109,7 +109,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     private AssetsAudioPlayer audioPlayer;
 
-    List<String> clips = new ArrayList<>();
+    List<byte[]> clips = new ArrayList<>();
 
     private List<Bitmap> livenessCheckArray = new ArrayList<>();
 
@@ -166,7 +166,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         for (StepDefinitions item : configModel.getStepDefinitions()) {
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performPassiveLivenessFace == null) {
-                    performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
+                  //  performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
+                    performPassiveLivenessFace = true;
                 }
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
@@ -529,7 +530,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         return faces;
     }
 
-    // TODO Later
     @Override
     protected void onStopRecordVideo() {
         if (getActivity() != null) {
@@ -544,32 +544,25 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         }
         videoCounter = videoCounter + 1;
         clips = new ArrayList<>();
-        createBase64.execute(() -> {
+        createByteArray.execute(() -> {
             BugsnagObject.INSTANCE.logInfo("Face match started : perform passive liveness face : " + performPassiveLivenessFace.toString(),configModel);
             if (performPassiveLivenessFace) {
                 runLivenessCheck();
                 int middleIndex = clips.size() / 2;
                 BugsnagObject.INSTANCE.logInfo("Face match started : clips size : " + clips.size(),configModel);
                 if (!clips.isEmpty()) {
-                    remoteProcessing.starProcessing(
+                    remoteProcessing.starProcessingFace(
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
-                            "",
-                            clips.get(middleIndex),
                             configModel,
-                            "",
-                            this.secondImage,
-                            "ConnectionId",
-                            getVideoPath(configModel, faceMatch, videoCounter),
-                            hasFace(),
-                            true,
-                            true,
-                            performPassiveLivenessFace,
-                            saveCapturedVideo,
-                            true,
-                            true,
-                            storeImageStream,
                             stepId,
-                            clips
+                            clips.get(middleIndex),
+                            clips,
+                            ImageUtils.base64ToByteArray(this.secondImage),
+                            performPassiveLivenessFace,
+                            livnessRetryCount,
+                            true,
+                            false,
+                            "ConnectionId"
                     );
                 } else {
                     BugsnagObject.INSTANCE.logInfo("Face match done with error clips  : ",configModel);
@@ -585,25 +578,18 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             } else {
                 int middleIndex = highQualityBitmaps.size() / 2;
                 BugsnagObject.INSTANCE.logInfo("Face match started : clips size : " + clips.size(),configModel);
-                remoteProcessing.starProcessing(
+                remoteProcessing.starProcessingFace(
                         HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
-                        "",
-                        ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(middleIndex), BlockType.FACE_MATCH, getActivity()),
                         configModel,
-                        "",
-                        this.secondImage,
-                        "ConnectionId",
-                        getVideoPath(configModel, faceMatch, videoCounter),
-                        hasFace(),
-                        true,
-                        true,
-                        performPassiveLivenessFace,
-                        saveCapturedVideo,
-                        true,
-                        true,
-                        storeImageStream,
                         stepId,
-                        new ArrayList<>()
+                        ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(middleIndex), BlockType.FACE_MATCH, getActivity()),
+                        new ArrayList<>(),
+                        ImageUtils.base64ToByteArray(this.secondImage),
+                        performPassiveLivenessFace,
+                        livnessRetryCount,
+                        true,
+                        false,
+                        "ConnectionId"
                 );
             }
 
@@ -614,7 +600,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     private void runLivenessCheck() {
         ParallelImageProcessing processor = new ParallelImageProcessing();
-        clips = processor.processClipsToBase64InParallel(livenessCheckArray, getActivity());
+        clips = processor.processClipsToByteArrayInParallel(livenessCheckArray, getActivity());
     }
 
     public void stopScanning() {
@@ -830,8 +816,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     public synchronized void onDestroy() {
         BugsnagObject.INSTANCE.pauseSession();
         super.onDestroy();
-        if (this.createBase64 != null) {
-            this.createBase64.shutdown();
+        if (this.createByteArray != null) {
+            this.createByteArray.shutdown();
         }
         if (audioPlayer != null) {
             audioPlayer.stopAudio();
@@ -843,7 +829,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     public void onUploadProgress(int progress) {
-        Log.e("IDSCAN onUploadProgress", String.valueOf(progress));
+        faceMatchCallback.onUploadingProgress(progress);
 
     }
 }

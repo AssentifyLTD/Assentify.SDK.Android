@@ -458,7 +458,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     false,
                     true,
                     retryCount,
-                    getIDTag(configModel,readPassport)
+                    getIDTag(configModel,readPassport),
+                    false
             );
         });
 

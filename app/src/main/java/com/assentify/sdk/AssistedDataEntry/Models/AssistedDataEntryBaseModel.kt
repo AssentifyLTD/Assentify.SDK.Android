@@ -1,5 +1,24 @@
 package com.assentify.sdk.AssistedDataEntry.Models
 
+enum class InputTypes(val value: String) {
+    Text("Text"),
+    TextArea("TextArea"),
+    Date("Date"),
+    DropDown("DropDown"),
+    Email("Email"),
+    RadioButtonGroup("RadioButtonGroup"),
+    Nationality("Nationality"),
+    PhoneNumber("PhoneNumber"),
+    PhoneNumberWithOTP("PhoneNumberWithOTP"),
+    EmailWithOTP("EmailWithOTP");
+
+    companion object {
+        fun fromString(type: String?): InputTypes =
+            values().find { it.value.equals(type, ignoreCase = true) } ?: Text
+    }
+}
+
+
 data class AssistedDataEntryBaseModel(
     val statusCode: Int,
     val data: AssistedDataEntryModel
@@ -17,10 +36,12 @@ data class AssistedDataEntryPage(
     val title: String,
     val subTitle: String,
     val nextButtonTitle: String,
-    val dataEntryPageElements: List<DataEntryPageElement>
+    var dataEntryPageElements: List<DataEntryPageElement>
 )
 
 data class DataEntryPageElement(
+    var value: String?,
+    var isLocalOtpValid: Boolean = false,
     val elementIdentifier: String,
     val endpointId: String?,
     val dataSourceId: String?,
@@ -34,10 +55,10 @@ data class DataEntryPageElement(
     val sourceKStep: String?,
     val dataKeys: List<String>?,
     val linkedControls: List<String>?,
-    val applyRegex: Boolean?,
+    var applyRegex: Boolean?,
     val languageTransformation: Int?,
     val targetOutputLanguage: String?,
-    val regexDescriptor: String?,
+    var regexDescriptor: String?,
     val regexErrorMessage: String?,
     val showBasedOnParent: Boolean?,
     val dataSourceType: Int?,
@@ -59,10 +80,10 @@ data class DataEntryPageElement(
     val otp: Boolean?,
     val otpSize: Int?,
     val otpType: Int?,
-    val otpExpiryTime: Int?,
+    val otpExpiryTime: Double?,
     val additionalFeatures: Boolean?,
     val children: Map<String, List<DataEntryPageElement>>?,
-    val defaultCountryCode: String?
+    var defaultCountryCode: String?
 )
 
 data class InputProperty(

@@ -460,7 +460,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     }
 
 
-    // TODO Later
     @Override
     protected void onStopRecordVideo() {
         if (getActivity() != null) {
@@ -492,8 +491,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     stepId,
                     false,
                     true,
-                    retryCount++,
-                    getIDTag(configModel,this.templateName)
+                    retryCount,
+                    getIDTag(configModel,this.templateName),
+                    false
             );
 
         });
@@ -585,7 +585,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     public void onUploadProgress(int progress) {
-        Log.e("IDSCAN onUploadProgress", String.valueOf(progress));
+        idCardCallback.onUploadingProgress(progress);
 
     }
 

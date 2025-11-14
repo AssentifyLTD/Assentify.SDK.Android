@@ -3,7 +3,6 @@ package com.assentify.sdk.Core.Constants
 import DataType
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
-import android.util.Log
 
 
 object IdentificationDocumentCaptureKeys {
@@ -325,7 +324,7 @@ fun getLanguageTransformationEnum(key: String): Int {
     return when {
         key.contains(IdentificationDocumentCaptureKeys.name) ||
                 key.contains(IdentificationDocumentCaptureKeys.surname) ||
-                key.contains(IdentificationDocumentCaptureKeys.idType) ||
+
 
                 key.contains(IdentificationDocumentCaptureKeys.idPlaceOfResidence) ||
                 key.contains(IdentificationDocumentCaptureKeys.idProvince) ||
@@ -334,14 +333,15 @@ fun getLanguageTransformationEnum(key: String): Int {
                 key.contains(IdentificationDocumentCaptureKeys.idFathersName) ||
                 key.contains(IdentificationDocumentCaptureKeys.idPlaceOfBirth) ||
                 key.contains(IdentificationDocumentCaptureKeys.idIssuanceAuthority) ||
-                key.contains(IdentificationDocumentCaptureKeys.idArmyStatus) ||
                 key.contains(IdentificationDocumentCaptureKeys.idReference) ||
                 key.contains(IdentificationDocumentCaptureKeys.idRegistrationLocation) ||
                 key.contains(IdentificationDocumentCaptureKeys.idPresentAddress) ||
                 key.contains(IdentificationDocumentCaptureKeys.idPermanentAddress) ->
             LanguageTransformationEnum.Transliteration
 
-        key.contains(IdentificationDocumentCaptureKeys.idCountryOfStay) ||
+        key.contains(IdentificationDocumentCaptureKeys.idType) ||
+                key.contains(IdentificationDocumentCaptureKeys.idArmyStatus) ||
+                key.contains(IdentificationDocumentCaptureKeys.idCountryOfStay) ||
                 key.contains(IdentificationDocumentCaptureKeys.idRegion) ||
                 key.contains(IdentificationDocumentCaptureKeys.idMaritalStatus) ||
                 key.contains(IdentificationDocumentCaptureKeys.documentType) ||

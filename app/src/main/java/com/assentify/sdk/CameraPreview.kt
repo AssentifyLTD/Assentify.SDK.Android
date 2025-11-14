@@ -227,66 +227,69 @@ abstract class CameraPreview : Fragment() {
 
 
     fun manualCaptureUi(color: String,enableGuide:Boolean){
-        requireActivity().runOnUiThread {
-            if (transmittingContainer == null) {
-                transmittingContainer =
-                    requireActivity().findViewById(R.id.transmitting_container)
-            }
-            transmittingContainer!!.visibility = View.GONE
-            if (enableGuide) {
-                if (frontCamera) {
-                    if (faceContainer == null) {
-                        faceContainer =
-                            requireActivity().findViewById(R.id.face_container)
-                        faceContainer!!.visibility = View.VISIBLE
-                    } else {
-                        faceContainer!!.visibility = View.VISIBLE
-                    }
-                    if (faceBackground == null) {
-                        faceBackground =
-                            requireActivity().findViewById(R.id.face_background)
-                        faceBackground!!.visibility = View.VISIBLE
-                    } else {
-                        faceBackground!!.visibility = View.VISIBLE
-                    }
-                    val layerDrawable = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.face_background,
-                        null
-                    ) as LayerDrawable
-                    val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
-                    shapeDrawable.setStroke(10, Color.parseColor(color))
-                    faceBackground!!.setBackground(layerDrawable)
-
-                } else {
-                    if (cardContainer == null) {
-                        cardContainer =
-                            requireActivity().findViewById(R.id.card_container)
-                        cardContainer!!.visibility = View.VISIBLE
-                    } else {
-                        cardContainer!!.visibility = View.VISIBLE
-                    }
-                    if (cardBackground == null) {
-                        cardBackground =
-                            requireActivity().findViewById(R.id.card_background)
-                        cardBackground!!.visibility = View.VISIBLE
-                    } else {
-                        cardBackground!!.visibility = View.VISIBLE
-                    }
-                    val drawableCard = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.card_background,
-                        null
-                    ) as VectorDrawable
-                    val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
-                    DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
-                    cardBackground!!.setImageDrawable(wrappedDrawableCard)
-
-
+        if (isAdded) {
+            requireActivity().runOnUiThread {
+                if (transmittingContainer == null) {
+                    transmittingContainer =
+                        requireActivity().findViewById(R.id.transmitting_container)
                 }
-            }
+                transmittingContainer!!.visibility = View.GONE
+                if (enableGuide) {
+                    if (frontCamera) {
+                        if (faceContainer == null) {
+                            faceContainer =
+                                requireActivity().findViewById(R.id.face_container)
+                            faceContainer!!.visibility = View.VISIBLE
+                        } else {
+                            faceContainer!!.visibility = View.VISIBLE
+                        }
+                        if (faceBackground == null) {
+                            faceBackground =
+                                requireActivity().findViewById(R.id.face_background)
+                            faceBackground!!.visibility = View.VISIBLE
+                        } else {
+                            faceBackground!!.visibility = View.VISIBLE
+                        }
+                        val layerDrawable = ResourcesCompat.getDrawable(
+                            resources,
+                            R.drawable.face_background,
+                            null
+                        ) as LayerDrawable
+                        val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                        shapeDrawable.setStroke(10, Color.parseColor(color))
+                        faceBackground!!.setBackground(layerDrawable)
 
+                    } else {
+                        if (cardContainer == null) {
+                            cardContainer =
+                                requireActivity().findViewById(R.id.card_container)
+                            cardContainer!!.visibility = View.VISIBLE
+                        } else {
+                            cardContainer!!.visibility = View.VISIBLE
+                        }
+                        if (cardBackground == null) {
+                            cardBackground =
+                                requireActivity().findViewById(R.id.card_background)
+                            cardBackground!!.visibility = View.VISIBLE
+                        } else {
+                            cardBackground!!.visibility = View.VISIBLE
+                        }
+                        val drawableCard = ResourcesCompat.getDrawable(
+                            resources,
+                            R.drawable.card_background,
+                            null
+                        ) as VectorDrawable
+                        val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                        DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                        cardBackground!!.setImageDrawable(wrappedDrawableCard)
+
+
+                    }
+                }
+
+            }
         }
+
     }
     fun detectCardAndFace(bitmap: Bitmap) : List<Recognition>{
         val scaleImage = ImageUtils.scaleBitmap(bitmap, sensorOrientation!!)
@@ -682,11 +685,9 @@ abstract class CameraPreview : Fragment() {
 
 
     fun stopRecording() {
-        // TODO Later
         onStopRecordVideo()
     }
 
-    // TODO Later
     //  protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
     protected abstract fun onStopRecordVideo()
 
@@ -737,44 +738,47 @@ abstract class CameraPreview : Fragment() {
     }
 
     protected fun changeCardWeightLayout(){
-        if(layoutTop==null){
-            val layoutTop =  requireActivity().findViewById<LinearLayout>(R.id.card_container_top)
-            val paramsTop = layoutTop.layoutParams as LinearLayout.LayoutParams
-            paramsTop.weight = 3f
-            layoutTop.layoutParams = paramsTop
+        if (isAdded) {
+            if(layoutTop==null){
+                val layoutTop =  requireActivity().findViewById<LinearLayout>(R.id.card_container_top)
+                val paramsTop = layoutTop.layoutParams as LinearLayout.LayoutParams
+                paramsTop.weight = 3f
+                layoutTop.layoutParams = paramsTop
 
+            }
+
+            if(layoutMiddle==null) {
+                val layoutMiddle =
+                    requireActivity().findViewById<LinearLayout>(R.id.card_container_middle)
+                val paramsMiddle = layoutMiddle.layoutParams as LinearLayout.LayoutParams
+                paramsMiddle.weight = 2.8f
+                layoutMiddle.layoutParams = paramsMiddle
+            }
+
+            if(layoutBottom==null) {
+                val layoutBottom =
+                    requireActivity().findViewById<LinearLayout>(R.id.card_container_bottom)
+                val paramsBottom = layoutBottom.layoutParams as LinearLayout.LayoutParams
+                paramsBottom.weight = 3f
+                layoutBottom.layoutParams = paramsBottom
+            }
+
+            if(layoutLeft==null) {
+                val layoutLeft = requireActivity().findViewById<LinearLayout>(R.id.card_container_left)
+                val paramsLeft = layoutLeft.layoutParams as LinearLayout.LayoutParams
+                paramsLeft.weight = 3f
+                layoutLeft.layoutParams = paramsLeft
+            }
+
+            if(layoutRight==null) {
+                val layoutRight =
+                    requireActivity().findViewById<LinearLayout>(R.id.card_container_right)
+                val paramsRight = layoutRight.layoutParams as LinearLayout.LayoutParams
+                paramsRight.weight = 3f
+                layoutRight.layoutParams = paramsRight
+            }
         }
 
-        if(layoutMiddle==null) {
-            val layoutMiddle =
-                requireActivity().findViewById<LinearLayout>(R.id.card_container_middle)
-            val paramsMiddle = layoutMiddle.layoutParams as LinearLayout.LayoutParams
-            paramsMiddle.weight = 2.8f
-            layoutMiddle.layoutParams = paramsMiddle
-        }
-
-       if(layoutBottom==null) {
-           val layoutBottom =
-               requireActivity().findViewById<LinearLayout>(R.id.card_container_bottom)
-           val paramsBottom = layoutBottom.layoutParams as LinearLayout.LayoutParams
-           paramsBottom.weight = 3f
-           layoutBottom.layoutParams = paramsBottom
-       }
-
-       if(layoutLeft==null) {
-           val layoutLeft = requireActivity().findViewById<LinearLayout>(R.id.card_container_left)
-           val paramsLeft = layoutLeft.layoutParams as LinearLayout.LayoutParams
-           paramsLeft.weight = 3f
-           layoutLeft.layoutParams = paramsLeft
-       }
-
-        if(layoutRight==null) {
-            val layoutRight =
-                requireActivity().findViewById<LinearLayout>(R.id.card_container_right)
-            val paramsRight = layoutRight.layoutParams as LinearLayout.LayoutParams
-            paramsRight.weight = 3f
-            layoutRight.layoutParams = paramsRight
-        }
     }
 
 }
