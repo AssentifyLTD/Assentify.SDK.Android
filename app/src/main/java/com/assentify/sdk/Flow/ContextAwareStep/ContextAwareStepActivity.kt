@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +29,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -82,7 +85,10 @@ class ContextAwareStepActivity : FragmentActivity(), ContextAwareSigningCallback
         super.onCreate(savedInstanceState)
 
 
-        contextAwareSigning = assentifySdk.startContextAwareSigning(this, FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
+        contextAwareSigning = assentifySdk.startContextAwareSigning(
+            this,
+            FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+        )
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -101,16 +107,17 @@ class ContextAwareStepActivity : FragmentActivity(), ContextAwareSigningCallback
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onNext = {
-                            if(contextAwareStepEventTypes.value == ContextAwareStepEventTypes.onSignature){
+                            if (contextAwareStepEventTypes.value == ContextAwareStepEventTypes.onSignature) {
                                 val extractedInformation = mutableMapOf<String, String>()
                                 for (outputProperty in FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties) {
                                     if (outputProperty.key.contains("OnBoardMe_ContextAwareSigning_DocumentURL")) {
-                                        extractedInformation[outputProperty.key] = signatureResponseObject.value!!.signedDocumentUri
+                                        extractedInformation[outputProperty.key] =
+                                            signatureResponseObject.value!!.signedDocumentUri
                                     }
                                 }
                                 FlowController.makeCurrentStepDone(extractedInformation)
-                                FlowController.naveToNextStep(context = this,)
-                            }else{
+                                FlowController.naveToNextStep(context = this)
+                            } else {
                                 contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSend
                                 contextAwareSigning.signature(
                                     userDocumentResponseObject.value!!.templateInstanceId,
@@ -200,6 +207,7 @@ fun ContextAwareStepScreen(
 
     var signatureB64 by remember { mutableStateOf<String?>("") }
 
+    var checked by remember { mutableStateOf(false) }
 
 
 
@@ -295,6 +303,7 @@ fun ContextAwareStepScreen(
                     ContextAwareStepEventTypes.onTokensComplete -> {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Top,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
@@ -324,39 +333,69 @@ fun ContextAwareStepScreen(
 
                             PdfViewerFromBase64(
                                 base64Data = userDocumentResponseObject!!.templateInstance,
-                                modifier = Modifier
+                                modifier = if (checked) Modifier
                                     .width(200.dp)
                                     .height(250.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .border(1.dp, Color.Gray) else Modifier
+                                    .fillMaxWidth()
+                                    .height(400.dp)
+                                    .padding(horizontal = 15.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .border(1.dp, Color.Gray)
                             )
 
-                            if (contextAwareSigningObject.data.confirmationMessage != null) {
+                            if (contextAwareSigningObject.data.confirmationMessage != null && !checked) {
                                 Spacer(Modifier.height(8.dp))
-                                Text(
-                                    text = contextAwareSigningObject.data.confirmationMessage,
-                                    color = Color.White,
-                                    fontSize = 10.sp,
-                                    lineHeight = 18.sp,
-                                    textAlign = TextAlign.Center,
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
-                                )
+                                ) {
+
+
+                                    Checkbox(
+                                        checked = checked,
+                                        onCheckedChange = { checked = it },
+                                        colors = CheckboxDefaults.colors(
+                                            checkedColor = Color(
+                                                android.graphics.Color.parseColor(
+                                                    flowEnv.listItemsSelectedHexColor
+                                                )
+                                            ),
+                                            uncheckedColor = Color(
+                                                android.graphics.Color.parseColor(
+                                                    flowEnv.listItemsSelectedHexColor
+                                                )
+                                            ),
+                                            checkmarkColor = Color.White
+                                        )
+                                    )
+
+                                    Text(
+                                        text = contextAwareSigningObject.data.confirmationMessage,
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        lineHeight = 18.sp,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                             }
 
                             Spacer(Modifier.height(18.dp))
-
-                            SignaturePad(
-                                cardColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                                confirmColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(170.dp),
-                                onConfirmBase64 = { signature ->
-                                    signatureB64 = signature;
-                                }
-                            )
-
-                            Spacer(Modifier.height(24.dp)) // bottom padding
+                            if (checked) {
+                                SignaturePad(
+                                    cardColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
+                                    confirmColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(170.dp),
+                                    onConfirmBase64 = { signature ->
+                                        signatureB64 = signature;
+                                    }
+                                )
+                                Spacer(Modifier.height(24.dp))
+                            }
                         }
                     }
 
@@ -392,6 +431,7 @@ fun ContextAwareStepScreen(
 
                             PdfViewerFromUrl(
                                 url = signatureResponseObject!!.signedDocumentUri,
+                                fileName = "SignedDocument.pdf",
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(400.dp)
@@ -411,7 +451,7 @@ fun ContextAwareStepScreen(
 
 
         // ============ BOTTOM ============ //
-        if (eventTypes == ContextAwareStepEventTypes.onTokensComplete || eventTypes == ContextAwareStepEventTypes.onSignature ) {
+        if (eventTypes == ContextAwareStepEventTypes.onTokensComplete || eventTypes == ContextAwareStepEventTypes.onSignature) {
             Button(
                 onClick = {
                     onNext(signatureB64!!)
@@ -429,7 +469,7 @@ fun ContextAwareStepScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Text(
-                    if(eventTypes == ContextAwareStepEventTypes.onTokensComplete ) "Accept & Sign" else "Next",
+                    if (eventTypes == ContextAwareStepEventTypes.onTokensComplete) "Accept & Sign" else "Next",
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 10.dp)
                 )

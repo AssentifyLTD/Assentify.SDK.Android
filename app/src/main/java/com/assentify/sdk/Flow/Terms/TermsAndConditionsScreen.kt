@@ -150,6 +150,7 @@ fun TermsAndConditionsScreen(
                         ) {
                             PdfViewerFromUrl(
                                 url = termsConditionsModel.data.file!!,
+                                fileName = "TermsConditions.pdf",
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(400.dp)

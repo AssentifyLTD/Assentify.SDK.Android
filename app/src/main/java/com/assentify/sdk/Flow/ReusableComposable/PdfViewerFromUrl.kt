@@ -1,8 +1,13 @@
 package com.assentify.sdk.Flow.ReusableComposable
 
+import android.app.DownloadManager
 import android.content.Context
+import android.net.Uri
+import android.os.Environment
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,6 +45,7 @@ import java.net.URL
 @Composable
 fun PdfViewerFromUrl(
     url: String,
+    fileName: String,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -49,6 +55,10 @@ fun PdfViewerFromUrl(
     var showFullScreen by remember { mutableStateOf(false) }
     val iconPainter = remember("ic_fullscreen.svg") {
         loadSvgFromAssets(context, "ic_fullscreen.svg")
+    }
+
+    val iconSvg= remember {
+        loadSvgFromAssets(context, "ic_download.svg")
     }
 
     var isLoading by remember(url) { mutableStateOf(true) }
@@ -104,22 +114,52 @@ fun PdfViewerFromUrl(
                     }
                 )
 
-                // Full-screen icon overlay
-                IconButton(
-                    onClick = { showFullScreen = true },
+                Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                        .size(36.dp)
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    iconPainter?.let {
-                        Icon(
-                            painter = it,
-                            contentDescription = "Full screen",
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
+
+                    // 🔹 Download icon
+                    IconButton(
+                        onClick = {
+                            startPdfDownload(
+                                context = context,
+                                url = url,
+                                fileName = fileName
+                            )
+                        },
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                            .size(36.dp)
+                    ) {
+                        iconSvg?.let {
+                            Icon(
+                                painter = it,
+                                contentDescription = "ic_download",
+                                modifier = Modifier.size(100.dp).padding(5.dp),
+                                tint = Color.White
+                            )
+                        }
+                    }
+
+                    // 🔹 Full-screen icon
+                    IconButton(
+                        onClick = { showFullScreen = true },
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                            .size(36.dp)
+                    ) {
+                        iconPainter?.let {
+                            Icon(
+                                painter = it,
+                                contentDescription = "Open full screen",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -196,4 +236,27 @@ private fun downloadPdfToCache(context: Context, urlStr: String): File {
     }
     conn.disconnect()
     return outFile
+}
+
+fun startPdfDownload(
+    context: Context,
+    url: String,
+    fileName: String = "document.pdf"
+) {
+    val request = DownloadManager.Request(Uri.parse(url))
+        .setTitle(fileName)
+        .setDescription("Downloading PDF")
+        .setNotificationVisibility(
+            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+        )
+        .setDestinationInExternalPublicDir(
+            Environment.DIRECTORY_DOWNLOADS,
+            fileName
+        )
+        .setAllowedOverMetered(true)
+        .setAllowedOverRoaming(true)
+
+    val downloadManager =
+        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    downloadManager.enqueue(request)
 }
