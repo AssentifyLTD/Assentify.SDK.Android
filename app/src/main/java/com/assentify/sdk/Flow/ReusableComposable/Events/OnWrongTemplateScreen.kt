@@ -51,63 +51,52 @@ fun OnWrongTemplateScreen(
             .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(150.dp))
-        Box(
+        Spacer(Modifier.height(140.dp))
+        // TOP + MIDDLE
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SecureImage(imageUrl = imageUrl)
+            // Give some breathing space from the top
+            Spacer(Modifier.height(32.dp))
 
-            iconSvg?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "ic_wrong_template",
-                    modifier = Modifier.size(70.dp),
-                    tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-                )
-            }
-        }
-
-
-        Spacer(Modifier.height(25.dp))
-
-        Text(
-            text = "Unsupported ID Provided",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(15.dp))
-
-        Text(
-            text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
-            color = Color.White,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Light,
-            lineHeight = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        if(expectedImageUrl.isNotEmpty()){
-            Spacer(Modifier.height(30.dp))
+            // MIDDLE
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp),
+                    .height(200.dp),
                 contentAlignment = Alignment.Center
             ) {
-                SecureImage(imageUrl = expectedImageUrl)
+                SecureImage(imageUrl = imageUrl)
+
+                iconSvg?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "ic_wrong_template",
+                        modifier = Modifier.size(70.dp),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                    )
+                }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(25.dp))
+
             Text(
-                text = "Expected Card Type",
+                text = "Unsupported ID Provided",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(15.dp))
+
+            Text(
+                text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
                 color = Color.White,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Light,
@@ -115,12 +104,39 @@ fun OnWrongTemplateScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(Modifier.height(30.dp))
 
-        }else{
+            if (expectedImageUrl.isNotEmpty()) {
+                Spacer(Modifier.height(30.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SecureImage(imageUrl = expectedImageUrl)
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Text(
+                    text = "Expected Card Type",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Light,
+                    lineHeight = 13.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(30.dp))
+            }
+
+            // Push rest (button) to bottom of the screen
             Spacer(modifier = Modifier.weight(1f))
         }
 
+        // BOTTOM
         Button(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
@@ -134,7 +150,11 @@ fun OnWrongTemplateScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
         ) {
-            Text("Retry", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 10.dp))
+            Text(
+                "Retry",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
         }
     }
 

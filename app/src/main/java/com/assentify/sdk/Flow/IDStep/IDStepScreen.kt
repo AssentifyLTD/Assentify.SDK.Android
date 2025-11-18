@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -103,6 +102,7 @@ fun IDStepScreen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
+            // TOP + MIDDLE
             Column(
                 Modifier
                     .weight(1f)
@@ -146,11 +146,11 @@ fun IDStepScreen(
                         .padding(horizontal = 6.dp, vertical = 6.dp)
                 )
 
-
-
+                // MIDDLE CONTENT – takes remaining space between top and bottom
                 Column(
                     modifier = Modifier
-                        .fillMaxHeight(0.80f)
+                        .weight(1f)
+                        .fillMaxWidth()
                         .padding(16.dp)
                 ) {
 
@@ -161,9 +161,9 @@ fun IDStepScreen(
                         fontWeight = FontWeight.Bold,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
+
                     Spacer(Modifier.height(10.dp))
 
                     CountryDropdownStyled(
@@ -171,6 +171,7 @@ fun IDStepScreen(
                         selectedCountry = selectedCountry,
                         onCountrySelected = { selectedCountry = it }
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
@@ -180,25 +181,27 @@ fun IDStepScreen(
                         fontWeight = FontWeight.Bold,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Template list
+                    // Template list (scrolls inside the middle area)
                     selectedCountry?.let { country ->
-
 
                         var selectedKey by remember(country) { mutableStateOf<String?>(null) }
 
-                        // colors
                         val selectedBg =
-                            Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))         // tweak for your theme
+                            Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
                         val unselectedBg =
                             Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
 
-                        LazyColumn {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = 4.dp)
+                        ) {
+                            // Default passport item
                             item(key = "default_passport") {
                                 val key = "default_passport"
                                 val isSelected = selectedKey == key
@@ -216,7 +219,7 @@ fun IDStepScreen(
                                                 kycDocumentType = "",
                                                 sourceCountry = "",
                                                 kycDocumentDetails = emptyList()
-                                            );
+                                            )
                                             onDocumentSelected(selectedTemplate!!)
                                         },
                                     colors = CardDefaults.cardColors(
@@ -226,7 +229,9 @@ fun IDStepScreen(
                                         1.dp,
                                         Color.White.copy(alpha = 0.15f)
                                     ) else null,
-                                    elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 6.dp else 2.dp),
+                                    elevation = CardDefaults.cardElevation(
+                                        defaultElevation = if (isSelected) 6.dp else 2.dp
+                                    ),
                                     shape = RoundedCornerShape(16.dp)
                                 ) {
                                     Row(
@@ -241,7 +246,6 @@ fun IDStepScreen(
                                                 contentDescription = "passport",
                                                 modifier = Modifier.size(60.dp),
                                                 tint = Color.Unspecified
-
                                             )
                                         }
                                         Spacer(Modifier.width(12.dp))
@@ -254,12 +258,14 @@ fun IDStepScreen(
                                 }
                             }
 
+                            // Dynamic templates
                             items(
                                 items = country.templates,
                                 key = { t -> (t.id ?: t.kycDocumentType.hashCode()).toString() }
                             ) { template ->
                                 val key = "t_${template.id ?: template.kycDocumentType}"
                                 val isSelected = selectedKey == key
+
                                 Spacer(modifier = Modifier.height(4.dp))
 
                                 Card(
@@ -268,7 +274,7 @@ fun IDStepScreen(
                                         .padding(vertical = 4.dp)
                                         .clickable {
                                             selectedKey = key
-                                            selectedTemplate = template;
+                                            selectedTemplate = template
                                             onDocumentSelected(template)
                                         },
                                     colors = CardDefaults.cardColors(
@@ -278,7 +284,9 @@ fun IDStepScreen(
                                         1.dp,
                                         Color.White.copy(alpha = 0.15f)
                                     ) else null,
-                                    elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 6.dp else 2.dp),
+                                    elevation = CardDefaults.cardElevation(
+                                        defaultElevation = if (isSelected) 6.dp else 2.dp
+                                    ),
                                     shape = RoundedCornerShape(16.dp)
                                 ) {
                                     Row(
@@ -287,9 +295,10 @@ fun IDStepScreen(
                                             .padding(12.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        // image from template (URL/bytes, etc.)
                                         Image(
-                                            painter = rememberAsyncImagePainter(template.kycDocumentDetails.first().templateSpecimen),
+                                            painter = rememberAsyncImagePainter(
+                                                template.kycDocumentDetails.first().templateSpecimen
+                                            ),
                                             contentDescription = template.kycDocumentType,
                                             modifier = Modifier
                                                 .size(64.dp)
@@ -304,12 +313,15 @@ fun IDStepScreen(
                                     }
                                 }
                             }
-
-
                         }
                     }
                 }
+            }
 
+            // BOTTOM (always at end of screen)
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Spacer(Modifier.height(5.dp))
                 Text(
                     "Only the presented IDs are supported and accepted by NXT Finance. Make sure to provide one of them.",
@@ -350,6 +362,7 @@ fun IDStepScreen(
             }
         }
     }
+
 }
 
 

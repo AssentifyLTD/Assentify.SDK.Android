@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -98,13 +97,14 @@ fun HowToCaptureFaceScreen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
+            // TOP + MIDDLE
             Column(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
 
-                // Top bar
+                // Top
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -115,7 +115,7 @@ fun HowToCaptureFaceScreen(
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = androidx.compose.ui.graphics.Color.White,
+                            tint = Color.White,
                             modifier = Modifier.size(30.dp)
                         )
                     }
@@ -135,22 +135,23 @@ fun HowToCaptureFaceScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-
                 Text(
                     "Face Match",
-                    color = androidx.compose.ui.graphics.Color.White,
+                    color = Color.White,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 )
+
                 Spacer(Modifier.height(20.dp))
+
+                // MIDDLE – video area flexes with available space
                 Column(
                     modifier = Modifier
+                        .weight(1f)
                         .padding(start = 10.dp, end = 10.dp)
-                        .fillMaxHeight(0.50f)
                 ) {
                     VideoPlayerFromAssets(
                         assetFileName = "face-video.mp4",
@@ -159,69 +160,70 @@ fun HowToCaptureFaceScreen(
                             .padding(horizontal = 20.dp)
                     )
                 }
+
                 Spacer(Modifier.height(20.dp))
+
                 Text(
                     "Watch how easy it is\nto Take Selfie",
-                    color = androidx.compose.ui.graphics.Color.White,
+                    color = Color.White,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(Modifier.height(10.dp))
+
                 Text(
                     "The selfie includes liveness capture to ensure your real follow the on screen instructions.",
-                    color = androidx.compose.ui.graphics.Color.White,
+                    color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center,
                     lineHeight = 15.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // BOTTOM – pinned (loader OR button)
+            if (isLoading) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                )
-                Spacer(Modifier.height(50.dp))
-                if (isLoading) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(40.dp),
-                            color = Color.White,
-                            strokeWidth = 4.dp
-                        )
-                    }
-                } else {
-                    Button(
-                        onClick = {
-                            Base64ImageObject.clear();
-                            Base64ImageObject.setImage(base64Image);
-                            onNext()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                            contentColor = androidx.compose.ui.graphics.Color.White
-                        ),
-                        shape = RoundedCornerShape(28.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp, horizontal = 20.dp)
-                    ) {
-                        Text(
-                            "Next",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 10.dp)
-                        )
-                    }
+                        .padding(vertical = 12.dp, horizontal = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(40.dp),
+                        color = Color.White,
+                        strokeWidth = 4.dp
+                    )
                 }
-
+            } else {
+                Button(
+                    onClick = {
+                        Base64ImageObject.clear()
+                        Base64ImageObject.setImage(base64Image)
+                        onNext()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(28.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp, horizontal = 20.dp)
+                ) {
+                    Text(
+                        "Next",
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 10.dp)
+                    )
+                }
             }
         }
     }
+
 }

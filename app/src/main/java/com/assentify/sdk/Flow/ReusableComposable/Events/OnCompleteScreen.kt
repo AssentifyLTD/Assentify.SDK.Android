@@ -46,45 +46,58 @@ fun OnCompleteScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
-            .statusBarsPadding() // safe top
-            .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
+            .statusBarsPadding()
+            .padding(horizontal = 32.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(150.dp))
-        Box(
+        // TOP + MIDDLE CONTENT
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SecureImage(imageUrl = imageUrl)
 
-            iconSvg?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "ic_complete",
-                    modifier = Modifier.size(100.dp),
-                    tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-                )
+            // Gentle spacing instead of rigid 150.dp
+            Spacer(Modifier.height(32.dp))
+
+            // MAIN IMAGE + ICON
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SecureImage(imageUrl = imageUrl)
+
+                iconSvg?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "ic_complete",
+                        modifier = Modifier.size(100.dp),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                    )
+                }
             }
+
+            Spacer(Modifier.height(25.dp))
+
+            Text(
+                text = "ID Processed Successfully",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Push content up and free space for bottom button
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-
-        Spacer(Modifier.height(25.dp))
-
-        Text(
-            text = "ID Processed Successfully",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-
-        Spacer(modifier = Modifier.weight(1f))
-
+        // BOTTOM BUTTON (always pinned)
         Button(
             onClick = onNext,
             colors = ButtonDefaults.buttonColors(
@@ -98,8 +111,13 @@ fun OnCompleteScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
         ) {
-            Text("Next", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 10.dp))
+            Text(
+                "Next",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
         }
     }
+
 
 }

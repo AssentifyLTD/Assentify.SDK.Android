@@ -272,7 +272,7 @@ fun ContextAwareStepScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 140.dp) // below header
+                .padding(top = 120.dp) // below header
         ) {
             // 🔹 Scrollable column
             Column(

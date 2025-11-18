@@ -51,61 +51,81 @@ fun OnFlipCardScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(150.dp))
-        Text(
-            text = "Capture Back of ID",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(49.dp))
-       iconSvg?.let {
-           Icon(
-               painter = it,
-               contentDescription = "ic_flip_card",
-               modifier = Modifier.size(150.dp),
-               tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-           )
-       }
-        Spacer(Modifier.height(25.dp))
-        Text(
-            text = "Please flip the card provided to take the back of the card",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        if(expectedImageUrl.isNotEmpty()){
-            Spacer(Modifier.height(30.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                SecureImage(imageUrl = expectedImageUrl)
-            }
+        // TOP + MIDDLE
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // small breathing space instead of 150.dp
 
-            Spacer(Modifier.height(10.dp))
+
+            // MIDDLE
             Text(
-                text = "Expected Card Type",
+                text = "Capture Back of ID",
                 color = Color.White,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Light,
-                lineHeight = 13.sp,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(Modifier.height(30.dp))
 
-        }else{
+            Spacer(Modifier.height(32.dp))
+
+            iconSvg?.let {
+                Icon(
+                    painter = it,
+                    contentDescription = "ic_flip_card",
+                    modifier = Modifier.size(150.dp),
+                    tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                )
+            }
+
+            Spacer(Modifier.height(25.dp))
+
+            Text(
+                text = "Please flip the card provided to take the back of the card",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (expectedImageUrl.isNotEmpty()) {
+                Spacer(Modifier.height(30.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SecureImage(imageUrl = expectedImageUrl)
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Text(
+                    text = "Expected Card Type",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Light,
+                    lineHeight = 13.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(30.dp))
+            }
+
+            // push content up, leave space for bottom button
             Spacer(modifier = Modifier.weight(1f))
         }
 
+        // BOTTOM
         Button(
             onClick = onNext,
             colors = ButtonDefaults.buttonColors(
@@ -119,8 +139,13 @@ fun OnFlipCardScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
         ) {
-            Text("Next", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 10.dp))
+            Text(
+                "Next",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
         }
     }
+
 
 }

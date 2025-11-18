@@ -46,56 +46,70 @@ fun OnLivenessScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
-            .statusBarsPadding() // safe top
-            .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
+            .statusBarsPadding()
+            .padding(horizontal = 32.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(150.dp))
-        Box(
+        // TOP + MIDDLE (dynamic / centered content)
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SecureImage(imageUrl = imageUrl)
 
-            iconSvg?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "ic_error",
-                    modifier = Modifier.size(100.dp),
-                    tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-                )
+            // Small top spacing to breathe (replaces rigid 150.dp)
+            Spacer(Modifier.height(32.dp))
+
+            // MIDDLE IMAGE + ICON
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SecureImage(imageUrl = imageUrl)
+
+                iconSvg?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "ic_error",
+                        modifier = Modifier.size(100.dp),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                    )
+                }
             }
+
+            Spacer(Modifier.height(25.dp))
+
+            Text(
+                text = "Seems like you didn't provide a real ID",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(15.dp))
+
+            Text(
+                text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
+                color = Color.White,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Light,
+                lineHeight = 13.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Push content upward, keeping the bottom button pinned
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-
-        Spacer(Modifier.height(25.dp))
-
-        Text(
-            text = "Seems like you didn't provide a real ID",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(15.dp))
-
-        Text(
-            text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
-            color = Color.White,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Light,
-            lineHeight = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
+        // BOTTOM BUTTON (always pinned)
         Button(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
@@ -109,8 +123,13 @@ fun OnLivenessScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
         ) {
-            Text("Retry", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 10.dp))
+            Text(
+                "Retry",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
         }
     }
+
 
 }

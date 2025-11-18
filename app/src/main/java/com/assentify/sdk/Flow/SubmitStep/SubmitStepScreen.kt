@@ -86,9 +86,12 @@ fun SubmitStepScreen(
             .background(bg)
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
 
-            // Top app bar (back + optional centered logo space)
+            // TOP
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -109,7 +112,7 @@ fun SubmitStepScreen(
                         )
                     }
                     Spacer(Modifier.weight(1f))
-                    // center slot for a tiny brand mark if you like
+
                     logoBitmap?.let {
                         Image(
                             bitmap = it,
@@ -119,214 +122,226 @@ fun SubmitStepScreen(
                                 .align(Alignment.CenterVertically)
                         )
                     } ?: Spacer(Modifier.size(22.dp))
+
                     Spacer(Modifier.weight(1f))
-                    // right side spacer to balance the back button
                     Spacer(Modifier.size(48.dp))
                 }
             }
 
-            when (submitDataTypes) {
-                SubmitDataTypes.onSend -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+            // MIDDLE (all states share one weighted box)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                when (submitDataTypes) {
+                    SubmitDataTypes.onSend -> {
                         CircularProgressIndicator(
                             modifier = Modifier.size(70.dp),
                             color = Color.White,
                             strokeWidth = 6.dp
                         )
                     }
-                }
-                SubmitDataTypes.onError -> {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        // Big logo with soft glow
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(170.dp)
-                                .padding(bottom = 24.dp)
-                                .drawBehind {
-                                    // subtle radial glow behind the logo
-                                    drawCircle(
-                                        brush = Brush.radialGradient(
-                                            colors = listOf(accent.copy(alpha = 0.25f), Color.Transparent)
-                                        ),
-                                        radius = size.minDimension / 2f
+
+                    SubmitDataTypes.onError -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(170.dp)
+                                    .padding(bottom = 24.dp)
+                                    .drawBehind {
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                colors = listOf(
+                                                    accent.copy(alpha = 0.25f),
+                                                    Color.Transparent
+                                                )
+                                            ),
+                                            radius = size.minDimension / 2f
+                                        )
+                                    }
+                            ) {
+                                logoBitmap?.let {
+                                    Image(
+                                        bitmap = it,
+                                        contentDescription = "Logo",
+                                        modifier = Modifier
+                                            .size(130.dp)
+                                            .graphicsLayer {
+                                                shadowElevation = 12f
+                                                shape = RoundedCornerShape(18.dp)
+                                                clip = false
+                                            }
                                     )
                                 }
-                        ) {
-                            logoBitmap?.let {
-                                Image(
-                                    bitmap = it,
-                                    contentDescription = "Logo",
-                                    modifier = Modifier
-                                        .size(130.dp)
-                                        .graphicsLayer {
-                                            shadowElevation = 12f
-                                            shape = RoundedCornerShape(18.dp)
-                                            clip = false
-                                        }
-                                )
                             }
-                        }
 
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "We couldn't complete your submission. Check your connection and retry.",
-                            color = Color.Red,
-                            fontSize = 15.sp,
-                            lineHeight = 25.sp,
-                            textAlign = TextAlign.Center
-                        )
+                            Spacer(Modifier.height(10.dp))
+
+                            Text(
+                                text = "We couldn't complete your submission. Check your connection and retry.",
+                                color = Color.Red,
+                                fontSize = 15.sp,
+                                lineHeight = 25.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                            )
+                        }
                     }
 
-                }
-                SubmitDataTypes.none -> {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        // Big logo with soft glow
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(170.dp)
-                                .padding(bottom = 24.dp)
-                                .drawBehind {
-                                    // subtle radial glow behind the logo
-                                    drawCircle(
-                                        brush = Brush.radialGradient(
-                                            colors = listOf(accent.copy(alpha = 0.25f), Color.Transparent)
-                                        ),
-                                        radius = size.minDimension / 2f
+                    SubmitDataTypes.none -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(170.dp)
+                                    .padding(bottom = 24.dp)
+                                    .drawBehind {
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                colors = listOf(
+                                                    accent.copy(alpha = 0.25f),
+                                                    Color.Transparent
+                                                )
+                                            ),
+                                            radius = size.minDimension / 2f
+                                        )
+                                    }
+                            ) {
+                                logoBitmap?.let {
+                                    Image(
+                                        bitmap = it,
+                                        contentDescription = "Logo",
+                                        modifier = Modifier
+                                            .size(130.dp)
+                                            .graphicsLayer {
+                                                shadowElevation = 12f
+                                                shape = RoundedCornerShape(18.dp)
+                                                clip = false
+                                            }
                                     )
                                 }
-                        ) {
-                            logoBitmap?.let {
-                                Image(
-                                    bitmap = it,
-                                    contentDescription = "Logo",
-                                    modifier = Modifier
-                                        .size(130.dp)
-                                        .graphicsLayer {
-                                            shadowElevation = 12f
-                                            shape = RoundedCornerShape(18.dp)
-                                            clip = false
-                                        }
-                                )
                             }
-                        }
 
-                        Text(
-                            text = "Ready to Submit?",
-                            color = Color.White,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 1.sp
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "Swipe the button below to confirm your submission.",
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            lineHeight = 25.sp,
-                            textAlign = TextAlign.Center
-                        )
+                            Text(
+                                text = "Ready to Submit?",
+                                color = Color.White,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.sp
+                            )
+
+                            Spacer(Modifier.height(10.dp))
+
+                            Text(
+                                text = "Swipe the button below to confirm your submission.",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                lineHeight = 25.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
-                }
-                SubmitDataTypes.onComplete -> {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        // Big logo with soft glow
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(170.dp)
-                                .padding(bottom = 24.dp)
-                                .drawBehind {
-                                    // subtle radial glow behind the logo
-                                    drawCircle(
-                                        brush = Brush.radialGradient(
-                                            colors = listOf(accent.copy(alpha = 0.25f), Color.Transparent)
-                                        ),
-                                        radius = size.minDimension / 2f
+
+                    SubmitDataTypes.onComplete -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(170.dp)
+                                    .padding(bottom = 24.dp)
+                                    .drawBehind {
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                colors = listOf(
+                                                    accent.copy(alpha = 0.25f),
+                                                    Color.Transparent
+                                                )
+                                            ),
+                                            radius = size.minDimension / 2f
+                                        )
+                                    }
+                            ) {
+                                logoBitmap?.let {
+                                    Image(
+                                        bitmap = it,
+                                        contentDescription = "Logo",
+                                        modifier = Modifier
+                                            .size(130.dp)
+                                            .graphicsLayer {
+                                                shadowElevation = 12f
+                                                shape = RoundedCornerShape(18.dp)
+                                                clip = false
+                                            }
                                     )
                                 }
-                        ) {
-                            logoBitmap?.let {
-                                Image(
-                                    bitmap = it,
-                                    contentDescription = "Logo",
-                                    modifier = Modifier
-                                        .size(130.dp)
-                                        .graphicsLayer {
-                                            shadowElevation = 12f
-                                            shape = RoundedCornerShape(18.dp)
-                                            clip = false
-                                        }
-                                )
                             }
-                        }
 
-                        Text(
-                            text = "THANK YOU",
-                            color = Color.White,
-                            fontSize = 38.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 1.sp
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "For submitting and welcome to NXT\nNavigation x Transform",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            lineHeight = 25.sp,
-                            textAlign = TextAlign.Center
-                        )
+                            Text(
+                                text = "THANK YOU",
+                                color = Color.White,
+                                fontSize = 38.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.sp
+                            )
+
+                            Spacer(Modifier.height(10.dp))
+
+                            Text(
+                                text = "For submitting and welcome to NXT\nNavigation x Transform",
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                lineHeight = 25.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }
-            // Middle content
 
+            // BOTTOM
+            when {
+                submitDataTypes != SubmitDataTypes.onSend &&
+                        submitDataTypes != SubmitDataTypes.onComplete &&
+                        submitDataTypes != SubmitDataTypes.onError -> {
+                    SwipeToSubmit(
+                        text = "Swipe to Submit",
+                        resetKey = resetTick,
+                        trackColor = pill,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 30.dp),
+                        onComplete = { onSubmit() }
+                    )
+                }
 
-            if(submitDataTypes != SubmitDataTypes.onSend && submitDataTypes != SubmitDataTypes.onComplete && submitDataTypes != SubmitDataTypes.onError  ){
-                SwipeToSubmit(
-                    text =  "Swipe to Submit",
-                    resetKey = resetTick,
-                    trackColor =pill,
-                    modifier = Modifier
-                        .fillMaxWidth().padding(horizontal = 20.dp, vertical = 30.dp),
-                    onComplete = { onSubmit()}
-                )
+                submitDataTypes == SubmitDataTypes.onComplete -> {
+                    SwipeToSubmit(
+                        text = " \t\tNext\t\t ",
+                        trackColor = pill,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 30.dp),
+                        onComplete = { onSubmit() }
+                    )
+                }
             }
-            if( submitDataTypes == SubmitDataTypes.onComplete){
-                SwipeToSubmit(
-                    text =   " \t\tNext\t\t " ,
-                    trackColor =pill,
-                    modifier = Modifier
-                        .fillMaxWidth().padding(horizontal = 20.dp, vertical = 30.dp),
-                    onComplete = { onSubmit()}
-                )
-            }
-
         }
     }
+
 }
 
 

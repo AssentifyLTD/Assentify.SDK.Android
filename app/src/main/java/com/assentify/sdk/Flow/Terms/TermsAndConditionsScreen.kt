@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -66,13 +65,19 @@ fun TermsAndConditionsScreen(
             .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
 
+            // TOP + MIDDLE AREA
             Column(
                 Modifier
                     .weight(1f)
-                    .fillMaxWidth()) {
+                    .fillMaxWidth()
+            ) {
 
+                // TOP
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -110,12 +115,14 @@ fun TermsAndConditionsScreen(
                 )
 
                 Spacer(Modifier.height(12.dp))
+
+                // MIDDLE (content area fills remaining space)
                 when (termsAndConditionsEventTypes) {
                     TermsAndConditionsEventTypes.onSend -> {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .fillMaxHeight(), // keep centered during scroll
+                                .weight(1f), // center loader in available middle space
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator(
@@ -127,98 +134,105 @@ fun TermsAndConditionsScreen(
                     }
 
                     TermsAndConditionsEventTypes.onHasData -> {
-                        Text(
-                            text = termsConditionsModel!!.data.header!!,
-                            color = Color.White,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 34.sp,
-                            textAlign = TextAlign.Start,
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 20.dp, start = 20.dp, end = 20.dp)
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Box(
-                            modifier = Modifier
-                                // .weight(1f)
-                                .fillMaxWidth()
-                                .fillMaxWidth()
-                                .padding(top = 20.dp, start = 20.dp, end = 20.dp)
-                                .background(Color.Transparent)
-                                .clip(RoundedCornerShape(12.dp))
+                                .fillMaxSize()
                         ) {
-                            PdfViewerFromUrl(
-                                url = termsConditionsModel.data.file!!,
-                                fileName = "TermsConditions.pdf",
+                            Text(
+                                text = termsConditionsModel!!.data.header!!,
+                                color = Color.White,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Bold,
+                                lineHeight = 34.sp,
+                                textAlign = TextAlign.Start,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(400.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .border(1.dp, Color.Gray)
+                                    .padding(top = 20.dp, start = 20.dp, end = 20.dp)
                             )
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp, horizontal = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(
-                                15.dp,
-                                Alignment.CenterHorizontally
-                            ),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Button(
-                                onClick = {
-                                          if(termsConditionsModel.data.confirmationRequired!!){
-                                              onDecline()
-                                          }else{
-                                              onAccept(false)
-                                          }
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-                                ),
-                                shape = RoundedCornerShape(999.dp),
+                            Spacer(Modifier.height(10.dp))
+
+                            // MIDDLE PDF VIEW – takes all remaining height in this area
+                            Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(60.dp)
-                                    .border(
-                                        1.dp,
-                                        Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
-                                        RoundedCornerShape(999.dp)
-                                    )
+                                    .fillMaxWidth()
+                                    .padding(top = 20.dp, start = 20.dp, end = 20.dp)
+                                    .background(Color.Transparent)
+                                    .clip(RoundedCornerShape(12.dp))
                             ) {
-                                Text("Decline", fontSize = 16.sp, fontWeight = FontWeight.Normal)
-                            }
-                            Button(
-                                onClick = {
-                                    onAccept(true)
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                                    contentColor = Color.White
-                                ),
-                                shape = RoundedCornerShape(999.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(60.dp)
-                            ) {
-                                Text(
-                                    termsConditionsModel.data.nextButtonTitle!!,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Normal
+                                PdfViewerFromUrl(
+                                    url = termsConditionsModel.data.file!!,
+                                    fileName = "TermsConditions.pdf",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .border(1.dp, Color.Gray)
                                 )
                             }
                         }
-
                     }
                 }
             }
 
-
+            // BOTTOM – always at end of screen when we have data
+            if (termsAndConditionsEventTypes == TermsAndConditionsEventTypes.onHasData) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp, horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        15.dp,
+                        Alignment.CenterHorizontally
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = {
+                            if (termsConditionsModel!!.data.confirmationRequired == true) {
+                                onDecline()
+                            } else {
+                                onAccept(false)
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                        ),
+                        shape = RoundedCornerShape(999.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(60.dp)
+                            .border(
+                                1.dp,
+                                Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                                RoundedCornerShape(999.dp)
+                            )
+                    ) {
+                        Text("Decline", fontSize = 16.sp, fontWeight = FontWeight.Normal)
+                    }
+                    Button(
+                        onClick = {
+                            onAccept(true)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(999.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(60.dp)
+                    ) {
+                        Text(
+                            termsConditionsModel!!.data.nextButtonTitle!!,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }
+                }
+            }
         }
     }
+
 }
 

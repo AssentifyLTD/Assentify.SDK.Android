@@ -51,51 +51,64 @@ fun OnErrorScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(150.dp))
-        Box(
+        // TOP + MIDDLE (content area)
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SecureImage(imageUrl = imageUrl)
+            // small breathing space instead of 150.dp
+            Spacer(Modifier.height(32.dp))
 
-            iconSvg?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "ic_error",
-                    modifier = Modifier.size(100.dp),
-                    tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-                )
+            // MIDDLE
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SecureImage(imageUrl = imageUrl)
+
+                iconSvg?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "ic_error",
+                        modifier = Modifier.size(100.dp),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                    )
+                }
             }
+
+            Spacer(Modifier.height(25.dp))
+
+            Text(
+                text = "Oops unable to Process ID Provided",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(15.dp))
+
+            Text(
+                text = "Make sure presented ID is clear and does not have any light reflections on it. Try presenting the ID vertically if your camera resolution is low to ease the extraction process.",
+                color = Color.White,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Light,
+                lineHeight = 13.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // push content up, leave room for bottom button
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-
-        Spacer(Modifier.height(25.dp))
-
-        Text(
-            text = "Oops unable to Process ID Provided",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(15.dp))
-
-        Text(
-            text = "Make sure presented ID is clear and does not have any light reflections on it. Try presenting the ID vertically if your camera resolution is low to ease the extraction process.",
-            color = Color.White,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Light,
-            lineHeight = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
+        // BOTTOM
         Button(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
@@ -109,8 +122,13 @@ fun OnErrorScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
         ) {
-            Text("Retry", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 10.dp))
+            Text(
+                "Retry",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
         }
     }
+
 
 }

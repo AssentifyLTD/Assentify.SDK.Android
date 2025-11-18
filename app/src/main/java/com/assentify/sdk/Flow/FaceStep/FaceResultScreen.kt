@@ -78,78 +78,94 @@ fun FaceResultScreen(
             .padding(top = 24.dp, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(130.dp))
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 30.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = subTitle,
-            color = Color.White,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Light,
-            lineHeight = 18.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        // ---------- Middle: Images + progress (take available space)
-        Spacer(Modifier.height(50.dp))
+        // TOP + MIDDLE CONTENT
         Column(
             modifier = Modifier
-                .fillMaxWidth().
-            weight(1f),
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val imageWidth = 140.dp
-                val imageHeight = 160.dp
-                Box(
-                    modifier = Modifier
-                        .width(imageWidth)
-                        .height(imageHeight)
-                        .border(1.dp, borderColor, RoundedCornerShape(0.dp))
-                ) {
-                    SecureImage(
-                        imageUrl = baseImage,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+            Spacer(Modifier.height(150.dp))
 
-                Box(
-                    modifier = Modifier
-                        .width(imageWidth)
-                        .height(imageHeight)
-                        .border(1.dp, borderColor, RoundedCornerShape(0.dp))
-                ) {
-                    SecureImage(
-                        imageUrl = secondImage,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-            Spacer(Modifier.height(25.dp))
-
-            MatchProgress(
-                percentage = match,
+            // TOP
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 30.sp,
+                textAlign = TextAlign.Center,
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
             )
 
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = subTitle,
+                color = Color.White,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Light,
+                lineHeight = 18.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // MIDDLE
+            Spacer(Modifier.height(32.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val imageWidth = 140.dp
+                    val imageHeight = 160.dp
+
+                    Box(
+                        modifier = Modifier
+                            .width(imageWidth)
+                            .height(imageHeight)
+                            .border(1.dp, borderColor, RoundedCornerShape(0.dp))
+                    ) {
+                        SecureImage(
+                            imageUrl = baseImage,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .width(imageWidth)
+                            .height(imageHeight)
+                            .border(1.dp, borderColor, RoundedCornerShape(0.dp))
+                    ) {
+                        SecureImage(
+                            imageUrl = secondImage,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(25.dp))
+
+                MatchProgress(
+                    percentage = match,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+
+            // Push content up, leave room for the bottom buttons
+            Spacer(Modifier.weight(1f))
         }
 
-
+        // BOTTOM ACTIONS
         when {
             match > 50 -> {
                 Button(
@@ -162,9 +178,11 @@ fun FaceResultScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
-                ) { Text("Next", modifier = Modifier.padding(vertical = 10.dp)) }
-
+                ) {
+                    Text("Next", modifier = Modifier.padding(vertical = 10.dp))
+                }
             }
+
             else -> {
                 when {
                     match > 30 -> {
@@ -204,7 +222,6 @@ fun FaceResultScreen(
                     }
 
                     else -> {
-
                         val corner = RoundedCornerShape(999.dp)
 
                         Button(
@@ -216,7 +233,7 @@ fun FaceResultScreen(
                             shape = corner,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(54.dp) // consistent height
+                                .height(54.dp)
                                 .border(1.dp, primary, corner)
                         ) {
                             Text("Provide Supporting ID to match with", fontWeight = FontWeight.Medium)
@@ -228,26 +245,24 @@ fun FaceResultScreen(
                             onClick = onNext,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
-                                contentColor =  Color.Red
+                                contentColor = Color.Red
                             ),
                             shape = corner,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
-                                .border(1.dp,  Color.Red, corner)
+                                .border(1.dp, Color.Red, corner)
                         ) {
                             Text("Override & Proceed", fontWeight = FontWeight.Medium)
                         }
                     }
                 }
-
             }
-
-
         }
 
         Spacer(Modifier.navigationBarsPadding())
     }
+
 }
 
 

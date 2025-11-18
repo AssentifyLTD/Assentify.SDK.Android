@@ -50,52 +50,65 @@ fun OnFaceErrorScreen(
             .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(150.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            SecureImage(imageUrl = imageUrl)
 
-            iconSvg?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "ic_error",
-                    modifier = Modifier.size(100.dp),
-                    tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-                )
+        // TOP + MIDDLE CONTENT
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Small breathing space instead of 150.dp
+            Spacer(Modifier.height(150.dp))
+
+            // Content
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SecureImage(imageUrl = imageUrl)
+
+                iconSvg?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "ic_error",
+                        modifier = Modifier.size(100.dp),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                    )
+                }
             }
+
+            Spacer(Modifier.height(25.dp))
+
+            Text(
+                text = "Let's try again",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(15.dp))
+
+            Text(
+                text = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos",
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Light,
+                lineHeight = 13.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Push content up, leave room for bottom button
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-
-        Spacer(Modifier.height(25.dp))
-
-        Text(
-            text = "Let's try again",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(15.dp))
-
-        Text(
-            text = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos",
-            color = Color.White,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Light,
-            lineHeight = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
+        // BOTTOM
         Button(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
@@ -109,8 +122,13 @@ fun OnFaceErrorScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
         ) {
-            Text("Retry", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 10.dp))
+            Text(
+                "Retry",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
         }
     }
+
 
 }
