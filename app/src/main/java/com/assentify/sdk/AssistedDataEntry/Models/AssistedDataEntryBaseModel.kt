@@ -42,8 +42,9 @@ data class AssistedDataEntryPage(
 data class DataEntryPageElement(
     var value: String?,
     var isLocalOtpValid: Boolean = false,
+    var dataSourceValues: MutableMap<String, String>? = mutableMapOf(),
     val elementIdentifier: String,
-    val endpointId: String?,
+    val endpointId: Int?,
     val dataSourceId: String?,
     val inputType: String,
     val sizeByRows: Int?,

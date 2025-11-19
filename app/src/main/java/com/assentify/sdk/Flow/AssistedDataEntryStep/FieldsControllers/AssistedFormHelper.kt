@@ -1,8 +1,12 @@
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.Flow.FlowController.FlowController
+import com.assentify.sdk.Flow.Models.DataSourceAttribute
+import com.assentify.sdk.Flow.Models.DataSourceRequestBody
+import com.assentify.sdk.Flow.Models.DataSourceResponse
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.RemoteClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -67,7 +71,8 @@ object AssistedFormHelper {
         if (field!!.children!!.isNotEmpty()) {
             field.children?.forEach { (key, list) ->
                 if (key == value && list.isNotEmpty()) {
-                    val pageList = model.assistedDataEntryPages[page].dataEntryPageElements.toMutableList()
+                    val pageList =
+                        model.assistedDataEntryPages[page].dataEntryPageElements.toMutableList()
                     list.forEach { element ->
                         if (!pageList.contains(element)) {
                             pageList.add(element)
@@ -89,6 +94,53 @@ object AssistedFormHelper {
 
         field.value = value
         AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model)
+    }
+
+    fun changeValueSecureDropdownWithDataSource(
+        key: String,
+        dataSourceAttribute: List<DataSourceAttribute>,
+        outputKeys: Map<String, String>,
+        page: Int
+    ) {
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
+
+        /** Check IF Has Children **/
+        if (field!!.children!!.isNotEmpty()) {
+            field.children?.forEach { (key, list) ->
+                if (dataSourceAttribute.isNotEmpty() && key == dataSourceAttribute.first{i->i.mappedKey =="Display Value"}.value && list.isNotEmpty()) {
+                    val pageList =
+                        model.assistedDataEntryPages[page].dataEntryPageElements.toMutableList()
+                    list.forEach { element ->
+                        if (!pageList.contains(element)) {
+                            pageList.add(element)
+                        }
+                    }
+                    model.assistedDataEntryPages[page].dataEntryPageElements = pageList
+                } else {
+                    model.assistedDataEntryPages[page].dataEntryPageElements =
+                        model.assistedDataEntryPages[page].dataEntryPageElements
+                            .toMutableList()
+                            .apply {
+                                removeAll(list)
+                            }
+                }
+            }
+
+        }
+        /** **/
+
+        if (dataSourceAttribute.isNotEmpty()) {
+            field.value = dataSourceAttribute.first{i->i.mappedKey =="Display Value"}.value
+            field.dataSourceValues = mutableMapOf();
+            dataSourceAttribute.forEach { item ->
+                field.dataSourceValues!!.put(outputKeys.entries.first { it.key == item.id.toString() }.value,item.value)
+            }
+            AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model)
+        }
+
     }
 
 
@@ -185,12 +237,12 @@ object AssistedFormHelper {
             if (!err.isNullOrEmpty()) return false
         }
         /// SDK TODO
-       /* for (f in fields) {
-            val fieldType = InputTypes.fromString(f.inputType)
-            if (fieldType == InputTypes.EmailWithOTP || fieldType == InputTypes.PhoneNumberWithOTP) {
-                if (!f.isLocalOtpValid) return false
-            }
-        }*/
+        /* for (f in fields) {
+             val fieldType = InputTypes.fromString(f.inputType)
+             if (fieldType == InputTypes.EmailWithOTP || fieldType == InputTypes.PhoneNumberWithOTP) {
+                 if (!f.isLocalOtpValid) return false
+             }
+         }*/
         return true
     }
 
@@ -221,6 +273,53 @@ object AssistedFormHelper {
             }
 
             override fun onFailure(call: Call<List<LanguageTransformationModel>>, t: Throwable) {
+                onResult(null)
+            }
+        })
+
+    }
+
+
+    fun getDataSourceValues(
+        configModel: ConfigModel,
+        elementIdentifier: String,
+        stepId: Int,
+        endpointId: Int,
+        onResult: (DataSourceResponse?) -> Unit
+    ) {
+
+        val call = RemoteClient.remoteGatewayService.getDataSourceValues(
+            "", "Android SDK",
+            configModel.flowInstanceId,
+            configModel.tenantIdentifier,
+            configModel.blockIdentifier,
+            configModel.instanceId,
+            configModel.flowIdentifier,
+            configModel.instanceHash,
+            elementIdentifier,
+            stepId,
+            endpointId,
+            DataSourceRequestBody(
+                filterKeyValues = emptyMap(),
+                inputKeyValues = emptyMap()
+            )
+        )
+        call.enqueue(object : Callback<DataSourceResponse> {
+            override fun onResponse(
+                call: Call<DataSourceResponse>,
+                response: Response<DataSourceResponse>
+            ) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null) {
+                        onResult(responseBody);
+                    }
+                } else {
+                    onResult(null)
+                }
+            }
+
+            override fun onFailure(call: Call<DataSourceResponse>, t: Throwable) {
                 onResult(null)
             }
         })

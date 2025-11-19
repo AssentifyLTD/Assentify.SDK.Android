@@ -26,6 +26,7 @@ import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDateField
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDropdown
+import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDropdownWithDataSource
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureEmailWithOtpField
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureNationalityDropdown
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecurePhoneInput
@@ -124,19 +125,33 @@ fun AssistedDataEntryPager(
                         }
 
                         InputTypes.DropDown -> {
-                            SecureDropdown(
-                                title = field.textTitle!!,
-                                onValueChange = { new ->
-                                    AssistedFormHelper.changeValue(field.inputKey!!, new, page);
-                                    onFieldChanged();
-                                },
-                                page = page,
-                                field = field,
-                                options = field.dataSourceContent
-                                    ?.split(",")
-                                    ?.map { it.trim() }
-                                    ?: emptyList(),
-                            )
+                            if(field.endpointId != null){
+                                SecureDropdownWithDataSource(
+                                    title = field.textTitle!!,
+                                    onValueChange = { new ,outputKeys ->
+                                        AssistedFormHelper.changeValueSecureDropdownWithDataSource(
+                                            field.inputKey!!,new,outputKeys, page);
+                                        onFieldChanged();
+                                    },
+                                    page = page,
+                                    field = field,
+                                )
+                            }else{
+                                SecureDropdown(
+                                    title = field.textTitle!!,
+                                    onValueChange = { new ->
+                                        AssistedFormHelper.changeValue(field.inputKey!!, new, page);
+                                        onFieldChanged();
+                                    },
+                                    page = page,
+                                    field = field,
+                                    options = field.dataSourceContent
+                                        ?.split(",")
+                                        ?.map { it.trim() }
+                                        ?: emptyList(),
+                                )
+                            }
+
                         }
 
                         InputTypes.Email -> {

@@ -1,6 +1,8 @@
 package   com.assentify.sdk.RemoteClient
 
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryBaseModel
+import com.assentify.sdk.Flow.Models.DataSourceRequestBody
+import com.assentify.sdk.Flow.Models.DataSourceResponse
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -180,9 +182,9 @@ interface RemoteGatewayService {
         @Path("ID") ID: String,
     ): Call<TermsConditionsModel>;
 
-    @GET("v1/DataSource/DataSourceValues")
+    @POST("v1/DataSource/DataSourceValues")
     @Headers("Content-Type: application/json")
-    fun getTDataSourceValues(
+    fun getDataSourceValues(
         @Header("X-Api-Key") apiKey: String,
         @Header("X-Source-Agent") userAgent: String,
         @Header("X-Flow-Instance-Id") flowInstanceId: String,
@@ -193,8 +195,9 @@ interface RemoteGatewayService {
         @Header("X-Instance-Hash") instanceHash: String,
         @Query("elementIdentifier") elementIdentifier: String,
         @Query("stepId") stepId: Int,
-        @Query("endpointId") endpointId: Int
-    ): Call<TermsConditionsModel>;
+        @Query("endpointId") endpointId: Int,
+        @Body body: DataSourceRequestBody
+    ): Call<DataSourceResponse>;
 }
 
 

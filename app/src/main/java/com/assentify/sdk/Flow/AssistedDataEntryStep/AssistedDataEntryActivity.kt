@@ -60,6 +60,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                     val isDirtyKey = element.isDirtyKey
                                     val value = element.value
                                     val fieldType = InputTypes.fromString(element.inputType)
+                                    /** Normal Key **/
                                     if (!key.isNullOrBlank() && !value.isNullOrBlank()) {
                                         if (fieldType == InputTypes.PhoneNumber) {
                                             extractedInformation[key] =
@@ -69,12 +70,19 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                         }
 
                                     }
+                                    /** Dirty Key **/
                                     if (!isDirtyKey.isNullOrBlank() && !value.isNullOrBlank()) {
                                         if (fieldType == InputTypes.PhoneNumber) {
                                             extractedInformation[isDirtyKey] =
                                                 element.defaultCountryCode + value
                                         } else {
                                             extractedInformation[isDirtyKey] = value
+                                        }
+                                    }
+                                    /** Data Source Keys **/
+                                    if (!element.dataSourceValues.isNullOrEmpty()) {
+                                        element.dataSourceValues!!.forEach {
+                                            extractedInformation[it.key] = it.value
                                         }
                                     }
                                 }
