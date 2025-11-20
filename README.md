@@ -38,6 +38,8 @@ dependencies {
 ```
 
 ## Versions
+***0.0.90***
+1. *TensorFlow Lite → LiteRT Migration (16 KB Page Size Compliance)*
 
 ***0.0.89***
 1. *Add "applicationId" to the Config Model*
