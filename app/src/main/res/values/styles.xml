@@ -2,5 +2,4 @@
     <style name="AppTheme.ObjectDetection" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/tfe_color_primary</item>
     </style>
-
 </resources>
