@@ -18,6 +18,7 @@ import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
+import com.assentify.sdk.RemoteClient.Models.TokensMappings
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpResponseOtpModel
@@ -82,6 +83,15 @@ interface RemoteSigningService {
     fun signature(
         @Body requestBody: SignatureRequestModel
     ): Call<SignatureResponseModel>;
+
+    @GET("Mappings/{blockIdentifier}/{stepId}/{templateId}")
+    @Headers("Content-Type: application/json")
+    fun mappings(
+        @Header("x-tenant-identifier") tenantIdentifier: String,
+        @Path("blockIdentifier") blockIdentifier: String,
+        @Path("stepId") stepId: Int,
+        @Path("templateId") templateId: Int,
+    ): Call<List<TokensMappings>>;
 
 }
 

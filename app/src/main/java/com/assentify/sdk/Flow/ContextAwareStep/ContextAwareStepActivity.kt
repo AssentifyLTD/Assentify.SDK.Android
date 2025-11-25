@@ -66,8 +66,8 @@ import com.assentify.sdk.Flow.ReusableComposable.SignaturePad
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
-import com.assentify.sdk.RemoteClient.Models.DocumentTokensModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
+import com.assentify.sdk.RemoteClient.Models.TokensMappings
 
 
 class ContextAwareStepActivity : FragmentActivity(), ContextAwareSigningCallback {
@@ -144,28 +144,25 @@ class ContextAwareStepActivity : FragmentActivity(), ContextAwareSigningCallback
             context.startActivity(intent)
         }
     }
-
-    fun getValueByKey(key: String): String {
-        for (outputProperty in FlowController.getPreviousIDScanStep()!!.submitRequestModel!!.extractedInformation) {
-            if (outputProperty.key.contains(key)) {
-                return outputProperty.value
-            }
-        }
-        for (outputProperty in FlowController.getPreviousFaceScanStep()!!.submitRequestModel!!.extractedInformation) {
-            if (outputProperty.key.contains(key)) {
-                return outputProperty.value
-            }
+    private fun getValueByKey(key: String): String {
+        val doneList = FlowController.getAllDoneSteps();
+        doneList.forEach { step ->
+                for (info in step.submitRequestModel!!.extractedInformation) {
+                    if (info.key == key) {
+                       return  info.value;
+                    }
+                }
         }
         return "";
     }
 
     override fun onHasTokens(
-        documentTokens: List<DocumentTokensModel>,
+        documentTokens: List<TokensMappings>,
         contextAwareSigningModel: ContextAwareSigningModel?
     ) {
         val tokenValues = mutableMapOf<String, String>()
         documentTokens.forEach {
-            tokenValues[it.id.toString()] = getValueByKey(it.tokenValue)
+            tokenValues[it.tokenId.toString()] = getValueByKey(it.sourceKey)
         }
         contextAwareSigningObject.value = contextAwareSigningModel;
         contextAwareSigning.createUserDocumentInstance(tokenValues)
