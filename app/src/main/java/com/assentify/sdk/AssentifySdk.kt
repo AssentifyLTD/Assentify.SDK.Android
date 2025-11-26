@@ -1,13 +1,16 @@
 package  com.assentify.sdk
 
-import android.app.ActivityManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
-import androidx.fragment.app.Fragment
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
+import com.assentify.sdk.Core.Constants.BlockLoaderKeys
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
+import com.assentify.sdk.Core.Constants.StepsNames
+import com.assentify.sdk.Core.Constants.WrapUpKeys
+import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Core.FileUtils.ImageUtils
 import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
@@ -24,11 +27,9 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
-import com.assentify.sdk.RemoteClient.Models.decodeConfigModelFromJson
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
 import com.assentify.sdk.ScanIDCard.IDCardCallback
-import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
 import com.assentify.sdk.ScanIDCard.ScanIDCardResult
@@ -53,7 +54,6 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.File
 
 class AssentifySdk(
     private var apiKey: String? = null,
@@ -66,6 +66,7 @@ class AssentifySdk(
 ) {
 
     private var isKeyValid: Boolean = false;
+    private var timeStarted: String = "";
     private var configModel: ConfigModel? = null;
     private var stepID: Int = -1;
     private var templates: List<TemplatesByCountry> = emptyList();
@@ -140,6 +141,7 @@ class AssentifySdk(
 
     private fun iniSdk() {
         getTemplatesByCountry();
+        timeStarted = getCurrentDateTime();
         GlobalScope.launch {
             configModel!!.stepDefinitions.forEach { item ->
                 if (item.stepDefinition == "ContextAwareSigning") {
@@ -156,7 +158,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanPassportResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val scanPassportManual = ScanPassportManual(
                     configModel,
                     environmentalConditions,
@@ -190,7 +192,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanIDCardResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val scanIDCardManual = ScanIDCardManual(
                     configModel,
                     environmentalConditions, apiKey,
@@ -223,8 +225,8 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanQrResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
-                val scanQrManual =  ScanQrManual(
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
+                val scanQrManual = ScanQrManual(
                     kycDocumentDetails,
                     apiKey,
                     language,
@@ -235,7 +237,7 @@ class AssentifySdk(
                 scanQrManual.setScanQrCallback(scanQrCallback)
                 return ScanQrResult.Manual(scanQrManual);
             } else {
-                val scanQr =  ScanQr(
+                val scanQr = ScanQr(
                     kycDocumentDetails,
                     apiKey,
                     language,
@@ -259,7 +261,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanOtherResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val scanOtherManual = ScanOtherManual(
                     configModel,
                     environmentalConditions, apiKey,
@@ -291,7 +293,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): FaceMatchResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val faceMatchManual = FaceMatchManual(
                     configModel,
                     environmentalConditions,
@@ -352,9 +354,85 @@ class AssentifySdk(
     fun startSubmitData(
         submitDataCallback: SubmitDataCallback,
         submitRequestModel: List<SubmitRequestModel>,
+        customProperties: MutableMap<String, String> = mutableMapOf()
     ): SubmitData {
         if (isKeyValid) {
-            return SubmitData(apiKey!!, submitDataCallback, submitRequestModel, configModel!!)
+            val submitList = mutableListOf<SubmitRequestModel>()
+            submitList.addAll(submitRequestModel);
+            val initSteps = configModel!!.stepDefinitions
+
+            /** WrapUp **/
+            val valuesWrapUp: MutableMap<String, String> = mutableMapOf()
+            initSteps.forEach { item ->
+                if (item.stepDefinition == StepsNames.WrapUp) {
+                    item.outputProperties.forEach { property ->
+                        if (property.key.contains(WrapUpKeys.TimeEnded)) {
+                            valuesWrapUp.put(property.key, getCurrentDateTime())
+                        }
+                    }
+                }
+            }
+            if (submitList.filter { it.stepDefinition == StepsNames.WrapUp }
+                    .isEmpty()) {
+                submitList.add(SubmitRequestModel(
+                    stepDefinition = StepsNames.WrapUp,
+                    stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.WrapUp }
+                        .first().stepId,
+                    extractedInformation = valuesWrapUp
+                ));
+            }
+            /** BlockLoader **/
+            val valuesBlockLoader: MutableMap<String, String> = mutableMapOf()
+
+            initSteps.forEach { item ->
+                if (item.stepDefinition == StepsNames.BlockLoader) {
+                    item.outputProperties.forEach { property ->
+                        if (property.key.contains(BlockLoaderKeys.TimeStarted)) {
+                            valuesBlockLoader.put(property.key, timeStarted)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.DeviceName)) {
+                            valuesBlockLoader.put(property.key, "${Build.MANUFACTURER} ${Build.MODEL}")
+                        }
+                        if (property.key.contains(BlockLoaderKeys.Application)) {
+                            valuesBlockLoader.put(property.key, configModel!!.applicationId)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.FlowName)) {
+                            valuesBlockLoader.put(property.key, configModel!!.flowName)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.InstanceHash)) {
+                            valuesBlockLoader.put(property.key, configModel!!.instanceHash)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.UserAgent)) {
+                            val userAgent = System.getProperty("http.agent")
+                                ?: "Android ${Build.VERSION.RELEASE}; ${Build.MODEL}"
+                            valuesBlockLoader.put(property.key, userAgent)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.InteractionID)) {
+                            valuesBlockLoader.put(property.key, configModel!!.instanceId)
+                        }
+                    }
+                    item.outputProperties.forEach { property ->
+                        customProperties.forEach { customProperty ->
+                            if (property.key.contains(customProperty.key)) {
+                                valuesBlockLoader.put(property.key, customProperty.value.toString())
+                            }
+                        }
+
+                    }
+                }
+            }
+            if (submitList.filter { it.stepDefinition == StepsNames.BlockLoader }
+                    .isEmpty()) {
+                submitList.add(SubmitRequestModel(
+                    stepDefinition = StepsNames.BlockLoader,
+                    stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.BlockLoader }
+                        .first().stepId,
+                    extractedInformation = valuesBlockLoader
+                ));
+            }
+            /****/
+
+            return SubmitData(apiKey!!, submitDataCallback, submitList, configModel!!)
         } else {
             throw Exception("Invalid Keys")
         }
