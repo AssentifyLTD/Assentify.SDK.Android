@@ -55,8 +55,6 @@ class BlockLoaderKeys{
         const val UserAgent = "OnBoardMe_BlockLoader_UserAgent"
         const val InstanceHash = "OnBoardMe_BlockLoader_InstanceHash"
         const val InteractionID = "OnBoardMe_BlockLoader_Interaction"
-        const val userID = "OnBoardMe_Property_userId";
-        const val salary = "OnBoardMe_Property_salary";
     }
 }
 

@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+***0.0.91***
+1. *Improved Submit Flow Handling , When calling start SubmitData, it is no longer necessary to include the BlockLoader or WrapUp steps in the submitList.*
+
 ***0.0.90***
 1. *TensorFlow Lite → LiteRT Migration (16 KB Page Size Compliance)*
 

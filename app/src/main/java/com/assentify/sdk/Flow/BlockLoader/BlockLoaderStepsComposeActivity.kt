@@ -77,7 +77,10 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                         values.put(property.key, getCurrentDateTime())
                     }
                     if (property.key.contains(BlockLoaderKeys.DeviceName)) {
-                        values.put(property.key, "Android")
+                        values.put(
+                            property.key,
+                            "${Build.MANUFACTURER} ${Build.MODEL}"
+                        )
                     }
                     if (property.key.contains(BlockLoaderKeys.Application)) {
                         values.put(property.key, configModel.applicationId)

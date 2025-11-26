@@ -2,14 +2,19 @@ package  com.assentify.sdk
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntry
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
+import com.assentify.sdk.Core.Constants.BlockLoaderKeys
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
+import com.assentify.sdk.Core.Constants.StepsNames
+import com.assentify.sdk.Core.Constants.WrapUpKeys
+import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Core.FileUtils.ImageUtils
 import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
@@ -65,6 +70,7 @@ class AssentifySdk(
 ) {
 
     private var isKeyValid: Boolean = false;
+    private var timeStarted: String = "";
     private var configModel: ConfigModel? = null;
     private var allTemplates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
@@ -137,6 +143,7 @@ class AssentifySdk(
 
 
     private fun iniSdk() {
+        timeStarted = getCurrentDateTime();
         getTemplatesByCountry();
     }
 
@@ -354,12 +361,89 @@ class AssentifySdk(
     }
 
 
+
     fun startSubmitData(
         submitDataCallback: SubmitDataCallback,
         submitRequestModel: List<SubmitRequestModel>,
+        customProperties: MutableMap<String, String> = mutableMapOf()
     ): SubmitData {
         if (isKeyValid) {
-            return SubmitData(apiKey!!, submitDataCallback, submitRequestModel, configModel!!)
+            val submitList = mutableListOf<SubmitRequestModel>()
+            submitList.addAll(submitRequestModel);
+            val initSteps = configModel!!.stepDefinitions
+
+            /** WrapUp **/
+            val valuesWrapUp: MutableMap<String, String> = mutableMapOf()
+            initSteps.forEach { item ->
+                if (item.stepDefinition == StepsNames.WrapUp) {
+                    item.outputProperties.forEach { property ->
+                        if (property.key.contains(WrapUpKeys.TimeEnded)) {
+                            valuesWrapUp.put(property.key, getCurrentDateTime())
+                        }
+                    }
+                }
+            }
+            if (submitList.filter { it.stepDefinition == StepsNames.WrapUp }
+                    .isEmpty()) {
+                submitList.add(SubmitRequestModel(
+                    stepDefinition = StepsNames.WrapUp,
+                    stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.WrapUp }
+                        .first().stepId,
+                    extractedInformation = valuesWrapUp
+                ));
+            }
+            /** BlockLoader **/
+            val valuesBlockLoader: MutableMap<String, String> = mutableMapOf()
+            initSteps.forEach { item ->
+                if (item.stepDefinition == StepsNames.BlockLoader) {
+                    item.outputProperties.forEach { property ->
+                        if (property.key.contains(BlockLoaderKeys.TimeStarted)) {
+                            valuesBlockLoader.put(property.key, timeStarted)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.DeviceName)) {
+                            valuesBlockLoader.put(
+                                property.key,
+                                "${Build.MANUFACTURER} ${Build.MODEL}"
+                            )
+                        }
+                        if (property.key.contains(BlockLoaderKeys.Application)) {
+                            valuesBlockLoader.put(property.key, configModel!!.applicationId)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.FlowName)) {
+                            valuesBlockLoader.put(property.key, configModel!!.flowName)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.InstanceHash)) {
+                            valuesBlockLoader.put(property.key, configModel!!.instanceHash)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.UserAgent)) {
+                            val userAgent = System.getProperty("http.agent")
+                                ?: "Android ${Build.VERSION.RELEASE}; ${Build.MODEL}"
+                            valuesBlockLoader.put(property.key, userAgent)
+                        }
+                        if (property.key.contains(BlockLoaderKeys.InteractionID)) {
+                            valuesBlockLoader.put(property.key, configModel!!.instanceId)
+                        }
+                    }
+                    item.outputProperties.forEach { property ->
+                        customProperties.forEach { customProperty ->
+                            if (property.key.contains(customProperty.key)) {
+                                valuesBlockLoader.put(property.key, customProperty.value.toString())
+                            }
+                        }
+                    }
+                }
+            }
+            if (submitList.filter { it.stepDefinition == StepsNames.BlockLoader }
+                    .isEmpty()) {
+                submitList.add(SubmitRequestModel(
+                    stepDefinition = StepsNames.BlockLoader,
+                    stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.BlockLoader }
+                        .first().stepId,
+                    extractedInformation = valuesBlockLoader
+                ));
+            }
+            /****/
+            return SubmitData(apiKey!!, submitDataCallback, submitList, configModel!!)
         } else {
             throw Exception("Invalid Keys")
         }
