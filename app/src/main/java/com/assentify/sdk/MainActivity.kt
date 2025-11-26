@@ -18,11 +18,13 @@ import com.assentify.sdk.Core.Constants.ActiveLiveType
 import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
+import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.FaceMatch.FaceMatchManual
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.StepMap
+import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
 import com.assentify.sdk.ScanOther.ScanOtherManual
@@ -31,13 +33,16 @@ import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.ScanPassport.ScanPassportManual
 import com.assentify.sdk.ScanPassport.ScanPassportResult
 import com.assentify.sdk.ScanQr.ScanQrManual
+import com.assentify.sdk.SubmitData.SubmitDataCallback
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCallback{
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCallback,
+    SubmitDataCallback {
     private lateinit var assentifySdk: AssentifySdk
+    private lateinit var configModel: ConfigModel
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private lateinit var passportClick: LinearLayout
     private lateinit var idClick: LinearLayout
@@ -133,6 +138,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
         Log.e("MainActivity", "onAssentifySdkInitSuccess: ")
         val stepDefinitionsTemp: MutableList<StepMap> = mutableListOf()
         val template = assentifySdk.getTemplates();
+        this.configModel = configModel;
         template.forEach { item ->
             Log.e("IDSCAN", item.name)
             item.templates.forEach { it ->
@@ -393,30 +399,49 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
         Log.e("IDSCAN", dataModel.passportExtractedModel?.extractedData.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.imageUrl.toString())
         Log.e("IDSCAN", doneFlag.toString())
+        val submitList = mutableListOf<SubmitRequestModel>()
+        val customProperties: MutableMap<String, String> = mutableMapOf()
+       customProperties.put("phone","1111111")
+
+        submitList.add(SubmitRequestModel(
+            stepDefinition = StepsNames.IdentificationDocumentCapture,
+            stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.IdentificationDocumentCapture }
+                .first().stepId,
+            extractedInformation = dataModel.passportExtractedModel!!.transformedProperties!!
+        ));
+        assentifySdk.startSubmitData(this,submitList,customProperties)
 
     }
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onWrongTemplate")
     }
 
+    override fun onSubmitError(message: String) {
+        Log.e("IDSCAN", "onSubmitError")
+    }
 
-   /* override fun onEnvironmentalConditionsChange(
-        brightnessEvents: BrightnessEvents,
-        motion: MotionType,
-        faceEvents: FaceEvents,
-        zoomType: ZoomType,
-        detectedFaces:Int
-    ) {
-        val faceTextView = findViewById<TextView>(R.id.faceEventText)
-
-        runOnUiThread {
-            faceTextView.text = detectedFaces.toString()
-        }
+    override fun onSubmitSuccess(message: String) {
+        Log.e("IDSCAN", "onSubmitSuccess")
     }
 
 
-    override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
-       *//* val faceTextView = findViewById<TextView>(R.id.faceEventText)
+    /* override fun onEnvironmentalConditionsChange(
+         brightnessEvents: BrightnessEvents,
+         motion: MotionType,
+         faceEvents: FaceEvents,
+         zoomType: ZoomType,
+         detectedFaces:Int
+     ) {
+         val faceTextView = findViewById<TextView>(R.id.faceEventText)
+
+         runOnUiThread {
+             faceTextView.text = detectedFaces.toString()
+         }
+     }
+
+
+     override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {
+        *//* val faceTextView = findViewById<TextView>(R.id.faceEventText)
 
         runOnUiThread {
             faceTextView.text = activeLiveEvents.name
