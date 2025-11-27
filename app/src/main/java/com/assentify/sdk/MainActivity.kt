@@ -4,11 +4,7 @@ package com.assentify.sdk
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.os.AsyncTask
 import android.os.Bundle
-import android.util.Base64
 import android.util.Log
 import android.widget.Button
 import android.widget.LinearLayout
@@ -32,10 +28,6 @@ import com.assentify.sdk.ScanPassport.ScanPassportManual
 import com.assentify.sdk.ScanQr.ScanQrCallback
 import com.assentify.sdk.ScanQr.ScanQrManual
 import com.assentify.sdk.ScanQr.ScanQrResult
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback, FlowCallBack {
     private lateinit var assentifySdk: AssentifySdk
@@ -481,34 +473,4 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback, 
 }
 
 
-class ImageToBase64Converter : AsyncTask<String, Void, String>() {
-
-    override fun doInBackground(vararg params: String): String? {
-        val imageUrl = params[0]
-        return try {
-            val url = URL(imageUrl)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.doInput = true
-            connection.connect()
-            val input: InputStream = connection.inputStream
-            val bitmap: Bitmap = BitmapFactory.decodeStream(input)
-
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-            val byteArray: ByteArray = byteArrayOutputStream.toByteArray()
-            Base64.encodeToString(byteArray, Base64.DEFAULT)
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    override fun onPostExecute(base64Image: String?) {
-        // You can handle the result here if needed
-        // For example, you can use the result in another function or class
-    }
-
-
-}
 

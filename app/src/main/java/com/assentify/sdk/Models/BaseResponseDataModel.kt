@@ -25,7 +25,7 @@ fun parseDataToBaseResponseDataModel(data: String): BaseResponseDataModel {
     return BaseResponseDataModel(
         destinationEndpoint = json.optString("destinationEndpoint", ""),
         response = json.optString("response", ""),
-        error = json.optString("error", null),
+        error = json.optString("error", ),
         success = json.optBoolean("success", false)
     )
 }

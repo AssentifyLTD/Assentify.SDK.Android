@@ -9,7 +9,6 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.RemoteClient
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -47,14 +46,12 @@ class RemoteProcessing {
             appConfiguration.instanceHash,
             appConfiguration.instanceId,
             appConfiguration.tenantIdentifier,
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.tenantIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.blockIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.instanceId),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), templateId),
-            RequestBody.create(
-                "text/plain".toMediaTypeOrNull(),
-                "true"
-            ),
+            appConfiguration.tenantIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            appConfiguration.blockIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            appConfiguration.instanceId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            templateId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            "true"
+                .toRequestBody("text/plain".toMediaTypeOrNull()),
             byteArrayToPart(
                 byteArray = byteArrayImage,
                 partName = "Image",
@@ -64,11 +61,11 @@ class RemoteProcessing {
                 val pct = if (total > 0) ((sent * 100) / total).toInt() else -1
                 callback!!.onUploadProgress(pct);
             },
-            RequestBody.create("text/plain".toMediaTypeOrNull(), connectionId),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), metadata),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), traceIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), isManualCapture.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), isAutoCapture.toString()),
+            connectionId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            metadata.toRequestBody("text/plain".toMediaTypeOrNull()),
+            traceIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            isManualCapture.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            isAutoCapture.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
         )
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
@@ -145,20 +142,18 @@ class RemoteProcessing {
             appConfiguration.instanceHash,
             appConfiguration.instanceId,
             appConfiguration.tenantIdentifier,
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.tenantIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.blockIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.instanceId),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), templateId),
-            RequestBody.create(
-                "text/plain".toMediaTypeOrNull(),
-                performLivenessDoc.toString()
-            ),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), processMrz.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), "false"), //  DisableDataExtraction
-            RequestBody.create("text/plain".toMediaTypeOrNull(), storeImageStream.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), "false"), // isVideo
-            RequestBody.create("text/plain".toMediaTypeOrNull(), clipsPath),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), "true"), // isMobile
+            appConfiguration.tenantIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            appConfiguration.blockIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            appConfiguration.instanceId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            templateId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            performLivenessDoc.toString()
+                .toRequestBody("text/plain".toMediaTypeOrNull()),
+            processMrz.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            "false".toRequestBody("text/plain".toMediaTypeOrNull()), //  DisableDataExtraction
+            storeImageStream.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            "false".toRequestBody("text/plain".toMediaTypeOrNull()), // isVideo
+            clipsPath.toRequestBody("text/plain".toMediaTypeOrNull()),
+            "true".toRequestBody("text/plain".toMediaTypeOrNull()), // isMobile
             byteArrayToPart(
                 byteArray = byteArrayImage,
                 partName = "Image",
@@ -168,17 +163,17 @@ class RemoteProcessing {
                 val pct = if (total > 0) ((sent * 100) / total).toInt() else -1
                 callback!!.onUploadProgress(pct);
             },
-            RequestBody.create("text/plain".toMediaTypeOrNull(), checkForFace.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), connectionId),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), saveCapturedVideo.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), storeCapturedDocument.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), traceIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), isManualCapture.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), isAutoCapture.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), tryCount.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), tag),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), processCivilExtractQrCode.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), "false"), // RequireFaceExtraction
+            checkForFace.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            connectionId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            saveCapturedVideo.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            storeCapturedDocument.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            traceIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            isManualCapture.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            isAutoCapture.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            tryCount.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            tag.toRequestBody("text/plain".toMediaTypeOrNull()),
+            processCivilExtractQrCode.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            "false".toRequestBody("text/plain".toMediaTypeOrNull()), // RequireFaceExtraction
         )
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
@@ -249,9 +244,9 @@ class RemoteProcessing {
             appConfiguration.instanceHash,
             appConfiguration.instanceId,
             appConfiguration.tenantIdentifier,
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.tenantIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.blockIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), appConfiguration.instanceId),
+            appConfiguration.tenantIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            appConfiguration.blockIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            appConfiguration.instanceId.toRequestBody("text/plain".toMediaTypeOrNull()),
             byteArrayToPart(
                 byteArray = selfieImage,
                 partName = "SelfieImage",
@@ -287,8 +282,8 @@ class RemoteProcessing {
                     }
                 }
             },
-            RequestBody.create("text/plain".toMediaTypeOrNull(), traceIdentifier),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), "true"), // isMobile
+            traceIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
+            "true".toRequestBody("text/plain".toMediaTypeOrNull()), // isMobile
             byteArrayToPart(
                 byteArray = secondImage,
                 partName = "SecondImage",
@@ -298,11 +293,11 @@ class RemoteProcessing {
               //  val pct = if (total > 0) ((sent * 100) / total).toInt() else -1
               //  callback!!.onUploadProgress(pct);
             },
-            RequestBody.create("text/plain".toMediaTypeOrNull(), isLivenessEnabled.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), tryCount.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), isAutoCapture.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), isManualCapture.toString()),
-            RequestBody.create("text/plain".toMediaTypeOrNull(), connectionId),
+            isLivenessEnabled.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            tryCount.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            isAutoCapture.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            isManualCapture.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            connectionId.toRequestBody("text/plain".toMediaTypeOrNull()),
 
         )
         call.enqueue(object : Callback<ResponseBody> {

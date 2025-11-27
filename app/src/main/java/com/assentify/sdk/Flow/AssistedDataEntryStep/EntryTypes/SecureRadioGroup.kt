@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -134,10 +134,10 @@ fun SecureRadioGroup(
                 }
 
                 if (option != options.last()) {
-                    Divider(
-                        color = Color.White.copy(alpha = 0.12f),
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 48.dp),
                         thickness = 1.dp,
-                        modifier = Modifier.padding(start = 48.dp) // indent under text
+                        color = Color.White.copy(alpha = 0.12f)
                     )
                 }
             }

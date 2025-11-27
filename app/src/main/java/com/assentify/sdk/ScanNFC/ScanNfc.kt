@@ -2,6 +2,7 @@ package com.assentify.sdk.ScanNFC
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.nfc.NfcAdapter
@@ -18,6 +19,7 @@ import com.assentify.sdk.Core.Constants.getSelectedWords
 import com.assentify.sdk.Core.Constants.preparePropertiesToTranslate
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.sf.scuba.smartcards.CardService
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.ResponseBody
 import org.apache.commons.io.IOUtils
 import org.jmrtd.BACKey
@@ -41,22 +43,20 @@ import org.jmrtd.lds.icao.DG1File
 import org.jmrtd.lds.icao.DG2File
 import org.jmrtd.lds.icao.MRZInfo
 import org.jmrtd.lds.iso19794.FaceImageInfo
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.File
-import java.io.InputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import android.content.Context
-import com.assentify.sdk.RemoteClient.Models.ConfigModel
-import org.json.JSONObject
-import java.net.URLEncoder
 
 class ScanNfc(
     private val scanNfcCallback: ScanNfcCallback,
@@ -248,7 +248,7 @@ class ScanNfc(
         mrzInfo: MRZInfo,
     ) {
         val (image, fileName) =  createTimestampedTempFile(bitmap)!!;
-        val fileRequestBody = RequestBody.create(null,image)
+        val fileRequestBody = image.asRequestBody(null)
         val filePart = MultipartBody.Part.createFormData(
             "asset", fileName, fileRequestBody
         )

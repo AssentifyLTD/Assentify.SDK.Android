@@ -74,7 +74,7 @@ fun OnSendScreen(
             Spacer(Modifier.height(8.dp))
             // 🔹 Progress bar
             LinearProgressIndicator(
-                progress = process / 100f,
+                progress = { process / 100f },
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .height(8.dp)

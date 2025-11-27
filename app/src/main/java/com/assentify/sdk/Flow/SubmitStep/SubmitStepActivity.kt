@@ -11,13 +11,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.ReusableComposable.Events.SubmitDataTypes
 import com.assentify.sdk.FlowCallbackObject
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -76,7 +76,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
     }
 
     override fun onSubmitError(message: String) {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             submitDataTypes.value = SubmitDataTypes.onError
             delay(3000)
             submitDataTypes.value = SubmitDataTypes.none
