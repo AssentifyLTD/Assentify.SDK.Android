@@ -5,7 +5,7 @@ import org.json.JSONObject
 data class SubmitRequestModel(
     val stepId: Int,
     val stepDefinition: String,
-    val extractedInformation: Map<String, String>
+    var extractedInformation: Map<String, String>
 )
 
 fun parseSubmitRequestModelList(jsonString :String) : List<SubmitRequestModel> {

@@ -152,12 +152,14 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
                         }
                             remoteProcessing.starQrProcessing(
                                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.QR),
-                                    ImageUtils.convertBitmapToBase64(normalImage, BlockType.FACE_MATCH, getActivity()),
+                                    ImageUtils.convertBitmapToByteArray(normalImage, BlockType.QR, getActivity()),
                                     configModel,
                                     kycDocumentDetails.get(0).getTemplateProcessingKeyInformation(),
                                     "ConnectionId",
                                     this.stepId,
-                                    barcode.getRawValue()
+                                    barcode.getRawValue(),
+                                    false,
+                                    true
 
                             );
                         }else {
@@ -263,5 +265,14 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
         scanQrCallback.onCompleteQrScan(idResponseModel);
+    }
+
+    @Override
+    public void onUploadProgress(int progress) {
+        scanQrCallback.onUploadingProgress(progress);
+    }
+
+    public void stopScanning(){
+        closeCamera();
     }
 }

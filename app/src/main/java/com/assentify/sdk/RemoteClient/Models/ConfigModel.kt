@@ -39,6 +39,7 @@ data class StepDefinitions(
 data class OutputProperties(
     val id: Int,
     val key: String,
+    val keyIdentifier: String,
     val displayName: String,
     val isRequired: Boolean,
     val isExcluded: Boolean,
@@ -52,6 +53,7 @@ data class Customization(
     val performLivenessDetection: Boolean?,
     val storeImageStream: Boolean?,
     val saveCapturedVideo: Boolean?,
+    val outputProperties: List<OutputProperties>,
     val identificationDocuments: List<IdentificationDocuments>?
 )
 

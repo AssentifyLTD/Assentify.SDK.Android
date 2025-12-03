@@ -24,6 +24,8 @@ interface IDCardCallback {
     fun onComplete(dataModel: IDResponseModel,order:Int,doneFlags:DoneFlags)
     fun onWrongTemplate(dataModel: BaseResponseDataModel)
 
+    fun onUploadingProgress(progress:Int){}
+
     fun onClipPreparationComplete(dataModel: BaseResponseDataModel){}
 
     fun onStatusUpdated(dataModel: BaseResponseDataModel){}

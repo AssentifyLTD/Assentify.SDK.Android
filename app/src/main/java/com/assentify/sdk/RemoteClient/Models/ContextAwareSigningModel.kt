@@ -5,5 +5,8 @@ data class ContextAwareSigningModel(
 )
 
 data class DataModel(
-    val selectedTemplates: List<Int>
+    val selectedTemplates: List<Int>,
+    val header: String?,
+    val confirmationMessage: String?,
+    val subHeader: String?,
 )

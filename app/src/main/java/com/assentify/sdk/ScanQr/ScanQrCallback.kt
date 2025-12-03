@@ -18,6 +18,6 @@ interface ScanQrCallback {
     fun onCompleteQrScan(dataModel: IDResponseModel)
 
     fun onErrorQrScan(message: String)
-
+    fun onUploadingProgress(progress:Int){}
 
 }

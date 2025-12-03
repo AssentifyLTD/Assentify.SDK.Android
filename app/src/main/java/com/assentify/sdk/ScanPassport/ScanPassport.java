@@ -2,6 +2,7 @@ package com.assentify.sdk.ScanPassport;
 
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomPassportLimit;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getIDTag;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
@@ -11,6 +12,7 @@ import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWo
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -439,25 +441,25 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
             audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
-            remoteProcessing.starProcessing(
+            remoteProcessing.starProcessingIDs(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
-                    "",
+                    ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
                     configModel,
                     "",
-                    "",
                     "ConnectionId",
-                    getVideoPath(configModel, readPassport, videoCounter),
+                    getVideoPath(configModel, readPassport, 0),
                     true,
                     processMrz,
                     performLivenessDocument,
-                    true,
                     saveCapturedVideo,
                     storeCapturedDocument,
-                    false,
                     true,
                     stepId,
-                    new ArrayList<>()
+                    false,
+                    true,
+                    retryCount,
+                    getIDTag(configModel,readPassport),
+                    false
             );
         });
 
@@ -539,5 +541,10 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         }
     }
 
+    @Override
+    public void onUploadProgress(int progress) {
+        scanPassportCallback.onUploadingProgress(progress);
+
+    }
 
 }

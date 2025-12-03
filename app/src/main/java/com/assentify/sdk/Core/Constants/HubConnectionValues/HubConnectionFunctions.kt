@@ -4,19 +4,19 @@ object HubConnectionFunctions {
     fun etHubConnectionFunction(blockType: BlockType): String {
         return when (blockType) {
             BlockType.READ_PASSPORT -> {
-                "api/IdentificationDocument/ReadPassport";
+                "v2/api/IdentificationDocument/ReadPassport";
             }
             BlockType.ID_CARD -> {
-                "api/IdentificationDocument/ReadId";
+                "v2/api/IdentificationDocument/ReadId";
             }
             BlockType.OTHER -> {
-                "api/IdentificationDocument/Other";
+                "v2/api/IdentificationDocument/Other";
             }
             BlockType.FACE_MATCH -> {
-                "api/IdentificationDocument/FaceMatchWithImage";
+                "v2/api/IdentificationDocument/FaceMatchWithImage";
             }
             BlockType.QR -> {
-                "api/IdentificationDocument/ReadIdQrCode";
+                "v2/api/IdentificationDocument/ReadIdQrCode";
             }
 
         }

@@ -26,6 +26,8 @@ interface FaceMatchCallback {
 
     fun onComplete(dataModel: FaceResponseModel,doneFlag: DoneFlags)
 
+    fun onUploadingProgress(progress:Int){}
+
     fun onClipPreparationComplete(dataModel: BaseResponseDataModel) {}
 
     fun onStatusUpdated(dataModel: BaseResponseDataModel) {}

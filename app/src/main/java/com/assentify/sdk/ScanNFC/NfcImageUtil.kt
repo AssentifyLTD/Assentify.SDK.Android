@@ -3,7 +3,7 @@ package com.assentify.sdk.ScanNFC
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.gemalto.jp2.JP2Decoder
-import org.jnbis.WsqDecoder
+import org.jnbis.internal.WsqDecoder
 import java.io.InputStream
 
 object ImagesConstantsTypes {
@@ -23,7 +23,7 @@ object NfcImageUtil {
             JP2Decoder(inputStream).decode()
         } else if (mimeType.equals(ImagesConstantsTypes.wsq, ignoreCase = true)) {
             val wsqDecoder = WsqDecoder()
-            val bitmap = wsqDecoder.decode(inputStream)
+            val bitmap = wsqDecoder.decode(inputStream!!.readBytes())
             val byteData = bitmap.pixels
             val intData = IntArray(byteData.size)
             for (j in byteData.indices) {
