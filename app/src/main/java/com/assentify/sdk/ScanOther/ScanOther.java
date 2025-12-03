@@ -1,6 +1,7 @@
 package com.assentify.sdk.ScanOther;
 
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomLimit;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getIDTag;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -11,6 +12,7 @@ import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.getSelectedWo
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -435,7 +437,6 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         return hasFace;
     }
 
-    // TODO Later
     @Override
     protected void onStopRecordVideo() {
         if (getActivity() != null) {
@@ -452,25 +453,26 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
             audioPlayer.playAudio(ConstantsValues.AudioCardSuccess);
-            remoteProcessing.starProcessing(
+
+            remoteProcessing.starProcessingIDs(
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.OTHER),
-                    ImageUtils.convertBitmapToBase64(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.OTHER, getActivity()),
-                    "",
+                    ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
                     configModel,
                     "",
-                    "",
                     "ConnectionId",
-                    getVideoPath(configModel, other, videoCounter),
-                    hasFace(),
+                    getVideoPath(configModel, other, 0),
+                    true,
                     processMrz,
                     performLivenessDocument,
-                    true,
                     saveCapturedVideo,
                     storeCapturedDocument,
-                    false,
                     true,
                     stepId,
-                    new ArrayList<>()
+                    false,
+                    true,
+                    retryCount,
+                    getIDTag(configModel,other),
+                    false
             );
         });
 
@@ -556,4 +558,9 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
         }
     }
 
+    @Override
+    public void onUploadProgress(int progress) {
+        scanOtherCallback.onUploadingProgress(progress);
+
+    }
 }

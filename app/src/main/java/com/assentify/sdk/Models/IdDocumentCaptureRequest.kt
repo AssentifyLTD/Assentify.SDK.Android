@@ -1,7 +1,5 @@
 package com.assentify.sdk.Models
 
-import android.util.Base64
-
 
 data class IdDocumentCaptureRequest(
     val connectionId: String?,
@@ -107,13 +105,6 @@ fun prepareRequest(
     return idDocumentCaptureRequest;
 }
 
-fun base64ToUInt8Array(base64String: String): UByteArray {
-    val decodedBytes: ByteArray = Base64.decode(base64String, Base64.DEFAULT)
-
-    val uint8Array = UByteArray(decodedBytes.size) { index -> decodedBytes[index].toUByte() }
-
-    return uint8Array
-}
 
 
 

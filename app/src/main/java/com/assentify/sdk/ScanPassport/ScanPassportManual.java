@@ -1,6 +1,7 @@
 package com.assentify.sdk.ScanPassport;
 
 import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomPassportLimit;
+import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getIDTag;
 import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
@@ -185,25 +186,25 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                 start = false;
                 setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
                 createBase64.execute(() -> {
-                    remoteProcessing.starProcessing(
+                    remoteProcessing.starProcessingIDs(
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
-                            ImageUtils.convertBitmapToBase64(normalImage, BlockType.READ_PASSPORT, getActivity()),
-                            "",
+                            ImageUtils.convertBitmapToByteArray(normalImage, BlockType.READ_PASSPORT, getActivity()),
                             configModel,
-                            "",
                             "",
                             "ConnectionId",
                             getVideoPath(configModel, readPassport, 0),
                             true,
                             processMrz,
                             performLivenessDocument,
-                            true,
                             saveCapturedVideo,
                             storeCapturedDocument,
-                            false,
                             true,
                             stepId,
-                            new ArrayList<>()
+                            true,
+                            false,
+                            retryCount,
+                            getIDTag(configModel,readPassport),
+                            false
                     );
                 });
             }else {
@@ -453,6 +454,9 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
     }
 
 
+    @Override
+    public void onUploadProgress(int progress) {
+      scanPassportCallback.onUploadingProgress(progress);
 
-
+    }
 }

@@ -10,7 +10,6 @@ class EnvironmentalConditions(
     var enableGuide: Boolean = true,
 
 
-    var CustomColor: String,
     var HoldHandColor: String,
 
     var MotionCardLimit: Int = 10,
@@ -32,7 +31,6 @@ class EnvironmentalConditions(
 
 
     init {
-        require(CustomColor.isNotEmpty()) { "Invalid CustomColor value" }
         require(HoldHandColor.isNotEmpty()) { "Invalid HoldHandColor value" }
     }
 

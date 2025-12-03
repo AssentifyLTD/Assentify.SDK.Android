@@ -4,6 +4,7 @@ import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 // const val BRIGHTNESS_HIGH_THRESHOLD: Float = 180.0f;
 // const val BRIGHTNESS_LOW_THRESHOLD: Float = 50.0f;
 object ConstantsValues {
@@ -56,8 +57,13 @@ class BlockLoaderKeys{
         const val InteractionID = "OnBoardMe_BlockLoader_Interaction"
     }
 }
-fun getVideoPath(configModel:ConfigModel,template:String,videoCounter:Int): String? {
+
+fun getVideoPath(configModel:ConfigModel,template:String,videoCounter:Int): String {
     return  configModel.tenantIdentifier + "/" + configModel.blockIdentifier + "/" + configModel.instanceId + "/" + template  + "/" + "try_${videoCounter}"  + "/" +"${videoCounter}.mp4"
+}
+
+fun getIDTag(configModel:ConfigModel,templateName:String): String {
+    return  configModel.tenantIdentifier + "/" + configModel.instanceId + "," + templateName;
 }
 
 fun getCurrentDateTime(): String {
@@ -67,3 +73,4 @@ fun getCurrentDateTime(): String {
 
     return dateFormat.format(currentDate)
 }
+

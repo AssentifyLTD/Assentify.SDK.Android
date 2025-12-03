@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-alpha***
+1. *Full Flows integration*
+
 ***0.0.91***
 1. *Improved Submit Flow Handling , When calling start SubmitData, it is no longer necessary to include the BlockLoader or WrapUp steps in the submitList.*
 

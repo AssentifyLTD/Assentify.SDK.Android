@@ -266,12 +266,14 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
                             }
                             remoteProcessing.starQrProcessing(
                                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.QR),
-                                    ImageUtils.convertBitmapToBase64(normalImage, BlockType.FACE_MATCH, getActivity()),
+                                    ImageUtils.convertBitmapToByteArray(normalImage, BlockType.QR, getActivity()),
                                     configModel,
                                     kycDocumentDetails.get(0).getTemplateProcessingKeyInformation(),
                                     "ConnectionId",
                                     this.stepId,
-                                    barcode.getRawValue()
+                                    barcode.getRawValue(),
+                                    true,
+                                    false
 
                             );
                         }else {
@@ -280,5 +282,14 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
                         }
                     });
         }
+    }
+    @Override
+    public void onUploadProgress(int progress) {
+        scanQrCallback.onUploadingProgress(progress);
+
+    }
+
+    public void stopScanning(){
+        closeCamera();
     }
 }

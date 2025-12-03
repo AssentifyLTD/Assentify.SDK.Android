@@ -16,21 +16,21 @@ import java.util.concurrent.Future;
 
 public class ParallelImageProcessing {
 
-    public List<String> processClipsToBase64InParallel(List<Bitmap> livenessCheckArray, Activity activity) {
-        List<String> clips = new ArrayList<>();
+    public List<byte[] > processClipsToByteArrayInParallel(List<Bitmap> livenessCheckArray, Activity activity) {
+        List<byte[] > clips = new ArrayList<>();
         int threadCount = calculateThreadCount(activity.getApplicationContext(),livenessCheckArray.size());
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
 
-        List<Future<String>> futures = new ArrayList<>();
+        List<Future<byte[] >> futures = new ArrayList<>();
 
         for (Bitmap bitmap : livenessCheckArray) {
-            Callable<String> task = () -> {
-                return ImageUtils.convertClipsBitmapToBase64(bitmap, BlockType.FACE_MATCH, activity);
+            Callable<byte[] > task = () -> {
+                return ImageUtils.convertClipsBitmapByteArray(bitmap, BlockType.FACE_MATCH, activity);
             };
             futures.add(executor.submit(task));
         }
 
-        for (Future<String> future : futures) {
+        for (Future<byte[] > future : futures) {
             try {
                 clips.add(future.get());
             } catch (Exception e) {

@@ -3,7 +3,6 @@ package com.assentify.sdk.Core.Constants
 import DataType
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
-import android.util.Log
 
 
 object IdentificationDocumentCaptureKeys {
@@ -323,8 +322,10 @@ fun fillIdentificationDocumentCapture(outputProperties: Map<String, Any>?): Iden
 
 fun getLanguageTransformationEnum(key: String): Int {
     return when {
-         key.contains(IdentificationDocumentCaptureKeys.name) ||
+        key.contains(IdentificationDocumentCaptureKeys.name) ||
                 key.contains(IdentificationDocumentCaptureKeys.surname) ||
+
+
                 key.contains(IdentificationDocumentCaptureKeys.idPlaceOfResidence) ||
                 key.contains(IdentificationDocumentCaptureKeys.idProvince) ||
                 key.contains(IdentificationDocumentCaptureKeys.idGovernorate) ||
@@ -338,9 +339,8 @@ fun getLanguageTransformationEnum(key: String): Int {
                 key.contains(IdentificationDocumentCaptureKeys.idPermanentAddress) ->
             LanguageTransformationEnum.Transliteration
 
-
-        key.contains(IdentificationDocumentCaptureKeys.idArmyStatus) ||
-                key.contains(IdentificationDocumentCaptureKeys.idType) ||
+        key.contains(IdentificationDocumentCaptureKeys.idType) ||
+                key.contains(IdentificationDocumentCaptureKeys.idArmyStatus) ||
                 key.contains(IdentificationDocumentCaptureKeys.idCountryOfStay) ||
                 key.contains(IdentificationDocumentCaptureKeys.idRegion) ||
                 key.contains(IdentificationDocumentCaptureKeys.idMaritalStatus) ||
@@ -512,7 +512,7 @@ fun preparePropertiesToTranslate(
             surname = value.toString();
         }
     }
-    val fulName = name + " " + surname
+    val  fulName =  name+" "+surname
 
     properties.forEach { key, value ->
         if (!ignoredKeys(key)) {
@@ -529,14 +529,14 @@ fun preparePropertiesToTranslate(
                         dataType = getLDataType(key),
                     )
                 )
-            } else {
+            }else{
                 languageTransformationModels.add(
                     LanguageTransformationModel(
-                        languageTransformationEnum = LanguageTransformationEnum.Transliteration,
+                        languageTransformationEnum =LanguageTransformationEnum.Transliteration,
                         key = FullNameKey,
                         value = fulName,
                         language = language,
-                        dataType = DataType.Text,
+                        dataType =DataType.Text,
                     )
                 )
             }
