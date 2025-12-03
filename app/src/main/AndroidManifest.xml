@@ -53,15 +53,6 @@
             android:name="com.bugsnag.android.API_KEY"
             android:value="4926f3132e616e760f865b69a1b93f28" />
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>
