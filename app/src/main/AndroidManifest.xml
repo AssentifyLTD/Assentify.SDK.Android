@@ -30,7 +30,6 @@
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
         android:requestLegacyExternalStorage="true"
-        android:theme="@style/AppTheme"
         tools:ignore="HardcodedDebugMode">
 
 

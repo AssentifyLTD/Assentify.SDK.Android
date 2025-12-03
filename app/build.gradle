@@ -6,7 +6,7 @@ apply plugin: 'maven-publish'
 
 
 android {
-  //  namespace "com.assentify.sdk"
+    namespace "com.assentify.sdk"
     compileSdkVersion 36
     defaultConfig {
     //  applicationId "com.assentify.sdk"
@@ -25,8 +25,8 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            shrinkResources = true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+           // shrinkResources = true
+           // proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -153,7 +153,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.assentify.sdk'
             artifactId = 'Assentify.SDK.Android'
-            version = '0.0.1'
+            version = '1.0.0-alpha'
             afterEvaluate {
                 from components.release
             }
