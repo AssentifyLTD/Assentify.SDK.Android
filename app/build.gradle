@@ -6,7 +6,7 @@ apply plugin: 'maven-publish'
 
 
 android {
-  //  namespace "com.assentify.sdk"
+    namespace "com.assentify.sdk"
     compileSdkVersion 36
     defaultConfig {
     //  applicationId "com.assentify.sdk"
