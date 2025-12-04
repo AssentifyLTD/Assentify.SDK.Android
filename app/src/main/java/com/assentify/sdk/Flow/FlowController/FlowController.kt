@@ -77,16 +77,6 @@ object FlowController {
         LocalStepsObject.setLocalSteps(steps)
     }
 
-    fun getPreviousIDScanStep(): LocalStepModel? {
-        val steps = LocalStepsObject.getLocalSteps()
-        return steps.lastOrNull { it.stepDefinition!!.stepDefinition == StepsNames.IdentificationDocumentCapture && it.isDone }
-    }
-
-    fun getPreviousFaceScanStep(): LocalStepModel? {
-        val steps = LocalStepsObject.getLocalSteps()
-        return steps.lastOrNull { it.stepDefinition!!.stepDefinition == StepsNames.FaceImageAcquisition && it.isDone }
-    }
-
 
     fun getAllDoneSteps(): List<LocalStepModel> {
         val steps = LocalStepsObject.getLocalSteps()
@@ -139,7 +129,7 @@ object FlowController {
 
     fun backClick(context: Context) {
         val intent = Intent(context, BlockLoaderStepsComposeActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         context.startActivity(intent)
     }
 
