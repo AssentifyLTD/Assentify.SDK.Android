@@ -29,6 +29,7 @@
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
+        android:theme="@style/Assentify.NoActionBar"
         android:requestLegacyExternalStorage="true"
         tools:ignore="HardcodedDebugMode">
 
