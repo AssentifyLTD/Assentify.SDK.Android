@@ -587,13 +587,13 @@ class AssentifySdk(
 
     // 1 _ Text && Icons are white
 
-    public fun startFlow(flowCallback: FlowCallBack, flowEnvironmentalConditions: FlowEnvironmentalConditions){
+    public fun startFlow(activityContext: Context,flowCallback: FlowCallBack, flowEnvironmentalConditions: FlowEnvironmentalConditions){
          FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(flowEnvironmentalConditions);
          ConfigModelObject.setConfigModelObject(configModel!!);
          FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
          ApiKeyObject.setApiKeyObject(apiKey!!);
-         val intent = Intent(context, BlockLoaderStepsComposeActivity::class.java)
-         context.startActivity(intent)
+         val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
+        activityContext.startActivity(intent)
     }
 
 }
