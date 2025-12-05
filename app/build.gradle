@@ -9,7 +9,7 @@ android {
     namespace "com.assentify.sdk"
     compileSdkVersion 36
     defaultConfig {
-      // applicationId "com.assentify.sdk"
+     // applicationId "com.assentify.sdk"
 
         minSdkVersion 24
         targetSdkVersion 34

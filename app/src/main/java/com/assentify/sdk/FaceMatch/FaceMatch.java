@@ -371,7 +371,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                             stopRecording();
                                         }
                                     }
-                                }, environmentalConditions.getHoldHandColor(), isCountDownStarted);
+                                }, environmentalConditions.getCountdownMumbersColor(), isCountDownStarted);
                                 isCountDownStarted = false;
                             } else {
                                 if (start) {
