@@ -1,7 +1,5 @@
 package com.assentify.sdk.Core.Constants
 
-import android.util.Log
-
 
 class EnvironmentalConditions(
 
@@ -11,6 +9,7 @@ class EnvironmentalConditions(
 
 
     var HoldHandColor: String,
+    var CountdownMumbersColor: String = "#00FFFFFF",
 
     var MotionCardLimit: Int = 10,
     var MotionPassportLimit: Int = 15,
