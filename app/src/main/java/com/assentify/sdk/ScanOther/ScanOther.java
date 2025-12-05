@@ -22,6 +22,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.DoneFlags;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
@@ -338,12 +339,15 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                             start = true;
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                             if(eventName.equals(HubConnectionTargets.ON_RETRY)){
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanOtherCallback.onRetry(BaseResponseDataModel);
 
                             }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
                                 scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             }else {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanOtherCallback.onRetry(BaseResponseDataModel);
 
                             }
@@ -398,6 +402,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                                 break;
                             default:
                                 start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanOtherCallback.onRetry(BaseResponseDataModel);
                                 break;
                         }

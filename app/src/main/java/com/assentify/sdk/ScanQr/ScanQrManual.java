@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
@@ -185,7 +186,7 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
                     } else {
                          start = true;
                          manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
-                         scanQrCallback.onErrorQrScan(BaseResponseDataModel.getError());
+                         scanQrCallback.onErrorQrScan(EventsErrorMessages.OnRetryCardMessage);
                     }
 
                 }

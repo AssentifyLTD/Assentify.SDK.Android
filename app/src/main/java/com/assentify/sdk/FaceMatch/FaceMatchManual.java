@@ -27,6 +27,7 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.FaceEventStatus;
 import com.assentify.sdk.Core.Constants.FaceEvents;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
@@ -197,7 +198,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                                     new BaseResponseDataModel(
                                             "onRetry",
                                             "",
-                                            "",
+                                           EventsErrorMessages.OnRetryFaceMessage,
                                             false
                                     ));
                         }
@@ -243,6 +244,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                         }else {
                             start = true;
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnRetryFaceMessage);
                             faceMatchCallback.onRetry(BaseResponseDataModel);
                         }
                     } else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)){
@@ -260,6 +262,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                         }else {
                             start = true;
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessFaceUpdateMessage);
                             faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
                         }
                     }else {

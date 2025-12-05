@@ -30,6 +30,19 @@ object ConstantsValues {
     const val ClarityProjectId = "spm0s4tjn6";
 }
 
+object EventsErrorMessages {
+    const val OnErrorMessage = "Your internet connection seems unstable. Please check your connection and try again"
+
+    const val OnWrongTemplateMessage = "Please double-check that you selected the correct ID type and presenting this ID type"
+    const val OnRetryCardMessage = "We couldn’t read your card. Try again in better lighting and make sure the card is clear and visible"
+    const val OnLivenessCardUpdateMessage = "Please use your original physical ID card, not a photo or copy"
+
+    const val OnRetryFaceMessage = "We couldn't complete your request"
+    const val OnLivenessFaceUpdateMessage = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos"
+}
+
+
+
 object StepsNames {
     const val WrapUp = "WrapUp"
     const val BlockLoader = "BlockLoader"

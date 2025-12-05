@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
@@ -207,7 +208,7 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
 
                     } else {
                          start = true;
-                         scanQrCallback.onErrorQrScan(BaseResponseDataModel.getError());
+                         scanQrCallback.onErrorQrScan(EventsErrorMessages.OnRetryCardMessage);
                     }
 
                 }
