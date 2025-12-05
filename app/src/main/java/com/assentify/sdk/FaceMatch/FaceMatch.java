@@ -18,6 +18,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.DoneFlags;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.FaceEventStatus;
 import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents;
@@ -440,6 +441,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             start = false;
                         }else {
                             start = true;
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnRetryFaceMessage);
                             faceMatchCallback.onRetry(BaseResponseDataModel);
                         }
                     } else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)){
@@ -456,6 +458,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             start = false;
                         }else {
                             start = true;
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessFaceUpdateMessage);
                             faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
                         }
                     } else
@@ -570,7 +573,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                     faceMatchCallback.onRetry(new BaseResponseDataModel(
                             HubConnectionTargets.ON_RETRY,
                             "Please hold your hand",
-                            "please hold your hand",
+                            EventsErrorMessages.OnRetryFaceMessage,
                             false
                     ));
                 }

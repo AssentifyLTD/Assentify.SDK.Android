@@ -88,7 +88,7 @@ class RemoteProcessing {
                         BaseResponseDataModel(
                             destinationEndpoint = HubConnectionTargets.ON_ERROR,
                             response = "",
-                            error = "",
+                            error = EventsErrorMessages.OnErrorMessage,
                             success = false
                         )
                     );
@@ -101,7 +101,7 @@ class RemoteProcessing {
                     BaseResponseDataModel(
                         destinationEndpoint = HubConnectionTargets.ON_ERROR,
                         response = "",
-                        error = t.message,
+                        error = EventsErrorMessages.OnErrorMessage,
                         success = false
                     )
                 );
@@ -196,7 +196,7 @@ class RemoteProcessing {
                         BaseResponseDataModel(
                             destinationEndpoint = HubConnectionTargets.ON_ERROR,
                             response = "",
-                            error = "",
+                            error = EventsErrorMessages.OnErrorMessage,
                             success = false
                         )
                     );
@@ -209,7 +209,7 @@ class RemoteProcessing {
                     BaseResponseDataModel(
                         destinationEndpoint = HubConnectionTargets.ON_ERROR,
                         response = "",
-                        error = t.message,
+                        error = EventsErrorMessages.OnErrorMessage,
                         success = false
                     )
                 );
@@ -321,7 +321,7 @@ class RemoteProcessing {
                         BaseResponseDataModel(
                             destinationEndpoint = HubConnectionTargets.ON_ERROR,
                             response = "",
-                            error = "",
+                            error = EventsErrorMessages.OnErrorMessage,
                             success = false
                         )
                     );
@@ -334,7 +334,7 @@ class RemoteProcessing {
                     BaseResponseDataModel(
                         destinationEndpoint = HubConnectionTargets.ON_ERROR,
                         response = "",
-                        error = t.message,
+                        error = EventsErrorMessages.OnErrorMessage,
                         success = false
                     )
                 );
