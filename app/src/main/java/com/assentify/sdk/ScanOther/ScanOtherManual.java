@@ -298,6 +298,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                                 scanOtherCallback.onRetry(BaseResponseDataModel);
 
                             }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
                                 scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             }else {
