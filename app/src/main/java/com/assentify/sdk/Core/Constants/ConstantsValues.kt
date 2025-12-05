@@ -33,7 +33,7 @@ object ConstantsValues {
 object EventsErrorMessages {
     const val OnErrorMessage = "Your internet connection seems unstable. Please check your connection and try again"
 
-    const val OnWrongTemplateMessage = "Please double-check that you selected the correct ID type and are presenting this ID type"
+    const val OnWrongTemplateMessage = "Please double-check that you selected the correct ID type and presenting this ID type"
     const val OnRetryCardMessage = "We couldn’t read your card. Try again in better lighting and make sure the card is clear and visible"
     const val OnLivenessCardUpdateMessage = "Please use your original physical ID card, not a photo or copy"
 
