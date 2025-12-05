@@ -22,6 +22,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.DoneFlags;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
@@ -361,12 +362,15 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                         }else {
                             start = true;
                             if(eventName.equals(HubConnectionTargets.ON_RETRY)){
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 idCardCallback.onRetry(BaseResponseDataModel);
 
                             }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
                                 idCardCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             }else {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnWrongTemplateMessage);
                                 idCardCallback.onWrongTemplate(BaseResponseDataModel);
 
                             }
@@ -422,6 +426,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
                             default:
                                 start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 idCardCallback.onRetry(BaseResponseDataModel);
                                 break;
                         }

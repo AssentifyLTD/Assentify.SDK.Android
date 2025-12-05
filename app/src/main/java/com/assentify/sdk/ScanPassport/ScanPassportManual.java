@@ -30,6 +30,7 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
@@ -216,7 +217,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                     new BaseResponseDataModel(
                                             "onRetry",
                                             "",
-                                            "",
+                                            EventsErrorMessages.OnRetryCardMessage,
                                             false
                                     ));
                         }
@@ -279,12 +280,15 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                             start = true;
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                             if(eventName.equals(HubConnectionTargets.ON_RETRY)){
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanPassportCallback.onRetry(BaseResponseDataModel);
 
                             }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
                                 scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             }else {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanPassportCallback.onRetry(BaseResponseDataModel);
 
                             }
@@ -342,6 +346,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                 break;
                             default:
                                 start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanPassportCallback.onRetry(BaseResponseDataModel);
                                 break;
 

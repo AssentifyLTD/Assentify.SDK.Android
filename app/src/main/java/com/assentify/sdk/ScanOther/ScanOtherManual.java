@@ -30,6 +30,7 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
@@ -218,7 +219,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                                     new BaseResponseDataModel(
                                             "onRetry",
                                             "",
-                                            "",
+                                            EventsErrorMessages.OnRetryCardMessage,
                                             false
                                     ));
                         }
@@ -293,12 +294,14 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                             start = true;
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                             if(eventName.equals(HubConnectionTargets.ON_RETRY)){
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanOtherCallback.onRetry(BaseResponseDataModel);
 
                             }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
                                 scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             }else {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanOtherCallback.onRetry(BaseResponseDataModel);
 
                             }
@@ -356,6 +359,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                                 break;
                             default:
                                 start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanOtherCallback.onRetry(BaseResponseDataModel);
                                 break;
                         }

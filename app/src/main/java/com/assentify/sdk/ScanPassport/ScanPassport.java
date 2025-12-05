@@ -21,6 +21,7 @@ import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
 import com.assentify.sdk.Core.Constants.DoneFlags;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.FaceMatch.FaceExtractedModel;
 import com.assentify.sdk.FaceMatch.FaceResponseModel;
 import com.assentify.sdk.logging.BugsnagObject;
@@ -332,12 +333,15 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                         }else {
                             start = true;
                             if(eventName.equals(HubConnectionTargets.ON_RETRY)){
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanPassportCallback.onRetry(BaseResponseDataModel);
 
                             }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
                                 scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             }else {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnWrongTemplateMessage);
                                 scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
 
                             }
@@ -393,6 +397,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 break;
                             default:
                                 start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 scanPassportCallback.onRetry(BaseResponseDataModel);
                                 break;
 

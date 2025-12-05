@@ -30,6 +30,7 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
@@ -236,7 +237,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                                     new BaseResponseDataModel(
                                             "onRetry",
                                             "",
-                                            "",
+                                            EventsErrorMessages.OnRetryCardMessage,
                                             false
                                     ));
                         }
@@ -302,12 +303,15 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                         } else {
                             start = true;
                             if (eventName.equals(HubConnectionTargets.ON_RETRY)) {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 idCardCallback.onRetry(BaseResponseDataModel);
 
                             } else if (eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
                                 idCardCallback.onLivenessUpdate(BaseResponseDataModel);
 
                             } else {
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnWrongTemplateMessage);
                                 idCardCallback.onWrongTemplate(BaseResponseDataModel);
 
                             }
@@ -364,11 +368,9 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                             case HubConnectionTargets.ON_UPLOAD_FAILED:
                                 idCardCallback.onUploadFailed(BaseResponseDataModel);
                                 break;
-                            case HubConnectionTargets.ON_WRONG_TEMPLATE:
-                                idCardCallback.onWrongTemplate(BaseResponseDataModel);
-                                break;
                             default:
                                 start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                                 idCardCallback.onRetry(BaseResponseDataModel);
                                 break;
                         }
