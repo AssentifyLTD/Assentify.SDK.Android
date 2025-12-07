@@ -62,21 +62,19 @@ fun HowToCaptureFaceScreen(
     var base64Image by rememberSaveable { mutableStateOf<String?>(null) }
     var isLoading by rememberSaveable { mutableStateOf(true) }
 
+
     /// SDK TODO
-
-    var docUrl =
-        "https://storagetestassentify.blob.core.windows.net/userfiles/b096e6ea-2a81-44cb-858e-08dbcbc01489/ca0162f9-8cfe-409f-91d8-9c2d42d53207/4f445a214f5a4b7fa74dc81243ccf590/b19c2053-efae-42e8-8696-177809043a9c/ReadPassport/image.jpeg"
-
-  /*    val extractedInfo = FlowController.getPreviousIDScanStep()
+    /// IdentificationDocumentCapture_Image
+    var docUrl = "";
+      val extractedInfo = FlowController.getPreviousIDScanStep()
              ?.submitRequestModel
              ?.extractedInformation
 
          extractedInfo?.forEach { (key, value) ->
              if (key.contains("OnBoardMe_IdentificationDocumentCapture_OriginalFrontImage", )) {
-                 Log.d("MapSearch", "Key: $key, Value: $value")
                  docUrl = value;
              }
-         }*/
+         }
 
 
     LaunchedEffect(docUrl) {

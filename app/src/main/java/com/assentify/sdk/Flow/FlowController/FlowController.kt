@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import com.assentify.sdk.ApiKeyObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
@@ -77,6 +78,10 @@ object FlowController {
         LocalStepsObject.setLocalSteps(steps)
     }
 
+    fun getPreviousIDScanStep(): LocalStepModel? {
+        val steps = LocalStepsObject.getLocalSteps()
+        return steps.lastOrNull { it.stepDefinition!!.stepDefinition == StepsNames.IdentificationDocumentCapture && it.isDone }
+    }
 
     fun getAllDoneSteps(): List<LocalStepModel> {
         val steps = LocalStepsObject.getLocalSteps()
@@ -136,10 +141,11 @@ object FlowController {
 
     suspend fun downloadImageAsBase64(imageUrl: String): String? = withContext(Dispatchers.IO) {
         try {
+            val apiKey = ApiKeyObject.getApiKeyObject();
             val url = URL(imageUrl)
             val connection = url.openConnection() as HttpURLConnection
 
-            connection.setRequestProperty("x-api-key", "YOUR_API_KEY_HERE")
+            connection.setRequestProperty("x-api-key", apiKey)
 
             connection.doInput = true
             connection.connect()

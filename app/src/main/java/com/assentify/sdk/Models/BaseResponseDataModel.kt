@@ -1,4 +1,5 @@
 package com.assentify.sdk.Models
+
 import com.google.gson.Gson
 import org.json.JSONObject
 
@@ -7,8 +8,9 @@ data class BaseResponseDataModel(
     var response: String?,
     var error: String?,
     var success: Boolean?,
+    var classifiedTemplate: String,
 
-)
+    )
 
 
 fun encodeBaseResponseDataModelToJson(data: BaseResponseDataModel?): String {
@@ -25,16 +27,23 @@ fun parseDataToBaseResponseDataModel(data: String): BaseResponseDataModel {
     return BaseResponseDataModel(
         destinationEndpoint = json.optString("destinationEndpoint", ""),
         response = json.optString("response", ""),
-        error = json.optString("error", ),
-        success = json.optBoolean("success", false)
+        error = json.optString("error"),
+        success = json.optBoolean("success", false),
+        classifiedTemplate = json.optString("classifiedTemplate", "")
     )
 }
 
-fun getImageUrlFromBaseResponseDataModel(jsonString: String): String {
-    val json = JSONObject(jsonString)
-    val imageUrl = json.optString("ImageUrl", "")
-    return  imageUrl;
+
+fun getImageUrlFromBaseResponseDataModel(jsonString: String?): String {
+    if (jsonString.isNullOrBlank()) {
+        return ""
+    }
+
+    return try {
+        val json = JSONObject(jsonString)
+        json.optString("ImageUrl", "")
+    } catch (e: Exception) {
+        ""
+    }
 }
-
-
 

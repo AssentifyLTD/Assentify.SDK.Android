@@ -8,8 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,7 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -48,6 +50,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -170,7 +174,9 @@ fun IDStepScreen(
                     CountryDropdownStyled(
                         countryList = countryList,
                         selectedCountry = selectedCountry,
-                        onCountrySelected = { selectedCountry = it }
+                        onCountrySelected = {
+                             selectedTemplate = null;
+                             selectedCountry = it }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -190,131 +196,24 @@ fun IDStepScreen(
                     // Template list (scrolls inside the middle area)
                     selectedCountry?.let { country ->
 
-                        var selectedKey by remember(country) { mutableStateOf<String?>(null) }
 
                         val selectedBg =
                             Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
                         val unselectedBg =
                             Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
 
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top = 4.dp)
-                        ) {
-                            // Default passport item
-                            item(key = "default_passport") {
-                                val key = "default_passport"
-                                val isSelected = selectedKey == key
-
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
-                                        .clickable {
-                                            selectedKey = key
-                                            selectedTemplate = Templates(
-                                                id = -1,
-                                                sourceCountryFlag = "",
-                                                sourceCountryCode = "",
-                                                kycDocumentType = "",
-                                                sourceCountry = "",
-                                                kycDocumentDetails = emptyList()
-                                            )
-                                            onDocumentSelected(selectedTemplate!!)
-                                        },
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = if (isSelected) selectedBg else unselectedBg
-                                    ),
-                                    border = if (isSelected) BorderStroke(
-                                        1.dp,
-                                        Color.White.copy(alpha = 0.15f)
-                                    ) else null,
-                                    elevation = CardDefaults.cardElevation(
-                                        defaultElevation = if (isSelected) 6.dp else 2.dp
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        iconPainter?.let {
-                                            Icon(
-                                                painter = it,
-                                                contentDescription = "passport",
-                                                modifier = Modifier.size(60.dp),
-                                                tint = Color.Unspecified
-                                            )
-                                        }
-                                        Spacer(Modifier.width(12.dp))
-                                        Text(
-                                            text = "Passport",
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                                }
+                        DocumentPicker(
+                            country = country,   // your country model
+                            iconPainter = iconPainter,
+                            selectedBg = selectedBg,
+                            unselectedBg = unselectedBg,
+                            selectedTemplate =selectedTemplate,
+                            onDocumentSelected = { template ->
+                                selectedTemplate = template
+                                onDocumentSelected (template);
                             }
+                        )
 
-                            // Dynamic templates
-                            items(
-                                items = country.templates,
-                                key = { t -> (t.id ?: t.kycDocumentType.hashCode()).toString() }
-                            ) { template ->
-                                val key = "t_${template.id ?: template.kycDocumentType}"
-                                val isSelected = selectedKey == key
-
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
-                                        .clickable {
-                                            selectedKey = key
-                                            selectedTemplate = template
-                                            onDocumentSelected(template)
-                                        },
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = if (isSelected) selectedBg else unselectedBg
-                                    ),
-                                    border = if (isSelected) BorderStroke(
-                                        1.dp,
-                                        Color.White.copy(alpha = 0.15f)
-                                    ) else null,
-                                    elevation = CardDefaults.cardElevation(
-                                        defaultElevation = if (isSelected) 6.dp else 2.dp
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Image(
-                                            painter = rememberAsyncImagePainter(
-                                                template.kycDocumentDetails.first().templateSpecimen
-                                            ),
-                                            contentDescription = template.kycDocumentType,
-                                            modifier = Modifier
-                                                .size(64.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                        )
-                                        Spacer(Modifier.width(12.dp))
-                                        Text(
-                                            text = template.kycDocumentType,
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -449,3 +348,182 @@ fun CountryDropdownStyled(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DocumentPicker(
+    country: TemplatesByCountry,
+    iconPainter: Painter?,               // passport image/icon
+    selectedBg: Color,
+    unselectedBg: Color,
+    selectedTemplate: Templates?,
+    onDocumentSelected: (Templates) -> Unit,
+) {
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 4.dp)
+    ) {
+
+        // ===== 1)  Passport card =====
+        item(key = "default_passport") {
+            val key = "default_passport"
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        onDocumentSelected( Templates(
+                            id = -1,
+                            sourceCountryFlag = "",
+                            sourceCountryCode = "",
+                            kycDocumentType = "Passport",
+                            sourceCountry = "",
+                            kycDocumentDetails = emptyList()
+                        )!!)
+                    },
+                colors = CardDefaults.cardColors(
+                    containerColor = if (selectedTemplate != null && selectedTemplate!!.id == -1) selectedBg else unselectedBg
+                ),
+                border = if (selectedTemplate != null && selectedTemplate!!.id == -1)  BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.15f)
+                ) else null,
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = if (selectedTemplate != null && selectedTemplate!!.id == -1)  6.dp else 2.dp
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    iconPainter?.let {
+                        Image(
+                            painter = it,
+                            contentDescription = "passport",
+                            modifier = Modifier
+                                .height(50.dp)
+                                .width(70.dp)
+                                .clip(RoundedCornerShape(0.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Text(
+                        text = "${
+                        country.templates.first().kycDocumentType.trim().split(" ")
+                            .firstOrNull() ?: ""
+                    } Passport",
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+
+        // ===== 2) Supported  IDs card =====
+        item(key = "supported_ids") {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp) .clickable {
+                        onDocumentSelected( Templates(
+                            id = 1,
+                            sourceCountryFlag = "",
+                            sourceCountryCode = country.sourceCountryCode,
+                            kycDocumentType = "All IDs",
+                            sourceCountry ="",
+                            kycDocumentDetails = emptyList()
+                        ))
+                    },
+                colors = CardDefaults.cardColors(
+                    containerColor = if (selectedTemplate != null && selectedTemplate!!.id != -1) selectedBg else unselectedBg
+                ),
+                border = if (selectedTemplate != null && selectedTemplate!!.id != -1) BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.15f)
+                ) else null,
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = if (selectedTemplate != null && selectedTemplate!!.id != -1)  6.dp else 2.dp
+                )
+
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 16.dp, end = 10.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    // Cards grid
+                    FlowRow(
+                        modifier = Modifier
+                            .weight(1f), // take all remaining space, but leave room for the label
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        country.templates.forEach { template ->
+                            val key = "t_${template.id ?: template.kycDocumentType}"
+
+                            Column(
+                                modifier = Modifier
+                                    .width(100.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(width = 70.dp, height = 50.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+
+                                ) {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(
+                                            template.kycDocumentDetails.firstOrNull()?.templateSpecimen
+                                        ),
+                                        contentDescription = template.kycDocumentType,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(4.dp),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = template.kycDocumentType,
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Thin,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 15.sp,
+                                    maxLines = 2,
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.width(0.dp))
+
+                    Column(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Support\n${country.templates.first().kycDocumentType.trim().split(" ").firstOrNull() ?: ""} IDs",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                }
+
+            }
+        }
+    }
+}
