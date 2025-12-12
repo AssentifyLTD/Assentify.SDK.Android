@@ -194,6 +194,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             dataIDModel.value = dataModel;
             start.value = false;
             eventTypes.value = EventTypes.onComplete
+            imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
+
         }
     }
 

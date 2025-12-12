@@ -169,7 +169,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                 if (performPassiveLivenessFace == null) {
                     ///  SDK TODO
                    //  performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
-                    performPassiveLivenessFace = false;
+                    performPassiveLivenessFace = true;
                 }
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
@@ -372,7 +372,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                             stopRecording();
                                         }
                                     }
-                                }, environmentalConditions.getCountdownMumbersColor(), isCountDownStarted);
+                                }, environmentalConditions.getCountDownNumbersColor(), isCountDownStarted);
                                 isCountDownStarted = false;
                             } else {
                                 if (start) {
