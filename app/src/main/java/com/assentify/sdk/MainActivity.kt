@@ -82,13 +82,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback, 
         val environmentalConditions = EnvironmentalConditions(
             true,
             true,
-            "#00FFFFFF",
-            CountdownMumbersColor = "#E1BE4D",
+            "#173A2A",
+            CountDownNumbersColor = "#173A2A",
             activeLiveType = ActiveLiveType.NONE,
             activeLivenessCheckCount = 2,
             retryCount = 3,
-            faceLivenessRetryCount = 1,
-            minRam = 1
+            faceLivenessRetryCount = 3,
+            minRam =8
 
         );
         // F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A
@@ -125,7 +125,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback, 
         nextPage.setOnClickListener {
             if (newOder < dataKycDocumentDetails.size) {
                 scanIDCardManual.changeTemplateId(
-                    dataKycDocumentDetails[newOder].templateProcessingKeyInformation
                 )
             }
         }
@@ -167,6 +166,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback, 
                 "#0C1F16",
                 language = Language.English,
                 enableNfc = false,
+                enableQr = true,
                 blockLoaderCustomProperties = customProperties
 
             );

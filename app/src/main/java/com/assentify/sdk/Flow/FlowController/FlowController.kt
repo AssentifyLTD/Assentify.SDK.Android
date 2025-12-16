@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import com.assentify.sdk.ApiKeyObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
@@ -17,6 +18,7 @@ import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
+import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import kotlinx.coroutines.Dispatchers
@@ -78,6 +80,17 @@ object FlowController {
     }
 
 
+    fun setImage(url:String) {
+        IDImageObject.clear();
+        IDImageObject.setImage(url);
+    }
+
+    fun getPreviousIDImage(): String {
+        return IDImageObject.getImage() ?: ""
+    }
+
+
+
     fun getAllDoneSteps(): List<LocalStepModel> {
         val steps = LocalStepsObject.getLocalSteps()
         return steps.filter { it.isDone }
@@ -136,10 +149,11 @@ object FlowController {
 
     suspend fun downloadImageAsBase64(imageUrl: String): String? = withContext(Dispatchers.IO) {
         try {
+            val apiKey = ApiKeyObject.getApiKeyObject();
             val url = URL(imageUrl)
             val connection = url.openConnection() as HttpURLConnection
 
-            connection.setRequestProperty("x-api-key", "YOUR_API_KEY_HERE")
+            connection.setRequestProperty("x-api-key", apiKey)
 
             connection.doInput = true
             connection.connect()

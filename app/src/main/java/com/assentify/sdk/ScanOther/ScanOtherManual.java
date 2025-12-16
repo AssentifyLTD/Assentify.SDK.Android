@@ -193,7 +193,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.OTHER),
                             ImageUtils.convertBitmapToByteArray(normalImage, BlockType.READ_PASSPORT, getActivity()),
                             configModel,
-                            "",
+                            new ArrayList<>(),
                             "ConnectionId",
                             getVideoPath(configModel, other, 0),
                             true,
@@ -220,7 +220,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                                             "onRetry",
                                             "",
                                             EventsErrorMessages.OnRetryCardMessage,
-                                            false
+                                            false,""
                                     ));
                         }
                     });

@@ -5,7 +5,9 @@ import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.Templates
+import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 
 object AssentifySdkObject {
@@ -108,6 +110,31 @@ object NfcPassportResponseModelObject {
     }
 }
 
+object QrIDResponseModelObject {
+    private lateinit var iDResponseModel: IDResponseModel
+    fun setQrIDResponseModelObject(iDResponseModel: IDResponseModel) {
+        this.iDResponseModel = iDResponseModel
+    }
+
+    fun getQrIDResponseModelObject(): IDResponseModel {
+        return iDResponseModel
+    }
+}
+
+
+object QrKycDocumentDetailsObject {
+    private lateinit var  kycDocumentDetails: List<KycDocumentDetails>
+    fun setQrKycDocumentDetailsObject( kycDocumentDetails: List<KycDocumentDetails>) {
+        this.kycDocumentDetails = kycDocumentDetails
+    }
+
+    fun getQrKycDocumentDetailsObject(): List<KycDocumentDetails> {
+        return kycDocumentDetails
+    }
+}
+
+
+
 
 object FlowCallbackObject {
     private lateinit var flowCallback: FlowCallBack
@@ -137,6 +164,23 @@ object Base64ImageObject {
     }
 
 }
+
+object IDImageObject {
+    private var image: String? = null
+
+    fun setImage(value: String?) {
+        image = value
+    }
+
+    fun getImage(): String? = image
+
+    fun clear() {
+        image = null
+    }
+
+}
+
+
 
 
 

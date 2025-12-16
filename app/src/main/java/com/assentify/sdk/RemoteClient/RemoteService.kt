@@ -285,7 +285,7 @@ interface RemoteWidgetsService {
         @Part("tenantId") tenantId: RequestBody,
         @Part("blockId") blockId: RequestBody,
         @Part("instanceId") instanceId: RequestBody,
-        @Part("templateId") templateId: RequestBody,
+        @Part("templateId") templateIds: List<RequestBody>,
         @Part("LivenessCheckEnabled") livenessCheckEnabled: RequestBody,
         @Part("processMrz") processMrz: RequestBody,
         @Part("DisableDataExtraction") disableDataExtraction: RequestBody,

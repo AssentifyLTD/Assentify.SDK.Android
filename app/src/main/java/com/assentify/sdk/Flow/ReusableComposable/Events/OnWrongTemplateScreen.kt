@@ -100,7 +100,7 @@ fun OnWrongTemplateScreen(
                 color = Color.White,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Light,
-                lineHeight = 13.sp,
+                  lineHeight = 17.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -124,7 +124,7 @@ fun OnWrongTemplateScreen(
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Light,
-                    lineHeight = 13.sp,
+                      lineHeight = 17.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )

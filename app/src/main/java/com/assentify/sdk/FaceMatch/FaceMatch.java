@@ -167,8 +167,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         for (StepDefinitions item : configModel.getStepDefinitions()) {
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performPassiveLivenessFace == null) {
-                  //  performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
-                    performPassiveLivenessFace = true;
+                    performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
                 }
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
@@ -371,7 +370,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                             stopRecording();
                                         }
                                     }
-                                }, environmentalConditions.getCountdownMumbersColor(), isCountDownStarted);
+                                }, environmentalConditions.getCountDownNumbersColor(), isCountDownStarted);
                                 isCountDownStarted = false;
                             } else {
                                 if (start) {
@@ -574,7 +573,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             HubConnectionTargets.ON_RETRY,
                             "Please hold your hand",
                             EventsErrorMessages.OnRetryFaceMessage,
-                            false
+                            false,
+                            ""
+
                     ));
                 }
 

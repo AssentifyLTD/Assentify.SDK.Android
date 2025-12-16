@@ -89,7 +89,8 @@ class RemoteProcessing {
                             destinationEndpoint = HubConnectionTargets.ON_ERROR,
                             response = "",
                             error = EventsErrorMessages.OnErrorMessage,
-                            success = false
+                            success = false,
+                            classifiedTemplate = ""
                         )
                     );
                 }
@@ -102,7 +103,8 @@ class RemoteProcessing {
                         destinationEndpoint = HubConnectionTargets.ON_ERROR,
                         response = "",
                         error = EventsErrorMessages.OnErrorMessage,
-                        success = false
+                        success = false,
+                        classifiedTemplate = ""
                     )
                 );
             }
@@ -115,7 +117,7 @@ class RemoteProcessing {
         url: String,
         byteArrayImage: ByteArray,
         appConfiguration: ConfigModel,
-        templateId: String,
+        templatesByCountry: List<String>,
         connectionId: String,
         clipsPath: String,
         checkForFace: Boolean,
@@ -131,6 +133,11 @@ class RemoteProcessing {
         tag:String,
         processCivilExtractQrCode:Boolean,
     ) {
+
+        val templateIds = templatesByCountry.map {
+            it.toRequestBody("text/plain".toMediaTypeOrNull())
+        }
+
         val tryCount  = tryNumber + 1;
         val traceIdentifier = UUID.randomUUID().toString()
         val call = RemoteClient.remoteWidgetsService.starProcessingIDs(
@@ -145,7 +152,7 @@ class RemoteProcessing {
             appConfiguration.tenantIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
             appConfiguration.blockIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
             appConfiguration.instanceId.toRequestBody("text/plain".toMediaTypeOrNull()),
-            templateId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            templateIds,
             performLivenessDoc.toString()
                 .toRequestBody("text/plain".toMediaTypeOrNull()),
             processMrz.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
@@ -197,7 +204,8 @@ class RemoteProcessing {
                             destinationEndpoint = HubConnectionTargets.ON_ERROR,
                             response = "",
                             error = EventsErrorMessages.OnErrorMessage,
-                            success = false
+                            success = false,
+                            classifiedTemplate = ""
                         )
                     );
                 }
@@ -210,7 +218,8 @@ class RemoteProcessing {
                         destinationEndpoint = HubConnectionTargets.ON_ERROR,
                         response = "",
                         error = EventsErrorMessages.OnErrorMessage,
-                        success = false
+                        success = false,
+                        classifiedTemplate = ""
                     )
                 );
             }
@@ -322,7 +331,8 @@ class RemoteProcessing {
                             destinationEndpoint = HubConnectionTargets.ON_ERROR,
                             response = "",
                             error = EventsErrorMessages.OnErrorMessage,
-                            success = false
+                            success = false,
+                            classifiedTemplate = ""
                         )
                     );
                 }
@@ -335,7 +345,8 @@ class RemoteProcessing {
                         destinationEndpoint = HubConnectionTargets.ON_ERROR,
                         response = "",
                         error = EventsErrorMessages.OnErrorMessage,
-                        success = false
+                        success = false,
+                        classifiedTemplate = ""
                     )
                 );
             }

@@ -2,12 +2,9 @@ package   com.assentify.sdk.ScanIDCard
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.DoneFlags
-import  com.assentify.sdk.Core.Constants.MotionType
-import  com.assentify.sdk.Core.Constants.ZoomType
-import  com.assentify.sdk.Models.BaseResponseDataModel
-import  com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
-import com.assentify.sdk.ScanPassport.ScanPassport
-import com.assentify.sdk.ScanPassport.ScanPassportManual
+import com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.ZoomType
+import com.assentify.sdk.Models.BaseResponseDataModel
 
 sealed class ScanIDCardResult {
     data class Manual(val data: ScanIDCardManual) : ScanIDCardResult()
@@ -21,7 +18,7 @@ interface IDCardCallback {
     fun onSend()
 
     fun onRetry(dataModel: BaseResponseDataModel)
-    fun onComplete(dataModel: IDResponseModel,order:Int,doneFlags:DoneFlags)
+    fun onComplete(dataModel: IDResponseModel,oneFlags:DoneFlags,isFrontPage : Boolean,isLastPage : Boolean,classifiedTemplate: String)
     fun onWrongTemplate(dataModel: BaseResponseDataModel)
 
     fun onUploadingProgress(progress:Int){}
