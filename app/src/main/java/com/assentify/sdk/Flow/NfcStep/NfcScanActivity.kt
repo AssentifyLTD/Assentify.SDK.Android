@@ -175,6 +175,11 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
             feedbackText.value = ""
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
+            dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
+                if (key.contains(ConstantsValues.ProvidedFaceImageKey, )) {
+                    FlowController.setImage(value.toString())
+                }
+            }
         }
     }
 

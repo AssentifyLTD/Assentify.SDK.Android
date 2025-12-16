@@ -99,7 +99,7 @@ fun OnFaceErrorScreen(
                 color = Color.White,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Light,
-                lineHeight = 13.sp,
+                  lineHeight = 17.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )

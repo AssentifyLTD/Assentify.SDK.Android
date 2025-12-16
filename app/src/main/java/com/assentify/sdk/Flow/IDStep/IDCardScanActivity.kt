@@ -51,10 +51,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
+import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Flow.FlowController.FlowController
+import com.assentify.sdk.Flow.QrStep.HowToCaptureQrActivity
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
@@ -66,6 +68,8 @@ import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
+import com.assentify.sdk.QrIDResponseModelObject
+import com.assentify.sdk.QrKycDocumentDetailsObject
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.IDResponseModel
@@ -86,6 +90,9 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     private var imageUrl = mutableStateOf<String>("")
     private var classifiedTemplateValue = mutableStateOf<String>("")
     private var extractedInformation = mutableStateOf<Map<String, String>?>(null)
+
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -118,11 +125,19 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                             feedbackText.value = "";
                             uploadingProgress.value = 0;
                             eventTypes.value = EventTypes.none;
-                            imageUrl.value = "";
                         },
-                        onNext = {
-                            FlowController.makeCurrentStepDone(extractedInformation.value!!);
-                            FlowController.naveToNextStep(context = this)
+                        onNext = { hasQr, kycDocumentDetails ->
+                            if (flowEnv.enableQr && hasQr) {
+                                QrKycDocumentDetailsObject.setQrKycDocumentDetailsObject(
+                                    kycDocumentDetails
+                                )
+                                HowToCaptureQrActivity.start(
+                                    context = this,
+                                );
+                            } else {
+                                FlowController.makeCurrentStepDone(extractedInformation.value!!);
+                                FlowController.naveToNextStep(context = this)
+                            }
                         },
                         feedbackText = feedbackText.value,
                         imageUrl = imageUrl.value,
@@ -193,9 +208,16 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             start.value = false;
             eventTypes.value = EventTypes.onComplete
             isFrontPageValue.value = isFrontPage
+            isLastPageValue.value = isLastPage
             classifiedTemplateValue.value = classifiedTemplate
-            if(isFrontPage){
+            if (isFrontPage) {
+                QrIDResponseModelObject.setQrIDResponseModelObject(dataModel)
                 imageUrl.value = dataModel.iDExtractedModel!!.imageUrl.toString();
+                dataModel.iDExtractedModel!!.outputProperties?.forEach { (key, value) ->
+                    if (key.contains(ConstantsValues.ProvidedFaceImageKey)) {
+                        FlowController.setImage(value.toString())
+                    }
+                }
             }
         }
     }
@@ -263,7 +285,8 @@ fun IDCardScanScreen(
     activity: IDCardScanActivity,
     onBack: () -> Unit = {},
     onRetry: () -> Unit = {},
-    onNext: () -> Unit = {},
+    onNext: (hasQr: Boolean, kycDocumentDetails: List<KycDocumentDetails>) -> Unit =
+        { _, _ -> },
     onFlip: () -> Unit = {},
     feedbackText: String,
     imageUrl: String,
@@ -337,7 +360,10 @@ fun IDCardScanScreen(
                         } else {
                             scanID?.stopScanning()
                         }
-                        onNext();
+                        onNext(
+                            kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                            kycDocumentDetails
+                        );
                     })
                 } else {
                     OnFlipCardScreen(

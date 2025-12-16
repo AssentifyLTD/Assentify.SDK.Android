@@ -63,19 +63,7 @@ fun HowToCaptureFaceScreen(
     var isLoading by rememberSaveable { mutableStateOf(true) }
 
 
-    /// SDK TODO
-    /// IdentificationDocumentCapture_Image
-    var docUrl = "";
-      val extractedInfo = FlowController.getPreviousIDScanStep()
-             ?.submitRequestModel
-             ?.extractedInformation
-
-         extractedInfo?.forEach { (key, value) ->
-             if (key.contains("OnBoardMe_IdentificationDocumentCapture_OriginalFrontImage", )) {
-                 docUrl = value;
-             }
-         }
-
+    val docUrl = FlowController.getPreviousIDImage()
 
     LaunchedEffect(docUrl) {
         base64Image = FlowController.downloadImageAsBase64(docUrl)

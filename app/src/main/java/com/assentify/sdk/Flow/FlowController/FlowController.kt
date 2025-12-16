@@ -18,6 +18,7 @@ import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
+import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import kotlinx.coroutines.Dispatchers
@@ -78,10 +79,17 @@ object FlowController {
         LocalStepsObject.setLocalSteps(steps)
     }
 
-    fun getPreviousIDScanStep(): LocalStepModel? {
-        val steps = LocalStepsObject.getLocalSteps()
-        return steps.lastOrNull { it.stepDefinition!!.stepDefinition == StepsNames.IdentificationDocumentCapture && it.isDone }
+
+    fun setImage(url:String) {
+        IDImageObject.clear();
+        IDImageObject.setImage(url);
     }
+
+    fun getPreviousIDImage(): String {
+        return IDImageObject.getImage() ?: ""
+    }
+
+
 
     fun getAllDoneSteps(): List<LocalStepModel> {
         val steps = LocalStepsObject.getLocalSteps()

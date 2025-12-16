@@ -33,20 +33,9 @@ class IDStepComposeActivity : ComponentActivity() {
                 ) {
                     IDStepScreen(
                         onNext = {
-                            val selectedTemplate = SelectedTemplatesObject.getSelectedTemplatesObject();
                             HowToCaptureActivity.start(
                                 context = this, // Activity
                             );
-                            /// SDK TODO Qr
-                         /*   if (selectedTemplate.id == -1 || !selectedTemplate.kycDocumentDetails.first().hasQrCode) {
-                                HowToCaptureActivity.start(
-                                    context = this, // Activity
-                                );
-                            } else {
-                                HowToCaptureQrActivity.start(
-                                    context = this, // Activity
-                                )
-                            }*/
 
                         },
                         onBack = { onBackPressedDispatcher.onBackPressed() },

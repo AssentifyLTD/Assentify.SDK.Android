@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -152,7 +151,6 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     override fun onError(dataModel: BaseResponseDataModel) {
         runOnUiThread {
-            Log.e("FaceMatchActivity", "onError ${dataModel.response}")
             start.value = false;
             eventTypes.value = EventTypes.onError
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
@@ -161,7 +159,6 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     override fun onRetry(dataModel: BaseResponseDataModel) {
         runOnUiThread {
-            Log.e("FaceMatchActivity", "onRetry")
             start.value = false;
             eventTypes.value = EventTypes.onRetry
             try {
@@ -175,7 +172,6 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     override fun onComplete(dataModel: FaceResponseModel, doneFlag: DoneFlags) {
         runOnUiThread {
-            Log.e("FaceMatchActivity", "onComplete")
             faceModel.value = dataModel;
             start.value = false;
             eventTypes.value = EventTypes.onComplete
@@ -184,7 +180,6 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
         runOnUiThread {
-            Log.e("FaceMatchActivity", "onLivenessUpdate")
             start.value = false;
             eventTypes.value = EventTypes.onLivenessUpdate
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);

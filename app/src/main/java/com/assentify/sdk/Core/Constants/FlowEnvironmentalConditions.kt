@@ -10,6 +10,7 @@ public  class FlowEnvironmentalConditions(
     val listItemsUnSelectedHexColor: String,
     val language :String = Language.NON,
     val enableNfc :Boolean = false,
+    val enableQr :Boolean = false,
     val blockLoaderCustomProperties :Map<String,Any> = emptyMap(),
 ) {
     init {
