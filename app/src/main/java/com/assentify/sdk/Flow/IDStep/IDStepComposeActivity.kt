@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.assentify.sdk.Flow.FlowController.FlowController
-import com.assentify.sdk.Flow.QrStep.HowToCaptureQrActivity
 import com.assentify.sdk.SelectedTemplatesObject
 
 class IDStepComposeActivity : ComponentActivity() {
@@ -34,16 +33,9 @@ class IDStepComposeActivity : ComponentActivity() {
                 ) {
                     IDStepScreen(
                         onNext = {
-                            val selectedTemplate = SelectedTemplatesObject.getSelectedTemplatesObject();
-                            if (selectedTemplate.id == -1 || !selectedTemplate.kycDocumentDetails.first().hasQrCode) {
-                                HowToCaptureActivity.start(
-                                    context = this, // Activity
-                                );
-                            } else {
-                                HowToCaptureQrActivity.start(
-                                    context = this, // Activity
-                                )
-                            }
+                            HowToCaptureActivity.start(
+                                context = this, // Activity
+                            );
 
                         },
                         onBack = { onBackPressedDispatcher.onBackPressed() },

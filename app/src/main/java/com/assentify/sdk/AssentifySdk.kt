@@ -183,7 +183,7 @@ class AssentifySdk(
 
     fun startScanIDCard(
         scnIDCardCallback: IDCardCallback,
-        kycDocumentDetails: List<KycDocumentDetails>,
+        templatesByCountry: TemplatesByCountry,
         language: String = Language.NON,
         stepId: Int? = null,
     ): ScanIDCardResult {
@@ -193,7 +193,7 @@ class AssentifySdk(
                     configModel,
                     environmentalConditions, apiKey,
                     scnIDCardCallback,
-                    kycDocumentDetails, language
+                    templatesByCountry, language
                 )
                 scanIDCardManual.setStepId(stepId?.toString())
                 return ScanIDCardResult.Manual(scanIDCardManual);
@@ -202,7 +202,7 @@ class AssentifySdk(
                     configModel,
                     environmentalConditions, apiKey,
                     scnIDCardCallback,
-                    kycDocumentDetails, language
+                    templatesByCountry, language
                 )
                 scanIDCard.setStepId(stepId?.toString())
                 return ScanIDCardResult.Auto(scanIDCard);

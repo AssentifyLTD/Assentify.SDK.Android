@@ -47,6 +47,8 @@ import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails;
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
+import com.assentify.sdk.RemoteClient.Models.Templates;
+import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
 import com.assentify.sdk.ScanPassport.PassportExtractedModel;
 import com.assentify.sdk.ScanPassport.PassportResponseModel;
 import com.assentify.sdk.logging.BugsnagObject;
@@ -68,9 +70,10 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
 
     private IDCardCallback idCardCallback;
     private EnvironmentalConditions environmentalConditions;
-    private String templateId;
+    private List<String> selectedTemplates  = new ArrayList<>();;
+    private boolean isLastPage = false;
 
-
+    private String classifiedTemplate  = "";
     private RemoteProcessing remoteProcessing;
     private boolean start = true;
     private String apiKey = "";
@@ -88,9 +91,8 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
     private ExecutorService createBase64 = Executors.newSingleThreadExecutor();
 
 
-    private int order = 0;
 
-    private List<KycDocumentDetails> kycDocumentDetails = new ArrayList<>();
+    private TemplatesByCountry templatesByCountry;
 
 
     private IDResponseModel idResponseModel;
@@ -102,25 +104,25 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
 
     int retryCount = 0;
 
-    private String templateName;
 
     public ScanIDCardManual(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey,
                             IDCardCallback idCardCallback,
-                            List<KycDocumentDetails> kycDocumentDetails,
+                             TemplatesByCountry   templatesByCountry,
                             String language
     ) {
         this.apiKey = apiKey;
         this.environmentalConditions = environmentalConditions;
         this.configModel = configModel;
         this.idCardCallback = idCardCallback;
-        this.kycDocumentDetails = kycDocumentDetails;
+        this.templatesByCountry = templatesByCountry;
+        for(Templates template : this.templatesByCountry.getTemplates() ){
+            for(KycDocumentDetails kycDocumentDetails : template.getKycDocumentDetails()){
+                this.selectedTemplates.add(kycDocumentDetails.getTemplateProcessingKeyInformation());
+            }
+        }
+        changeTemplateId();
         this.language = language;
         setEnvironmentalConditions(this.environmentalConditions);
-        if (!this.kycDocumentDetails.isEmpty()) {
-            KycDocumentDetails firstKycDocument = kycDocumentDetails.get(0);
-            this.changeTemplateId(firstKycDocument.getTemplateProcessingKeyInformation());
-        }
-
     }
 
     public void setStepId(String stepId) {
@@ -164,14 +166,26 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
     }
 
 
-    public void changeTemplateId(String templateId) {
+    public void changeTemplateId() {
         this.retryCount = 0;
-        this.templateId = templateId;
-        kycDocumentDetails.forEach((item) -> {
-            if (Objects.equals(this.templateId, item.getTemplateProcessingKeyInformation())) {
-                this.templateName = item.getName();
+        if(!classifiedTemplate.isEmpty()){
+            for(Templates template : this.templatesByCountry.getTemplates() ){
+                for(KycDocumentDetails kycDocumentDetails : template.getKycDocumentDetails()){
+                    if(kycDocumentDetails.getTemplateProcessingKeyInformation().equals(classifiedTemplate)){
+                        if(template.getKycDocumentDetails().size() == 2){
+                            for (KycDocumentDetails item : template.getKycDocumentDetails()) {
+                                if (!item.getTemplateProcessingKeyInformation().equals(classifiedTemplate)) {
+                                    this.selectedTemplates.clear();
+                                    this.selectedTemplates.add(item.getTemplateProcessingKeyInformation());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        });
+            isLastPage = true;
+        }
         createBase64 = Executors.newSingleThreadExecutor();
         start = true;
         remoteProcessing = new RemoteProcessing();
@@ -179,6 +193,26 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
 
     }
 
+
+    private boolean isFrontPage() {
+        boolean result = false;
+        if (!classifiedTemplate.isEmpty()) {
+            for (Templates template : this.templatesByCountry.getTemplates()) {
+                for (KycDocumentDetails kycDocumentDetails : template.getKycDocumentDetails()) {
+                    if (kycDocumentDetails.getTemplateProcessingKeyInformation().equals(classifiedTemplate)) {
+                        if (template.getKycDocumentDetails().size() > 1) {
+                            result = template.getKycDocumentDetails().get(0).getTemplateProcessingKeyInformation().equals(classifiedTemplate);
+                        } else {
+                            isLastPage = true;
+                            result = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
+    }
     @Override
     protected void processManualImage(@NonNull Bitmap normalImage) {
         if (getActivity() != null) {
@@ -210,9 +244,9 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.ID_CARD),
                             ImageUtils.convertBitmapToByteArray(normalImage, BlockType.READ_PASSPORT, getActivity()),
                             configModel,
-                            this.templateId,
+                            selectedTemplates,
                             "ConnectionId",
-                            getVideoPath(configModel, this.templateId, 0),
+                            getVideoPath(configModel, this.templatesByCountry.getName(), 0),
                             true,
                             processMrz,
                             performLivenessDocument,
@@ -223,7 +257,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                             true,
                             false,
                             retryCount,
-                            getIDTag(configModel, this.templateName),
+                            getIDTag(configModel, this.templatesByCountry.getName()),
                             false
                     );
 
@@ -238,7 +272,8 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                                             "onRetry",
                                             "",
                                             EventsErrorMessages.OnRetryCardMessage,
-                                            false
+                                            false,
+                                            classifiedTemplate
                                     ));
                         }
                     });
@@ -255,6 +290,9 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if(!BaseResponseDataModel.getClassifiedTemplate().isEmpty()){
+                        classifiedTemplate = BaseResponseDataModel.getClassifiedTemplate();
+                    }
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         Map<String, String> transformedProperties = new HashMap<>();
                         start = false;
@@ -267,8 +305,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                         );
 
                         if (Objects.equals(language, Language.NON)) {
-                            idCardCallback.onComplete(idResponseModel, order, DoneFlags.Success);
-                            order = order + 1;
+                            idCardCallback.onComplete(idResponseModel, DoneFlags.Success,isFrontPage(),isLastPage,classifiedTemplate);
                         } else {
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
                             translated.setCallback(ScanIDCardManual.this);
@@ -292,13 +329,12 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                             );
 
                             if (eventName.equals(HubConnectionTargets.ON_RETRY)) {
-                                idCardCallback.onComplete(idResponseModel, order, DoneFlags.ExtractFailed);
+                                idCardCallback.onComplete(idResponseModel, DoneFlags.ExtractFailed,isFrontPage(),isLastPage,classifiedTemplate);
                             } else if (eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                idCardCallback.onComplete(idResponseModel, order, DoneFlags.LivenessFailed);
+                                idCardCallback.onComplete(idResponseModel, DoneFlags.LivenessFailed,isFrontPage(),isLastPage,classifiedTemplate);
                             } else {
-                                idCardCallback.onComplete(idResponseModel, order, DoneFlags.WrongTemplate);
+                                idCardCallback.onComplete(idResponseModel, DoneFlags.WrongTemplate,isFrontPage(),isLastPage,classifiedTemplate);
                             }
-                            order = order + 1;
                             start = false;
                         } else {
                             start = true;
@@ -452,14 +488,12 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
         });
 
 
-        idCardCallback.onComplete(idResponseModel, order, DoneFlags.Success);
-        order = order + 1;
+        idCardCallback.onComplete(idResponseModel, DoneFlags.Success,isFrontPage(),isLastPage,classifiedTemplate);
     }
 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
-        idCardCallback.onComplete(idResponseModel, order, DoneFlags.Success);
-        order = order + 1;
+        idCardCallback.onComplete(idResponseModel, DoneFlags.Success,isFrontPage(),isLastPage,classifiedTemplate);
     }
 
     public void stopScanning() {

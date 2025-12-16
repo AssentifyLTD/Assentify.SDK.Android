@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -56,12 +55,13 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.QrIDResponseModelObject
+import com.assentify.sdk.QrKycDocumentDetailsObject
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanQr.ScanQr
 import com.assentify.sdk.ScanQr.ScanQrCallback
 import com.assentify.sdk.ScanQr.ScanQrManual
 import com.assentify.sdk.ScanQr.ScanQrResult
-import com.assentify.sdk.SelectedTemplatesObject
 
 
 class QrScanActivity : FragmentActivity(), ScanQrCallback {
@@ -88,7 +88,8 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     QrScanScreen(
-                        activity = this@QrScanActivity, onBack = {
+                        activity = this@QrScanActivity,
+                        onBack = {
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onRetry = {
@@ -98,7 +99,7 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
                         },
                         onNext = {
                             FlowController.makeCurrentStepDone(dataIDModel.value!!.iDExtractedModel!!.transformedProperties!!);
-                            FlowController.naveToNextStep(context = this,)
+                            FlowController.naveToNextStep(context = this)
                         },
                         progress = uploadingProgress.value,
                         eventTypes = eventTypes.value,
@@ -128,10 +129,29 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
 
     override fun onCompleteQrScan(dataModel: IDResponseModel) {
         runOnUiThread {
-            dataIDModel.value = dataModel;
+            /// SDK TODO
+            val finalIDResponseModelObject = QrIDResponseModelObject.getQrIDResponseModelObject()
+            val finalMap = mutableMapOf<String, String>()
+            for ((key, value) in finalIDResponseModelObject.iDExtractedModel!!.transformedProperties!!) {
+                if (key.contains("Image")) {
+                    finalMap[key] = value
+                } else {
+                    if (!dataModel.iDExtractedModel!!.transformedProperties!!.containsKey(key)) {
+                        finalMap[key] = value
+                    } else if (dataModel.iDExtractedModel!!.transformedProperties!![key]!!.isNotEmpty()) {
+                        finalMap[key] = value
+                    } else {
+                        finalMap[key] = dataModel.iDExtractedModel!!.transformedProperties!![key]!!
+                    }
+
+                }
+            }
+            finalIDResponseModelObject.iDExtractedModel!!.transformedProperties = finalMap;
+            dataIDModel.value = finalIDResponseModelObject;
             start.value = false;
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.iDExtractedModel!!.imageUrl!!
+
         }
     }
 
@@ -166,7 +186,7 @@ fun QrScanScreen(
     var isManual by remember { mutableStateOf<Boolean>(false) }
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val kycDocumentDetails = SelectedTemplatesObject.getSelectedTemplatesObject().kycDocumentDetails
+    val kycDocumentDetails = QrKycDocumentDetailsObject.getQrKycDocumentDetailsObject()
 
     val logoBitmap: ImageBitmap? = remember(flowEnv.appLogo) {
         flowEnv.appLogo?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }

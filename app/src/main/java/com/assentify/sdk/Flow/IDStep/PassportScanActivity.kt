@@ -51,6 +51,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
+import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
@@ -194,6 +195,14 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             dataIDModel.value = dataModel;
             start.value = false;
             eventTypes.value = EventTypes.onComplete
+            imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
+            dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
+                if (key.contains(ConstantsValues.ProvidedFaceImageKey, )) {
+                    FlowController.setImage(value.toString())
+                }
+            }
+
+
         }
     }
 

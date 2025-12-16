@@ -463,7 +463,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.OTHER),
                     ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
                     configModel,
-                    "",
+                    new ArrayList<>(),
                     "ConnectionId",
                     getVideoPath(configModel, other, 0),
                     true,

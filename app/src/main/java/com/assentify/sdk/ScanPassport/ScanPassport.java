@@ -450,7 +450,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
                     ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(highQualityBitmaps.size() - 1), BlockType.READ_PASSPORT, getActivity()),
                     configModel,
-                    "",
+                    new ArrayList<>(),
                     "ConnectionId",
                     getVideoPath(configModel, readPassport, 0),
                     true,

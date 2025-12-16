@@ -191,7 +191,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.READ_PASSPORT),
                             ImageUtils.convertBitmapToByteArray(normalImage, BlockType.READ_PASSPORT, getActivity()),
                             configModel,
-                            "",
+                            new ArrayList<>(),
                             "ConnectionId",
                             getVideoPath(configModel, readPassport, 0),
                             true,
@@ -218,7 +218,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                             "onRetry",
                                             "",
                                             EventsErrorMessages.OnRetryCardMessage,
-                                            false
+                                            false,""
                                     ));
                         }
                     });

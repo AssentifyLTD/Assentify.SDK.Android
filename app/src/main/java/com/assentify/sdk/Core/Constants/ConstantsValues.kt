@@ -28,6 +28,8 @@ object ConstantsValues {
     const val AudioCardSuccess  = "audio_card_success.mp3";
     const val AudioWrong = "audio_wrong.mp3";
     const val ClarityProjectId = "spm0s4tjn6";
+
+    const val ProvidedFaceImageKey = "OnBoardMe_IdentificationDocumentCapture_Image";
 }
 
 object EventsErrorMessages {

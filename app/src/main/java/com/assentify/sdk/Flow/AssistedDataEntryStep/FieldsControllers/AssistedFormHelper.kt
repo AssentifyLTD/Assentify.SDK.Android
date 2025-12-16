@@ -236,13 +236,12 @@ object AssistedFormHelper {
             val err = validateField(f.inputKey!!, page)
             if (!err.isNullOrEmpty()) return false
         }
-        /// SDK TODO
-        /* for (f in fields) {
+         for (f in fields) {
              val fieldType = InputTypes.fromString(f.inputType)
              if (fieldType == InputTypes.EmailWithOTP || fieldType == InputTypes.PhoneNumberWithOTP) {
                  if (!f.isLocalOtpValid) return false
              }
-         }*/
+         }
         return true
     }
 

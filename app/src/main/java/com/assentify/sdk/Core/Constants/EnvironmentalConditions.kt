@@ -9,7 +9,7 @@ class EnvironmentalConditions(
 
 
     var HoldHandColor: String,
-    var CountdownMumbersColor: String = "#00FFFFFF",
+    var CountDownNumbersColor: String = "#00FFFFFF",
 
     var MotionCardLimit: Int = 10,
     var MotionPassportLimit: Int = 15,
