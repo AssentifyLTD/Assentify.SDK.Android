@@ -56,12 +56,12 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.QrIDResponseModelObject
-import com.assentify.sdk.QrKycDocumentDetailsObject
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanQr.ScanQr
 import com.assentify.sdk.ScanQr.ScanQrCallback
 import com.assentify.sdk.ScanQr.ScanQrManual
 import com.assentify.sdk.ScanQr.ScanQrResult
+import com.assentify.sdk.SelectedTemplatesObject
 
 
 class QrScanActivity : FragmentActivity(), ScanQrCallback {
@@ -186,7 +186,16 @@ fun QrScanScreen(
     var isManual by remember { mutableStateOf<Boolean>(false) }
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val kycDocumentDetails = QrKycDocumentDetailsObject.getQrKycDocumentDetailsObject()
+    val selectedTemplate = SelectedTemplatesObject.getSelectedTemplatesObject()
+
+
+    val templatesByCountry = remember {
+        AssentifySdkObject.getAssentifySdkObject().getTemplates(
+            FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+        ).first {
+            it.sourceCountryCode == selectedTemplate.sourceCountryCode
+        }
+    }
 
     val logoBitmap: ImageBitmap? = remember(flowEnv.appLogo) {
         flowEnv.appLogo?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
@@ -233,7 +242,7 @@ fun QrScanScreen(
 
                 val result = assentifySdk.startScanQr(
                     activity,
-                    kycDocumentDetails = kycDocumentDetails,
+                    templatesByCountry = templatesByCountry,
                     flowEnv.language,
                     stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                 )

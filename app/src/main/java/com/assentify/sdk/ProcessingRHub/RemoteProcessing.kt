@@ -29,13 +29,17 @@ class RemoteProcessing {
         url: String,
         byteArrayImage: ByteArray,
         appConfiguration: ConfigModel,
-        templateId: String,
+        templatesByCountry: List<String>,
         connectionId: String,
         stepId: String,
         metadata: String,
         isManualCapture : Boolean,
         isAutoCapture : Boolean,
     ) {
+        val templateIds = templatesByCountry.map {
+            it.toRequestBody("text/plain".toMediaTypeOrNull())
+        }
+
         val traceIdentifier = UUID.randomUUID().toString()
         val call = RemoteClient.remoteWidgetsService.starQrProcessing(
             url,
@@ -49,7 +53,7 @@ class RemoteProcessing {
             appConfiguration.tenantIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
             appConfiguration.blockIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
             appConfiguration.instanceId.toRequestBody("text/plain".toMediaTypeOrNull()),
-            templateId.toRequestBody("text/plain".toMediaTypeOrNull()),
+            templateIds,
             "true"
                 .toRequestBody("text/plain".toMediaTypeOrNull()),
             byteArrayToPart(

@@ -28,7 +28,6 @@ import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
-import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
@@ -216,14 +215,14 @@ class AssentifySdk(
 
     fun startScanQr(
         scanQrCallback: ScanQrCallback,
-        kycDocumentDetails: List<KycDocumentDetails>,
+        templatesByCountry: TemplatesByCountry,
         language: String = Language.NON,
         stepId: Int? = null,
     ): ScanQrResult {
         if (isKeyValid) {
             if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
                 val scanQrManual =  ScanQrManual(
-                    kycDocumentDetails,
+                    templatesByCountry,
                     apiKey,
                     language,
                     configModel,
@@ -234,7 +233,7 @@ class AssentifySdk(
                 return ScanQrResult.Manual(scanQrManual);
             } else {
                 val scanQr =  ScanQr(
-                    kycDocumentDetails,
+                    templatesByCountry,
                     apiKey,
                     language,
                     configModel,

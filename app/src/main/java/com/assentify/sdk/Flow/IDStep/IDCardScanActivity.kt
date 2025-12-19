@@ -69,7 +69,6 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
 import com.assentify.sdk.QrIDResponseModelObject
-import com.assentify.sdk.QrKycDocumentDetailsObject
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.IDResponseModel
@@ -126,11 +125,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                             uploadingProgress.value = 0;
                             eventTypes.value = EventTypes.none;
                         },
-                        onNext = { hasQr, kycDocumentDetails ->
+                        onNext = { hasQr ->
                             if (flowEnv.enableQr && hasQr) {
-                                QrKycDocumentDetailsObject.setQrKycDocumentDetailsObject(
-                                    kycDocumentDetails
-                                )
                                 HowToCaptureQrActivity.start(
                                     context = this,
                                 );
@@ -285,8 +281,8 @@ fun IDCardScanScreen(
     activity: IDCardScanActivity,
     onBack: () -> Unit = {},
     onRetry: () -> Unit = {},
-    onNext: (hasQr: Boolean, kycDocumentDetails: List<KycDocumentDetails>) -> Unit =
-        { _, _ -> },
+    onNext: (hasQr: Boolean) -> Unit =
+        { _ -> },
     onFlip: () -> Unit = {},
     feedbackText: String,
     imageUrl: String,
@@ -362,7 +358,6 @@ fun IDCardScanScreen(
                         }
                         onNext(
                             kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
-                            kycDocumentDetails
                         );
                     })
                 } else {
