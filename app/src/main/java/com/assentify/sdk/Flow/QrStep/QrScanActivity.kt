@@ -99,7 +99,7 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
                         },
                         onNext = {
                             FlowController.makeCurrentStepDone(dataIDModel.value!!.iDExtractedModel!!.transformedProperties!!);
-                            FlowController.naveToNextStep(context = this)
+                            FlowController.chekSplitStepAndMoveNext(context = this)
                         },
                         progress = uploadingProgress.value,
                         eventTypes = eventTypes.value,

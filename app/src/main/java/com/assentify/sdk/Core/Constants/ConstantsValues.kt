@@ -53,6 +53,8 @@ object StepsNames {
     const val FaceImageAcquisition = "FaceImageAcquisition"
     const val IdentificationDocumentCapture = "IdentificationDocumentCapture"
     const val ContextAwareSigning = "ContextAwareSigning"
+
+    const val Split  = "Split"
 }
 
 class WrapUpKeys{

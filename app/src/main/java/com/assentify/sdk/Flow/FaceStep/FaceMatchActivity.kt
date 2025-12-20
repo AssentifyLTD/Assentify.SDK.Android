@@ -113,7 +113,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                                     .mapValues { it.value.toString() }
                             Base64ImageObject.clear();
                             FlowController.makeCurrentStepDone(outputProps);
-                            FlowController.naveToNextStep(context = this)
+                            FlowController.chekSplitStepAndMoveNext(context = this)
                         },
                         feedbackText = feedbackText.value,
                         imageUrl = imageUrl.value,

@@ -132,7 +132,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                                 );
                             } else {
                                 FlowController.makeCurrentStepDone(extractedInformation.value!!);
-                                FlowController.naveToNextStep(context = this)
+                                FlowController.chekSplitStepAndMoveNext(context = this)
                             }
                         },
                         feedbackText = feedbackText.value,

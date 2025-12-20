@@ -116,7 +116,7 @@ class ContextAwareStepActivity : FragmentActivity(), ContextAwareSigningCallback
                                     }
                                 }
                                 FlowController.makeCurrentStepDone(extractedInformation)
-                                FlowController.naveToNextStep(context = this)
+                                FlowController.chekSplitStepAndMoveNext(context = this)
                             } else {
                                 contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSend
                                 contextAwareSigning.signature(

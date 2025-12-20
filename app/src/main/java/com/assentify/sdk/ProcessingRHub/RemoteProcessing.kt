@@ -86,7 +86,7 @@ class RemoteProcessing {
                     )
 
                 }else {
-                    val responseBody = response.body()?.string() ?: ""
+                    val errorBodyString = response.errorBody()?.string()
                     callback!!.onMessageReceived(
                         HubConnectionTargets.ON_ERROR,
                         BaseResponseDataModel(
@@ -201,7 +201,7 @@ class RemoteProcessing {
                     )
 
                 }else {
-                    val responseBody = response.body()?.string() ?: ""
+                    val errorBodyString = response.errorBody()?.string()
                     callback!!.onMessageReceived(
                         HubConnectionTargets.ON_ERROR,
                         BaseResponseDataModel(
@@ -328,7 +328,7 @@ class RemoteProcessing {
                     )
 
                 }else {
-                    val responseBody = response.body()?.string() ?: ""
+                    val errorBodyString = response.errorBody()?.string()
                     callback!!.onMessageReceived(
                         HubConnectionTargets.ON_ERROR,
                         BaseResponseDataModel(
@@ -368,7 +368,7 @@ class RemoteProcessing {
     ): MultipartBody.Part {
         val requestBody = byteArray.toRequestBody(mimeType.toMediaTypeOrNull())
         val image =  Base64.encodeToString(byteArray, Base64.DEFAULT);
-       // Log.e("byteArrayToPart",image.toString())
+   //     Log.e("byteArrayToPart",image.toString())
         val progressBody = ProgressRequestBody(requestBody, onProgress)
         return MultipartBody.Part.createFormData(partName, fileName, progressBody)
     }

@@ -113,7 +113,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                         },
                         onNext = {
                             FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!);
-                            FlowController.naveToNextStep(this)
+                            FlowController.chekSplitStepAndMoveNext(this)
                         },
                         onRetry = {
                             feedbackText.value = "Position the passport on the bottom of the phone where the NFC chip reader is and ensure that you have the passport close enough for detection and reading.";

@@ -51,7 +51,7 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
                 onBack = { onBackPressedDispatcher.onBackPressed() },
                 onStepClick = { /* navigate if needed */ },
                 onNext = {
-                    FlowController.naveToNextStep(context = this)
+                    FlowController.chekSplitStepAndMoveNext(context = this)
                 }
             )
         }
@@ -118,37 +118,60 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                 iconAssetPath = "",
                 isDone = true,
                 show = false,
-                stepDefinition = configModel.stepDefinitions.filter { it.stepDefinition == StepsNames.BlockLoader }
-                    .first(),
+                stepDefinition = configModel.stepDefinitions.first { it.stepDefinition == StepsNames.BlockLoader },
                 submitRequestModel = SubmitRequestModel(
                     stepDefinition = StepsNames.BlockLoader,
-                    stepId = configModel.stepDefinitions.filter { it.stepDefinition == StepsNames.BlockLoader }
-                        .first().stepId,
+                    stepId = configModel.stepDefinitions.first { it.stepDefinition == StepsNames.BlockLoader }.stepId,
                     extractedInformation = values
                 )
             )
         )
+        var displayCounter = 1
+
         configModel.stepMap.forEach { step ->
             val def = step.stepDefinition
             if (def != StepsNames.BlockLoader && def != StepsNames.WrapUp) {
                 val meta = getStepMeta(def) ?: return@forEach
-                tempList.add(
-                    LocalStepModel(
-                        name = "Step ${tempList.size}: ${meta.name}",
-                        description = meta.description,
-                        iconAssetPath = meta.icon,
-                        isDone = false,
-                        stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                            .first(),
-                        submitRequestModel = SubmitRequestModel(
+                val isSplit = (def == StepsNames.Split)
+                if(isSplit){
+                    tempList.add(
+                        LocalStepModel(
+                            name = "",
+                            description = "",
+                            iconAssetPath = "",
+                            show = false,
+                            isDone = false,
                             stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                .first().stepDefinition,
-                            stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                .first().stepId,
-                            extractedInformation = emptyMap()
+                                .first(),
+                            submitRequestModel = SubmitRequestModel(
+                                stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                    .first().stepDefinition,
+                                stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                    .first().stepId,
+                                extractedInformation = emptyMap()
+                            )
                         )
                     )
-                )
+                }else{
+                    tempList.add(
+                        LocalStepModel(
+                            name = "Step ${displayCounter}: ${meta.name}",
+                            description = meta.description,
+                            iconAssetPath = meta.icon,
+                            isDone = false,
+                            stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                .first(),
+                            submitRequestModel = SubmitRequestModel(
+                                stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                    .first().stepDefinition,
+                                stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                    .first().stepId,
+                                extractedInformation = emptyMap()
+                            )
+                        )
+                    )
+                    displayCounter++
+                }
             }
         }
         LocalStepsObject.setLocalSteps(tempList)
@@ -157,13 +180,13 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
     return tempList.filter { it.show }
 }
 
-private data class StepMeta(
+data class StepMeta(
     val name: String,
     val description: String,
     val icon: String
 )
 
-private fun getStepMeta(stepDefinition: String): StepMeta? = when (stepDefinition) {
+ fun getStepMeta(stepDefinition: String): StepMeta? = when (stepDefinition) {
     StepsNames.TermsConditions -> StepMeta(
         name = "Terms & Conditions",
         description = "Read and accept the Terms & Conditions.",
@@ -193,6 +216,5 @@ private fun getStepMeta(stepDefinition: String): StepMeta? = when (stepDefinitio
         description = "Provide a digital signature to complete onboarding.",
         icon = "ic_signing_step.svg"
     )
-
     else -> null
 }
