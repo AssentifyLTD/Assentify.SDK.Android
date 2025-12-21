@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
 import com.assentify.sdk.AssentifySdkObject
+import com.assentify.sdk.Core.Constants.IDQrKeys
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
@@ -133,24 +134,28 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
             val finalIDResponseModelObject = QrIDResponseModelObject.getQrIDResponseModelObject()
             val finalMap = mutableMapOf<String, String>()
             for ((key, value) in finalIDResponseModelObject.iDExtractedModel!!.transformedProperties!!) {
-                if (key.contains("Image")) {
+                if (key.contains(IDQrKeys.Image) ||
+                    key.contains(IDQrKeys.GhostImage) ||
+                    key.contains(IDQrKeys.FaceCapture) ||
+                    key.contains(IDQrKeys.CapturedVideoFront) ||
+                    key.contains(IDQrKeys.OriginalFrontImage)
+                    ) {
                     finalMap[key] = value
                 } else {
-                    if (!dataModel.iDExtractedModel!!.transformedProperties!!.containsKey(key)) {
-                        finalMap[key] = value
-                    } else if (dataModel.iDExtractedModel!!.transformedProperties!![key]!!.isNotEmpty()) {
-                        finalMap[key] = value
-                    } else {
-                        finalMap[key] = dataModel.iDExtractedModel!!.transformedProperties!![key]!!
-                    }
-
+                    val value = dataModel
+                        .iDExtractedModel!!
+                        .transformedProperties!!
+                        .entries
+                        .firstOrNull { it.key.endsWith(key.substringAfter("_")) }
+                        ?.value
+                        finalMap[key] = value.toString()
                 }
             }
             finalIDResponseModelObject.iDExtractedModel!!.transformedProperties = finalMap;
             dataIDModel.value = finalIDResponseModelObject;
             start.value = false;
             eventTypes.value = EventTypes.onComplete
-            imageUrl.value = dataModel.iDExtractedModel!!.imageUrl!!
+            imageUrl.value = finalIDResponseModelObject.iDExtractedModel!!.imageUrl!!
 
         }
     }

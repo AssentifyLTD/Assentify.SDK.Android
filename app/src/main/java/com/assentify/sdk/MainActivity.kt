@@ -85,35 +85,33 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback, 
             CountDownNumbersColor = "#173A2A",
             activeLiveType = ActiveLiveType.NONE,
             activeLivenessCheckCount = 2,
-            retryCount = 3,
+            retryCount = 1,
             faceLivenessRetryCount = 3,
             minRam = 1
 
         );
-        // F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A
-        // 2726A3681C0CAB2177AEDA50A70A96FD29757A20493AD02577B7578FE8EDE3CA
-        /*    assentifySdk = AssentifySdk(
+
+
+         assentifySdk = AssentifySdk(
                 "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
                 "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
-                "F0D1B6A7D863E9E4089B70EE5786D3D8DF90EE7BDD12BE315019E1F2FC0E875A",
-                environmentalConditions,
-                assentifySdkCallback = this,
-                performActiveLivenessFace = true,
-                context = applicationContext,
-
-
+                "6A0001F3C7B0F99B14F5BB17B0694BE751F189ADB62A3811591E27558FC30503",
+                 environmentalConditions,
+                 assentifySdkCallback = this,
+                 performActiveLivenessFace = true,
+                 context = this,
                 );
-    */
 
-        assentifySdk = AssentifySdk(
-            "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
-            "318e2ca7-fde8-4c47-bbcc-0c94b905630f",
-            "422753FE9957091571DCAA3AA0814D5BBDAC873CF30F2698ECF423DB7BBD038C",
-            environmentalConditions,
-            assentifySdkCallback = this,
-            performActiveLivenessFace = true,
-            context = this,
-        );
+
+//        assentifySdk = AssentifySdk(
+//            "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
+//            "318e2ca7-fde8-4c47-bbcc-0c94b905630f",
+//            "422753FE9957091571DCAA3AA0814D5BBDAC873CF30F2698ECF423DB7BBD038C",
+//            environmentalConditions,
+//            assentifySdkCallback = this,
+//            performActiveLivenessFace = true,
+//            context = this,
+//        );
         val takeImage = findViewById<Button>(R.id.takeImage)
 
         takeImage.setOnClickListener {

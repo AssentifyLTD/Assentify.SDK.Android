@@ -75,6 +75,18 @@ class BlockLoaderKeys{
     }
 }
 
+class IDQrKeys{
+    companion object {
+        const val FaceCapture = "OnBoardMe_IdentificationDocumentCapture_FaceCapture"
+        const val CapturedVideoFront = "OnBoardMe_IdentificationDocumentCapture_CapturedVideoFront"
+        const val Image = "OnBoardMe_IdentificationDocumentCapture_Image"
+        const val OriginalFrontImage = "OnBoardMe_IdentificationDocumentCapture_OriginalFrontImage"
+        const val GhostImage = "OnBoardMe_IdentificationDocumentCapture_GhostImage"
+    }
+}
+
+
+
 fun getVideoPath(configModel:ConfigModel,template:String,videoCounter:Int): String {
     return  configModel.tenantIdentifier + "/" + configModel.blockIdentifier + "/" + configModel.instanceId + "/" + template  + "/" + "try_${videoCounter}"  + "/" +"${videoCounter}.mp4"
 }
