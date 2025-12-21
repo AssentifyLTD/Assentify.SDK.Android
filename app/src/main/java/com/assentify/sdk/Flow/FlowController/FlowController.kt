@@ -12,12 +12,10 @@ import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.AssistedDataEntryStep.AssistedDataEntryActivity
 import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
-import com.assentify.sdk.Flow.BlockLoader.getStepMeta
 import com.assentify.sdk.Flow.ContextAwareStep.ContextAwareStepActivity
 import com.assentify.sdk.Flow.FaceStep.HowToCaptureFaceActivity
 import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
 import com.assentify.sdk.Flow.Models.LocalStepModel
-import com.assentify.sdk.Flow.SplitStep.ConditionEvaluator
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
 import com.assentify.sdk.IDImageObject
@@ -64,6 +62,9 @@ object FlowController {
 
     }
 
+    /** Split TODO LATER */
+    
+ /*   @RequiresApi(Build.VERSION_CODES.O)
     fun chekSplitStepAndMoveNext(context: Context) {
         val currentStep = getCurrentStep();
         val configModelObject = ConfigModelObject.getConfigModelObject();
@@ -177,7 +178,7 @@ object FlowController {
         }
 
 
-    }
+    }*/
 
 
     fun getCurrentStep(): LocalStepModel? {

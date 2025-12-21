@@ -88,7 +88,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                 }
                             }
                             FlowController.makeCurrentStepDone(extractedInformation);
-                            FlowController.chekSplitStepAndMoveNext(context = this)
+                            FlowController.naveToNextStep(context = this)
                         },
                     )
                 }

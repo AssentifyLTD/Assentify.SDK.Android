@@ -51,7 +51,7 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
                 onBack = { onBackPressedDispatcher.onBackPressed() },
                 onStepClick = { /* navigate if needed */ },
                 onNext = {
-                    FlowController.chekSplitStepAndMoveNext(context = this)
+                    FlowController.naveToNextStep(context = this)
                 }
             )
         }

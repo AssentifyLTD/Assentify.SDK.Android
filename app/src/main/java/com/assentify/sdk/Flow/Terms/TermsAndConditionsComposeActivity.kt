@@ -52,7 +52,7 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
                                 confirmationKey to "true"
                             )
                             FlowController.makeCurrentStepDone(extractedInformation);
-                            FlowController.chekSplitStepAndMoveNext(this)
+                            FlowController.naveToNextStep(this)
                         },
                         onDecline = {
                             onBackPressedDispatcher.onBackPressed()

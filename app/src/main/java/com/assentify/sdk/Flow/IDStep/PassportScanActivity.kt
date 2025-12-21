@@ -116,7 +116,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                                 NfcScanActivity.start(context = this)
                             } else {
                                 FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!);
-                                FlowController.chekSplitStepAndMoveNext(this)
+                                FlowController.naveToNextStep(this)
                             }
                         },
                         feedbackText = feedbackText.value,
