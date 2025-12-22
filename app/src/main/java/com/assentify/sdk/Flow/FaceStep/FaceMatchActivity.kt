@@ -52,7 +52,6 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Base64ImageObject
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents
 import com.assentify.sdk.Core.Constants.BrightnessEvents
-import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
@@ -170,7 +169,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
         }
     }
 
-    override fun onComplete(dataModel: FaceResponseModel, doneFlag: DoneFlags) {
+    override fun onComplete(dataModel: FaceResponseModel) {
         runOnUiThread {
             faceModel.value = dataModel;
             start.value = false;

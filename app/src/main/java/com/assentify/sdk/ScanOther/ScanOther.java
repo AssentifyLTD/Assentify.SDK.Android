@@ -21,7 +21,6 @@ import androidx.annotation.RequiresApi;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
-import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.Core.Constants.BlockType;
@@ -296,7 +295,7 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                                 BaseResponseDataModel.getSuccess()
                         );
                         if (Objects.equals(language, Language.NON)) {
-                            scanOtherCallback.onComplete(otherResponseModel,DoneFlags.Success);
+                            scanOtherCallback.onComplete(otherResponseModel);
                         } else {
                             Map<String, String> propertiesToTranslate = new HashMap<>();
                             otherExtractedModel.getAdditionalDetails().forEach((key, value) -> {
@@ -315,46 +314,18 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                         }
 
 
-                    }  else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
+                    }  else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
                         retryCount++;
-                        if (retryCount == environmentalConditions.getRetryCount()){
-                            Map<String, String> transformedProperties = new HashMap<>();
-                            Map<String, String> transformedDetails = new HashMap<>();
-                            OtherExtractedModel otherExtractedModel = OtherExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties, transformedDetails);
-                            otherResponseModel = new OtherResponseModel(
-                                    BaseResponseDataModel.getDestinationEndpoint(),
-                                    otherExtractedModel,
-                                    BaseResponseDataModel.getError(),
-                                    BaseResponseDataModel.getSuccess()
-                            );
-                            if(eventName.equals(HubConnectionTargets.ON_RETRY)){
-                                scanOtherCallback.onComplete(otherResponseModel, DoneFlags.ExtractFailed);
-                            }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                scanOtherCallback.onComplete(otherResponseModel, DoneFlags.LivenessFailed);
-                            }else {
-                                scanOtherCallback.onComplete(otherResponseModel, DoneFlags.WrongTemplate);
-                            }
-                            start = false;
-                        }else {
-                            start = true;
-                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
-                            if(eventName.equals(HubConnectionTargets.ON_RETRY)){
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
-                                scanOtherCallback.onRetry(BaseResponseDataModel);
+                        start = true;
+                        BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                        scanOtherCallback.onRetry(BaseResponseDataModel);
 
-                            }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
-                                scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
-
-                            }else {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
-                                scanOtherCallback.onRetry(BaseResponseDataModel);
-
-                            }
-                        }
                     } else {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) ||  eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ;
                         switch (eventName) {
+                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                                scanOtherCallback.onLivenessUpdate(BaseResponseDataModel);
+                                break;
                             case HubConnectionTargets.ON_ERROR:
                                 scanOtherCallback.onError(BaseResponseDataModel);
                                 break;
@@ -529,12 +500,12 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
                 otherResponseModel.getOtherExtractedModel().getTransformedDetails().put(key, value);
             }
         });
-        scanOtherCallback.onComplete(otherResponseModel,DoneFlags.Success);
+        scanOtherCallback.onComplete(otherResponseModel);
     }
 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
-        scanOtherCallback.onComplete(otherResponseModel,DoneFlags.Success);
+        scanOtherCallback.onComplete(otherResponseModel);
     }
 
     public void stopScanning() {

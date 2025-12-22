@@ -53,6 +53,7 @@
             android:name="com.bugsnag.android.API_KEY"
             android:value="4926f3132e616e760f865b69a1b93f28" />
 
+
     </application>
 
 </manifest>

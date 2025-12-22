@@ -2,20 +2,21 @@ package   com.assentify.sdk.RemoteClient
 
 import  com.assentify.sdk.Core.Constants.Routes.BaseUrls
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 
 object RemoteClient {
-    private const val BASE_URL_ID_POWER = "https://qa.idpower.assentify.com/api/IDPower/"
-    private const val BASE_URL_SIGNING = "https://qa.signme.assentify.com/api/"
-    private const val BASE_URL_API = "https://qa.api.gateway.assentify.com/webapi/"
+    private const val BASE_URL_ID_POWER = "https://idpower.assentify.com/api/IDPower/"
+    private const val BASE_URL_SIGNING = "https://signme.assentify.com/api/"
+    private const val BASE_URL_API = "https://api.gateway.assentify.com/webapi/"
     private const val BASE_URL_AUTHENTICATION =
-        "https://qa.api.admin.assentify.com/api/Authentication/"
-    private const val BASE_URL_GATEWAY = "https://qa.api.gateway.assentify.com/webapi/"
-    private const val BLOB_STORAGE_URL = "https://qa.blob.assentify.com"
-    const val LANGUAGE_TRANSFORM_URL = "https://qa.widgets.socket.assentify.com/api/"
+        "https://api.admin.assentify.com/api/Authentication/"
+    private const val BASE_URL_GATEWAY = "https://api.gateway.assentify.com/webapi/"
+    private const val BLOB_STORAGE_URL = "https://blob.assentify.com"
+    const val LANGUAGE_TRANSFORM_URL = "https://widgets.socket.assentify.com/api/"
 
 
     val okHttpClient = OkHttpClient.Builder()
@@ -28,6 +29,11 @@ object RemoteClient {
                 .build()
             chain.proceed(newRequest)
         }
+        .addInterceptor(
+            HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+        )
         .build()
 
 

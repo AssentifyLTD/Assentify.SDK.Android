@@ -33,6 +33,8 @@ import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails;
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
+import com.assentify.sdk.RemoteClient.Models.Templates;
+import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
 import com.assentify.sdk.ScanIDCard.IDExtractedModel;
 import com.assentify.sdk.ScanIDCard.IDResponseModel;
 import com.assentify.sdk.tflite.Classifier;
@@ -59,7 +61,8 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
 
     private RemoteProcessing remoteProcessing;
 
-    private List<KycDocumentDetails> kycDocumentDetails = new ArrayList<>();
+    private List<String> selectedTemplates = new ArrayList<>();
+    private TemplatesByCountry templatesByCountry;
     private ConfigModel configModel;
 
     private BarcodeScanner qrScanner;
@@ -77,7 +80,7 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
     }
 
     public ScanQrManual(
-            List<KycDocumentDetails> kycDocumentDetails,
+            TemplatesByCountry templatesByCountry,
             String apiKey,
             String language,
             ConfigModel configModel,
@@ -87,7 +90,12 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
     ) {
         this.language = language;
         this.apiKey = apiKey;
-        this.kycDocumentDetails = kycDocumentDetails;
+        this.templatesByCountry = templatesByCountry;
+        for (Templates template : this.templatesByCountry.getTemplates()) {
+            for (KycDocumentDetails kycDocumentDetails : template.getKycDocumentDetails()) {
+                this.selectedTemplates.add(kycDocumentDetails.getTemplateProcessingKeyInformation());
+            }
+        }
         this.configModel = configModel;
         this.environmentalConditions = environmentalConditions;
         this.qrScanner = BarcodeScanning.getClient();
@@ -269,7 +277,7 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
                                     HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.QR),
                                     ImageUtils.convertBitmapToByteArray(normalImage, BlockType.QR, getActivity()),
                                     configModel,
-                                    kycDocumentDetails.get(0).getTemplateProcessingKeyInformation(),
+                                    selectedTemplates,
                                     "ConnectionId",
                                     this.stepId,
                                     barcode.getRawValue(),

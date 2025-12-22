@@ -54,7 +54,22 @@ data class Customization(
     val storeImageStream: Boolean?,
     val saveCapturedVideo: Boolean?,
     val outputProperties: List<OutputProperties>,
-    val identificationDocuments: List<IdentificationDocuments>?
+    val identificationDocuments: List<IdentificationDocuments>?,
+    val branches: List<Branch>?
+)
+
+data class Branch(
+    val branchIndex: Int,
+    val conditions: List<Condition>?
+)
+
+data class Condition(
+    val label: String?,
+    val inputPropertyKey: String,
+    val conditionOperator: Int?, // 1 AND, 2 OR
+    val operator: Int,
+    val useAge: Boolean?,
+    val value: String?
 )
 
 data class StepMap(
@@ -63,7 +78,7 @@ data class StepMap(
     val stepName: String,
     val stepDefinition: String,
     val parentStepId: Int?,
-    val branches: Any?,
+    val branches: List<List<StepMap>>?,
     val numberOfBranches: Int?,
     val isVirtual: Boolean,
     val stepMapBranches: Any?
