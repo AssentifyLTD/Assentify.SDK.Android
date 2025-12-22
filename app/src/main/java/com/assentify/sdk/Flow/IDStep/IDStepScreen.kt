@@ -125,17 +125,17 @@ fun IDStepScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    logoBitmap?.let {
+                      logoBitmap?.let {
                         Image(
                             bitmap = it,
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(60.dp)
                                 .align(Alignment.CenterVertically)
                         )
                     }
@@ -161,7 +161,7 @@ fun IDStepScreen(
 
                     Text(
                         "Choose your country of residence",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 34.sp,
@@ -183,7 +183,7 @@ fun IDStepScreen(
 
                     Text(
                         "Select type of document",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 34.sp,
@@ -225,7 +225,7 @@ fun IDStepScreen(
                 Spacer(Modifier.height(5.dp))
                 Text(
                     "Only the presented IDs are supported and accepted by NXT Finance. Make sure to provide one of them.",
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Start,
@@ -246,7 +246,7 @@ fun IDStepScreen(
                             Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
                         else
                             Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                        contentColor = Color.White
+                        contentColor =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
@@ -256,6 +256,10 @@ fun IDStepScreen(
                     Text(
                         "Next",
                         fontWeight = FontWeight.Bold,
+                        color = if (selectedTemplate != null)
+                            Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+                        else
+                            Color.White,
                         modifier = Modifier.padding(vertical = 10.dp)
                     )
                 }

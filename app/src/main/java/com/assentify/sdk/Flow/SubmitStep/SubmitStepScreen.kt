@@ -71,7 +71,7 @@ fun SubmitStepScreen(
     }
 
     val bg = Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
-    val accent = Color.White
+    val accent = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
     val pill = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
 
     var resetTick by remember { mutableStateOf(0) }
@@ -107,18 +107,18 @@ fun SubmitStepScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(Modifier.weight(1f))
 
-                    logoBitmap?.let {
+                      logoBitmap?.let {
                         Image(
                             bitmap = it,
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(60.dp)
                                 .align(Alignment.CenterVertically)
                         )
                     } ?: Spacer(Modifier.size(22.dp))
@@ -139,7 +139,7 @@ fun SubmitStepScreen(
                     SubmitDataTypes.onSend -> {
                         CircularProgressIndicator(
                             modifier = Modifier.size(70.dp),
-                            color = Color.White,
+                            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             strokeWidth = 6.dp
                         )
                     }
@@ -224,18 +224,13 @@ fun SubmitStepScreen(
                                         contentDescription = "Logo",
                                         modifier = Modifier
                                             .size(130.dp)
-                                            .graphicsLayer {
-                                                shadowElevation = 12f
-                                                shape = RoundedCornerShape(18.dp)
-                                                clip = false
-                                            }
                                     )
                                 }
                             }
 
                             Text(
                                 text = "Ready to Submit?",
-                                color = Color.White,
+                                color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 fontSize = 30.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = 1.sp
@@ -245,7 +240,7 @@ fun SubmitStepScreen(
 
                             Text(
                                 text = "Swipe the button below to confirm your submission.",
-                                color = Color.White,
+                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 fontSize = 15.sp,
                                 lineHeight = 25.sp,
                                 textAlign = TextAlign.Center
@@ -281,18 +276,14 @@ fun SubmitStepScreen(
                                         contentDescription = "Logo",
                                         modifier = Modifier
                                             .size(130.dp)
-                                            .graphicsLayer {
-                                                shadowElevation = 12f
-                                                shape = RoundedCornerShape(18.dp)
-                                                clip = false
-                                            }
+
                                     )
                                 }
                             }
 
                             Text(
                                 text = "THANK YOU",
-                                color = Color.White,
+                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 fontSize = 38.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = 1.sp
@@ -302,7 +293,7 @@ fun SubmitStepScreen(
 
                             Text(
                                 text = "For submitting and welcome to NXT\nNavigation x Transform",
-                                color = Color.White,
+                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 fontSize = 18.sp,
                                 lineHeight = 25.sp,
                                 textAlign = TextAlign.Center
@@ -350,7 +341,7 @@ fun SubmitStepScreen(
 fun SwipeToSubmit(
     text: String = "Swipe to Submit",
     trackColor: Color = Color(0xFF62D17D), // flat green track
-    knobColor: Color = Color.White,         // flat white knob
+    knobColor: Color = Color.White,       // flat white knob
     textColor: Color = Color.Black,
     modifier: Modifier = Modifier,
     height: Dp = 70.dp,
@@ -381,6 +372,7 @@ fun SwipeToSubmit(
         derivedStateOf { (trackWidthPx - knobPadding - knobWidthPx).coerceAtLeast(0f) }
     }
 
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     LaunchedEffect(resetKey) {
         rawOffset = 0f
@@ -424,7 +416,7 @@ fun SwipeToSubmit(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
+                tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)).copy(alpha = 0.5f),
                 modifier = Modifier.size(40.dp)
             )
         }

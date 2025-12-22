@@ -61,7 +61,7 @@ fun SecureDateField(
         dateFormat: String = "yyyy-MM-dd",
         minDateStr: String? = null,
         maxDateStr: String? = null,
-        primaryHex: String = flowEnv.backgroundHexColor
+        primaryHex: String = flowEnv.clicksHexColor
     ) {
         fun parseToMillisOrNull(s: String?): Long? = try {
             if (s.isNullOrBlank()) null else
@@ -128,7 +128,7 @@ fun SecureDateField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )

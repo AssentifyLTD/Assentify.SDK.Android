@@ -64,7 +64,7 @@ fun OnFlipCardScreen(
             // MIDDLE
             Text(
                 text = "Capture Back of ID",
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
@@ -87,7 +87,7 @@ fun OnFlipCardScreen(
 
             Text(
                 text = "Please flip the card provided to take the back of the card",
-                color = Color.White,
+                color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
@@ -110,7 +110,7 @@ fun OnFlipCardScreen(
 
                 Text(
                     text = "Expected Card Type",
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Light,
                       lineHeight = 17.sp,
@@ -130,7 +130,7 @@ fun OnFlipCardScreen(
             onClick = onNext,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                contentColor = Color.White
+                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             ),
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier

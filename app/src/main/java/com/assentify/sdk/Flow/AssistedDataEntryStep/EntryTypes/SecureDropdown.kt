@@ -105,7 +105,7 @@ fun SecureDropdown(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )
@@ -123,7 +123,7 @@ fun SecureDropdown(
                 onValueChange = {},
                 readOnly = true,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),),
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
@@ -139,7 +139,7 @@ fun SecureDropdown(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    cursorColor = Color.White
+                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 ),
                 shape = RoundedCornerShape(16.dp), // keep only one
                 modifier = Modifier

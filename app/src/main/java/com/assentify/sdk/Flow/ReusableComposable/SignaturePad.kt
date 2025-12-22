@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import java.io.ByteArrayOutputStream
 
 @Composable
@@ -77,7 +78,7 @@ fun SignaturePad(
         })
         onDispose { signaturePad.setOnSignedListener(null) }
     }
-
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val containerWidthDp = with(density) { containerWidthPx.toDp() }
     val pillInitialWidth = 54.dp
 
@@ -114,7 +115,7 @@ fun SignaturePad(
         ) {
             Text(
                 text = title,
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(start = 14.dp, top = 12.dp, bottom = 6.dp)

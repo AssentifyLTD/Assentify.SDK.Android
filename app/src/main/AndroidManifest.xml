@@ -26,6 +26,7 @@
 
     <application
         android:debuggable="false"
+        android:icon="@drawable/omt_logo"
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"

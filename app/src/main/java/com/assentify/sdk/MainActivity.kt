@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,10 +23,15 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
 
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        progressBar = findViewById(R.id.progressBar)
+        showLoader()
+
         if (ContextCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.CAMERA
@@ -43,26 +50,34 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val environmentalConditions = EnvironmentalConditions(
             true,
             true,
-            "#173A2A",
-            CountDownNumbersColor = "#173A2A",
+            "#FFDE00",
+            CountDownNumbersColor = "#FFDE00",
             activeLiveType = ActiveLiveType.NONE,
-            activeLivenessCheckCount = 2,
+            activeLivenessCheckCount = 0,
             faceLivenessRetryCount = 2,
             minRam = 1
 
         );
 
 
-         assentifySdk = AssentifySdk(
-                "7UXZBSN2CeGxamNnp9CluLJn7Bb55lJo2SjXmXqiFULyM245nZXGGQvs956Fy5a5s1KoC4aMp5RXju8w",
-                "4232e33b-1a90-4b74-94a4-08dcab07bc4d",
-                "6A0001F3C7B0F99B14F5BB17B0694BE751F189ADB62A3811591E27558FC30503",
-                 environmentalConditions,
-                 assentifySdkCallback = this,
-                 performActiveLivenessFace = true,
-                 context = this,
-                );
+        assentifySdk = AssentifySdk(
+            "36CBxFWo93rP0U6oBnJm85n7urUuBvF9PRAFXkcVQTnYHABigvnHweRtn93XgnAS3zfMSPI8oeLQL9PLbVA",
+            "c6fe8eea-7f40-401a-f62a-08dde079f57f",
+            "6083BE1F5A878AC0281F90975EAAF93148515D2F8C64F5D175019FA96926F654",
+            environmentalConditions,
+            assentifySdkCallback = this,
+            performActiveLivenessFace = false,
+            context = this,
+        );
 
+    }
+
+    private fun showLoader() {
+        progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideLoader() {
+        progressBar.visibility = View.GONE
     }
 
     override fun onAssentifySdkInitError(message: String) {
@@ -70,25 +85,29 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     }
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
+        hideLoader()
         AssentifySdkObject.setAssentifySdkObject(assentifySdk)
-        Log.e("MainActivity", "onAssentifySdkInitSuccess: ")
-
         runOnUiThread {
-            val appLogoBytes = loadImageFromAssetsAsByteArray(this, "app_logo.png")
+            val appLogoBytes = loadImageFromAssetsAsByteArray(this, "omt_logo.png")
             val customProperties: MutableMap<String, String> = mutableMapOf()
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
                 appLogoBytes,
-                "#173A2A",
-                "#6AD379",
-                "#E1BE4D",
+                "#000000",
+                "#FFFFFF",
+                "#FFDE00",
+                "#FFDE00",
                 "#0C1F16",
                 language = Language.English,
-                enableNfc = false,
+                enableNfc = true,
                 enableQr = true,
                 blockLoaderCustomProperties = customProperties
 
             );
-            assentifySdk.startFlow(this@MainActivity, flowCallback = this, flowEnvironmentalConditions = flowEnvironmentalConditions)
+            assentifySdk.startFlow(
+                this@MainActivity,
+                flowCallback = this,
+                flowEnvironmentalConditions = flowEnvironmentalConditions
+            )
         }
 
     }

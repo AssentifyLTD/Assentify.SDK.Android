@@ -67,7 +67,7 @@ fun OnSendScreen(
         if(process != 100){
             Text(
                 text = "$process%",
-                color = Color.White.copy(alpha = 0.9f),
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)).copy(alpha = 0.9f),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -80,7 +80,7 @@ fun OnSendScreen(
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
                 color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
-                trackColor = Color.White.copy(alpha = 0.2f)
+                trackColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)).copy(alpha = 0.2f)
             )
             Spacer(Modifier.height(12.dp))
 
@@ -90,7 +90,7 @@ fun OnSendScreen(
         if(process == 100){
             Text(
                 text = "Processing ID please wait",
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
@@ -100,7 +100,7 @@ fun OnSendScreen(
         }else{
             Text(
                 text = "Uploading ID please wait",
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,

@@ -315,7 +315,7 @@ fun QrScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -323,12 +323,12 @@ fun QrScanScreen(
                 Spacer(Modifier.weight(1f))
 
                 logoBitmap?.let {
-                    Image(
-                        bitmap = it,
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
+                        Image(
+                            bitmap = it,
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(60.dp)
+                        )
+                    }
 
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
@@ -351,7 +351,7 @@ fun QrScanScreen(
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier

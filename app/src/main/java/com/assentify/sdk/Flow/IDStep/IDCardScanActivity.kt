@@ -456,7 +456,7 @@ fun IDCardScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -467,7 +467,7 @@ fun IDCardScanScreen(
                     Image(
                         bitmap = it,
                         contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(60.dp)
                     )
                 }
 
@@ -492,7 +492,7 @@ fun IDCardScanScreen(
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
@@ -516,7 +516,7 @@ fun IDCardScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,

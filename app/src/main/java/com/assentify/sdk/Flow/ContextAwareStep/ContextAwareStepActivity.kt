@@ -237,7 +237,7 @@ fun ContextAwareStepScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -248,7 +248,7 @@ fun ContextAwareStepScreen(
                     Image(
                         bitmap = it,
                         contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(60.dp)
                     )
                 }
 
@@ -291,7 +291,7 @@ fun ContextAwareStepScreen(
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(60.dp),
-                                color = Color.White,
+                                color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 strokeWidth = 6.dp
                             )
                         }
@@ -305,7 +305,7 @@ fun ContextAwareStepScreen(
                         ) {
                             Text(
                                 text = contextAwareSigningObject!!.data.header!!,
-                                color = Color.White,
+                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 fontSize = 25.sp,
                                 fontWeight = FontWeight.Bold,
                                 lineHeight = 34.sp,
@@ -317,7 +317,7 @@ fun ContextAwareStepScreen(
                                 Spacer(Modifier.height(6.dp))
                                 Text(
                                     text = contextAwareSigningObject.data.subHeader,
-                                    color = Color.White,
+                                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     lineHeight = 28.sp,
@@ -365,13 +365,13 @@ fun ContextAwareStepScreen(
                                                     flowEnv.listItemsSelectedHexColor
                                                 )
                                             ),
-                                            checkmarkColor = Color.White
+                                            checkmarkColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                         )
                                     )
 
                                     Text(
                                         text = contextAwareSigningObject.data.confirmationMessage,
-                                        color = Color.White,
+                                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp,
                                         modifier = Modifier.weight(1f)
@@ -403,7 +403,7 @@ fun ContextAwareStepScreen(
                         ) {
                             Text(
                                 text = contextAwareSigningObject!!.data.header!!,
-                                color = Color.White,
+                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 fontSize = 25.sp,
                                 fontWeight = FontWeight.Bold,
                                 lineHeight = 34.sp,
@@ -415,7 +415,7 @@ fun ContextAwareStepScreen(
                                 Spacer(Modifier.height(6.dp))
                                 Text(
                                     text = contextAwareSigningObject.data.subHeader,
-                                    color = Color.White,
+                                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     lineHeight = 28.sp,
@@ -456,7 +456,7 @@ fun ContextAwareStepScreen(
                 enabled = signatureB64!!.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                    contentColor = Color.White
+                    contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 ),
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier
