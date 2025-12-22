@@ -1,7 +1,6 @@
 package   com.assentify.sdk.ScanPassport
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
-import com.assentify.sdk.Core.Constants.DoneFlags
 import  com.assentify.sdk.Core.Constants.MotionType
 import  com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
@@ -18,7 +17,7 @@ interface ScanPassportCallback {
 
     fun onRetry(dataModel: BaseResponseDataModel)
 
-    fun onComplete(dataModel: PassportResponseModel,doneFlag: DoneFlags)
+    fun onComplete(dataModel: PassportResponseModel)
 
     fun onWrongTemplate(dataModel: BaseResponseDataModel)
     fun onUploadingProgress(progress:Int){}

@@ -1,6 +1,5 @@
 package com.assentify.sdk.Core.Constants
 
-import android.util.Base64
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.parseDataToBaseResponseDataModel
 import com.assentify.sdk.ProcessingRHub.ProgressRequestBody
@@ -289,9 +288,12 @@ class RemoteProcessing {
                         if(pct == 100){
                             currentClip += 1;
                             val currentProgress  = currentClip *  8.33333333
-                            callback!!.onUploadProgress(currentProgress.toInt());
+                            if(currentProgress <= 100){
+                               // callback!!.onUploadProgress(currentProgress.toInt());
+                            }else{
+                                callback!!.onUploadProgress(currentProgress.toInt()-100);
+                            }
                         }
-
                     }
                 }
             },
@@ -367,7 +369,7 @@ class RemoteProcessing {
         onProgress: (bytesWritten: Long, contentLength: Long, done: Boolean) -> Unit
     ): MultipartBody.Part {
         val requestBody = byteArray.toRequestBody(mimeType.toMediaTypeOrNull())
-        val image =  Base64.encodeToString(byteArray, Base64.DEFAULT);
+   //     val image =  Base64.encodeToString(byteArray, Base64.DEFAULT);
    //     Log.e("byteArrayToPart",image.toString())
         val progressBody = ProgressRequestBody(requestBody, onProgress)
         return MultipartBody.Part.createFormData(partName, fileName, progressBody)
@@ -383,8 +385,8 @@ class RemoteProcessing {
         return byteArrays.mapIndexed { index, byteArray ->
             val fileName = "${filePrefix}_${index}.jpg"
             val requestBody = byteArray.toRequestBody(mimeType.toMediaTypeOrNull())
-            val image =  Base64.encodeToString(byteArray, Base64.DEFAULT);
-        //    Log.e("byteArrayToPart",image.toString())
+            //     val image =  Base64.encodeToString(byteArray, Base64.DEFAULT);
+            //     Log.e("byteArrayToPart",image.toString())
             val progressBody = ProgressRequestBody(requestBody, onProgress)
             MultipartBody.Part.createFormData(partName, fileName, progressBody)
         }

@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
-import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.RemoteClient.Models.Templates;
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry;
@@ -163,7 +162,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         for (StepDefinitions item : configModel.getStepDefinitions()) {
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performLivenessDocument == null) {
-                    performLivenessDocument = item.getCustomization().getDocumentLiveness();
+                    performLivenessDocument = true;
                 }
                 if (processMrz == null) {
                     processMrz = item.getCustomization().getProcessMrz();
@@ -366,7 +365,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                         );
 
                         if (Objects.equals(language, Language.NON)) {
-                            idCardCallback.onComplete(idResponseModel, DoneFlags.Success, isFrontPage(),isLastPage,classifiedTemplate);
+                            idCardCallback.onComplete(idResponseModel, isFrontPage(),isLastPage,classifiedTemplate);
                         } else {
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
                             translated.setCallback(ScanIDCard.this);
@@ -377,45 +376,21 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                         }
 
 
-                    } else if (eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE)) {
+                    } else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
                         retryCount++;
-                        if (retryCount == environmentalConditions.getRetryCount()) {
-                            Map<String, String> transformedProperties = new HashMap<>();
-                            IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
-                            idResponseModel = new IDResponseModel(
-                                    BaseResponseDataModel.getDestinationEndpoint(),
-                                    idExtractedModel,
-                                    BaseResponseDataModel.getError(),
-                                    BaseResponseDataModel.getSuccess()
-                            );
+                        start = true;
+                        BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                        idCardCallback.onRetry(BaseResponseDataModel);
 
-                            if (eventName.equals(HubConnectionTargets.ON_RETRY)) {
-                                idCardCallback.onComplete(idResponseModel, DoneFlags.ExtractFailed, isFrontPage(),isLastPage,classifiedTemplate);
-                            } else if (eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                idCardCallback.onComplete(idResponseModel, DoneFlags.LivenessFailed, isFrontPage(),isLastPage,classifiedTemplate);
-                            } else {
-                                idCardCallback.onComplete(idResponseModel, DoneFlags.WrongTemplate, isFrontPage(),isLastPage,classifiedTemplate);
-                            }
-                            start = false;
-                        } else {
-                            start = true;
-                            if (eventName.equals(HubConnectionTargets.ON_RETRY)) {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
-                                idCardCallback.onRetry(BaseResponseDataModel);
-
-                            } else if (eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
-                                idCardCallback.onLivenessUpdate(BaseResponseDataModel);
-
-                            } else {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnWrongTemplateMessage);
-                                idCardCallback.onWrongTemplate(BaseResponseDataModel);
-
-                            }
-                        }
                     } else {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ;
                         switch (eventName) {
+                            case HubConnectionTargets.ON_WRONG_TEMPLATE:
+                                idCardCallback.onWrongTemplate(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                                idCardCallback.onLivenessUpdate(BaseResponseDataModel);
+                                break;
                             case HubConnectionTargets.ON_ERROR:
                                 idCardCallback.onError(BaseResponseDataModel);
                                 break;
@@ -587,12 +562,12 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         });
 
 
-        idCardCallback.onComplete(idResponseModel, DoneFlags.Success, isFrontPage(),isLastPage,classifiedTemplate);
+        idCardCallback.onComplete(idResponseModel, isFrontPage(),isLastPage,classifiedTemplate);
     }
 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
-        idCardCallback.onComplete(idResponseModel, DoneFlags.Success, isFrontPage(),isLastPage,classifiedTemplate);
+        idCardCallback.onComplete(idResponseModel, isFrontPage(),isLastPage,classifiedTemplate);
     }
 
     public void stopScanning() {

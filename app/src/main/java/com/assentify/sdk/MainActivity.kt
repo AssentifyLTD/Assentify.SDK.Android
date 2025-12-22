@@ -85,8 +85,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanQrCallback, 
             CountDownNumbersColor = "#173A2A",
             activeLiveType = ActiveLiveType.NONE,
             activeLivenessCheckCount = 2,
-            retryCount = 1,
-            faceLivenessRetryCount = 3,
+            faceLivenessRetryCount = 2,
             minRam = 1
 
         );

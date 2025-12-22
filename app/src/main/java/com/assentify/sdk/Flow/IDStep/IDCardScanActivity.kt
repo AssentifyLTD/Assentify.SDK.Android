@@ -52,7 +52,6 @@ import androidx.fragment.app.FragmentActivity
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.ConstantsValues
-import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -192,7 +191,6 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
 
     override fun onComplete(
         dataModel: IDResponseModel,
-        oneFlags: DoneFlags,
         isFrontPage: Boolean,
         isLastPage: Boolean,
         classifiedTemplate: String

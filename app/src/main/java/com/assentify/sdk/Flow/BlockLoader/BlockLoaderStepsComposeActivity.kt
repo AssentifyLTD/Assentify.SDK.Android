@@ -130,49 +130,73 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
 
         configModel.stepMap.forEach { step ->
             val def = step.stepDefinition
-            if (def != StepsNames.BlockLoader && def != StepsNames.WrapUp) {
+            if (def == StepsNames.TermsConditions ||
+                def == StepsNames.IdentificationDocumentCapture ||
+                def == StepsNames.FaceImageAcquisition
+                || def == StepsNames.AssistedDataEntry ||
+                def == StepsNames.ContextAwareSigning
+            ) {
                 val meta = getStepMeta(def) ?: return@forEach
-                val isSplit = (def == StepsNames.Split)
-                if(isSplit){
-                    tempList.add(
-                        LocalStepModel(
-                            name = "",
-                            description = "",
-                            iconAssetPath = "",
-                            show = false,
-                            isDone = false,
+                tempList.add(
+                    LocalStepModel(
+                        name = "Step ${displayCounter}: ${meta.name}",
+                        description = meta.description,
+                        iconAssetPath = meta.icon,
+                        isDone = false,
+                        stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                            .first(),
+                        submitRequestModel = SubmitRequestModel(
                             stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                .first(),
-                            submitRequestModel = SubmitRequestModel(
-                                stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                    .first().stepDefinition,
-                                stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                    .first().stepId,
-                                extractedInformation = emptyMap()
-                            )
+                                .first().stepDefinition,
+                            stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                .first().stepId,
+                            extractedInformation = emptyMap()
                         )
                     )
-                }else{
-                    tempList.add(
-                        LocalStepModel(
-                            name = "Step ${displayCounter}: ${meta.name}",
-                            description = meta.description,
-                            iconAssetPath = meta.icon,
-                            isDone = false,
-                            stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                .first(),
-                            submitRequestModel = SubmitRequestModel(
-                                stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                    .first().stepDefinition,
-                                stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                    .first().stepId,
-                                extractedInformation = emptyMap()
-                            )
-                        )
-                    )
-                    displayCounter++
-                }
+                )
+                displayCounter++
             }
+
+            /* val isSplit = (def == StepsNames.Split)
+             if(isSplit){
+                 tempList.add(
+                     LocalStepModel(
+                         name = "",
+                         description = "",
+                         iconAssetPath = "",
+                         show = false,
+                         isDone = false,
+                         stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                             .first(),
+                         submitRequestModel = SubmitRequestModel(
+                             stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                 .first().stepDefinition,
+                             stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                 .first().stepId,
+                             extractedInformation = emptyMap()
+                         )
+                     )
+                 )
+             }else{
+                 tempList.add(
+                     LocalStepModel(
+                         name = "Step ${displayCounter}: ${meta.name}",
+                         description = meta.description,
+                         iconAssetPath = meta.icon,
+                         isDone = false,
+                         stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                             .first(),
+                         submitRequestModel = SubmitRequestModel(
+                             stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                 .first().stepDefinition,
+                             stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
+                                 .first().stepId,
+                             extractedInformation = emptyMap()
+                         )
+                     )
+                 )
+                 displayCounter++
+             }*/
         }
         LocalStepsObject.setLocalSteps(tempList)
     }
@@ -186,7 +210,7 @@ data class StepMeta(
     val icon: String
 )
 
- fun getStepMeta(stepDefinition: String): StepMeta? = when (stepDefinition) {
+fun getStepMeta(stepDefinition: String): StepMeta? = when (stepDefinition) {
     StepsNames.TermsConditions -> StepMeta(
         name = "Terms & Conditions",
         description = "Read and accept the Terms & Conditions.",
@@ -216,5 +240,6 @@ data class StepMeta(
         description = "Provide a digital signature to complete onboarding.",
         icon = "ic_signing_step.svg"
     )
+
     else -> null
 }
