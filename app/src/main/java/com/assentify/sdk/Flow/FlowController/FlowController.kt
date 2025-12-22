@@ -37,7 +37,7 @@ object FlowController {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             context.startActivity(intent)
         } else {
-            when (currentStep!!.stepDefinition!!.stepDefinition) {
+            when (currentStep.stepDefinition!!.stepDefinition) {
                 StepsNames.TermsConditions -> {
                     TermsAndConditionsComposeActivity.start(context = context)
                 }
@@ -62,6 +62,125 @@ object FlowController {
 
     }
 
+    /** Split TODO LATER */
+    
+ /*   @RequiresApi(Build.VERSION_CODES.O)
+    fun chekSplitStepAndMoveNext(context: Context) {
+        val currentStep = getCurrentStep();
+        val configModelObject = ConfigModelObject.getConfigModelObject();
+        val isSplit =
+            currentStep != null && currentStep.stepDefinition!!.stepDefinition == StepsNames.Split;
+        if (isSplit) {
+
+            val branches = currentStep.stepDefinition
+                .customization
+                .branches
+                ?: emptyList()
+
+            val matchedBranch = branches.firstOrNull { branch ->
+                ConditionEvaluator.evaluateBranch(
+                    branch = branch,
+                )
+            } ?: branches.firstOrNull { it.branchIndex == 0 }
+
+
+            val splitStep = configModelObject.stepMap.first { it.id == currentStep.stepDefinition.stepId }
+            val splitBranches = splitStep.branches
+            matchedBranch?.let { branch ->
+                when (branch.branchIndex) {
+                    0 -> {
+
+                        makeCurrentStepDone(emptyMap())
+                        val steps = LocalStepsObject.getLocalSteps()
+                        val newItems:MutableList<LocalStepModel>  = mutableListOf();
+                        val hasWrapUp = splitBranches?.get(0)!!.firstOrNull() { it.stepDefinition == StepsNames.WrapUp }
+                        if(hasWrapUp!=null){
+                            steps.removeIf { !it.isDone }
+                        }
+                        val insertIndex = steps.indexOfFirst { !it.isDone }
+                            .takeIf { it != -1 } ?: steps.size
+
+                        var displayCounter = steps.filter { it.show && it.isDone }.size + 1;
+                        splitBranches[0].forEach { splitBranch ->
+                            val def = splitBranch.stepDefinition
+                            if (def != StepsNames.WrapUp) {
+                                val meta = getStepMeta(def) ?: return@forEach
+                                newItems.add(
+                                    LocalStepModel(
+                                        name = "Step ${displayCounter}: ${meta.name}",
+                                        description = meta.description,
+                                        iconAssetPath = meta.icon,
+                                        isDone = false,
+                                        stepDefinition = configModelObject.stepDefinitions.first { it.stepId == splitBranch.id },
+                                        submitRequestModel = SubmitRequestModel(
+                                            stepDefinition = configModelObject.stepDefinitions.first { it.stepId == splitBranch.id }.stepDefinition,
+                                            stepId = configModelObject.stepDefinitions.first { it.stepId == splitBranch.id }.stepId,
+                                            extractedInformation = emptyMap()
+                                        )
+                                    )
+                                )
+                                displayCounter++
+                            }
+
+                        }
+                        steps.addAll(insertIndex, newItems)
+                        LocalStepsObject.setLocalSteps(steps)
+                        naveToNextStep(context)
+
+                    }
+
+                    else -> {
+                        makeCurrentStepDone(emptyMap())
+                        val steps = LocalStepsObject.getLocalSteps()
+                        val newItems:MutableList<LocalStepModel>  = mutableListOf();
+                        val hasWrapUp = splitBranches?.get(branch.branchIndex)!!.firstOrNull() { it.stepDefinition == StepsNames.WrapUp }
+                        if(hasWrapUp!=null){
+                            steps.removeIf { !it.isDone }
+                        }
+                        val insertIndex = steps.indexOfFirst { !it.isDone }
+                            .takeIf { it != -1 } ?: steps.size
+                        var displayCounter = steps.filter { it.show && it.isDone }.size + 1;
+                        splitBranches[branch.branchIndex].forEach { splitBranch ->
+                            val def = splitBranch.stepDefinition
+                            if (def != StepsNames.WrapUp) {
+                                val meta = getStepMeta(def) ?: return@forEach
+                                newItems.add(
+                                    LocalStepModel(
+                                        name = "Step ${displayCounter}: ${meta.name}",
+                                        description = meta.description,
+                                        iconAssetPath = meta.icon,
+                                        isDone = false,
+                                        stepDefinition = configModelObject.stepDefinitions.filter { it.stepId == splitBranch.id }
+                                            .first(),
+                                        submitRequestModel = SubmitRequestModel(
+                                            stepDefinition = configModelObject.stepDefinitions.filter { it.stepId == splitBranch.id }
+                                                .first().stepDefinition,
+                                            stepId = configModelObject.stepDefinitions.filter { it.stepId == splitBranch.id }
+                                                .first().stepId,
+                                            extractedInformation = emptyMap()
+                                        )
+                                    )
+                                )
+                                displayCounter++
+                            }
+
+                        }
+                        steps.addAll(insertIndex, newItems)
+                        LocalStepsObject.setLocalSteps(steps)
+                        naveToNextStep(context)
+                    }
+                }
+            }
+
+
+        } else {
+            naveToNextStep(context)
+        }
+
+
+    }*/
+
+
     fun getCurrentStep(): LocalStepModel? {
         val steps = LocalStepsObject.getLocalSteps()
         return steps.firstOrNull { !it.isDone }
@@ -80,7 +199,7 @@ object FlowController {
     }
 
 
-    fun setImage(url:String) {
+    fun setImage(url: String) {
         IDImageObject.clear();
         IDImageObject.setImage(url);
     }
@@ -88,7 +207,6 @@ object FlowController {
     fun getPreviousIDImage(): String {
         return IDImageObject.getImage() ?: ""
     }
-
 
 
     fun getAllDoneSteps(): List<LocalStepModel> {

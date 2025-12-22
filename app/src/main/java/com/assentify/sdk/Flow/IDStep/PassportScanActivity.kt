@@ -52,7 +52,6 @@ import androidx.fragment.app.FragmentActivity
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.ConstantsValues
-import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -189,7 +188,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
         }
     }
 
-    override fun onComplete(dataModel: PassportResponseModel, doneFlag: DoneFlags) {
+    override fun onComplete(dataModel: PassportResponseModel) {
         runOnUiThread {
             NfcPassportResponseModelObject.setPassportResponseModelObject(dataModel)
             dataIDModel.value = dataModel;

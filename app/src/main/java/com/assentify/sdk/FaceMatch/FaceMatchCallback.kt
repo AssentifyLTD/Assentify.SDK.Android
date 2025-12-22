@@ -2,14 +2,10 @@ package   com.assentify.sdk.FaceMatch
 
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents
 import com.assentify.sdk.Core.Constants.BrightnessEvents
-import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.FaceEvents
-import  com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
-import  com.assentify.sdk.Models.BaseResponseDataModel
-import com.assentify.sdk.ScanOther.OtherResponseModel
-import com.assentify.sdk.ScanPassport.ScanPassport
-import com.assentify.sdk.ScanPassport.ScanPassportManual
+import com.assentify.sdk.Models.BaseResponseDataModel
 
 sealed class FaceMatchResult {
     data class Manual(val data: FaceMatchManual) : FaceMatchResult()
@@ -24,7 +20,7 @@ interface FaceMatchCallback {
 
     fun onRetry(dataModel: BaseResponseDataModel)
 
-    fun onComplete(dataModel: FaceResponseModel,doneFlag: DoneFlags)
+    fun onComplete(dataModel: FaceResponseModel)
 
     fun onUploadingProgress(progress:Int){}
 

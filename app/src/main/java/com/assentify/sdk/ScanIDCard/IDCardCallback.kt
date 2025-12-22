@@ -1,7 +1,6 @@
 package   com.assentify.sdk.ScanIDCard
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
-import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Models.BaseResponseDataModel
@@ -18,7 +17,7 @@ interface IDCardCallback {
     fun onSend()
 
     fun onRetry(dataModel: BaseResponseDataModel)
-    fun onComplete(dataModel: IDResponseModel,oneFlags:DoneFlags,isFrontPage : Boolean,isLastPage : Boolean,classifiedTemplate: String)
+    fun onComplete(dataModel: IDResponseModel,isFrontPage : Boolean,isLastPage : Boolean,classifiedTemplate: String)
     fun onWrongTemplate(dataModel: BaseResponseDataModel)
 
     fun onUploadingProgress(progress:Int){}

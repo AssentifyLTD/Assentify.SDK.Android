@@ -20,7 +20,6 @@ import androidx.annotation.Nullable;
 import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
-import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.FaceMatch.FaceExtractedModel;
 import com.assentify.sdk.FaceMatch.FaceResponseModel;
@@ -299,7 +298,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 BaseResponseDataModel.getSuccess()
                         );
                         if (Objects.equals(language, Language.NON)) {
-                            scanPassportCallback.onComplete(passportResponseModel, DoneFlags.Success);
+                            scanPassportCallback.onComplete(passportResponseModel);
                         } else {
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
                             translated.setCallback(ScanPassport.this);
@@ -310,49 +309,24 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                         }
 
 
-                    }  else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
+                    } else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
                         retryCount++;
-                        if (retryCount == environmentalConditions.getRetryCount()){
-                            Map<String, String> transformedProperties = new HashMap<>();
-                            PassportExtractedModel passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
-                            passportResponseModel = new PassportResponseModel(
-                                    BaseResponseDataModel.getDestinationEndpoint(),
-                                    passportExtractedModel,
-                                    BaseResponseDataModel.getError(),
-                                    BaseResponseDataModel.getSuccess()
-                            );
+                        start = true;
+                        BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                        scanPassportCallback.onRetry(BaseResponseDataModel);
 
-                            if(eventName.equals(HubConnectionTargets.ON_RETRY)){
-                                scanPassportCallback.onComplete(passportResponseModel, DoneFlags.ExtractFailed);
-                            }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                scanPassportCallback.onComplete(passportResponseModel, DoneFlags.LivenessFailed);
-                            }else {
-                                scanPassportCallback.onComplete(passportResponseModel, DoneFlags.WrongTemplate);
-                            }
-                            start = false;
-                        }else {
-                            start = true;
-                            if(eventName.equals(HubConnectionTargets.ON_RETRY)){
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
-                                scanPassportCallback.onRetry(BaseResponseDataModel);
-
-                            }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
-                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
-
-                            }else {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnWrongTemplateMessage);
-                                scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
-
-                            }
-                        }
                     } else  {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ;
                         switch (eventName) {
+                            case HubConnectionTargets.ON_WRONG_TEMPLATE:
+                                scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
+                                break;
                             case HubConnectionTargets.ON_ERROR:
                                 scanPassportCallback.onError(BaseResponseDataModel);
                                 break;
-
                             case HubConnectionTargets.ON_CLIP_PREPARATION_COMPLETE:
                                 scanPassportCallback.onClipPreparationComplete(BaseResponseDataModel);
                                 break;
@@ -512,12 +486,12 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 passportResponseModel.getPassportExtractedModel().getExtractedData().put(newKey, value);
             }
         });
-        scanPassportCallback.onComplete(passportResponseModel,DoneFlags.Success);
+        scanPassportCallback.onComplete(passportResponseModel);
     }
 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
-        scanPassportCallback.onComplete(passportResponseModel,DoneFlags.Success);
+        scanPassportCallback.onComplete(passportResponseModel);
     }
 
     public void stopScanning() {

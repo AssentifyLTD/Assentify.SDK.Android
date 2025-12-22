@@ -258,7 +258,7 @@ interface RemoteWidgetsService {
         @Part("tenantId") tenantId: RequestBody,
         @Part("blockId") blockId: RequestBody,
         @Part("instanceId") instanceId: RequestBody,
-        @Part("templateId") templateId: RequestBody,
+        @Part("templateId") templateIds: List<RequestBody>,
         @Part("isMobile") isMobile: RequestBody,
         @Part image: MultipartBody.Part,
         @Part("callerConnectionId") callerConnectionId: RequestBody,

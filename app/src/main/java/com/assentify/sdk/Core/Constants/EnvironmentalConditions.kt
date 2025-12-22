@@ -21,7 +21,6 @@ class EnvironmentalConditions(
 
     var activeLivenessCheckCount : Int = 0,
 
-    var retryCount : Int = 3,
     var faceLivenessRetryCount : Int = 2,
 
     var minRam : Int = 8,

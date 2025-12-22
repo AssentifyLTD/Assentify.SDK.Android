@@ -25,7 +25,6 @@ import com.assentify.sdk.Core.Constants.ActiveLiveType;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
-import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.FaceEventStatus;
@@ -227,44 +226,22 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                         );
 
 
-                        faceMatchCallback.onComplete(faceResponseModel,DoneFlags.Success);
+                        faceMatchCallback.onComplete(faceResponseModel);
                         start = false;
                     } else if(eventName.equals(HubConnectionTargets.ON_RETRY)){
                         retryCount++;
-                        if (retryCount ==  environmentalConditions.getRetryCount()){
-                            FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-                            FaceResponseModel faceResponseModel = new FaceResponseModel(
-                                    BaseResponseDataModel.getDestinationEndpoint(),
-                                    faceExtractedModel,
-                                    BaseResponseDataModel.getError(),
-                                    BaseResponseDataModel.getSuccess()
-                            );
-                            faceMatchCallback.onComplete(faceResponseModel, DoneFlags.MatchFailed);
-                            start = false;
-                        }else {
                             start = true;
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                             BaseResponseDataModel.setError(EventsErrorMessages.OnRetryFaceMessage);
                             faceMatchCallback.onRetry(BaseResponseDataModel);
-                        }
+
                     } else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)){
                         livnessRetryCount++;
-                        if (livnessRetryCount == environmentalConditions.getFaceLivenessRetryCount()){
-                            FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
-                            FaceResponseModel faceResponseModel = new FaceResponseModel(
-                                    BaseResponseDataModel.getDestinationEndpoint(),
-                                    faceExtractedModel,
-                                    BaseResponseDataModel.getError(),
-                                    BaseResponseDataModel.getSuccess()
-                            );
-                            faceMatchCallback.onComplete(faceResponseModel, DoneFlags.LivenessFailed);
-                            start = false;
-                        }else {
-                            start = true;
-                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
-                            BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessFaceUpdateMessage);
-                            faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
-                        }
+                        start = true;
+                        manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                        BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessFaceUpdateMessage);
+                        faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
+
                     }else {
                         start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
                         if(start){

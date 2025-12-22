@@ -28,7 +28,6 @@ import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.Core.Constants.BlockType;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
-import com.assentify.sdk.Core.Constants.DoneFlags;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
@@ -245,7 +244,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                 BaseResponseDataModel.getSuccess()
                         );
                         if (Objects.equals(language, Language.NON)) {
-                            scanPassportCallback.onComplete(passportResponseModel,DoneFlags.Success);
+                            scanPassportCallback.onComplete(passportResponseModel);
                         } else {
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
                             translated.setCallback(ScanPassportManual.this);
@@ -256,49 +255,24 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                         }
 
 
-                    } else if(eventName.equals(HubConnectionTargets.ON_RETRY) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)  || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ){
+                    }else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
                         retryCount++;
-                        if (retryCount == environmentalConditions.getRetryCount()){
-                            Map<String, String> transformedProperties = new HashMap<>();
-                            PassportExtractedModel passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
-                            passportResponseModel = new PassportResponseModel(
-                                    BaseResponseDataModel.getDestinationEndpoint(),
-                                    passportExtractedModel,
-                                    BaseResponseDataModel.getError(),
-                                    BaseResponseDataModel.getSuccess()
-                            );
+                        start = true;
+                        BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                        scanPassportCallback.onRetry(BaseResponseDataModel);
 
-                            if(eventName.equals(HubConnectionTargets.ON_RETRY)){
-                                scanPassportCallback.onComplete(passportResponseModel, DoneFlags.ExtractFailed);
-                            }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                scanPassportCallback.onComplete(passportResponseModel, DoneFlags.LivenessFailed);
-                            }else {
-                                scanPassportCallback.onComplete(passportResponseModel, DoneFlags.WrongTemplate);
-                            }
-                            start = false;
-                        }else {
-                            start = true;
-                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
-                            if(eventName.equals(HubConnectionTargets.ON_RETRY)){
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
-                                scanPassportCallback.onRetry(BaseResponseDataModel);
-
-                            }else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessCardUpdateMessage);
-                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
-
-                            }else {
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
-                                scanPassportCallback.onRetry(BaseResponseDataModel);
-
-                            }
-                        }
                     } else   {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR)  || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ;
                         if(start){
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                         }
                         switch (eventName) {
+                            case HubConnectionTargets.ON_WRONG_TEMPLATE:
+                                scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
+                                break;
+                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
+                                break;
                             case HubConnectionTargets.ON_ERROR:
                                 scanPassportCallback.onError(BaseResponseDataModel);
                                 break;
@@ -426,12 +400,12 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                 passportResponseModel.getPassportExtractedModel().getExtractedData().put(newKey, value);
             }
         });
-        scanPassportCallback.onComplete(passportResponseModel,DoneFlags.Success);
+        scanPassportCallback.onComplete(passportResponseModel);
     }
 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
-        scanPassportCallback.onComplete(passportResponseModel,DoneFlags.Success);
+        scanPassportCallback.onComplete(passportResponseModel);
     }
 
     public void stopScanning() {
