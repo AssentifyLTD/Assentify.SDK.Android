@@ -162,7 +162,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         for (StepDefinitions item : configModel.getStepDefinitions()) {
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performLivenessDocument == null) {
-                    performLivenessDocument = true;
+                    performLivenessDocument = item.getCustomization().getDocumentLiveness();
                 }
                 if (processMrz == null) {
                     processMrz = item.getCustomization().getProcessMrz();

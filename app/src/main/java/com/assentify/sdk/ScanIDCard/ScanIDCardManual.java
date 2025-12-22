@@ -330,6 +330,9 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                             case HubConnectionTargets.ON_WRONG_TEMPLATE:
                                 idCardCallback.onWrongTemplate(BaseResponseDataModel);
                                 break;
+                            case HubConnectionTargets.ON_LIVENESS_UPDATE:
+                                idCardCallback.onLivenessUpdate(BaseResponseDataModel);
+                                break;
                             case HubConnectionTargets.ON_ERROR:
                                 idCardCallback.onError(BaseResponseDataModel);
                                 break;

@@ -267,6 +267,9 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                         }
                         switch (eventName) {
+                            case HubConnectionTargets.ON_WRONG_TEMPLATE:
+                                scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
+                                break;
                             case HubConnectionTargets.ON_LIVENESS_UPDATE:
                                 scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
                                 break;
