@@ -166,7 +166,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         for (StepDefinitions item : configModel.getStepDefinitions()) {
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performPassiveLivenessFace == null) {
-                    performPassiveLivenessFace = true;
+                    performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
                 }
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
