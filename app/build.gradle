@@ -20,13 +20,21 @@ android {
     }
 
 
-
+    signingConfigs {
+        create("release") {
+            keyAlias = "release-key"
+            keyPassword = "00000000"
+            storeFile = file("release-key.jks")
+            storePassword = "00000000"
+        }
+    }
 
     buildTypes {
         release {
             minifyEnabled false
            // shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

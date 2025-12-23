@@ -79,7 +79,7 @@ fun AssistedDataEntryScreen(
 
     var currentPage by remember { mutableIntStateOf(0) }
     var changeTick by remember { mutableIntStateOf(0) }
-    val enabled = remember(pagerState.currentPage, changeTick) {
+    val enabled = remember(pagerState.currentPage, changeTick,eventTypes) {
         if(eventTypes == EventTypes.onComplete){
             AssistedFormHelper.validatePage(currentPage)
         }else{
@@ -132,7 +132,7 @@ fun AssistedDataEntryScreen(
                     Image(
                         bitmap = it,
                         contentDescription = "Logo",
-                        modifier = Modifier.size(60.dp)
+                        modifier = Modifier.size(40.dp)
                     )
                 }
 
@@ -170,7 +170,7 @@ fun AssistedDataEntryScreen(
                             modifier = Modifier
                                 .size(60.dp)
                                 .align(Alignment.CenterHorizontally),
-                            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                            color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             strokeWidth = 6.dp
                         )
                     }
@@ -233,7 +233,7 @@ fun AssistedDataEntryScreen(
                     enabled = enabled,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                        contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier

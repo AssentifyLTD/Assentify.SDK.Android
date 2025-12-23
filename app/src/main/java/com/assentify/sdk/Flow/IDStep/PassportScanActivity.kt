@@ -60,12 +60,14 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
+import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
 import com.assentify.sdk.NfcPassportResponseModelObject
+import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
@@ -190,6 +192,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
     override fun onComplete(dataModel: PassportResponseModel) {
         runOnUiThread {
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
             NfcPassportResponseModelObject.setPassportResponseModelObject(dataModel)
             dataIDModel.value = dataModel;
             start.value = false;
@@ -287,14 +291,26 @@ fun PassportScanScreen(
                 })
             }
             if (eventTypes == EventTypes.onComplete) {
-                OnCompleteScreen(imageUrl, onNext = {
-                    if (isManual) {
-                        scanPassportManual?.stopScanning()
-                    } else {
-                        scanPassport?.stopScanning()
-                    }
-                    onNext();
-                })
+                if(flowEnv.enableNfc){
+                    OnNormalCompleteScreen(imageUrl, onNext = {
+                        if (isManual) {
+                            scanPassportManual?.stopScanning()
+                        } else {
+                            scanPassport?.stopScanning()
+                        }
+                        onNext();
+                    })
+                }else{
+                    OnCompleteScreen(imageUrl, onNext = {
+                        if (isManual) {
+                            scanPassportManual?.stopScanning()
+                        } else {
+                            scanPassport?.stopScanning()
+                        }
+                        onNext();
+                    })
+                }
+
             }
 
 
@@ -440,8 +456,7 @@ fun PassportScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                        fontSize = 15.sp,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,

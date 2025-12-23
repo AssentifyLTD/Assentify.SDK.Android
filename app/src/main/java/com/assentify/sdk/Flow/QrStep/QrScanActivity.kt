@@ -56,6 +56,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.QrIDResponseModelObject
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanQr.ScanQr
@@ -154,6 +155,8 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
             finalIDResponseModelObject.iDExtractedModel!!.transformedProperties = finalMap;
             dataIDModel.value = finalIDResponseModelObject;
             start.value = false;
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(finalIDResponseModelObject.iDExtractedModel!!.transformedProperties);
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = finalIDResponseModelObject.iDExtractedModel!!.imageUrl!!
 

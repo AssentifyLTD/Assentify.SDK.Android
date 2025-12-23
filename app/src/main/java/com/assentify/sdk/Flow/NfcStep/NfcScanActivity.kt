@@ -56,6 +56,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
+import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.ScanNFC.ScanNfc
 import com.assentify.sdk.ScanNFC.ScanNfcCallback
 import com.assentify.sdk.ScanPassport.PassportResponseModel
@@ -74,7 +75,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
         val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-       passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()
+       passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()!!
 
 
 
@@ -173,13 +174,13 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         runOnUiThread {
             dataIDModel.value = dataModel;
             feedbackText.value = ""
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
-            dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
-                if (key.contains(ConstantsValues.ProvidedFaceImageKey, )) {
-                    FlowController.setImage(value.toString())
-                }
-            }
+            FlowController.setImage(dataModel.passportExtractedModel!!.faces!!.first())
+
+
         }
     }
 

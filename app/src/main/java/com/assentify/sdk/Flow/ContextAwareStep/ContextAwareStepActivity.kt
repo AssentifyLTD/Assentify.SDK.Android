@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.text.Html
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -316,7 +317,7 @@ fun ContextAwareStepScreen(
                             if (contextAwareSigningObject.data.subHeader != null) {
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = contextAwareSigningObject.data.subHeader,
+                                    text = removeHtml(contextAwareSigningObject.data.subHeader),
                                     color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
@@ -370,7 +371,7 @@ fun ContextAwareStepScreen(
                                     )
 
                                     Text(
-                                        text = contextAwareSigningObject.data.confirmationMessage,
+                                        text = "I hereby confirm that I have read the document presented above and agree to sign it.",
                                         color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp,
@@ -414,7 +415,7 @@ fun ContextAwareStepScreen(
                             if (contextAwareSigningObject.data.subHeader != null) {
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = contextAwareSigningObject.data.subHeader,
+                                    text = removeHtml(contextAwareSigningObject.data.subHeader),
                                     color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
@@ -474,4 +475,10 @@ fun ContextAwareStepScreen(
         }
     }
 
+
+
+}
+
+fun removeHtml(value: String): String {
+    return Html.fromHtml(value, Html.FROM_HTML_MODE_LEGACY).toString()
 }

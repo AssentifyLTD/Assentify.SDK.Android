@@ -22,6 +22,6 @@ fun SecureImage(
             .crossfade(true)
             .build(),
         modifier = modifier,
-        contentDescription = "Secure Image",
+        contentDescription = imageUrl,
     )
 }

@@ -55,8 +55,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             activeLiveType = ActiveLiveType.NONE,
             activeLivenessCheckCount = 0,
             faceLivenessRetryCount = 2,
-            minRam = 1
-
+            minRam = 4
         );
 
 

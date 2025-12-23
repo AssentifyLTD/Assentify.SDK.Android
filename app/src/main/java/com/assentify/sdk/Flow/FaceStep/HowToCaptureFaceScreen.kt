@@ -60,14 +60,12 @@ fun HowToCaptureFaceScreen(
     }
 
     var base64Image by rememberSaveable { mutableStateOf<String?>(null) }
-    var isLoading by rememberSaveable { mutableStateOf(true) }
 
 
     val docUrl = FlowController.getPreviousIDImage()
 
     LaunchedEffect(docUrl) {
         base64Image = FlowController.downloadImageAsBase64(docUrl)
-        isLoading = false
     }
 
 
@@ -173,7 +171,7 @@ fun HowToCaptureFaceScreen(
             }
 
             // BOTTOM – pinned (loader OR button)
-            if (isLoading) {
+            if (base64Image == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

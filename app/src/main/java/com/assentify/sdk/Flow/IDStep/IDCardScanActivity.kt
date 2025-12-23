@@ -61,12 +61,14 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnFlipCardScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
+import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnWrongTemplateScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
+import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.QrIDResponseModelObject
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.ScanIDCard.IDCardCallback
@@ -199,6 +201,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             val currentMap = extractedInformation.value?.toMutableMap() ?: mutableMapOf()
             currentMap.putAll(dataModel.iDExtractedModel!!.transformedProperties!!)
             extractedInformation.value = currentMap
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(extractedInformation.value);
             start.value = false;
             eventTypes.value = EventTypes.onComplete
             isFrontPageValue.value = isFrontPage
@@ -348,16 +352,31 @@ fun IDCardScanScreen(
             }
             if (eventTypes == EventTypes.onComplete) {
                 if (isLastPage) {
-                    OnCompleteScreen(imageUrl, onNext = {
-                        if (isManual) {
-                            scanIDManual?.stopScanning()
-                        } else {
-                            scanID?.stopScanning()
-                        }
-                        onNext(
-                            kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
-                        );
-                    })
+                    if(flowEnv.enableQr && kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode){
+                        OnNormalCompleteScreen(imageUrl, onNext = {
+                            if (isManual) {
+                                scanIDManual?.stopScanning()
+                            } else {
+                                scanID?.stopScanning()
+                            }
+                            onNext(
+                                kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                            );
+                        })
+                    }else{
+
+                        OnCompleteScreen(imageUrl, onNext = {
+                            if (isManual) {
+                                scanIDManual?.stopScanning()
+                            } else {
+                                scanID?.stopScanning()
+                            }
+                            onNext(
+                                kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                            );
+                        })
+                    }
+
                 } else {
                     OnFlipCardScreen(
                         kycDocumentDetails.first { it.templateProcessingKeyInformation != classifiedTemplate }.templateSpecimen,
@@ -516,8 +535,7 @@ fun IDCardScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                        fontSize = 15.sp,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,
