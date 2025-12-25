@@ -19,8 +19,8 @@ object ConstantsValues {
     const val InputFaceModelsSize = 224
     const val ModelLiveModelFileName = "check-liveness.tflite";
     const val FaceCheckQualityThresholdPositiveUp = 10;
-    const val FaceCheckQualityThresholdPositive = 15;
-    const val FaceCheckQualityThresholdNegative = -15;
+    const val FaceCheckQualityThresholdPositive = 18;
+    const val FaceCheckQualityThresholdNegative = -18;
     const val PREDICTION_LOW_PERCENTAGE: Float = 50.0f;
     const val PREDICTION_HIGH_PERCENTAGE: Float = 100.0f;
     const val NfcTechTag  = "android.nfc.tech.IsoDep";

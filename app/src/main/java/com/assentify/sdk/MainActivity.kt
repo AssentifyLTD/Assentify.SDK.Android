@@ -52,8 +52,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             true,
             "#FFDE00",
             CountDownNumbersColor = "#FFDE00",
-            activeLiveType = ActiveLiveType.NONE,
-            activeLivenessCheckCount = 0,
+            activeLiveType = ActiveLiveType.Actions,
+            activeLivenessCheckCount = 3,
             faceLivenessRetryCount = 2,
             minRam = 4
         );
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             "6083BE1F5A878AC0281F90975EAAF93148515D2F8C64F5D175019FA96926F654",
             environmentalConditions,
             assentifySdkCallback = this,
-            performActiveLivenessFace = false,
+            performActiveLivenessFace = true,
             context = this,
         );
 
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 "#FFDE00",
                 "#0C1F16",
                 language = Language.English,
-                enableNfc = true,
+                enableNfc = false,
                 enableQr = true,
                 blockLoaderCustomProperties = customProperties
 

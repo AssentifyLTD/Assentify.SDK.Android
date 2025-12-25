@@ -107,6 +107,10 @@ object NfcPassportResponseModelObject {
     fun getPassportResponseModelObject(): PassportResponseModel? {
         return passportResponseModel
     }
+
+    fun clear() {
+       passportResponseModel = null
+    }
 }
 
 object QrIDResponseModelObject {

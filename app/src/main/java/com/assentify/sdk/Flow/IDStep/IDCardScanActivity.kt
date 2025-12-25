@@ -240,7 +240,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
-        zoom: ZoomType
+        zoom: ZoomType,
+        isCentered: Boolean,
     ) {
         runOnUiThread {
             if (start.value == false) {
@@ -263,11 +264,13 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                     }
 
                 } else {
-                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good) {
+                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good &&  isCentered) {
                         feedbackText.value = "Hold Steady"
                     }
                     if (motion == MotionType.NO_DETECT && zoom == ZoomType.NO_DETECT) {
                         feedbackText.value = "Please present ID"
+                    }else if(!isCentered){
+                        feedbackText.value = "Please center your card"
                     }
                 }
             } else {

@@ -10,18 +10,31 @@ import com.assentify.sdk.ApiKeyObject
 @Composable
 fun SecureImage(
     imageUrl: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val apiKey =  ApiKeyObject.getApiKeyObject();
+    val apiKey = ApiKeyObject.getApiKeyObject()
+
+    val url = imageUrl
+        .trim()
+        .replaceFirst(Regex("^Https://"), "https://")
+        .replaceFirst(Regex("^Http://"), "http://")
 
     AsyncImage(
         model = ImageRequest.Builder(context)
-            .data(imageUrl)
+            .data(url)
             .addHeader("X-Api-Key", apiKey)
             .crossfade(true)
+            .listener(
+                onError = { _, result ->
+                    android.util.Log.e("SecureImage", "Load failed: $url", result.throwable)
+                },
+                onSuccess = { _, _ ->
+                    android.util.Log.d("SecureImage", "Loaded: $url")
+                }
+            )
             .build(),
         modifier = modifier,
-        contentDescription = imageUrl,
+        contentDescription = null
     )
 }

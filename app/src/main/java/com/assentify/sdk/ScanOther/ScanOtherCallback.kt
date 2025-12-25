@@ -56,6 +56,7 @@ interface ScanOtherCallback {
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
         zoom: ZoomType,
+        isCentered: Boolean,
     ){}
 
 }

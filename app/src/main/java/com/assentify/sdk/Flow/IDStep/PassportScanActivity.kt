@@ -212,7 +212,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
-        zoom: ZoomType
+        zoom: ZoomType,
+        isCentered: Boolean,
     ) {
         runOnUiThread {
             if (start.value == false) {
@@ -240,6 +241,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                     }
                     if (motion == MotionType.NO_DETECT && zoom == ZoomType.NO_DETECT) {
                         feedbackText.value = "Please present passport"
+                    }else if(!isCentered){
+                        feedbackText.value = "Please center your card"
                     }
                 }
             } else {

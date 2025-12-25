@@ -317,7 +317,7 @@ fun ContextAwareStepScreen(
                             if (contextAwareSigningObject.data.subHeader != null) {
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = removeHtml(contextAwareSigningObject.data.subHeader),
+                                    text = contextAwareSigningObject.data.subHeader,
                                     color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
@@ -345,39 +345,52 @@ fun ContextAwareStepScreen(
 
                             if (contextAwareSigningObject.data.confirmationMessage != null && !checked) {
                                 Spacer(Modifier.height(8.dp))
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-
-
-                                    Checkbox(
-                                        checked = checked,
-                                        onCheckedChange = { checked = it },
-                                        colors = CheckboxDefaults.colors(
-                                            checkedColor = Color(
-                                                android.graphics.Color.parseColor(
-                                                    flowEnv.listItemsSelectedHexColor
-                                                )
-                                            ),
-                                            uncheckedColor = Color(
-                                                android.graphics.Color.parseColor(
-                                                    flowEnv.listItemsSelectedHexColor
-                                                )
-                                            ),
-                                            checkmarkColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                                        )
-                                    )
-
-                                    Text(
-                                        text = "I hereby confirm that I have read the document presented above and agree to sign it.",
-                                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                                        fontSize = 12.sp,
-                                        lineHeight = 18.sp,
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                val confirmationMessage = remember(contextAwareSigningObject!!.data.confirmationMessage) {
+                                    contextAwareSigningObject.data.confirmationMessage
+                                        ?.let { raw ->
+                                            removeHtml(raw)
+                                                .replace(Regex("\\s*\\n\\s*"), " ")
+                                                .replace(Regex("\\s+"), " ")
+                                                .trim()
+                                        }
+                                        ?: "" // 👈 NULL SAFE
                                 }
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+
+                                            Checkbox(
+                                                checked = checked,
+                                                onCheckedChange = { checked = it },
+                                                colors = CheckboxDefaults.colors(
+                                                    checkedColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                                                    uncheckedColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                                                    checkmarkColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                                                )
+                                            )
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Text(
+                                                text = confirmationMessage,
+                                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                                                fontSize = 12.sp,
+                                                lineHeight = 18.sp,
+                                            )
+                                        }
+                                    }
+
+                                }
+
                             }
 
                             Spacer(Modifier.height(18.dp))
@@ -415,7 +428,7 @@ fun ContextAwareStepScreen(
                             if (contextAwareSigningObject.data.subHeader != null) {
                                 Spacer(Modifier.height(6.dp))
                                 Text(
-                                    text = removeHtml(contextAwareSigningObject.data.subHeader),
+                                    text = contextAwareSigningObject.data.subHeader,
                                     color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,

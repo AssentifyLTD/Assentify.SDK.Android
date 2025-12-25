@@ -213,7 +213,8 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
         motion: MotionType,
         faceEvents: FaceEvents,
         zoomType: ZoomType,
-        detectedFaces: Int
+        detectedFaces: Int,
+        isCentered: Boolean,
     ) {
         runOnUiThread {
             if (start.value == false && currentActiveLiveEvents.value == ActiveLiveEvents.Good) {
@@ -262,6 +263,8 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                     }
                     if (motion == MotionType.NO_DETECT && zoomType == ZoomType.NO_DETECT && faceEvents == FaceEvents.NO_DETECT) {
                         feedbackText.value = "Please face within circle"
+                    }else if(!isCentered){
+                        feedbackText.value = "Please center your face"
                     }
                 }
             } else {

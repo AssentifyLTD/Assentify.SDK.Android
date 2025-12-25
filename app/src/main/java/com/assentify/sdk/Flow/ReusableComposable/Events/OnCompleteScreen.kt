@@ -87,6 +87,7 @@ fun OnCompleteScreen(
             "OnBoardMe_IdentificationDocumentCapture_ID_Province",
             "OnBoardMe_IdentificationDocumentCapture_ID_Governorate",
             "OnBoardMe_IdentificationDocumentCapture_FaceCapture",
+            "OnBoardMe_IdentificationDocumentCapture_ID_BackImage",
         )
     }
 
@@ -109,7 +110,8 @@ fun OnCompleteScreen(
                 // 🔥 IGNORE BY ORIGINAL KEY (not label)
                 if (
                     k.contains("OnBoardMe_IdentificationDocumentCapture_Image", ignoreCase = true) ||
-                    k.contains("OnBoardMe_IdentificationDocumentCapture_FaceCapture", ignoreCase = true)
+                    k.contains("OnBoardMe_IdentificationDocumentCapture_FaceCapture", ignoreCase = true) ||
+                    k.contains("OnBoardMe_IdentificationDocumentCapture_ID_BackImage", ignoreCase = true)
                 ) return@mapNotNull null
 
                 val value = v.asCleanString() ?: return@mapNotNull null
@@ -148,7 +150,15 @@ fun OnCompleteScreen(
                 ?.toString()
                 ?.takeIf { it.isNotBlank() }
                 ?.let { list.add(it) }
+
         }
+
+        extractedMap?.entries
+            ?.firstOrNull { it.key.contains("OnBoardMe_IdentificationDocumentCapture_ID_BackImage", ignoreCase = true) }
+            ?.value
+            ?.toString()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { list.add(it) }
 
         list
     }
@@ -252,7 +262,7 @@ private fun ImagesHeader(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val count = minOf(imageUrls.size, 2)
+        val count = minOf(imageUrls.size, 3)
 
         repeat(count) { index ->
             Card(
@@ -281,18 +291,8 @@ private fun ImagesHeader(
             }
         }
 
-        // Optional symmetry if only 1 image
-        if (imageUrls.size == 1) {
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(120.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
-            ) { /* empty */ }
-        }
+
+
     }
 }
 

@@ -1,7 +1,6 @@
 package com.assentify.sdk.CheckEnvironment
 
 import android.graphics.RectF
-import android.util.Log
 import com.assentify.sdk.Core.Constants.MotionType
 
 /// MotionLimit = 10;
@@ -15,7 +14,7 @@ class DetectMotion {
 
         val percentageChangeX = (centerX2 - centerX1) / centerX1 * 100
         val percentageChangeY = (centerY2 - centerY1) / centerY1 * 100
-        if (percentageChangeX in -10f..10f && percentageChangeY in -10f..10f) {
+        if (percentageChangeX in -15f..15f && percentageChangeY in -15f..15f) {
             return MotionType.SENDING
         }
         return MotionType.HOLD_YOUR_HAND
