@@ -80,7 +80,12 @@ fun AssistedDataEntryPager(
                     )
                     Spacer(Modifier.height(10.dp))
                 }
-                items(pageModel.dataEntryPageElements.size) { i ->
+                items(pageModel.dataEntryPageElements.size,
+                    key = { index ->
+                        pageModel.dataEntryPageElements[index].inputKey ?: index
+                    }
+
+                ) { i ->
                     val field = pageModel.dataEntryPageElements[i]
                     val typeEnum = InputTypes.fromString(field.inputType)
 

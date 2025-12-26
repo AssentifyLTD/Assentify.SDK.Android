@@ -1,6 +1,5 @@
 package com.assentify.sdk.Flow.ReusableComposable.Events
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -255,44 +255,49 @@ private fun ImagesHeader(
     imageUrls: List<String>,
     modifier: Modifier = Modifier
 ) {
+
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+
+
     if (imageUrls.isEmpty()) return
 
-    Row(
+    LazyRow(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val count = minOf(imageUrls.size, 3)
+        items(
+            items = imageUrls.take(3),
+            key = { it }
+        ) { imageUrl ->
 
-        repeat(count) { index ->
             Card(
                 modifier = Modifier
-                    .weight(1f)
+                    .width(140.dp)
                     .height(120.dp),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.10f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f))
+                colors = CardDefaults.cardColors(
+                    containerColor =  Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 8.dp
+                )
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(10.dp),
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(14.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(14.dp))
-                    ) {
-                        SecureImage(imageUrl = imageUrls[index])
-                    }
+                    SecureImage(
+                        imageUrl = imageUrl,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
-
-
-
     }
 }
 

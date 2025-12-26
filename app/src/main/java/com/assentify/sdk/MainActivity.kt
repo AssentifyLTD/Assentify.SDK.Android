@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
         val environmentalConditions = EnvironmentalConditions(
-            true,
+            false,
             true,
             "#FFDE00",
             CountDownNumbersColor = "#FFDE00",
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             "6083BE1F5A878AC0281F90975EAAF93148515D2F8C64F5D175019FA96926F654",
             environmentalConditions,
             assentifySdkCallback = this,
-            performActiveLivenessFace = true,
+            performActiveLivenessFace = false,
             context = this,
         );
 
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 "#FFDE00",
                 "#0C1F16",
                 language = Language.English,
-                enableNfc = false,
+                enableNfc = true,
                 enableQr = true,
                 blockLoaderCustomProperties = customProperties
 

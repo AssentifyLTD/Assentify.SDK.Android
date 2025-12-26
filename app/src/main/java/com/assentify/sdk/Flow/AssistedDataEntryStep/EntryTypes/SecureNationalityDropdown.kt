@@ -54,29 +54,33 @@ fun SecureNationalityDropdown(
 
 
     /** Default Value **/
-    var defaultRaw by remember { mutableStateOf<String>("") }
+    var defaultRaw by rememberSaveable { mutableStateOf<String>("") }
     LaunchedEffect(field.inputKey, field.languageTransformation) {
         if (field.languageTransformation == 0) {
             defaultRaw =  AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
         } else {
-            val dataList = listOf(
-                LanguageTransformationModel(
-                    language = field.targetOutputLanguage!!,
-                    languageTransformationEnum = field.languageTransformation!!,
-                    value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: "",
-                    key = field.inputKey!!,
-                    dataType = field.inputType
+            if(defaultRaw.isEmpty()) {
+                val dataList = listOf(
+                    LanguageTransformationModel(
+                        language = field.targetOutputLanguage!!,
+                        languageTransformationEnum = field.languageTransformation!!,
+                        value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
+                            ?: "",
+                        key = field.inputKey!!,
+                        dataType = field.inputType
+                    )
                 )
-            )
-            AssistedFormHelper.valueTransformation(
-                field.targetOutputLanguage,
-                TransformationModel(LanguageTransformationModels = dataList)
-            ) { data ->
-                if (data != null) {
-                    defaultRaw = data.value
-                    AssistedFormHelper.changeValue(field.inputKey,data.value,page);
-                } else {
-                    defaultRaw = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                AssistedFormHelper.valueTransformation(
+                    field.targetOutputLanguage,
+                    TransformationModel(LanguageTransformationModels = dataList)
+                ) { data ->
+                    if (data != null) {
+                        defaultRaw = data.value
+                        AssistedFormHelper.changeValue(field.inputKey, data.value, page);
+                    } else {
+                        defaultRaw =
+                            AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                    }
                 }
             }
         }
