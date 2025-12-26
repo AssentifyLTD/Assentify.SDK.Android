@@ -26,8 +26,8 @@
 
     <application
         android:debuggable="false"
-        android:label="OMT"
-        android:icon="@drawable/omt_logo"
+        android:label="Assentify"
+        android:icon="@drawable/app_logo"
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"

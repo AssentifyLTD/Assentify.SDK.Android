@@ -87,13 +87,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         hideLoader()
         AssentifySdkObject.setAssentifySdkObject(assentifySdk)
         runOnUiThread {
-            val appLogoBytes = loadImageFromAssetsAsByteArray(this, "omt_logo.png")
+            val appLogoBytes = loadImageFromAssetsAsByteArray(this, "app_logo.png")
             val customProperties: MutableMap<String, String> = mutableMapOf()
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
                 appLogoBytes,
                 "#000000",
                 "#FFFFFF",
-                "#FFDE00",
+                "#FFC400",
                 "#FFDE00",
                 "#0C1F16",
                 language = Language.English,
