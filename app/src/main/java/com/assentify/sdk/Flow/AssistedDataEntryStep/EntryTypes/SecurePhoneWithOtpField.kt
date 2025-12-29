@@ -75,7 +75,7 @@ fun SecurePhoneWithOtpField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = if (!isOtpStep || isVerified) title else "Enter OTP",
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )

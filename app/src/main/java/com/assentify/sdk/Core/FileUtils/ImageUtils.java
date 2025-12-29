@@ -7,8 +7,23 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import  com.assentify.sdk.Core.Constants.BlockType;
 import  com.assentify.sdk.Core.Constants.ConstantsValues;
+import android.os.Build;
+import android.graphics.Bitmap;
+import android.content.Context;
+import androidx.exifinterface.media.ExifInterface;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import android.util.Base64;
+import android.util.Log;
+
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
 
 public class ImageUtils {
@@ -25,18 +40,7 @@ public class ImageUtils {
 
         }
 
-        return bitmapToByteArray(bitmap,60);
-    }
-
-    public static  byte[] bitmapToByteArray(Bitmap bitmap, int visualQuality) {
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, visualQuality, byteArrayOutputStream); // quality 0..100
-            return byteArrayOutputStream.toByteArray();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return bitmapToByteArray(bitmap,60,context);
     }
 
 
@@ -49,9 +53,58 @@ public class ImageUtils {
 
         }
 
-        return bitmapToByteArray(bitmap,60);
+        return bitmapToByteArray(bitmap,60,context);
     }
 
+   public static  byte[] bitmapToByteArray(Bitmap bitmap, int visualQuality,Context context) {
+        try {
+            // 1️⃣ Create temp file
+            File outputFile = File.createTempFile("compressed_", ".jpg", context.getCacheDir());
+
+            // 2️⃣ Compress bitmap to file
+            FileOutputStream fos = new FileOutputStream(outputFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, visualQuality, fos);
+            fos.flush();
+            fos.close();
+
+            // 3️⃣ Add EXIF AFTER compress
+            ExifInterface exif = new ExifInterface(outputFile.getAbsolutePath());
+            exif.setAttribute(ExifInterface.TAG_MAKE, Build.MANUFACTURER);
+            exif.setAttribute(ExifInterface.TAG_MODEL, Build.MODEL);
+            exif.setAttribute(
+                    ExifInterface.TAG_DATETIME,
+                    new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).format(new Date())
+            );
+            exif.setAttribute(
+                    ExifInterface.TAG_ORIENTATION,
+                    String.valueOf(ExifInterface.ORIENTATION_NORMAL)
+            );
+            exif.saveAttributes();
+
+            // 4️⃣ Read file back to byte[]
+            byte[] result;
+            try (FileInputStream fis = new FileInputStream(outputFile)) {
+                result = new byte[(int) outputFile.length()];
+                fis.read(result);
+            }
+
+            ExifInterface exifA = new ExifInterface(outputFile.getAbsolutePath());
+            String make  = exifA.getAttribute(ExifInterface.TAG_MAKE);
+            String model = exifA.getAttribute(ExifInterface.TAG_MODEL);
+
+            // Optional: delete temp file
+            outputFile.delete();
+
+            return result;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    /****/
 
     public static byte[] base64ToByteArray(String base64String) {
         if (base64String == null || base64String.isEmpty()) {

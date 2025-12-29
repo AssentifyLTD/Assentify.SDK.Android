@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,31 +38,34 @@ fun SecureTextField(
 ) {
 
     /** Default Value **/
-    var value by remember { mutableStateOf<String>("") }
+    var value by rememberSaveable(field.inputKey) { mutableStateOf("") }
     LaunchedEffect(field.inputKey, field.languageTransformation) {
         if (field.languageTransformation == 0) {
             value =  AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
         } else {
-            val dataList = listOf(
-                LanguageTransformationModel(
-                    language = field.targetOutputLanguage!!,
-                    languageTransformationEnum = field.languageTransformation!!,
-                    value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: "",
-                    key = field.inputKey!!,
-                    dataType = field.inputType
+            if(value.isEmpty()){
+                val dataList = listOf(
+                    LanguageTransformationModel(
+                        language = field.targetOutputLanguage!!,
+                        languageTransformationEnum = field.languageTransformation!!,
+                        value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: "",
+                        key = field.inputKey!!,
+                        dataType = field.inputType
+                    )
                 )
-            )
-            AssistedFormHelper.valueTransformation(
-                field.targetOutputLanguage,
-                TransformationModel(LanguageTransformationModels = dataList)
-            ) { data ->
-                if (data != null) {
-                    value = data.value
-                    AssistedFormHelper.changeValue(field.inputKey,data.value,page);
-                } else {
-                    value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                AssistedFormHelper.valueTransformation(
+                    field.targetOutputLanguage,
+                    TransformationModel(LanguageTransformationModels = dataList)
+                ) { data ->
+                    if (data != null) {
+                        value = data.value
+                        AssistedFormHelper.changeValue(field.inputKey,data.value,page);
+                    } else {
+                        value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                    }
                 }
             }
+
         }
     }
 
@@ -81,7 +85,7 @@ fun SecureTextField(
 
         Text(
             text = title,
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )

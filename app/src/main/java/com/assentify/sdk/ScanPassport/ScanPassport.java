@@ -268,7 +268,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                             environmentalConditions.checkConditions(
                                     brightness,environmentalConditions),
                             sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > environmentalConditions.getMotionPassportLimit() ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
-                            zoom);
+                            zoom,isRectFInsideTheScreen);
                 }
             });
         }

@@ -60,12 +60,14 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
+import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
 import com.assentify.sdk.NfcPassportResponseModelObject
+import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
@@ -190,6 +192,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
     override fun onComplete(dataModel: PassportResponseModel) {
         runOnUiThread {
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
             NfcPassportResponseModelObject.setPassportResponseModelObject(dataModel)
             dataIDModel.value = dataModel;
             start.value = false;
@@ -208,7 +212,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
-        zoom: ZoomType
+        zoom: ZoomType,
+        isCentered: Boolean,
     ) {
         runOnUiThread {
             if (start.value == false) {
@@ -236,6 +241,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                     }
                     if (motion == MotionType.NO_DETECT && zoom == ZoomType.NO_DETECT) {
                         feedbackText.value = "Please present passport"
+                    }else if(!isCentered){
+                        feedbackText.value = "Please center your card"
                     }
                 }
             } else {
@@ -287,14 +294,26 @@ fun PassportScanScreen(
                 })
             }
             if (eventTypes == EventTypes.onComplete) {
-                OnCompleteScreen(imageUrl, onNext = {
-                    if (isManual) {
-                        scanPassportManual?.stopScanning()
-                    } else {
-                        scanPassport?.stopScanning()
-                    }
-                    onNext();
-                })
+                if(flowEnv.enableNfc){
+                    OnNormalCompleteScreen(imageUrl, onNext = {
+                        if (isManual) {
+                            scanPassportManual?.stopScanning()
+                        } else {
+                            scanPassport?.stopScanning()
+                        }
+                        onNext();
+                    })
+                }else{
+                    OnCompleteScreen(imageUrl, onNext = {
+                        if (isManual) {
+                            scanPassportManual?.stopScanning()
+                        } else {
+                            scanPassport?.stopScanning()
+                        }
+                        onNext();
+                    })
+                }
+
             }
 
 
@@ -380,7 +399,7 @@ fun PassportScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -391,7 +410,7 @@ fun PassportScanScreen(
                     Image(
                         bitmap = it,
                         contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(60.dp)
                     )
                 }
 
@@ -416,7 +435,7 @@ fun PassportScanScreen(
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
@@ -440,8 +459,7 @@ fun PassportScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color = Color.White,
-                        fontSize = 15.sp,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,

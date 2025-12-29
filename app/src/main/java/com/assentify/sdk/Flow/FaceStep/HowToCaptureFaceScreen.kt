@@ -60,14 +60,12 @@ fun HowToCaptureFaceScreen(
     }
 
     var base64Image by rememberSaveable { mutableStateOf<String?>(null) }
-    var isLoading by rememberSaveable { mutableStateOf(true) }
 
 
     val docUrl = FlowController.getPreviousIDImage()
 
     LaunchedEffect(docUrl) {
         base64Image = FlowController.downloadImageAsBase64(docUrl)
-        isLoading = false
     }
 
 
@@ -101,17 +99,17 @@ fun HowToCaptureFaceScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    logoBitmap?.let {
+                      logoBitmap?.let {
                         Image(
                             bitmap = it,
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(60.dp)
                                 .align(Alignment.CenterVertically)
                         )
                     }
@@ -123,7 +121,7 @@ fun HowToCaptureFaceScreen(
 
                 Text(
                     "Face Match",
-                    color = Color.White,
+                    color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
@@ -151,7 +149,7 @@ fun HowToCaptureFaceScreen(
 
                 Text(
                     "Watch how easy it is\nto Take Selfie",
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
@@ -163,7 +161,7 @@ fun HowToCaptureFaceScreen(
 
                 Text(
                     "The selfie includes liveness capture to ensure your real follow the on screen instructions.",
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center,
@@ -173,7 +171,7 @@ fun HowToCaptureFaceScreen(
             }
 
             // BOTTOM – pinned (loader OR button)
-            if (isLoading) {
+            if (base64Image == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -182,7 +180,7 @@ fun HowToCaptureFaceScreen(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(40.dp),
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         strokeWidth = 4.dp
                     )
                 }
@@ -195,7 +193,7 @@ fun HowToCaptureFaceScreen(
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier

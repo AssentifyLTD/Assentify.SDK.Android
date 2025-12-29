@@ -332,7 +332,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                                     brightness, environmentalConditions),
                             sendingFlagsMotion.size() == 0 ? MotionType.NO_DETECT : sendingFlagsMotion.size() > environmentalConditions.getMotionCardLimit() ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
 
-                            zoom);
+                            zoom, isRectFInsideTheScreen);
                 }
             });
         }
@@ -365,7 +365,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                         );
 
                         if (Objects.equals(language, Language.NON)) {
-                            idCardCallback.onComplete(idResponseModel, isFrontPage(),isLastPage,classifiedTemplate);
+                            idCardCallback.onComplete(idResponseModel, isFrontPage(), isLastPage, classifiedTemplate);
                         } else {
                             LanguageTransformation translated = new LanguageTransformation(apiKey);
                             translated.setCallback(ScanIDCard.this);
@@ -376,14 +376,14 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                         }
 
 
-                    } else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
+                    } else if (eventName.equals(HubConnectionTargets.ON_RETRY)) {
                         retryCount++;
                         start = true;
                         BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                         idCardCallback.onRetry(BaseResponseDataModel);
 
                     } else {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ;
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE);
                         switch (eventName) {
                             case HubConnectionTargets.ON_WRONG_TEMPLATE:
                                 idCardCallback.onWrongTemplate(BaseResponseDataModel);
@@ -562,12 +562,12 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         });
 
 
-        idCardCallback.onComplete(idResponseModel, isFrontPage(),isLastPage,classifiedTemplate);
+        idCardCallback.onComplete(idResponseModel, isFrontPage(), isLastPage, classifiedTemplate);
     }
 
     @Override
     public void onTranslatedError(@Nullable Map<String, String> properties) {
-        idCardCallback.onComplete(idResponseModel, isFrontPage(),isLastPage,classifiedTemplate);
+        idCardCallback.onComplete(idResponseModel, isFrontPage(), isLastPage, classifiedTemplate);
     }
 
     public void stopScanning() {

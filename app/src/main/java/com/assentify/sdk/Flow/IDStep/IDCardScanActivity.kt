@@ -61,12 +61,14 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnFlipCardScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
+import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnWrongTemplateScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
+import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.QrIDResponseModelObject
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.ScanIDCard.IDCardCallback
@@ -199,6 +201,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             val currentMap = extractedInformation.value?.toMutableMap() ?: mutableMapOf()
             currentMap.putAll(dataModel.iDExtractedModel!!.transformedProperties!!)
             extractedInformation.value = currentMap
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(extractedInformation.value);
             start.value = false;
             eventTypes.value = EventTypes.onComplete
             isFrontPageValue.value = isFrontPage
@@ -236,7 +240,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     override fun onEnvironmentalConditionsChange(
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
-        zoom: ZoomType
+        zoom: ZoomType,
+        isCentered: Boolean,
     ) {
         runOnUiThread {
             if (start.value == false) {
@@ -259,11 +264,13 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                     }
 
                 } else {
-                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good) {
+                    if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good &&  isCentered) {
                         feedbackText.value = "Hold Steady"
                     }
                     if (motion == MotionType.NO_DETECT && zoom == ZoomType.NO_DETECT) {
                         feedbackText.value = "Please present ID"
+                    }else if(!isCentered){
+                        feedbackText.value = "Please center your card"
                     }
                 }
             } else {
@@ -348,16 +355,31 @@ fun IDCardScanScreen(
             }
             if (eventTypes == EventTypes.onComplete) {
                 if (isLastPage) {
-                    OnCompleteScreen(imageUrl, onNext = {
-                        if (isManual) {
-                            scanIDManual?.stopScanning()
-                        } else {
-                            scanID?.stopScanning()
-                        }
-                        onNext(
-                            kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
-                        );
-                    })
+                    if(flowEnv.enableQr && kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode){
+                        OnNormalCompleteScreen(imageUrl, onNext = {
+                            if (isManual) {
+                                scanIDManual?.stopScanning()
+                            } else {
+                                scanID?.stopScanning()
+                            }
+                            onNext(
+                                kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                            );
+                        })
+                    }else{
+
+                        OnCompleteScreen(imageUrl, onNext = {
+                            if (isManual) {
+                                scanIDManual?.stopScanning()
+                            } else {
+                                scanID?.stopScanning()
+                            }
+                            onNext(
+                                kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                            );
+                        })
+                    }
+
                 } else {
                     OnFlipCardScreen(
                         kycDocumentDetails.first { it.templateProcessingKeyInformation != classifiedTemplate }.templateSpecimen,
@@ -456,7 +478,7 @@ fun IDCardScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -467,7 +489,7 @@ fun IDCardScanScreen(
                     Image(
                         bitmap = it,
                         contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(60.dp)
                     )
                 }
 
@@ -492,7 +514,7 @@ fun IDCardScanScreen(
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
@@ -516,8 +538,7 @@ fun IDCardScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color = Color.White,
-                        fontSize = 15.sp,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,

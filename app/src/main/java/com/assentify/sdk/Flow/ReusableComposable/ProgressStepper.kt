@@ -53,7 +53,7 @@ fun ProgressStepper(
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
     val activeColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
     val doneColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
-    val upcomingColor = Color.White
+    val upcomingColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
 
     val density = LocalDensity.current
     val dashEffect = remember(dashLength, dashGap, density) {
@@ -146,18 +146,26 @@ private fun StepNode(
     upcomingColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
     val density = LocalDensity.current
 
+
     val ring = when (state) {
-        StepVisualState.Upcoming -> upcomingColor
-        StepVisualState.Active -> activeColor
-        StepVisualState.Done -> doneColor
+        StepVisualState.Upcoming -> Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+        StepVisualState.Active -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
+        StepVisualState.Done -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
     }
     val fill = when (state) {
         StepVisualState.Upcoming -> Color.Transparent
-        StepVisualState.Active -> activeColor
-        StepVisualState.Done -> doneColor
+        StepVisualState.Active -> Color.Transparent
+        StepVisualState.Done -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
+    }
+
+    val iconFill = when (state) {
+        StepVisualState.Upcoming -> Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+        StepVisualState.Active -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
+        StepVisualState.Done -> Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
     }
 
     Box(
@@ -190,7 +198,7 @@ private fun StepNode(
             Icon(
                 painter = it,
                 contentDescription = iconAssetPath,
-                tint = Color.White,
+                tint = iconFill,
                 modifier = Modifier.size(nodeSize * 0.5f)
             )
         }

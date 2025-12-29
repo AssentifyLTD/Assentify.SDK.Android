@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.SelectedTemplatesObject
 
 
@@ -19,7 +20,7 @@ class HowToCaptureActivity : ComponentActivity() {
 
         val selectedTemplate = SelectedTemplatesObject.getSelectedTemplatesObject();
 
-
+        NfcPassportResponseModelObject.clear()
         setContent {
             MaterialTheme {
                 Surface(

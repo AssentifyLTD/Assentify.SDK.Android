@@ -59,7 +59,8 @@ interface FaceMatchCallback {
         motion: MotionType,
         faceEvents: FaceEvents,
         zoomType: ZoomType,
-        detectedFaces:Int
+        detectedFaces:Int,
+        isCentered: Boolean,
     ) {
     }
 

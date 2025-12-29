@@ -213,7 +213,8 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
         motion: MotionType,
         faceEvents: FaceEvents,
         zoomType: ZoomType,
-        detectedFaces: Int
+        detectedFaces: Int,
+        isCentered: Boolean,
     ) {
         runOnUiThread {
             if (start.value == false && currentActiveLiveEvents.value == ActiveLiveEvents.Good) {
@@ -262,6 +263,8 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                     }
                     if (motion == MotionType.NO_DETECT && zoomType == ZoomType.NO_DETECT && faceEvents == FaceEvents.NO_DETECT) {
                         feedbackText.value = "Please face within circle"
+                    }else if(!isCentered){
+                        feedbackText.value = "Please center your face"
                     }
                 }
             } else {
@@ -419,7 +422,7 @@ fun FaceMatchScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -430,7 +433,7 @@ fun FaceMatchScanScreen(
                     Image(
                         bitmap = it,
                         contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(60.dp)
                     )
                 }
 
@@ -455,7 +458,7 @@ fun FaceMatchScanScreen(
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
@@ -479,8 +482,7 @@ fun FaceMatchScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color = Color.White,
-                        fontSize = 15.sp,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,

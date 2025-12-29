@@ -91,7 +91,7 @@ fun FaceResultScreen(
             // TOP
             Text(
                 text = title,
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 30.sp,
@@ -105,7 +105,7 @@ fun FaceResultScreen(
 
             Text(
                 text = subTitle,
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Light,
                 lineHeight = 18.sp,
@@ -172,7 +172,7 @@ fun FaceResultScreen(
                     onClick = onNext,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = primary,
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(999.dp),
                     modifier = Modifier
@@ -192,7 +192,7 @@ fun FaceResultScreen(
                             onClick = onRetry,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = primary,
-                                contentColor = Color.White
+                                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             ),
                             shape = corner,
                             modifier = Modifier
@@ -228,7 +228,7 @@ fun FaceResultScreen(
                             onClick = onIDChange,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = primary,
-                                contentColor = Color.White
+                                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             ),
                             shape = corner,
                             modifier = Modifier
@@ -272,12 +272,11 @@ fun MatchProgress(
     modifier: Modifier = Modifier,
     size: Dp = 100.dp,
     strokeWidth: Dp = 2.dp,
-    trackColor: Color = Color.White,
 ) {
     val pct = (percentage ?: 0).coerceIn(0, 100)
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
+    val trackColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
 
     val progressColor = when {
         percentage!! > 50 -> Color(android.graphics.Color.parseColor(ConstantsValues.DetectColor))
