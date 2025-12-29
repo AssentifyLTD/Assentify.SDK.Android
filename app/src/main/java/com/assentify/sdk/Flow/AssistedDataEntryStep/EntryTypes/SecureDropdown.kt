@@ -125,12 +125,12 @@ fun SecureDropdown(
                 onValueChange = {},
                 readOnly = true,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)),),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),),
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Dropdown Arrow",
-                        tint = Color.White.copy(alpha = 0.8f),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
                         modifier = Modifier.size(30.dp)
                     )
                 },
@@ -141,7 +141,7 @@ fun SecureDropdown(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                 ),
                 shape = RoundedCornerShape(16.dp), // keep only one
                 modifier = Modifier
@@ -163,7 +163,7 @@ fun SecureDropdown(
                     ) {
                         Column {
                             DropdownMenuItem(
-                                text = { Text(option,color = Color.White) },
+                                text = { Text(option,color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
                                 onClick = {
                                     selected = option
                                     expanded = false
@@ -181,7 +181,7 @@ fun SecureDropdown(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }

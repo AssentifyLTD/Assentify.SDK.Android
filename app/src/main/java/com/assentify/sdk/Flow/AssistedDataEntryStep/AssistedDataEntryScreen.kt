@@ -233,7 +233,7 @@ fun AssistedDataEntryScreen(
                     enabled = enabled,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier

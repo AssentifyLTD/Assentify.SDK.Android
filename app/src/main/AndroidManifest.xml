@@ -26,7 +26,6 @@
 
     <application
         android:debuggable="false"
-
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"

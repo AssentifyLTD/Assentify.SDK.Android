@@ -121,7 +121,7 @@ fun SecureEmailWithOtpField(
                             ) {
                                 Text(
                                     "Send OTP",
-                                    color = Color.White,
+                                    color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -137,8 +137,8 @@ fun SecureEmailWithOtpField(
                     cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -181,7 +181,7 @@ fun SecureEmailWithOtpField(
 
                 },
                 singleLine = true,
-                placeholder = { Text("OTP ($otpSize)", color = Color.White) },
+                placeholder = { Text("OTP ($otpSize)", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when (otpType) {
                         1 -> KeyboardType.Number
@@ -196,8 +196,8 @@ fun SecureEmailWithOtpField(
                     cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -268,7 +268,7 @@ fun SecureEmailWithOtpField(
             Spacer(Modifier.height(4.dp))
             Text(
                 errToShow,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }
@@ -306,9 +306,9 @@ fun ResendOtpControl(
     expiryMinutes: Double,
     onResend: () -> Unit,
     modifier: Modifier = Modifier,
-    enabledTextColor: Color = Color.White,
-    disabledTextColor: Color = Color.White.copy(alpha = 0.7f)
 ) {
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+
     val totalMs = (expiryMinutes * 60_000).toLong().coerceAtLeast(1_000L)
     var remainingMs by remember(expiryMinutes) { mutableStateOf(totalMs) }
     var ticking by remember { mutableStateOf(true) }
@@ -342,7 +342,7 @@ fun ResendOtpControl(
     ) {
         Text(
             text = if (canResend) "Resend OTP" else "Resend in $countdownLabel",
-            color = if (canResend) enabledTextColor else disabledTextColor
+            color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
         )
     }
 }

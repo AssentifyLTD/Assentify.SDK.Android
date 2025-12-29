@@ -396,8 +396,6 @@ fun ContextAwareStepScreen(
                             Spacer(Modifier.height(18.dp))
                             if (checked) {
                                 SignaturePad(
-                                    cardColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                                    confirmColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(170.dp),

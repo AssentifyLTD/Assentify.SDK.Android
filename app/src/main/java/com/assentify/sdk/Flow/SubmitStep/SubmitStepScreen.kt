@@ -311,7 +311,6 @@ fun SubmitStepScreen(
                     SwipeToSubmit(
                         text = "Swipe to Submit",
                         resetKey = resetTick,
-                        trackColor = pill,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 30.dp),
@@ -322,7 +321,6 @@ fun SubmitStepScreen(
                 submitDataTypes == SubmitDataTypes.onComplete -> {
                     SwipeToSubmit(
                         text = " \t\tNext\t\t ",
-                        trackColor = pill,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 30.dp),
@@ -340,9 +338,6 @@ fun SubmitStepScreen(
 @Composable
 fun SwipeToSubmit(
     text: String = "Swipe to Submit",
-    trackColor: Color = Color(0xFF62D17D), // flat green track
-    knobColor: Color = Color.White,       // flat white knob
-    textColor: Color = Color.Black,
     modifier: Modifier = Modifier,
     height: Dp = 70.dp,
     corner: Dp = 35.dp,
@@ -393,7 +388,7 @@ fun SwipeToSubmit(
             .fillMaxWidth()
             .height(height)
             .clip(RoundedCornerShape(corner))
-            .background(trackColor)
+            .background(Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)))
             .onGloballyPositioned { trackWidthPx = it.size.width.toFloat() }
             .padding(horizontal = 8.dp, vertical = 7.dp)
             .pointerInput(Unit) {
@@ -427,12 +422,12 @@ fun SwipeToSubmit(
                 .offset { IntOffset(animatedOffset.roundToInt(), 0) }
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(corner))
-                .background(knobColor),
+                .background(Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
-                color = textColor,
+                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)),
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
                 maxLines = 1,

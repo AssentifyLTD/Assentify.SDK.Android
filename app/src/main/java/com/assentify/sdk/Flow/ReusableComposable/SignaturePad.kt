@@ -43,14 +43,13 @@ import java.io.ByteArrayOutputStream
 fun SignaturePad(
     modifier: Modifier = Modifier,
     title: String = "Signature",
-    cardColor: Color = Color(0xFF0C1B16),
-    confirmColor: Color = Color(0xFFF0C24B),
-    disabledConfirmColor: Color = Color(0xFFBDBDBD),
     penColorInt: Int = android.graphics.Color.WHITE, // still white on screen
     minStrokeWidth: Float = 3f,
     maxStrokeWidth: Float = 6f,
     onConfirmBase64: (String) -> Unit,
 ) {
+
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
     val density = LocalDensity.current
 
@@ -78,7 +77,7 @@ fun SignaturePad(
         })
         onDispose { signaturePad.setOnSignedListener(null) }
     }
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+
     val containerWidthDp = with(density) { containerWidthPx.toDp() }
     val pillInitialWidth = 54.dp
 
@@ -104,7 +103,7 @@ fun SignaturePad(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(cardColor)
+            .background(Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)))
             .onSizeChanged { containerWidthPx = it.width }
     ) {
         // Drawing area
@@ -147,7 +146,7 @@ fun SignaturePad(
                         bottomEnd = 20.dp
                     )
                 )
-                .background(if (hasSignature) confirmColor else disabledConfirmColor)
+                .background(if (hasSignature) Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)))
                 .clickable(
                     enabled = hasSignature && !isExpanding,
                     onClick = {
@@ -193,7 +192,7 @@ fun SignaturePad(
             if (!isExpanding) {
                 Text(
                     text = "Confirm",
-                    color = Color.White.copy(alpha = confirmTextAlpha),
+                    color = if (hasSignature) Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)).copy(alpha = confirmTextAlpha) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = confirmTextAlpha),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.rotate(90f)
@@ -204,7 +203,9 @@ fun SignaturePad(
             if (isExpanding) {
                 Text(
                     text = "Confirmed",
-                    color = Color.White.copy(alpha = confirmedTextAlpha),
+                    color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)).copy(
+                        alpha = confirmedTextAlpha
+                    ),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
