@@ -84,8 +84,8 @@ fun OnWrongTemplateScreen(
             Spacer(Modifier.height(25.dp))
 
             Text(
-                text = "Unsupported ID Provided",
-                color = Color.White,
+                text = "Unsupported ID Provided \n Wrong Template",
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
@@ -97,7 +97,7 @@ fun OnWrongTemplateScreen(
 
             Text(
                 text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Light,
                   lineHeight = 17.sp,
@@ -121,7 +121,7 @@ fun OnWrongTemplateScreen(
 
                 Text(
                     text = "Expected Card Type",
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Light,
                       lineHeight = 17.sp,
@@ -141,7 +141,7 @@ fun OnWrongTemplateScreen(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                contentColor = Color.White
+                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             ),
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier

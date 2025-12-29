@@ -393,7 +393,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                                     brightness, environmentalConditions
                             ),
                             sendingFlags.isEmpty() ? MotionType.NO_DETECT : sendingFlags.size() > 5 ? MotionType.SENDING : MotionType.HOLD_YOUR_HAND,
-                            !start && areAllEventsDone() ? FaceEvents.Good : faceEvent, zoom,faces()
+                            !start && areAllEventsDone() ? FaceEvents.Good : faceEvent, zoom,faces(),isRectFInsideTheScreen
                     );
                 }
             });

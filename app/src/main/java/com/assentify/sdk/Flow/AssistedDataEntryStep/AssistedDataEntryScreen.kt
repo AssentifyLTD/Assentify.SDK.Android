@@ -79,7 +79,7 @@ fun AssistedDataEntryScreen(
 
     var currentPage by remember { mutableIntStateOf(0) }
     var changeTick by remember { mutableIntStateOf(0) }
-    val enabled = remember(pagerState.currentPage, changeTick) {
+    val enabled = remember(pagerState.currentPage, changeTick,eventTypes) {
         if(eventTypes == EventTypes.onComplete){
             AssistedFormHelper.validatePage(currentPage)
         }else{
@@ -121,7 +121,7 @@ fun AssistedDataEntryScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = androidx.compose.ui.graphics.Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -170,7 +170,7 @@ fun AssistedDataEntryScreen(
                             modifier = Modifier
                                 .size(60.dp)
                                 .align(Alignment.CenterHorizontally),
-                            color = Color.White,
+                            color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             strokeWidth = 6.dp
                         )
                     }
@@ -233,7 +233,7 @@ fun AssistedDataEntryScreen(
                     enabled = enabled,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier

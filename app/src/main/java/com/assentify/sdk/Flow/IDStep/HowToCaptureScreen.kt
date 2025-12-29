@@ -91,17 +91,17 @@ fun HowToCaptureScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    logoBitmap?.let {
+                      logoBitmap?.let {
                         Image(
                             bitmap = it,
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(60.dp)
                                 .align(Alignment.CenterVertically)
                         )
                     }
@@ -113,7 +113,7 @@ fun HowToCaptureScreen(
 
                 Text(
                     title,
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
@@ -140,7 +140,7 @@ fun HowToCaptureScreen(
 
                 Text(
                     subTitle,
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
@@ -153,7 +153,7 @@ fun HowToCaptureScreen(
 
                 Text(
                     "Just make sure to be in a well lit area with no direct light reflecting on the ID or Passport presented.",
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center,
@@ -170,7 +170,7 @@ fun HowToCaptureScreen(
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                    contentColor = Color.White
+                    contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 ),
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier

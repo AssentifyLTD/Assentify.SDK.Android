@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Flow.Models.LocalStepModel
+import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
 @Composable
@@ -55,7 +56,7 @@ fun BlockLoaderScreen(
     onNext: () -> Unit
 ) {
     val ctx = LocalContext.current
-
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val logoBitmap: ImageBitmap? = remember(logoBytes) {
         logoBytes?.let {
             BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap()
@@ -93,7 +94,7 @@ fun BlockLoaderScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color.White,
+                                tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 modifier = Modifier.size(30.dp)
                             )
                         }
@@ -104,7 +105,7 @@ fun BlockLoaderScreen(
                                 bitmap = it,
                                 contentDescription = "Logo",
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(60.dp)
                                     .align(Alignment.CenterVertically)
                             )
                         }
@@ -116,7 +117,7 @@ fun BlockLoaderScreen(
                     // header
                     Text(
                         text = "Complete Your Onboarding in ${steps.size} Steps",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 34.sp,
@@ -127,7 +128,7 @@ fun BlockLoaderScreen(
                     )
                     Text(
                         text = "It will include capturing your ID and your face — it's fast, easy, and secure.",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Start,
@@ -158,7 +159,7 @@ fun BlockLoaderScreen(
                     onClick = onNext,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = clicksHexColor,
-                        contentColor = Color.White
+                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier

@@ -56,6 +56,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
+import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.ScanNFC.ScanNfc
 import com.assentify.sdk.ScanNFC.ScanNfcCallback
 import com.assentify.sdk.ScanPassport.PassportResponseModel
@@ -74,7 +75,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
         val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-       passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()
+       passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()!!
 
 
 
@@ -173,13 +174,13 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         runOnUiThread {
             dataIDModel.value = dataModel;
             feedbackText.value = ""
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
-            dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
-                if (key.contains(ConstantsValues.ProvidedFaceImageKey, )) {
-                    FlowController.setImage(value.toString())
-                }
-            }
+            FlowController.setImage(dataModel.passportExtractedModel!!.faces!!.first())
+
+
         }
     }
 
@@ -252,7 +253,7 @@ fun NfcScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -260,12 +261,12 @@ fun NfcScanScreen(
                 Spacer(Modifier.weight(1f))
 
                 logoBitmap?.let {
-                    Image(
-                        bitmap = it,
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
+                        Image(
+                            bitmap = it,
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(60.dp)
+                        )
+                    }
 
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
@@ -289,7 +290,7 @@ fun NfcScanScreen(
         ) {
             Text(
                 text = "NFC Based Capture",
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -329,13 +330,13 @@ fun NfcScanScreen(
                         modifier = Modifier
                             .size(60.dp)
                             .align(Alignment.CenterHorizontally),
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         strokeWidth = 6.dp
                     )
                 }else{
                     Text(
                         "NFC DETECTED",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -348,7 +349,7 @@ fun NfcScanScreen(
 
                 Text(
                     text = feedbackText,
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 10.sp,
                     lineHeight = 15.sp,
                     textAlign = TextAlign.Center,
@@ -365,7 +366,7 @@ fun NfcScanScreen(
                    onClick = {onRetry() },
                    colors = ButtonDefaults.buttonColors(
                        containerColor = Color.Red,
-                       contentColor = Color.White
+                       contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                    ),
                    shape = RoundedCornerShape(28.dp),
                    modifier = Modifier

@@ -35,6 +35,7 @@ import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureRadioGroup
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureTextArea
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureTextField
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.allCountries
+import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -47,7 +48,7 @@ fun AssistedDataEntryPager(
 ) {
     val assistedDataEntryPages = assistedDataEntryModel!!.assistedDataEntryPages
 
-
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -71,7 +72,7 @@ fun AssistedDataEntryPager(
                 item {
                     Text(
                         text = pageModel.title ?: "",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Start,
@@ -79,7 +80,12 @@ fun AssistedDataEntryPager(
                     )
                     Spacer(Modifier.height(10.dp))
                 }
-                items(pageModel.dataEntryPageElements.size) { i ->
+                items(pageModel.dataEntryPageElements.size,
+                    key = { index ->
+                        pageModel.dataEntryPageElements[index].inputKey ?: index
+                    }
+
+                ) { i ->
                     val field = pageModel.dataEntryPageElements[i]
                     val typeEnum = InputTypes.fromString(field.inputType)
 

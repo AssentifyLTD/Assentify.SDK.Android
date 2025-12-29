@@ -33,16 +33,21 @@ object AssistedFormHelper {
                         for (outputProperty in step.stepDefinition!!.customization.outputProperties) {
                             if (outputProperty.keyIdentifier == keyID) {
                                 if (defaultValue.isEmpty()) {
-                                    defaultValue =
-                                        step.submitRequestModel!!.extractedInformation.getValue(
-                                            outputProperty.key
-                                        )
+                                    if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)){
+                                        defaultValue =
+                                            step.submitRequestModel!!.extractedInformation.getValue(
+                                                outputProperty.key
+                                            )
+                                    }
+
                                 } else {
-                                    defaultValue += ",${
-                                        step.submitRequestModel!!.extractedInformation.getValue(
-                                            outputProperty.key
-                                        )
-                                    }"
+                                    if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)) {
+                                        defaultValue += ",${
+                                            step.submitRequestModel!!.extractedInformation.getValue(
+                                                outputProperty.key
+                                            )
+                                        }"
+                                    }
                                 }
                             }
                         }

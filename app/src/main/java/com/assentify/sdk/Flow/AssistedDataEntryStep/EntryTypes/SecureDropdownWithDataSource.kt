@@ -50,7 +50,7 @@ fun SecureDropdownWithDataSource(
     title: String,
     page: Int,
     field: DataEntryPageElement,
-    onValueChange: (List<DataSourceAttribute>,outputKeys:Map<String, String>) -> Unit,
+    onValueChange: (List<DataSourceAttribute>, outputKeys: Map<String, String>) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val configModelObject = ConfigModelObject.getConfigModelObject()
@@ -69,7 +69,7 @@ fun SecureDropdownWithDataSource(
                 dataSourceData = data.data;
                 if (field.languageTransformation == 0) {
                     dataSourceData!!.items.forEach {
-                        if (it.dataSourceAttributes.isNotEmpty() &&  it.dataSourceAttributes.first{i->i.mappedKey =="Display Value"}.value == AssistedFormHelper.getDefaultValueValue(
+                        if (it.dataSourceAttributes.isNotEmpty() && it.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value == AssistedFormHelper.getDefaultValueValue(
                                 field.inputKey!!,
                                 page
                             )
@@ -78,54 +78,60 @@ fun SecureDropdownWithDataSource(
                         }
                     }
                     if (selected.isNotEmpty()) {
-                        onValueChange(selected, dataSourceData!!.outputKeys,)
+                        onValueChange(selected, dataSourceData!!.outputKeys)
                     }
 
                 } else {
-                    val dataList = listOf(
-                        LanguageTransformationModel(
-                            language = field.targetOutputLanguage!!,
-                            languageTransformationEnum = field.languageTransformation!!,
-                            value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
-                                ?: "",
-                            key = field.inputKey!!,
-                            dataType = field.inputType
-                        )
-                    )
-                    AssistedFormHelper.valueTransformation(
-                        field.targetOutputLanguage,
-                        TransformationModel(LanguageTransformationModels = dataList)
-                    ) { transformationData ->
-                        if (transformationData != null) {
-                            dataSourceData!!.items.forEach {
-                                if (it.dataSourceAttributes.isNotEmpty() && it.dataSourceAttributes.first{i->i.mappedKey =="Display Value"}.value== transformationData.value) {
-                                    selected = it.dataSourceAttributes;
-                                }
-                            }
-                            if (selected.isNotEmpty()) {
-                                AssistedFormHelper.changeValueSecureDropdownWithDataSource(
-                                    field.inputKey,
-                                    selected,
-                                    dataSourceData!!.outputKeys,
+                    if (selected.isEmpty()) {
+                        val dataList = listOf(
+                            LanguageTransformationModel(
+                                language = field.targetOutputLanguage!!,
+                                languageTransformationEnum = field.languageTransformation!!,
+                                value = AssistedFormHelper.getDefaultValueValue(
+                                    field.inputKey!!,
                                     page
-                                );
-                                onValueChange(selected, dataSourceData!!.outputKeys,)
-                            }
-
-                        } else {
-                            dataSourceData!!.items.forEach {
-                                if (it.dataSourceAttributes.isNotEmpty() &&  it.dataSourceAttributes.first{i->i.mappedKey =="Display Value"}.value == AssistedFormHelper.getDefaultValueValue(
-                                        field.inputKey!!,
-                                        page
-                                    )
-                                ) {
-                                    selected = it.dataSourceAttributes;
+                                )
+                                    ?: "",
+                                key = field.inputKey!!,
+                                dataType = field.inputType
+                            )
+                        )
+                        AssistedFormHelper.valueTransformation(
+                            field.targetOutputLanguage,
+                            TransformationModel(LanguageTransformationModels = dataList)
+                        ) { transformationData ->
+                            if (transformationData != null) {
+                                dataSourceData!!.items.forEach {
+                                    if (it.dataSourceAttributes.isNotEmpty() && it.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value == transformationData.value) {
+                                        selected = it.dataSourceAttributes;
+                                    }
                                 }
-                            }
-                            if (selected.isNotEmpty()) {
-                                onValueChange(selected, dataSourceData!!.outputKeys,)
+                                if (selected.isNotEmpty()) {
+                                    AssistedFormHelper.changeValueSecureDropdownWithDataSource(
+                                        field.inputKey,
+                                        selected,
+                                        dataSourceData!!.outputKeys,
+                                        page
+                                    );
+                                    onValueChange(selected, dataSourceData!!.outputKeys)
+                                }
+
+                            } else {
+                                dataSourceData!!.items.forEach {
+                                    if (it.dataSourceAttributes.isNotEmpty() && it.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value == AssistedFormHelper.getDefaultValueValue(
+                                            field.inputKey!!,
+                                            page
+                                        )
+                                    ) {
+                                        selected = it.dataSourceAttributes;
+                                    }
+                                }
+                                if (selected.isNotEmpty()) {
+                                    onValueChange(selected, dataSourceData!!.outputKeys)
+                                }
                             }
                         }
+
                     }
                 }
             }
@@ -153,7 +159,7 @@ fun SecureDropdownWithDataSource(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )
@@ -168,16 +174,16 @@ fun SecureDropdownWithDataSource(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TextField(
-                    value = if(selected.isNotEmpty())  selected.first{i->i.mappedKey =="Display Value"}.value else "",
+                    value = if (selected.isNotEmpty()) selected.first { i -> i.mappedKey == "Display Value" }.value else "",
                     onValueChange = {},
                     readOnly = true,
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),),
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "Dropdown Arrow",
-                            tint = Color.White.copy(alpha = 0.8f),
+                            tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
                             modifier = Modifier.size(30.dp)
                         )
                     },
@@ -188,7 +194,7 @@ fun SecureDropdownWithDataSource(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color.White
+                        cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
                     ),
                     shape = RoundedCornerShape(16.dp), // keep only one
                     modifier = Modifier
@@ -214,14 +220,17 @@ fun SecureDropdownWithDataSource(
                                 DropdownMenuItem(
                                     text = {
                                         Text(
-                                            option.dataSourceAttributes.first{i->i.mappedKey =="Display Value"}.value,
-                                            color = Color.White
+                                            option.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value,
+                                            color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
                                         )
                                     },
                                     onClick = {
                                         selected = option.dataSourceAttributes
                                         expanded = false
-                                        onValueChange(option.dataSourceAttributes, dataSourceData!!.outputKeys,)
+                                        onValueChange(
+                                            option.dataSourceAttributes,
+                                            dataSourceData!!.outputKeys,
+                                        )
                                     },
                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                                 )
@@ -235,7 +244,7 @@ fun SecureDropdownWithDataSource(
                 modifier = Modifier
                     .size(30.dp)
                     .align(Alignment.CenterHorizontally),
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                 strokeWidth = 2.dp
             )
         }
@@ -245,7 +254,7 @@ fun SecureDropdownWithDataSource(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }

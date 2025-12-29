@@ -56,6 +56,7 @@ interface IDCardCallback {
         brightnessEvents: BrightnessEvents,
         motion: MotionType,
         zoom: ZoomType,
+        isCentered: Boolean,
     ){}
 
 

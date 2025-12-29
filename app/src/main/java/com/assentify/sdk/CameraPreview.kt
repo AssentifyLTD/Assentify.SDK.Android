@@ -495,8 +495,7 @@ abstract class CameraPreview : Fragment() {
         if (enableDetect) {
             rectangleOverlayView.setListRect(listScaleRectF)
         } else {
-            listScaleRectF.clear();
-            rectangleOverlayView.setListRect(listScaleRectF)
+            rectangleOverlayView.setListRect(mutableListOf());
         }
         return listScaleRectF;
 

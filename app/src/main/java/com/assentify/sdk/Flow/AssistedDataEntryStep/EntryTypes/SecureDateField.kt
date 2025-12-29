@@ -61,7 +61,7 @@ fun SecureDateField(
         dateFormat: String = "yyyy-MM-dd",
         minDateStr: String? = null,
         maxDateStr: String? = null,
-        primaryHex: String = flowEnv.backgroundHexColor
+        primaryHex: String = flowEnv.clicksHexColor
     ) {
         fun parseToMillisOrNull(s: String?): Long? = try {
             if (s.isNullOrBlank()) null else
@@ -128,7 +128,7 @@ fun SecureDateField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )
@@ -149,11 +149,11 @@ fun SecureDateField(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
                     unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -186,7 +186,7 @@ fun SecureDateField(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }

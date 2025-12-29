@@ -88,20 +88,21 @@ fun TermsAndConditionsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    logoBitmap?.let {
+                      logoBitmap?.let {
                         Image(
                             bitmap = it,
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(60.dp)
                                 .align(Alignment.CenterVertically)
                         )
                     }
+
                     Spacer(modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.size(48.dp))
                 }
@@ -127,7 +128,7 @@ fun TermsAndConditionsScreen(
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(60.dp),
-                                color = Color.White,
+                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 strokeWidth = 6.dp
                             )
                         }
@@ -140,7 +141,7 @@ fun TermsAndConditionsScreen(
                         ) {
                             Text(
                                 text = termsConditionsModel!!.data.header!!,
-                                color = Color.White,
+                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                                 fontSize = 30.sp,
                                 fontWeight = FontWeight.Bold,
                                 lineHeight = 34.sp,
@@ -216,7 +217,7 @@ fun TermsAndConditionsScreen(
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                            contentColor = Color.White
+                            contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         ),
                         shape = RoundedCornerShape(999.dp),
                         modifier = Modifier

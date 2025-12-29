@@ -99,13 +99,17 @@ object AssistedDataEntryPagesObject {
 
 
 object NfcPassportResponseModelObject {
-    private lateinit var passportResponseModel: PassportResponseModel
+    private  var passportResponseModel: PassportResponseModel? = null
     fun setPassportResponseModelObject(passportResponseModel: PassportResponseModel) {
         this.passportResponseModel = passportResponseModel
     }
 
-    fun getPassportResponseModelObject(): PassportResponseModel {
+    fun getPassportResponseModelObject(): PassportResponseModel? {
         return passportResponseModel
+    }
+
+    fun clear() {
+       passportResponseModel = null
     }
 }
 
@@ -162,6 +166,21 @@ object IDImageObject {
 
     fun clear() {
         image = null
+    }
+
+}
+
+object OnCompleteScreenData {
+    private var data: Map<String, String>? = emptyMap()
+
+    fun setData(value: Map<String, String>?) {
+        data = value
+    }
+
+    fun getData(): Map<String, String>?? = data
+
+    fun clear() {
+        data =  emptyMap()
     }
 
 }

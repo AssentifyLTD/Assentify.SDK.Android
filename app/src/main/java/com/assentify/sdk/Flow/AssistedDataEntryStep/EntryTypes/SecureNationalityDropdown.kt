@@ -54,29 +54,33 @@ fun SecureNationalityDropdown(
 
 
     /** Default Value **/
-    var defaultRaw by remember { mutableStateOf<String>("") }
+    var defaultRaw by rememberSaveable { mutableStateOf<String>("") }
     LaunchedEffect(field.inputKey, field.languageTransformation) {
         if (field.languageTransformation == 0) {
             defaultRaw =  AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
         } else {
-            val dataList = listOf(
-                LanguageTransformationModel(
-                    language = field.targetOutputLanguage!!,
-                    languageTransformationEnum = field.languageTransformation!!,
-                    value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: "",
-                    key = field.inputKey!!,
-                    dataType = field.inputType
+            if(defaultRaw.isEmpty()) {
+                val dataList = listOf(
+                    LanguageTransformationModel(
+                        language = field.targetOutputLanguage!!,
+                        languageTransformationEnum = field.languageTransformation!!,
+                        value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
+                            ?: "",
+                        key = field.inputKey!!,
+                        dataType = field.inputType
+                    )
                 )
-            )
-            AssistedFormHelper.valueTransformation(
-                field.targetOutputLanguage,
-                TransformationModel(LanguageTransformationModels = dataList)
-            ) { data ->
-                if (data != null) {
-                    defaultRaw = data.value
-                    AssistedFormHelper.changeValue(field.inputKey,data.value,page);
-                } else {
-                    defaultRaw = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                AssistedFormHelper.valueTransformation(
+                    field.targetOutputLanguage,
+                    TransformationModel(LanguageTransformationModels = dataList)
+                ) { data ->
+                    if (data != null) {
+                        defaultRaw = data.value
+                        AssistedFormHelper.changeValue(field.inputKey, data.value, page);
+                    } else {
+                        defaultRaw =
+                            AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                    }
                 }
             }
         }
@@ -115,7 +119,7 @@ fun SecureNationalityDropdown(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )
@@ -132,12 +136,12 @@ fun SecureNationalityDropdown(
                 onValueChange = {},
                 readOnly = true,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))),
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Dropdown Arrow",
-                        tint = Color.White.copy(alpha = 0.8f),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
                         modifier = Modifier.size(30.dp)
                     )
                 },
@@ -148,7 +152,7 @@ fun SecureNationalityDropdown(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    cursorColor = Color.White
+                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
                 ),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
@@ -169,9 +173,9 @@ fun SecureNationalityDropdown(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(flagEmoji(option.code2), color = Color.White)
+                                Text(flagEmoji(option.code2), color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
                                 Spacer(Modifier.width(10.dp))
-                                Text(option.name, color = Color.White)
+                                Text(option.name, color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
                             }
                         },
                         onClick = {
@@ -187,7 +191,7 @@ fun SecureNationalityDropdown(
 
         if (err.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
-            Text(err, color = accent, fontSize = 12.sp)
+            Text(err, color = Color.Red, fontSize = 12.sp)
         }
     }
 }

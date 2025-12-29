@@ -1,7 +1,6 @@
 package com.assentify.sdk.Flow.IDStep
 
 import android.graphics.BitmapFactory
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -125,17 +124,17 @@ fun IDStepScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    logoBitmap?.let {
+                      logoBitmap?.let {
                         Image(
                             bitmap = it,
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(60.dp)
                                 .align(Alignment.CenterVertically)
                         )
                     }
@@ -161,7 +160,7 @@ fun IDStepScreen(
 
                     Text(
                         "Choose your country of residence",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 34.sp,
@@ -183,7 +182,7 @@ fun IDStepScreen(
 
                     Text(
                         "Select type of document",
-                        color = Color.White,
+                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 34.sp,
@@ -225,7 +224,7 @@ fun IDStepScreen(
                 Spacer(Modifier.height(5.dp))
                 Text(
                     "Only the presented IDs are supported and accepted by NXT Finance. Make sure to provide one of them.",
-                    color = Color.White,
+                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Start,
@@ -246,7 +245,7 @@ fun IDStepScreen(
                             Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
                         else
                             Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                        contentColor = Color.White
+                        contentColor =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                     ),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
@@ -256,6 +255,10 @@ fun IDStepScreen(
                     Text(
                         "Next",
                         fontWeight = FontWeight.Bold,
+                        color = if (selectedTemplate != null)
+                            Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+                        else
+                            Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                         modifier = Modifier.padding(vertical = 10.dp)
                     )
                 }
@@ -278,7 +281,7 @@ fun CountryDropdownStyled(
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
     val pillColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
-    val textColor = Color.White.copy(alpha = 0.95f)
+    val textColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -294,7 +297,7 @@ fun CountryDropdownStyled(
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = "Dropdown Arrow",
-                    tint = Color.White.copy(alpha = 0.8f),
+                    tint = textColor.copy(alpha = 0.8f),
                     modifier = Modifier.size(30.dp)
                 )
             },
@@ -306,7 +309,7 @@ fun CountryDropdownStyled(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                cursorColor = Color.White
+                cursorColor = textColor
             ),
             modifier = Modifier
                 .menuAnchor(
@@ -334,7 +337,7 @@ fun CountryDropdownStyled(
                     Column {
                         countryList.forEach { country ->
                             DropdownMenuItem(
-                                text = { Text(country.name, color = Color.White) },
+                                text = { Text(country.name, color = textColor) },
                                 onClick = {
                                     onCountrySelected(country)
                                     expanded = false
@@ -358,6 +361,7 @@ fun DocumentPicker(
     selectedTemplate: Templates?,
     onDocumentSelected: (Templates) -> Unit,
 ) {
+    val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
     LazyColumn(
         modifier = Modifier
@@ -386,10 +390,7 @@ fun DocumentPicker(
                 colors = CardDefaults.cardColors(
                     containerColor = if (selectedTemplate != null && selectedTemplate!!.id == -1) selectedBg else unselectedBg
                 ),
-                border = if (selectedTemplate != null && selectedTemplate!!.id == -1)  BorderStroke(
-                    1.dp,
-                    Color.White.copy(alpha = 0.15f)
-                ) else null,
+
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = if (selectedTemplate != null && selectedTemplate!!.id == -1)  6.dp else 2.dp
                 ),
@@ -418,7 +419,7 @@ fun DocumentPicker(
                         country.templates.first().kycDocumentType.trim().split(" ")
                             .firstOrNull() ?: ""
                     } Passport",
-                        color = Color.White,
+                        color =  if (selectedTemplate != null && selectedTemplate!!.id == -1)  Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -444,10 +445,7 @@ fun DocumentPicker(
                 colors = CardDefaults.cardColors(
                     containerColor = if (selectedTemplate != null && selectedTemplate!!.id != -1) selectedBg else unselectedBg
                 ),
-                border = if (selectedTemplate != null && selectedTemplate!!.id != -1) BorderStroke(
-                    1.dp,
-                    Color.White.copy(alpha = 0.15f)
-                ) else null,
+
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = if (selectedTemplate != null && selectedTemplate!!.id != -1)  6.dp else 2.dp
                 )
@@ -495,7 +493,8 @@ fun DocumentPicker(
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = template.kycDocumentType,
-                                    color = Color.White,
+                                    color =  if (selectedTemplate != null && selectedTemplate!!.id != -1)  Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Thin,
                                     textAlign = TextAlign.Center,
@@ -515,7 +514,7 @@ fun DocumentPicker(
                     ) {
                         Text(
                             text = "Support\n${country.templates.first().kycDocumentType.trim().split(" ").firstOrNull() ?: ""} IDs",
-                            color = Color.White,
+                            color =  if (selectedTemplate != null && selectedTemplate!!.id != -1)  Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Start

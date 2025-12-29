@@ -32,38 +32,59 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
 @Composable
-fun OnFlipCardScreen(
-    expectedImageUrl: String,
+fun OnNormalCompleteScreen(
+    imageUrl: String,
     onNext: () -> Unit = {},
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
 
     val iconSvg= remember {
-        loadSvgFromAssets(context, "ic_flip_card.svg")
+        loadSvgFromAssets(context, "ic_complete.svg")
     }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
-            .statusBarsPadding() // safe top
-            .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
+            .statusBarsPadding()
+            .padding(horizontal = 32.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(150.dp))
-        // TOP + MIDDLE
+        // TOP + MIDDLE CONTENT
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // small breathing space instead of 150.dp
 
+            // Gentle spacing instead of rigid 150.dp
+            Spacer(Modifier.height(32.dp))
 
-            // MIDDLE
+            // MAIN IMAGE + ICON
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SecureImage(imageUrl = imageUrl)
+
+                iconSvg?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "ic_complete",
+                        modifier = Modifier.size(100.dp),
+                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(25.dp))
+
             Text(
-                text = "Capture Back of ID",
+                text = "ID Processed Successfully",
                 color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -72,60 +93,11 @@ fun OnFlipCardScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(32.dp))
-
-            iconSvg?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "ic_flip_card",
-                    modifier = Modifier.size(150.dp),
-                    tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-                )
-            }
-
-            Spacer(Modifier.height(25.dp))
-
-            Text(
-                text = "Please flip the card provided to take the back of the card",
-                color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 28.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (expectedImageUrl.isNotEmpty()) {
-                Spacer(Modifier.height(30.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    SecureImage(imageUrl = expectedImageUrl)
-                }
-
-                Spacer(Modifier.height(10.dp))
-
-                Text(
-                    text = "Expected Card Type",
-                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Light,
-                      lineHeight = 17.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.height(30.dp))
-            }
-
-            // push content up, leave space for bottom button
+            // Push content up and free space for bottom button
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // BOTTOM
+        // BOTTOM BUTTON (always pinned)
         Button(
             onClick = onNext,
             colors = ButtonDefaults.buttonColors(

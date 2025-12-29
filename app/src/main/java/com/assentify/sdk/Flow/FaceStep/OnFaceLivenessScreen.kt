@@ -84,7 +84,7 @@ fun OnFaceErrorScreen(
 
             Text(
                 text = "Let's try again",
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
@@ -96,7 +96,7 @@ fun OnFaceErrorScreen(
 
             Text(
                 text = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos",
-                color = Color.White,
+                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Light,
                   lineHeight = 17.sp,
@@ -113,7 +113,7 @@ fun OnFaceErrorScreen(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                contentColor = Color.White
+                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             ),
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier

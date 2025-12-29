@@ -46,24 +46,28 @@ fun SecureTextArea(
         if (field.languageTransformation == 0) {
             value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
         } else {
-            val dataList = listOf(
-                LanguageTransformationModel(
-                    language = field.targetOutputLanguage!!,
-                    languageTransformationEnum = field.languageTransformation!!,
-                    value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: "",
-                    key = field.inputKey!!,
-                    dataType = field.inputType
+            if(value.isEmpty()) {
+                val dataList = listOf(
+                    LanguageTransformationModel(
+                        language = field.targetOutputLanguage!!,
+                        languageTransformationEnum = field.languageTransformation!!,
+                        value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
+                            ?: "",
+                        key = field.inputKey!!,
+                        dataType = field.inputType
+                    )
                 )
-            )
-            AssistedFormHelper.valueTransformation(
-                field.targetOutputLanguage,
-                TransformationModel(LanguageTransformationModels = dataList)
-            ) { data ->
-                if (data != null) {
-                    value = data.value
-                    AssistedFormHelper.changeValue(field.inputKey, data.value, page);
-                } else {
-                    value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                AssistedFormHelper.valueTransformation(
+                    field.targetOutputLanguage,
+                    TransformationModel(LanguageTransformationModels = dataList)
+                ) { data ->
+                    if (data != null) {
+                        value = data.value
+                        AssistedFormHelper.changeValue(field.inputKey, data.value, page);
+                    } else {
+                        value =
+                            AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                    }
                 }
             }
         }
@@ -82,7 +86,7 @@ fun SecureTextArea(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color.White,
+            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )
@@ -107,8 +111,8 @@ fun SecureTextArea(
                 cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
+                focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                 focusedPlaceholderColor = Color.Gray,
                 unfocusedPlaceholderColor = Color.Gray
             ),
@@ -124,7 +128,7 @@ fun SecureTextArea(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }
