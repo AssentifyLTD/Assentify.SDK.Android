@@ -116,9 +116,9 @@ fun SecureRadioGroup(
                         enabled = !isReadOnly,
                         colors = RadioButtonDefaults.colors(
                             selectedColor = accentColor,
-                            unselectedColor = Color.White.copy(alpha = 0.8f),
+                            unselectedColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
                             disabledSelectedColor = accentColor.copy(alpha = 0.4f),
-                            disabledUnselectedColor = Color.White.copy(alpha = 0.4f)
+                            disabledUnselectedColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.4f)
                         )
                     )
 
@@ -126,7 +126,7 @@ fun SecureRadioGroup(
 
                     Text(
                         text = option,
-                        color = if (isReadOnly) Color.White.copy(alpha = 0.6f) else Color.White,
+                        color = if (isReadOnly)Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.6f) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -137,7 +137,7 @@ fun SecureRadioGroup(
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 48.dp),
                         thickness = 1.dp,
-                        color = Color.White.copy(alpha = 0.12f)
+                        color =Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.12f)
                     )
                 }
             }
@@ -147,7 +147,7 @@ fun SecureRadioGroup(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = accentColor,
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }

@@ -58,11 +58,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             minRam = 4
         );
 
-
         assentifySdk = AssentifySdk(
-            "36CBxFWo93rP0U6oBnJm85n7urUuBvF9PRAFXkcVQTnYHABigvnHweRtn93XgnAS3zfMSPI8oeLQL9PLbVA",
-            "c6fe8eea-7f40-401a-f62a-08dde079f57f",
-            "6083BE1F5A878AC0281F90975EAAF93148515D2F8C64F5D175019FA96926F654",
+            "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
+            "2937c91f-c905-434b-d13d-08dcc04755ec",
+            "6A0001F3C7B0F99B14F5BB17B0694BE751F189ADB62A3811591E27558FC30503",
             environmentalConditions,
             assentifySdkCallback = this,
             performActiveLivenessFace = false,
@@ -95,7 +94,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 "#FFFFFF",
                 "#FFC400",
                 "#FFDE00",
+                "#000000",
                 "#0C1F16",
+                "#FFFFFF",
                 language = Language.English,
                 enableNfc = true,
                 enableQr = true,

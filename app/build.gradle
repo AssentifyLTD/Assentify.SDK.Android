@@ -8,6 +8,7 @@ apply plugin: 'maven-publish'
 android {
     namespace "com.assentify.sdk"
     compileSdkVersion 36
+    android.ndkVersion "27.0.12077973"
     defaultConfig {
      applicationId "com.assentify.sdk"
 
@@ -16,7 +17,7 @@ android {
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
-        android.ndkVersion "25.1.8937393"
+
     }
 
 
@@ -149,7 +150,6 @@ dependencies {
     implementation "androidx.media3:media3-exoplayer:1.8.0"
     implementation "androidx.media3:media3-ui:1.8.0"
     implementation 'com.github.gcacace:signature-pad:1.3.1'
-    implementation "com.github.mhiew:android-pdf-viewer:3.2.0-beta.3"
     implementation "androidx.compose.material:material-icons-core"
     implementation "androidx.compose.material:material-icons-extended"
 

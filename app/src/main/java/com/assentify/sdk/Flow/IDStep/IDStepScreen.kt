@@ -1,7 +1,6 @@
 package com.assentify.sdk.Flow.IDStep
 
 import android.graphics.BitmapFactory
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -259,7 +258,7 @@ fun IDStepScreen(
                         color = if (selectedTemplate != null)
                             Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
                         else
-                            Color.White,
+                            Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                         modifier = Modifier.padding(vertical = 10.dp)
                     )
                 }
@@ -282,7 +281,7 @@ fun CountryDropdownStyled(
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
     val pillColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
-    val textColor = Color.White.copy(alpha = 0.95f)
+    val textColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -298,7 +297,7 @@ fun CountryDropdownStyled(
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = "Dropdown Arrow",
-                    tint = Color.White.copy(alpha = 0.8f),
+                    tint = textColor.copy(alpha = 0.8f),
                     modifier = Modifier.size(30.dp)
                 )
             },
@@ -310,7 +309,7 @@ fun CountryDropdownStyled(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                cursorColor = Color.White
+                cursorColor = textColor
             ),
             modifier = Modifier
                 .menuAnchor(
@@ -338,7 +337,7 @@ fun CountryDropdownStyled(
                     Column {
                         countryList.forEach { country ->
                             DropdownMenuItem(
-                                text = { Text(country.name, color = Color.White) },
+                                text = { Text(country.name, color = textColor) },
                                 onClick = {
                                     onCountrySelected(country)
                                     expanded = false
@@ -362,6 +361,7 @@ fun DocumentPicker(
     selectedTemplate: Templates?,
     onDocumentSelected: (Templates) -> Unit,
 ) {
+    val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
     LazyColumn(
         modifier = Modifier
@@ -390,10 +390,7 @@ fun DocumentPicker(
                 colors = CardDefaults.cardColors(
                     containerColor = if (selectedTemplate != null && selectedTemplate!!.id == -1) selectedBg else unselectedBg
                 ),
-                border = if (selectedTemplate != null && selectedTemplate!!.id == -1)  BorderStroke(
-                    1.dp,
-                    Color.White.copy(alpha = 0.15f)
-                ) else null,
+
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = if (selectedTemplate != null && selectedTemplate!!.id == -1)  6.dp else 2.dp
                 ),
@@ -422,7 +419,7 @@ fun DocumentPicker(
                         country.templates.first().kycDocumentType.trim().split(" ")
                             .firstOrNull() ?: ""
                     } Passport",
-                        color = Color.White,
+                        color =  if (selectedTemplate != null && selectedTemplate!!.id == -1)  Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -448,10 +445,7 @@ fun DocumentPicker(
                 colors = CardDefaults.cardColors(
                     containerColor = if (selectedTemplate != null && selectedTemplate!!.id != -1) selectedBg else unselectedBg
                 ),
-                border = if (selectedTemplate != null && selectedTemplate!!.id != -1) BorderStroke(
-                    1.dp,
-                    Color.White.copy(alpha = 0.15f)
-                ) else null,
+
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = if (selectedTemplate != null && selectedTemplate!!.id != -1)  6.dp else 2.dp
                 )
@@ -499,7 +493,8 @@ fun DocumentPicker(
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = template.kycDocumentType,
-                                    color = Color.White,
+                                    color =  if (selectedTemplate != null && selectedTemplate!!.id != -1)  Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Thin,
                                     textAlign = TextAlign.Center,
@@ -519,7 +514,7 @@ fun DocumentPicker(
                     ) {
                         Text(
                             text = "Support\n${country.templates.first().kycDocumentType.trim().split(" ").firstOrNull() ?: ""} IDs",
-                            color = Color.White,
+                            color =  if (selectedTemplate != null && selectedTemplate!!.id != -1)  Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Start

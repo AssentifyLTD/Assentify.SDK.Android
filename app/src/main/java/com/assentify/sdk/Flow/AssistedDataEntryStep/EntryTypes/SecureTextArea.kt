@@ -111,8 +111,8 @@ fun SecureTextArea(
                 cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
+                focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                 focusedPlaceholderColor = Color.Gray,
                 unfocusedPlaceholderColor = Color.Gray
             ),
@@ -128,7 +128,7 @@ fun SecureTextArea(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }

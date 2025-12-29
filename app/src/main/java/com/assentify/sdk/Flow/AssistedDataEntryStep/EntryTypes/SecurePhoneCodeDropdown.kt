@@ -56,12 +56,17 @@ fun SecurePhoneInput(
     val accent = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
     val isReadOnly = false
 
-    val defaultIso2 = remember(field.inputKey, page) {
+    var defaultIso2 = remember(field.inputKey, page) {
         field.defaultCountryCode!!.trim().uppercase()
     }
 
+    defaultIso2 = options
+        .firstOrNull { it.dialCode.equals(defaultIso2, true) }
+        ?.code2
+        ?: defaultIso2
+
     val defaultDial = remember(defaultIso2, options) {
-        options.firstOrNull { it.code2.equals(defaultIso2, true) }?.dialCode ?: ""
+        options.firstOrNull { it.code2.equals(defaultIso2, true) || it.dialCode.equals(defaultIso2, true)}?.dialCode ?: ""
     }
 
     val defaultRawNumber = remember(field.inputKey, page) {
@@ -134,12 +139,12 @@ fun SecurePhoneInput(
                     onValueChange = {},
                     readOnly = true,
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))),
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowDown,
                             contentDescription = "Choose code",
-                            tint = Color.White.copy(alpha = 0.8f),
+                            tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
                             modifier = Modifier.size(24.dp)
                         )
                     },
@@ -150,7 +155,7 @@ fun SecurePhoneInput(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color.White
+                        cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
                     ),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
@@ -170,9 +175,9 @@ fun SecurePhoneInput(
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(flagEmoji(option.code2), color = Color.White)
+                                    Text(flagEmoji(option.code2), color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
                                     Spacer(Modifier.width(10.dp))
-                                    Text("${option.dialCode}", color = Color.White)
+                                    Text("${option.dialCode}", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
                                 }
                             },
                             onClick = {
@@ -198,8 +203,8 @@ fun SecurePhoneInput(
                 },
                 readOnly = isReadOnly,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
-                placeholder = { Text("", color = Color.White.copy(alpha = 0.6f)) },
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))),
+                placeholder = { Text("", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.6f)) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = pillColor,
                     unfocusedContainerColor = pillColor,
@@ -207,7 +212,7 @@ fun SecurePhoneInput(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    cursorColor = Color.White
+                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
                 ),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone
@@ -221,7 +226,7 @@ fun SecurePhoneInput(
 
         if (err.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
-            Text(err, color = accent, fontSize = 12.sp)
+            Text(err, color = Color.Red, fontSize = 12.sp)
         }
     }
 }

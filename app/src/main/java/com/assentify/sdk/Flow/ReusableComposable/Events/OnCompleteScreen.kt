@@ -319,7 +319,6 @@ private fun PrettyListRow(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        color = Color.White.copy(alpha = 0.08f),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {

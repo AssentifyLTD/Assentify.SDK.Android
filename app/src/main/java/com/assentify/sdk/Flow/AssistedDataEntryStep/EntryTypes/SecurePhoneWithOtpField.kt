@@ -95,8 +95,8 @@ fun SecurePhoneWithOtpField(
                         unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                        unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
                     ),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
@@ -112,7 +112,7 @@ fun SecurePhoneWithOtpField(
                         onValueChange(buildLebanonE164(localNumber, countryDial))
                     },
                     singleLine = true,
-                    placeholder = { Text("", color = Color.Gray) },
+                    placeholder = { Text("", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
                     trailingIcon = {
                         if (phoneLooksValidLB(localNumber))
                             Box(
@@ -143,7 +143,7 @@ fun SecurePhoneWithOtpField(
                                 ) {
                                     Text(
                                         "Send OTP",
-                                        color = Color.White,
+                                        color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)),
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
@@ -159,8 +159,8 @@ fun SecurePhoneWithOtpField(
                         cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                        unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                         focusedPlaceholderColor = Color.Gray,
                         unfocusedPlaceholderColor = Color.Gray
                     ),
@@ -197,7 +197,7 @@ fun SecurePhoneWithOtpField(
                     }
                 },
                 singleLine = true,
-                placeholder = { Text("OTP ($otpSize)", color = Color.White) },
+                placeholder = { Text("OTP ($otpSize)", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = when (otpType) {
                         1 -> KeyboardType.Number
@@ -212,8 +212,8 @@ fun SecurePhoneWithOtpField(
                     cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -268,7 +268,7 @@ fun SecurePhoneWithOtpField(
             Spacer(Modifier.height(4.dp))
             Text(
                 errToShow,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }
