@@ -19,7 +19,8 @@ android {
     }
 
 
- /*   signingConfigs {
+
+/*    signingConfigs {
         create("release") {
             keyAlias = "release-key"
             keyPassword = "00000000"
@@ -33,7 +34,7 @@ android {
             minifyEnabled false
            // shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-          //  signingConfig = signingConfigs.getByName("release")
+            //signingConfig = signingConfigs.getByName("release")
         }
     }
 
