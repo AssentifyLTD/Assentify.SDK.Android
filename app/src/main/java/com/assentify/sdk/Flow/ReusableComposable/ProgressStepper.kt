@@ -153,19 +153,19 @@ private fun StepNode(
 
     val ring = when (state) {
         StepVisualState.Upcoming -> Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
-        StepVisualState.Active -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
+        StepVisualState.Active -> Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
         StepVisualState.Done -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
     }
     val fill = when (state) {
         StepVisualState.Upcoming -> Color.Transparent
-        StepVisualState.Active -> Color.Transparent
+        StepVisualState.Active -> Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
         StepVisualState.Done -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
     }
 
     val iconFill = when (state) {
         StepVisualState.Upcoming -> Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
-        StepVisualState.Active -> Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
-        StepVisualState.Done -> Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
+        StepVisualState.Active -> Color.White
+        StepVisualState.Done -> Color.White
     }
 
     Box(
