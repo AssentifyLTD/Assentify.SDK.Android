@@ -44,8 +44,9 @@ fun StepCard(
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
 
-    val backgroundColor = if (step.isDone) selectedColor else unselectedColor
-    val circleColor = if (step.isDone) Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
+    val backgroundColor = if (step.isDone)  selectedColor else unselectedColor
+    val circleColor = if (step.isDone) Color.White else selectedColor
+    val iconColor = if (step.isDone) selectedColor else  Color.White
     val textColor = if (step.isDone) Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
 
     val context = LocalContext.current
@@ -80,7 +81,7 @@ fun StepCard(
                     Icon(
                         painter = it,
                         contentDescription = step.name,
-                        tint = textColor, // ✅ dynamic tint color
+                        tint = iconColor, // ✅ dynamic tint color
                         modifier = Modifier.size(28.dp)
                     )
                 }
