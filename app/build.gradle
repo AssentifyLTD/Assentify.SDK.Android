@@ -10,7 +10,6 @@ android {
     compileSdkVersion 36
     android.ndkVersion "27.0.12077973"
     defaultConfig {
-   // applicationId "com.assentify.sdk"
 
         minSdkVersion 24
         targetSdkVersion 34
@@ -19,6 +18,7 @@ android {
         multiDexEnabled = true
 
     }
+
 
 
 /*    signingConfigs {
