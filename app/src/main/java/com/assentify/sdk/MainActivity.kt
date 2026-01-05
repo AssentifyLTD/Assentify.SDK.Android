@@ -90,15 +90,22 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             val customProperties: MutableMap<String, String> = mutableMapOf()
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
                 appLogoBytes,
-                "#000000",
-                "#FFFFFF",
-                "#FFC400",
-                "#FFDE00",
-                "#000000",
-                "#0C1F16",
-                "#FFFFFF",
+                backgroundHexColor = "#0D2918",
+                clicksHexColor = "#0BD884",
+                textHexColor = "#F4F4F4",
+                listItemsSelectedHexColor = "#D29E00",
+                listItemsTextSelectedHexColor = "#F4F4F4",
+                listItemsUnSelectedHexColor = "#0D1512",
+                listItemsTextUnSelectedHexColor = "#F4F4F4",
+                /*  "#000000",
+                  "#FFFFFF",
+                  "#FFC400",
+                  "#FFDE00",
+                  "#000000",
+                  "#0C1F16",
+                  "#FFFFFF",*/
                 language = Language.English,
-                enableNfc = true,
+                enableNfc = false,
                 enableQr = true,
                 blockLoaderCustomProperties = customProperties
 
