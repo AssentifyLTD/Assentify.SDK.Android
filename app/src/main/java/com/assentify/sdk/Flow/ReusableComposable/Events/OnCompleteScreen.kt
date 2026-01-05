@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -313,14 +312,16 @@ private fun PrettyListRow(
     isOk: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    val icon = if (isOk) Icons.Filled.CheckCircle else Icons.Filled.Error
+    val icon =Icons.Filled.CheckCircle
     val iconTint = primary
+    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         tonalElevation = 0.dp,
-        shadowElevation = 0.dp
+        shadowElevation = 0.dp,
+        color = Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
     ) {
         Row(
             modifier = Modifier
