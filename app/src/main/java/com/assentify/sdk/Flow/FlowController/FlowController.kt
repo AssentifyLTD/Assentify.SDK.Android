@@ -33,9 +33,7 @@ object FlowController {
     fun naveToNextStep(context: Context) {
         val currentStep = getCurrentStep();
         if (currentStep == null) {
-            val intent = Intent(context, SubmitStepActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            context.startActivity(intent)
+            SubmitStepActivity.start(context = context)
         } else {
             when (currentStep.stepDefinition!!.stepDefinition) {
                 StepsNames.TermsConditions -> {
