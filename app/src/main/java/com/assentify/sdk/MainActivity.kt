@@ -110,6 +110,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 blockLoaderCustomProperties = customProperties
 
             );
+
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,
