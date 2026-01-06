@@ -38,7 +38,13 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                FlowController.backClick(this@SubmitStepActivity);
+                if (submitDataTypes.value == SubmitDataTypes.onComplete) {
+                    FlowCallbackObject.getFlowCallbackObject()
+                        .onFlowCompleted(FlowController.getSubmitList())
+                    finishAffinity();
+                } else {
+                    FlowController.backClick(this@SubmitStepActivity);
+                }
             }
         })
 
@@ -50,10 +56,20 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
                 ) {
                     SubmitStepScreen(
                         submitDataTypes = submitDataTypes.value,
-                        onBack = {     FlowController.backClick(this@SubmitStepActivity); },
+                        onBack = {
+                            if (submitDataTypes.value == SubmitDataTypes.onComplete) {
+                                FlowCallbackObject.getFlowCallbackObject()
+                                    .onFlowCompleted(FlowController.getSubmitList())
+                                finishAffinity();
+                            } else {
+                                FlowController.backClick(this@SubmitStepActivity);
+                            }
+
+                        },
                         onSubmit = {
                             if (submitDataTypes.value == SubmitDataTypes.onComplete) {
-                                FlowCallbackObject.getFlowCallbackObject().onFlowCompleted( FlowController.getSubmitList())
+                                FlowCallbackObject.getFlowCallbackObject()
+                                    .onFlowCompleted(FlowController.getSubmitList())
                                 finishAffinity();
                             } else {
                                 assentifySdk.startSubmitData(this, FlowController.getSubmitList())
