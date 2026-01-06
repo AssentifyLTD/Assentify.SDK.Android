@@ -50,11 +50,11 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
                 ) {
                     SubmitStepScreen(
                         submitDataTypes = submitDataTypes.value,
-                        onBack = { FlowController.backClick(this@SubmitStepActivity);},
+                        onBack = {     FlowController.backClick(this@SubmitStepActivity); },
                         onSubmit = {
                             if (submitDataTypes.value == SubmitDataTypes.onComplete) {
                                 FlowCallbackObject.getFlowCallbackObject().onFlowCompleted( FlowController.getSubmitList())
-                                onBackPressedDispatcher.onBackPressed()
+                                finishAffinity();
                             } else {
                                 assentifySdk.startSubmitData(this, FlowController.getSubmitList())
                                 submitDataTypes.value = SubmitDataTypes.onSend
