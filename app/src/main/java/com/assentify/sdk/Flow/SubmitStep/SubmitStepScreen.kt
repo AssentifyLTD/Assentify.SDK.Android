@@ -90,7 +90,7 @@ fun SubmitStepScreen(
     BaseBackgroundContainer(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+         //   .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column(
             Modifier.fillMaxSize(),
