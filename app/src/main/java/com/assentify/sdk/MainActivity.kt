@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
+import com.assentify.sdk.Core.Constants.BackgroundStyle
+import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
@@ -57,11 +59,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             faceLivenessRetryCount = 2,
             minRam = 4
         );
-
         assentifySdk = AssentifySdk(
             "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
             "2937c91f-c905-434b-d13d-08dcc04755ec",
-            "6A0001F3C7B0F99B14F5BB17B0694BE751F189ADB62A3811591E27558FC30503",
+            "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
             environmentalConditions,
             assentifySdkCallback = this,
             performActiveLivenessFace = false,
@@ -86,30 +87,48 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         hideLoader()
         AssentifySdkObject.setAssentifySdkObject(assentifySdk)
         runOnUiThread {
-            val appLogoBytes = loadImageFromAssetsAsByteArray(this, "app_logo.png")
             val customProperties: MutableMap<String, String> = mutableMapOf()
+
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                appLogoBytes,
-                backgroundHexColor = "#0D2918",
-                clicksHexColor = "#0BD884",
-                textHexColor = "#F4F4F4",
-                listItemsSelectedHexColor = "#D29E00",
-                listItemsTextSelectedHexColor = "#F4F4F4",
-                listItemsUnSelectedHexColor = "#0D1512",
-                listItemsTextUnSelectedHexColor = "#F4F4F4",
-                /*  "#000000",
-                  "#FFFFFF",
-                  "#FFC400",
-                  "#FFDE00",
-                  "#000000",
-                  "#0C1F16",
-                  "#FFFFFF",*/
+
+                /** Mint Theme **/
+                textColor = "#ffffff",
+                 secondaryTextColor = "#ffffff",
+                 backgroundCardColor = "#0D1512",
+                 accentColor = "#D29E00",
+                 backgroundColor = BackgroundStyle.Gradient(
+                     colorsHex = listOf("#0D2918", "#0D1512"),
+                     angleDegrees = 90f,
+                     holdUntil = 0.6f
+                 ),
+                 clickColor = BackgroundStyle.Solid("#0BD884"),
+                /** X Theme **/
+                /*  textHexColor = TextColor.BLACK,
+                    accentColor = "#833F89",
+                    fieldHexColor = "#F2F2F2",
+                    backgroundColor = BackgroundStyle.Solid("#FFFFFF"),
+                     clickColor = BackgroundStyle.Gradient(
+                         colorsHex = listOf("#833F89", "#C82B47"),
+                         angleDegrees = 0f,
+                         holdUntil = 0.6f
+                     ),*/
+                /** Mix **/
+                /*  logoUrl = "https://dummyimage.com/300x300/000/fff.png&text=LOGO",
+                  accentColor = "#833F89",
+                  clickColor = BackgroundStyle.Gradient(
+                      colorsHex = listOf("#833F89", "#C82B47"),
+                      angleDegrees = 0f,
+                      holdUntil = 0.6f
+                  ),*/
+                svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
+                logoUrl = "ii",
                 language = Language.English,
                 enableNfc = false,
                 enableQr = true,
-                blockLoaderCustomProperties = customProperties
-
+                blockLoaderCustomProperties = customProperties,
+                backgroundType = BackgroundType.Image
             );
+
 
             assentifySdk.startFlow(
                 this@MainActivity,

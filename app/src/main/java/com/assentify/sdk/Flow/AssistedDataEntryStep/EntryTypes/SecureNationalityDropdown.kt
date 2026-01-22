@@ -35,6 +35,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
@@ -108,8 +111,7 @@ fun SecureNationalityDropdown(
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 
-    val pillColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
-    val accent = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+    val pillColor = BaseTheme.FieldColor
 
     // Helper to show current selection text
     val selectedCountry = options.firstOrNull { it.code3.equals(selectedCode, true) }
@@ -119,8 +121,9 @@ fun SecureNationalityDropdown(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -136,12 +139,12 @@ fun SecureNationalityDropdown(
                 onValueChange = {},
                 readOnly = true,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = BaseTheme.BaseTextColor,),
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Dropdown Arrow",
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
+                        tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
                         modifier = Modifier.size(30.dp)
                     )
                 },
@@ -152,7 +155,7 @@ fun SecureNationalityDropdown(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
+                    cursorColor = BaseTheme.BaseTextColor,
                 ),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
@@ -173,9 +176,9 @@ fun SecureNationalityDropdown(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(flagEmoji(option.code2), color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
+                                Text(flagEmoji(option.code2), color = BaseTheme.BaseTextColor,)
                                 Spacer(Modifier.width(10.dp))
-                                Text(option.name, color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
+                                Text(option.name, color = BaseTheme.BaseTextColor,)
                             }
                         },
                         onClick = {
@@ -191,7 +194,7 @@ fun SecureNationalityDropdown(
 
         if (err.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
-            Text(err, color = Color.Red, fontSize = 12.sp)
+            Text(err, color = BaseTheme.BaseRedColor, fontSize = 12.sp)
         }
     }
 }

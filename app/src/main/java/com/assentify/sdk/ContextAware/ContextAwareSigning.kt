@@ -25,7 +25,6 @@ class ContextAwareSigning(
 ) {
 
 
-    private var templateId = -1;
     private var contextAwareSigningModel :ContextAwareSigningModel? = null;
 
     init {
@@ -52,8 +51,9 @@ class ContextAwareSigning(
             ) {
                 if (response.isSuccessful) {
                     contextAwareSigningModel = response.body();
-                    templateId = response.body()!!.data.selectedTemplates[0]
-                    getTokensMappings(response.body()!!.data.selectedTemplates[0])
+                    response.body()!!.data.selectedTemplates.forEach {it->
+                        getTokensMappings(it)
+                    }
                 }
             }
 
@@ -66,13 +66,13 @@ class ContextAwareSigning(
 
 
 
-    private  fun getTokensMappings(documentId: Int) {
+    private  fun getTokensMappings(templateId: Int) {
         val remoteService = remoteSigningService
         val call = remoteService.mappings(
             configModel.tenantIdentifier,
             configModel.blockIdentifier,
             stepID,
-            documentId
+            templateId
         )
         call.enqueue(object : Callback<List<TokensMappings>> {
             override fun onResponse(
@@ -80,7 +80,7 @@ class ContextAwareSigning(
                 response: Response<List<TokensMappings>>
             ) {
                 if (response.isSuccessful) {
-                    contextAwareSigningCallback.onHasTokens(response.body()!!,contextAwareSigningModel);
+                    contextAwareSigningCallback.onHasTokens(templateId,response.body()!!,contextAwareSigningModel);
                 }
             }
 
@@ -91,7 +91,7 @@ class ContextAwareSigning(
     }
 
 
-    fun createUserDocumentInstance(data: Map<String, String>) {
+    fun createUserDocumentInstance(templateId:Int,data: Map<String, String>) {
         val remoteService = remoteSigningService
         val createUserDocumentRequestModel =
             CreateUserDocumentRequestModel(

@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -113,14 +114,14 @@ fun PdfViewerFromUrl(
             isLoading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+                        color =   BaseTheme.BaseTextColor
                     )
                 }
             }
 
             error != null -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Failed to load PDF", color = Color.Red)
+                    Text(text = "Failed to load PDF", color = BaseTheme.BaseRedColor)
                 }
             }
 
@@ -259,7 +260,7 @@ private fun PdfRendererFullScreen(
         loading -> {
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(
-                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+                    color =   BaseTheme.BaseTextColor
                 )
             }
         }

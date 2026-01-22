@@ -23,6 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
@@ -85,8 +88,9 @@ fun SecureTextField(
 
         Text(
             text = title,
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -101,13 +105,13 @@ fun SecureTextField(
             readOnly = field.readOnly!! || field.isLocked!!,
             singleLine = true,
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                focusedContainerColor = BaseTheme.FieldColor,
+                unfocusedContainerColor = BaseTheme.FieldColor,
+                cursorColor =BaseTheme.FieldColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
-                unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                focusedTextColor = BaseTheme.BaseTextColor,
+                unfocusedTextColor = BaseTheme.BaseTextColor,
                 focusedPlaceholderColor = Color.Gray,
                 unfocusedPlaceholderColor = Color.Gray
             ),
@@ -121,7 +125,7 @@ fun SecureTextField(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color.Red,
+                color = BaseTheme.BaseRedColor,
                 fontSize = 12.sp
             )
         }

@@ -1,6 +1,6 @@
 package com.assentify.sdk.Flow.ReusableComposable.Events
 
-import androidx.compose.foundation.background
+import ScanAnimation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
-import com.assentify.sdk.Flow.ReusableComposable.GifPlayer
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -39,26 +41,29 @@ fun OnSendScreen(
     val iconUploading = remember {
         loadSvgFromAssets(context, "ic_uploading.svg")
     }
-
+    BaseBackgroundContainer(
+        modifier = Modifier.fillMaxSize()
+    ) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))) // dark green background
             .padding(horizontal = 32.dp, vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
        if(process == 100){
-           GifPlayer("file:///android_asset/gif_processing.gif")
+           ScanAnimation(
+               sourceIconName = "ic_scan_id.svg"
+           );
        }else{
            iconUploading?.let {
                Icon(
                    painter = it,
                    contentDescription = "Uploading",
                    modifier = Modifier.size(250.dp),
-                   tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                   tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
                )
            }
        }
@@ -67,8 +72,9 @@ fun OnSendScreen(
         if(process != 100){
             Text(
                 text = "$process%",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)).copy(alpha = 0.9f),
+                color =   BaseTheme.BaseTextColor.copy(alpha = 0.9f),
                 fontSize = 14.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Medium
             )
             Spacer(Modifier.height(8.dp))
@@ -79,8 +85,8 @@ fun OnSendScreen(
                     .fillMaxWidth(0.6f)
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
-                trackColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)).copy(alpha = 0.2f)
+                color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                trackColor =   BaseTheme.FieldColor
             )
             Spacer(Modifier.height(12.dp))
 
@@ -90,8 +96,9 @@ fun OnSendScreen(
         if(process == 100){
             Text(
                 text = "Processing ID please wait",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color =   BaseTheme.BaseTextColor,
                 fontSize = 18.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
                 textAlign = TextAlign.Center,
@@ -100,8 +107,9 @@ fun OnSendScreen(
         }else{
             Text(
                 text = "Uploading ID please wait",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color =   BaseTheme.BaseTextColor,
                 fontSize = 18.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
                 textAlign = TextAlign.Center,
@@ -109,5 +117,5 @@ fun OnSendScreen(
             )
         }
 
-    }
+    }}
 }

@@ -1,10 +1,7 @@
 package com.assentify.sdk.Flow.QrStep
 
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,12 +25,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.assentify.sdk.Core.Constants.toBrush
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.GifPlayer
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
@@ -47,16 +50,13 @@ fun HowToCaptureQrScreen(
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
-    val logoBitmap: ImageBitmap? = remember(flowEnv.appLogo) {
-        flowEnv.appLogo?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
-    }
 
 
 
-    Box(
+
+    BaseBackgroundContainer(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .systemBarsPadding()
     ) {
@@ -83,20 +83,22 @@ fun HowToCaptureQrScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                            tint =   BaseTheme.BaseTextColor,
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                      logoBitmap?.let {
-                        Image(
-                            bitmap = it,
-                            contentDescription = "Logo",
-                            modifier = Modifier
-                                .size(60.dp)
-                                .align(Alignment.CenterVertically)
-                        )
-                    }
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(BaseTheme.BaseLogo)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.CenterVertically),
+                        contentScale = ContentScale.Fit
+                    )
                     Spacer(modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.size(48.dp))
                 }
@@ -105,8 +107,9 @@ fun HowToCaptureQrScreen(
 
                 Text(
                     "Capture QR Code",
-                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                    color =   BaseTheme.BaseTextColor,
                     fontSize = 25.sp,
+                    fontFamily = InterFont,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
                     textAlign = TextAlign.Center,
@@ -129,8 +132,9 @@ fun HowToCaptureQrScreen(
 
                 Text(
                     "Watch how easy it is to capture your ID Qr Code",
-                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                    color =   BaseTheme.BaseTextColor,
                     fontSize = 25.sp,
+                    fontFamily = InterFont,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp,
                     textAlign = TextAlign.Center,
@@ -141,9 +145,10 @@ fun HowToCaptureQrScreen(
 
                 Text(
                     "Just make sure to be in a well lit area with no direct light reflecting on the ID .",
-                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                    color =   BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Thin,
                     textAlign = TextAlign.Center,
                     lineHeight = 15.sp,
                     modifier = Modifier.fillMaxWidth()
@@ -156,19 +161,22 @@ fun HowToCaptureQrScreen(
             // BOTTOM – pinned
             Button(
                 onClick = { onNext() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                    contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp, horizontal = 20.dp)
+                    .padding(vertical = 25.dp, horizontal = 25.dp).background(
+                        brush = BaseTheme.BaseClickColor!!.toBrush(),
+                        shape = RoundedCornerShape(28.dp)
+                    )
             ) {
                 Text(
                     "Next",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 10.dp)
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Normal,
+                    color = BaseTheme.BaseSecondaryTextColor,
+                    modifier = Modifier.padding(vertical = 7.dp)
                 )
             }
         }

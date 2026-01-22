@@ -1,7 +1,6 @@
 package com.assentify.sdk.Flow.SubmitStep
 
 
-import android.graphics.BitmapFactory
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -23,7 +22,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,14 +38,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +52,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
+import com.assentify.sdk.Core.Constants.toBrush
+import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.SubmitDataTypes
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import kotlin.math.roundToInt
@@ -66,24 +73,23 @@ fun SubmitStepScreen(
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
-    val logoBitmap: ImageBitmap? = remember(flowEnv.appLogo) {
-        flowEnv.appLogo?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
-    }
 
-    val bg = Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
-    val accent = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
-    val pill = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
+
 
     var resetTick by remember { mutableStateOf(0) }
 
-    if(submitDataTypes == SubmitDataTypes.onError){
+    if (submitDataTypes == SubmitDataTypes.onError) {
         resetTick++
     }
+    val context = LocalContext.current
 
-    Box(
+    val phoneIcon = remember("ic_phone.svg") {
+        loadSvgFromAssets(context, "ic_phone.svg")
+    }
+
+    BaseBackgroundContainer(
         modifier = modifier
             .fillMaxSize()
-            .background(bg)
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column(
@@ -107,243 +113,206 @@ fun SubmitStepScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                            tint =   BaseTheme.BaseTextColor,
                             modifier = Modifier.size(30.dp)
                         )
                     }
                     Spacer(Modifier.weight(1f))
 
-                      logoBitmap?.let {
-                        Image(
-                            bitmap = it,
-                            contentDescription = "Logo",
-                            modifier = Modifier
-                                .size(60.dp)
-                                .align(Alignment.CenterVertically)
-                        )
-                    } ?: Spacer(Modifier.size(22.dp))
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(BaseTheme.BaseLogo)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.CenterVertically),
+                        contentScale = ContentScale.Fit
+                    )
 
                     Spacer(Modifier.weight(1f))
                     Spacer(Modifier.size(48.dp))
                 }
             }
 
-            // MIDDLE (all states share one weighted box)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                when (submitDataTypes) {
-                    SubmitDataTypes.onSend -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(70.dp),
-                            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                            strokeWidth = 6.dp
+
+                // =========================
+                // MIDDLE (takes remaining space)
+                // =========================
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f), // ✅ middle area
+                    contentAlignment = Alignment.Center
+                ) {
+                    when (submitDataTypes) {
+
+                        SubmitDataTypes.onSend -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(70.dp),
+                                color =   BaseTheme.BaseTextColor,
+                                strokeWidth = 6.dp
+                            )
+                        }
+
+                        SubmitDataTypes.onError -> {
+                            MiddleContent(
+                                phoneIcon = phoneIcon,
+                                flowEnv = flowEnv,
+                                title = null,
+                                message = "We couldn't complete your submission. Check your connection and retry.",
+                                messageColor = BaseTheme.BaseRedColor
+                            )
+                        }
+
+                        SubmitDataTypes.none -> {
+                            MiddleContent(
+                                phoneIcon = phoneIcon,
+                                flowEnv = flowEnv,
+                                title = "Ready to Submit?",
+                                message = "Swipe the button below to confirm your submission.",
+                                messageColor =   BaseTheme.BaseTextColor
+                            )
+                        }
+
+                        SubmitDataTypes.onComplete -> {
+                            MiddleContent(
+                                phoneIcon = phoneIcon,
+                                flowEnv = flowEnv,
+                                title = "THANK YOU",
+                                message = "Swipe the button below to continue.",
+                                messageColor =   BaseTheme.BaseTextColor
+                            )
+                        }
+                    }
+                }
+
+                // =========================
+                // BOTTOM (fixed)
+                // =========================
+                when {
+                    submitDataTypes != SubmitDataTypes.onSend &&
+                            submitDataTypes != SubmitDataTypes.onComplete &&
+                            submitDataTypes != SubmitDataTypes.onError -> {
+                        SwipeToSubmit(
+                            text = "Swipe to Submit",
+                            resetKey = resetTick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 30.dp),
+                            onComplete = { onSubmit() }
                         )
                     }
 
-                    SubmitDataTypes.onError -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(170.dp)
-                                    .padding(bottom = 24.dp)
-                                    .drawBehind {
-                                        drawCircle(
-                                            brush = Brush.radialGradient(
-                                                colors = listOf(
-                                                    accent.copy(alpha = 0.25f),
-                                                    Color.Transparent
-                                                )
-                                            ),
-                                            radius = size.minDimension / 2f
-                                        )
-                                    }
-                            ) {
-                                logoBitmap?.let {
-                                    Image(
-                                        bitmap = it,
-                                        contentDescription = "Logo",
-                                        modifier = Modifier
-                                            .size(130.dp)
-                                            .graphicsLayer {
-                                                shadowElevation = 12f
-                                                shape = RoundedCornerShape(18.dp)
-                                                clip = false
-                                            }
-                                    )
-                                }
-                            }
-
-                            Spacer(Modifier.height(10.dp))
-
-                            Text(
-                                text = "We couldn't complete your submission. Check your connection and retry.",
-                                color = Color.Red,
-                                fontSize = 15.sp,
-                                lineHeight = 25.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp)
-                            )
-                        }
-                    }
-
-                    SubmitDataTypes.none -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(170.dp)
-                                    .padding(bottom = 24.dp)
-                                    .drawBehind {
-                                        drawCircle(
-                                            brush = Brush.radialGradient(
-                                                colors = listOf(
-                                                    accent.copy(alpha = 0.25f),
-                                                    Color.Transparent
-                                                )
-                                            ),
-                                            radius = size.minDimension / 2f
-                                        )
-                                    }
-                            ) {
-                                logoBitmap?.let {
-                                    Image(
-                                        bitmap = it,
-                                        contentDescription = "Logo",
-                                        modifier = Modifier
-                                            .size(130.dp)
-                                    )
-                                }
-                            }
-
-                            Text(
-                                text = "Ready to Submit?",
-                                color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                                fontSize = 30.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 1.sp
-                            )
-
-                            Spacer(Modifier.height(10.dp))
-
-                            Text(
-                                text = "Swipe the button below to confirm your submission.",
-                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                                fontSize = 15.sp,
-                                lineHeight = 25.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-
-                    SubmitDataTypes.onComplete -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(170.dp)
-                                    .padding(bottom = 24.dp)
-                                    .drawBehind {
-                                        drawCircle(
-                                            brush = Brush.radialGradient(
-                                                colors = listOf(
-                                                    accent.copy(alpha = 0.25f),
-                                                    Color.Transparent
-                                                )
-                                            ),
-                                            radius = size.minDimension / 2f
-                                        )
-                                    }
-                            ) {
-                                logoBitmap?.let {
-                                    Image(
-                                        bitmap = it,
-                                        contentDescription = "Logo",
-                                        modifier = Modifier
-                                            .size(130.dp)
-
-                                    )
-                                }
-                            }
-
-                            Text(
-                                text = "THANK YOU",
-                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                                fontSize = 38.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 1.sp
-                            )
-
-                            Spacer(Modifier.height(10.dp))
-
-                            Text(
-                                text = "For submitting and welcome to NXT\nNavigation x Transform",
-                                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                                fontSize = 18.sp,
-                                lineHeight = 25.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                    submitDataTypes == SubmitDataTypes.onComplete -> {
+                        SwipeToSubmit(
+                            text = "\t\t\t\t\t\t\tNext\t\t\t\t\t\t\t",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 30.dp),
+                            onComplete = { onSubmit() }
+                        )
                     }
                 }
             }
 
-            // BOTTOM
-            when {
-                submitDataTypes != SubmitDataTypes.onSend &&
-                        submitDataTypes != SubmitDataTypes.onComplete &&
-                        submitDataTypes != SubmitDataTypes.onError -> {
-                    SwipeToSubmit(
-                        text = "Swipe to Submit",
-                        resetKey = resetTick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 30.dp),
-                        onComplete = { onSubmit() }
-                    )
-                }
-
-                submitDataTypes == SubmitDataTypes.onComplete -> {
-                    SwipeToSubmit(
-                        text = " \t\tNext\t\t ",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 30.dp),
-                        onComplete = { onSubmit() }
-                    )
-                }
-            }
         }
     }
 
 }
 
+@Composable
+private fun MiddleContent(
+    phoneIcon: Painter?,
+    flowEnv: FlowEnvironmentalConditions,
+    title: String?,
+    message: String,
+    messageColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
 
+        Box(
+            modifier = Modifier.padding(bottom = 24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            phoneIcon?.let {
+                Image(
+                    painter = it,
+                    contentDescription = "phoneIcon",
+                    modifier = Modifier
+                        .height(400.dp),
+                    contentScale = ContentScale.FillHeight,
+                    colorFilter = ColorFilter.tint(
+                        Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                    )
+                )
+            }
+
+
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(BaseTheme.BaseLogo)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Logo",
+                modifier = Modifier
+                    .size(140.dp)
+                    .padding(top = 40.dp),
+                contentScale = ContentScale.Fit
+            )
+
+        }
+
+        title?.let {
+            Text(
+                text = it,
+                color =   BaseTheme.BaseTextColor,
+                fontSize = if (it == "THANK YOU") 38.sp else 30.sp,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(10.dp))
+        }
+
+        Text(
+            text = message,
+            color = messageColor,
+            fontFamily = InterFont,
+            fontWeight = FontWeight.Normal,
+            fontSize = 15.sp,
+            lineHeight = 25.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
 
 @Composable
 fun SwipeToSubmit(
     text: String = "Swipe to Submit",
     modifier: Modifier = Modifier,
-    height: Dp = 70.dp,
+    height: Dp = 65.dp,
     corner: Dp = 35.dp,
     onComplete: () -> Unit,
     resetKey: Any? = null,
 ) {
+
+    val context = LocalContext.current
+
+
     val density = LocalDensity.current
     var trackWidthPx by remember { mutableStateOf(0f) }
 
@@ -373,6 +342,10 @@ fun SwipeToSubmit(
         rawOffset = 0f
     }
 
+    val arrowsIcon = remember("ic_right_arrows.svg") {
+        loadSvgFromAssets(context, "ic_right_arrows.svg")
+    }
+
 
     val threshold = maxOffset * 0.75f
 
@@ -388,7 +361,7 @@ fun SwipeToSubmit(
             .fillMaxWidth()
             .height(height)
             .clip(RoundedCornerShape(corner))
-            .background(Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)))
+            .background( BaseTheme.BaseClickColor!!.toBrush())
             .onGloballyPositioned { trackWidthPx = it.size.width.toFloat() }
             .padding(horizontal = 8.dp, vertical = 7.dp)
             .pointerInput(Unit) {
@@ -408,34 +381,48 @@ fun SwipeToSubmit(
                 .padding(end = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)).copy(alpha = 0.5f),
-                modifier = Modifier.size(40.dp)
-            )
+            arrowsIcon?.let {
+                Image(
+                    painter = it,
+                    contentDescription = "arrowsIcon",
+                    modifier = Modifier.size(30.dp),
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(
+                          BaseTheme.BaseTextColor.copy(alpha = 0.5f),
+                    )
+                )
+            }
         }
 
         // Draggable knob
-        Box(
+        Card(
             modifier = Modifier
                 .offset { IntOffset(animatedOffset.roundToInt(), 0) }
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(corner))
-                .background(Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)),
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                maxLines = 1,
-                softWrap = false,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .onGloballyPositioned { textWidthPx = it.size.width.toFloat() }
+                .fillMaxHeight(),
+            shape = RoundedCornerShape(corner),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp
+            ),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
             )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text,
+                    color = BaseTheme.BaseTextColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .onGloballyPositioned { textWidthPx = it.size.width.toFloat() }
+                )
+            }
         }
     }
 }

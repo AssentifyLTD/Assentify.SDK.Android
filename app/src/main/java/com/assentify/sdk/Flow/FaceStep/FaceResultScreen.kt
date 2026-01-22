@@ -34,8 +34,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.assentify.sdk.Core.Constants.ConstantsValues
+import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.FaceMatch.FaceResponseModel
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
@@ -49,9 +52,6 @@ fun FaceResultScreen(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-    val bg = Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
-    val primary = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
-    val accent = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
 
     val match = faceModel.faceExtractedModel?.percentageMatch ?: 0
     val baseImage = faceModel.faceExtractedModel?.baseImageFace.orEmpty()
@@ -64,15 +64,16 @@ fun FaceResultScreen(
         else "Your face did not match with the provided document. Provide another document or confirm."
 
     val borderColor = when {
-        match!! > 50 -> Color(android.graphics.Color.parseColor(ConstantsValues.DetectColor))
-        match!! > 30 -> Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-        else -> Color.Red
+        match!! > 50 -> BaseTheme.BaseGreenColor
+        match!! > 30 ->   Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+        else -> BaseTheme.BaseRedColor
     }
-
+    BaseBackgroundContainer(
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bg)
             .statusBarsPadding()              // respect status bar
             .padding(horizontal = 24.dp)      // side padding like the mock
             .padding(top = 24.dp, bottom = 16.dp),
@@ -91,8 +92,9 @@ fun FaceResultScreen(
             // TOP
             Text(
                 text = title,
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color =   BaseTheme.BaseTextColor,
                 fontSize = 25.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 30.sp,
                 textAlign = TextAlign.Center,
@@ -105,8 +107,9 @@ fun FaceResultScreen(
 
             Text(
                 text = subTitle,
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color =   BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Light,
                 lineHeight = 18.sp,
                 textAlign = TextAlign.Center,
@@ -170,16 +173,20 @@ fun FaceResultScreen(
             match > 50 -> {
                 Button(
                     onClick = onNext,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = primary,
-                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     shape = RoundedCornerShape(999.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = 8.dp)  .background(
+                            brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
+                        )
                 ) {
-                    Text("Next", modifier = Modifier.padding(vertical = 10.dp))
+                    Text("Next",
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Normal,
+                        color =  BaseTheme.BaseSecondaryTextColor,
+                        modifier = Modifier.padding(vertical = 7.dp))
                 }
             }
 
@@ -190,34 +197,38 @@ fun FaceResultScreen(
 
                         Button(
                             onClick = onRetry,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = primary,
-                                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                            ),
                             shape = corner,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(54.dp) // consistent height
-                                .border(1.dp, primary, corner)
+                                .height(54.dp)  .background(
+                                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                    shape = RoundedCornerShape(28.dp)
+                                ) // consistent height
                         ) {
-                            Text("Retry", fontWeight = FontWeight.Medium)
+                            Text("Retry",
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Normal,
+                                color =  BaseTheme.BaseSecondaryTextColor,
+                                modifier = Modifier.padding(vertical = 7.dp))
                         }
 
                         Spacer(Modifier.height(12.dp))
 
                         Button(
                             onClick = onNext,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                                contentColor = accent
-                            ),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = corner,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
-                                .border(1.dp, accent, corner)
+                                .border(1.dp, Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)), corner)
                         ) {
-                            Text("Confirm & Proceed", fontWeight = FontWeight.Medium)
+                            Text("Confirm & Proceed",
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Normal,
+                                color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                modifier = Modifier.padding(vertical = 7.dp))
                         }
                     }
 
@@ -226,17 +237,21 @@ fun FaceResultScreen(
 
                         Button(
                             onClick = onIDChange,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = primary,
-                                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                            ),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = corner,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(54.dp)
-                                .border(1.dp, primary, corner)
+                                .background(
+                                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                    shape = RoundedCornerShape(28.dp)
+                                )
                         ) {
-                            Text("Provide Supporting ID to match with", fontWeight = FontWeight.Medium)
+                            Text("Provide Supporting ID to match with",
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Normal,
+                                color =  BaseTheme.BaseSecondaryTextColor,
+                                modifier = Modifier.padding(vertical = 7.dp))
                         }
 
                         Spacer(Modifier.height(12.dp))
@@ -245,15 +260,18 @@ fun FaceResultScreen(
                             onClick = onNext,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
-                                contentColor = Color.Red
                             ),
                             shape = corner,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
-                                .border(1.dp, Color.Red, corner)
+                                .border(1.dp, BaseTheme.BaseRedColor, corner)
                         ) {
-                            Text("Override & Proceed", fontWeight = FontWeight.Medium)
+                            Text("Override & Proceed",
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Normal,
+                                color =  BaseTheme.BaseRedColor,
+                                modifier = Modifier.padding(vertical = 7.dp))
                         }
                     }
                 }
@@ -261,7 +279,7 @@ fun FaceResultScreen(
         }
 
         Spacer(Modifier.navigationBarsPadding())
-    }
+    }}
 
 }
 
@@ -276,12 +294,12 @@ fun MatchProgress(
     val pct = (percentage ?: 0).coerceIn(0, 100)
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val trackColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+    val trackColor =   BaseTheme.BaseTextColor
 
     val progressColor = when {
-        percentage!! > 50 -> Color(android.graphics.Color.parseColor(ConstantsValues.DetectColor))
-        percentage!! > 30 -> Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
-        else -> Color.Red
+        percentage!! > 50 -> BaseTheme.BaseGreenColor
+        percentage!! > 30 ->Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+        else -> BaseTheme.BaseRedColor
     }
     Box(
         modifier = modifier.size(size),
@@ -323,11 +341,13 @@ fun MatchProgress(
                 text = "$pct%",
                 color = progressColor,
                 fontSize = 15.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Normal
             )
             Text(
                 text = "Match",
                 color = progressColor,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,
                 fontSize = 18.sp
             )

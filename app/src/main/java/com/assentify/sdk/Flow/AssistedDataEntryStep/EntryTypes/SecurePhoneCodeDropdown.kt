@@ -39,6 +39,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,8 +55,7 @@ fun SecurePhoneInput(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val pillColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
-    val accent = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+    val pillColor = BaseTheme.FieldColor
     val isReadOnly = false
 
     var defaultIso2 = remember(field.inputKey, page) {
@@ -120,8 +122,9 @@ fun SecurePhoneInput(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -139,12 +142,12 @@ fun SecurePhoneInput(
                     onValueChange = {},
                     readOnly = true,
                     singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = BaseTheme.BaseTextColor),
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowDown,
                             contentDescription = "Choose code",
-                            tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
+                            tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
                             modifier = Modifier.size(24.dp)
                         )
                     },
@@ -155,7 +158,7 @@ fun SecurePhoneInput(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
+                        cursorColor = BaseTheme.BaseTextColor
                     ),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
@@ -175,9 +178,9 @@ fun SecurePhoneInput(
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(flagEmoji(option.code2), color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
+                                    Text(flagEmoji(option.code2), color = BaseTheme.BaseTextColor)
                                     Spacer(Modifier.width(10.dp))
-                                    Text("${option.dialCode}", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)))
+                                    Text("${option.dialCode}", color = BaseTheme.BaseTextColor)
                                 }
                             },
                             onClick = {
@@ -203,8 +206,8 @@ fun SecurePhoneInput(
                 },
                 readOnly = isReadOnly,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))),
-                placeholder = { Text("", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.6f)) },
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = BaseTheme.BaseTextColor),
+                placeholder = { Text("", color = BaseTheme.BaseTextColor.copy(alpha = 0.6f)) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = pillColor,
                     unfocusedContainerColor = pillColor,
@@ -212,7 +215,7 @@ fun SecurePhoneInput(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
+                    cursorColor = BaseTheme.BaseTextColor
                 ),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone
@@ -226,7 +229,7 @@ fun SecurePhoneInput(
 
         if (err.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
-            Text(err, color = Color.Red, fontSize = 12.sp)
+            Text(err, color = BaseTheme.BaseRedColor, fontSize = 12.sp)
         }
     }
 }

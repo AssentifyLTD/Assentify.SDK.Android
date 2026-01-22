@@ -37,6 +37,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.assentify.sdk.Core.Constants.toBrush
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
@@ -96,10 +100,6 @@ fun OnCompleteScreen(
         }
     }
 
-    // Use your colors (no colors from screenshot)
-    val bgColor = Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
-    val textColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
-    val primary = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor))
 
     // ---------- data rows ----------
     val dataRows = remember(extractedMap) {
@@ -163,22 +163,23 @@ fun OnCompleteScreen(
     }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-
+    BaseBackgroundContainer(
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgColor)
             .statusBarsPadding()
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-        Spacer(Modifier.height(130.dp))
+        Spacer(Modifier.height(150.dp))
         // ---- Images header (2 thumbnail cards) ----
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 6.dp)
                 .background(
-                    color = primary.copy(alpha = 0.12f),
+                    color = BaseTheme.FieldColor,
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(14.dp)
@@ -197,7 +198,7 @@ fun OnCompleteScreen(
                 .fillMaxWidth()
                 .height(screenHeight / 2.2f)
                 .background(
-                    color = primary.copy(alpha = 0.12f),
+                    color = BaseTheme.FieldColor,
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 12.dp, vertical = 12.dp)
@@ -214,8 +215,7 @@ fun OnCompleteScreen(
                     PrettyListRow(
                         label = label,
                         value = value,
-                        primary = primary,
-                        textColor = textColor,
+
                         isOk = isOk
                     )
                 }
@@ -227,23 +227,26 @@ fun OnCompleteScreen(
         // ---- Button (keep as is) ----
         Button(
             onClick = onNext,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = primary,
-                contentColor = textColor
-            ),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(bottom = 10.dp)
+                .padding(bottom = 10.dp).background(
+                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                    shape = RoundedCornerShape(28.dp)
+                ),
         ) {
             Text(
                 "Next",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 10.dp)
+                color = BaseTheme.BaseSecondaryTextColor,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(vertical = 7.dp)
             )
         }
-    }
+    }}
 }
 
 /* ---------------------------------------------
@@ -276,9 +279,6 @@ private fun ImagesHeader(
                     .width(140.dp)
                     .height(120.dp),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor =  Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
-                ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 8.dp
                 )
@@ -307,21 +307,23 @@ private fun ImagesHeader(
 private fun PrettyListRow(
     label: String,
     value: String,
-    primary: Color,
-    textColor: Color,
+
     isOk: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val icon =Icons.Filled.CheckCircle
-    val iconTint = primary
+    val iconTint = BaseTheme.BaseGreenColor
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().background(
+            brush = BaseTheme.BackgroundColor!!.toBrush(),
+            shape = RoundedCornerShape(14.dp)
+        ),
         shape = RoundedCornerShape(14.dp),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        color = Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor))
+        color = Color.Transparent
     ) {
         Row(
             modifier = Modifier
@@ -335,7 +337,7 @@ private fun PrettyListRow(
                     .width(6.dp)
                     .height(44.dp)
                     .clip(RoundedCornerShape(99.dp))
-                    .background(primary)
+                    .background(BaseTheme.BaseGreenColor)
             )
 
             Spacer(Modifier.width(12.dp))
@@ -343,14 +345,14 @@ private fun PrettyListRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = formatLabel(label),
-                    color = textColor.copy(alpha = 0.80f),
+                    color = BaseTheme.BaseTextColor.copy(alpha = 0.80f),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = value,
-                    color = textColor,
+                    color = BaseTheme.BaseTextColor,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium
                 )

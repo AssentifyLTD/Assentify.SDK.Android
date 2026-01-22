@@ -2,13 +2,11 @@ package com.assentify.sdk.Flow.FaceStep
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,14 +38,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Base64ImageObject
 import com.assentify.sdk.Core.Constants.ActiveLiveEvents
@@ -55,12 +55,15 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
+import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.FaceMatch.FaceMatchManual
 import com.assentify.sdk.FaceMatch.FaceMatchResult
 import com.assentify.sdk.FaceMatch.FaceResponseModel
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -299,9 +302,7 @@ fun FaceMatchScanScreen(
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-    val logoBitmap: ImageBitmap? = remember(flowEnv.appLogo) {
-        flowEnv.appLogo?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
-    }
+
 
     var faceMatch by remember { mutableStateOf<FaceMatch?>(null) }
     var faceMatchManual by remember { mutableStateOf<FaceMatchManual?>(null) }
@@ -422,20 +423,24 @@ fun FaceMatchScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                        tint =   BaseTheme.BaseTextColor,
                         modifier = Modifier.size(30.dp)
                     )
                 }
 
                 Spacer(Modifier.weight(1f))
 
-                logoBitmap?.let {
-                    Image(
-                        bitmap = it,
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(60.dp)
-                    )
-                }
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(BaseTheme.BaseLogo)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .align(Alignment.CenterVertically),
+                    contentScale = ContentScale.Fit
+                )
 
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
@@ -456,20 +461,22 @@ fun FaceMatchScanScreen(
                     onClick = {
                         faceMatchManual!!.takePicture();
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(vertical = 12.dp, horizontal = 20.dp)
-                        .fillMaxWidth()
+                        .padding(vertical = 25.dp, horizontal = 25.dp)
+                        .fillMaxWidth().background(
+                            brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
+                        )
                 ) {
                     Text(
                         "Take Photo",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        fontFamily = InterFont,
+                        color = BaseTheme.BaseSecondaryTextColor,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(vertical = 7.dp)
                     )
                 }
             } else {
@@ -482,7 +489,7 @@ fun FaceMatchScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),                        fontSize = 15.sp,
+                        color =   BaseTheme.BaseTextColor,                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,

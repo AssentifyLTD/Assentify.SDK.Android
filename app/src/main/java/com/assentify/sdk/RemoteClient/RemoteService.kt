@@ -17,6 +17,7 @@ import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
+import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
 import com.assentify.sdk.RemoteClient.Models.TokensMappings
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
@@ -43,7 +44,20 @@ import retrofit2.http.Url
 interface RemoteAPIService {
     @GET("v1/Manager/Start/{interActionId}")
     @Headers("Content-Type: application/json")
-    fun getStart(@Path("interActionId") interActionId: String): Call<ConfigModel>
+    fun getStart(@Path("interActionId") interActionId: String): Call<ConfigModel>;
+
+    @GET("v1/TenantTheme/GetTenantTheme/{tenantIdentifier}")
+    @Headers("Content-Type: application/json")
+    fun getTenantTheme(
+        @Header("X-Api-Key") apiKey: String,
+        @Header("X-Source-Agent") userAgent: String,
+        @Header("X-Flow-Instance-Id") flowInstanceId: String,
+        @Header("X-Tenant-Identifier") tenantIdentifier: String,
+        @Header("X-Block-Identifier") blockIdentifier: String,
+        @Header("X-Instance-Id") instanceId: String,
+        @Header("X-Flow-Identifier") flowIdentifier: String,
+        @Header("X-Instance-Hash") instanceHash: String,
+        @Path("tenantIdentifier") tenantId: String): Call<TenantThemeModel>
 
 }
 
