@@ -30,7 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.ConfigModelObject
+
 import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.OtpHelper
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
@@ -73,8 +76,9 @@ fun SecureEmailWithOtpField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = if (!isOtpStep || isVerified) title else "Enter OTP",
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -94,7 +98,7 @@ fun SecureEmailWithOtpField(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                                    BaseTheme.FieldColor,
                                     shape = RoundedCornerShape(12.dp)
                                 )
                         ) {
@@ -121,7 +125,7 @@ fun SecureEmailWithOtpField(
                             ) {
                                 Text(
                                     "Send OTP",
-                                    color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)),
+                                    color = BaseTheme.BaseTextColor,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -132,13 +136,13 @@ fun SecureEmailWithOtpField(
                     keyboardType = KeyboardType.Email
                 ),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                    focusedContainerColor = BaseTheme.FieldColor,
+                    unfocusedContainerColor = BaseTheme.FieldColor,
+                    cursorColor = BaseTheme.FieldColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
-                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    focusedTextColor = BaseTheme.BaseTextColor,
+                    unfocusedTextColor = BaseTheme.BaseTextColor,
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -181,7 +185,7 @@ fun SecureEmailWithOtpField(
 
                 },
                 singleLine = true,
-                placeholder = { Text("OTP ($otpSize)", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
+                placeholder = { Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when (otpType) {
                         1 -> KeyboardType.Number
@@ -191,13 +195,13 @@ fun SecureEmailWithOtpField(
                     }
                 ),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                    focusedContainerColor = BaseTheme.FieldColor,
+                    unfocusedContainerColor = BaseTheme.FieldColor,
+                    cursorColor =BaseTheme.FieldColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
-                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    focusedTextColor = BaseTheme.BaseTextColor,
+                    unfocusedTextColor = BaseTheme.BaseTextColor,
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -219,7 +223,7 @@ fun SecureEmailWithOtpField(
                     if(isVerified){
                         Text(
                             "Verified successfully",
-                            color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                            color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                             fontSize = 12.sp
                         )
                     }else{
@@ -260,7 +264,7 @@ fun SecureEmailWithOtpField(
             Spacer(Modifier.height(4.dp))
             Text(
                 "Otp verifying ...",
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                 fontSize = 12.sp
             )
         }
@@ -268,7 +272,7 @@ fun SecureEmailWithOtpField(
             Spacer(Modifier.height(4.dp))
             Text(
                 errToShow,
-                color = Color.Red,
+                color = BaseTheme.BaseRedColor,
                 fontSize = 12.sp
             )
         }
@@ -342,7 +346,7 @@ fun ResendOtpControl(
     ) {
         Text(
             text = if (canResend) "Resend OTP" else "Resend in $countdownLabel",
-            color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+            color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
         )
     }
 }

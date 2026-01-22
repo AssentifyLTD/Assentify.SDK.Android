@@ -1,9 +1,7 @@
 package com.assentify.sdk.Flow.AssistedDataEntryStep
 
 import AssistedFormHelper
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,14 +34,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
+import com.assentify.sdk.Core.Constants.toBrush
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -60,9 +64,7 @@ fun AssistedDataEntryScreen(
 ) {
 
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val logoBitmap: ImageBitmap? = remember(flowEnv.appLogo) {
-        flowEnv.appLogo?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
-    }
+
 
 
 
@@ -89,10 +91,9 @@ fun AssistedDataEntryScreen(
 
 
 
-    Box(
+    BaseBackgroundContainer(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
     ) {
 
 
@@ -121,20 +122,24 @@ fun AssistedDataEntryScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                        tint =   BaseTheme.BaseTextColor,
                         modifier = Modifier.size(30.dp)
                     )
                 }
 
                 Spacer(Modifier.weight(1f))
 
-                logoBitmap?.let {
-                    Image(
-                        bitmap = it,
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(BaseTheme.BaseLogo)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .align(Alignment.CenterVertically),
+                    contentScale = ContentScale.Fit
+                )
 
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
@@ -153,7 +158,7 @@ fun AssistedDataEntryScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 25.dp, bottom = 0.dp)
+                .padding(top = 100.dp, bottom = 0.dp)
         ) {
 
             Column(
@@ -170,7 +175,7 @@ fun AssistedDataEntryScreen(
                             modifier = Modifier
                                 .size(60.dp)
                                 .align(Alignment.CenterHorizontally),
-                            color =Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                            color =  BaseTheme.BaseTextColor,
                             strokeWidth = 6.dp
                         )
                     }
@@ -178,7 +183,7 @@ fun AssistedDataEntryScreen(
                     EventTypes.onError -> {
                         Text(
                             text = "Something went wrong",
-                            color = Color.Red,
+                            color = BaseTheme.BaseRedColor,
                             fontSize = 14.sp,
                             lineHeight = 18.sp,
                             textAlign = TextAlign.Center,
@@ -231,20 +236,24 @@ fun AssistedDataEntryScreen(
                         }
                     },
                     enabled = enabled,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 20.dp)
+                        .padding(vertical = 25.dp, horizontal = 25.dp)
+                        .background(
+                            brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
+                        )
                 ) {
                     Text(
                         assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].nextButtonTitle,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Normal,
+                        color = BaseTheme.BaseSecondaryTextColor,
+                        modifier = Modifier.padding(vertical = 7.dp)
                     )
                 }
             }

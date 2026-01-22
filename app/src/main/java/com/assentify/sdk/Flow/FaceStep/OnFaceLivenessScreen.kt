@@ -26,7 +26,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
@@ -39,13 +43,15 @@ fun OnFaceErrorScreen(
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
 
-    val iconSvg= remember {
+    val iconSvg = remember {
         loadSvgFromAssets(context, "ic_error.svg")
     }
+    BaseBackgroundContainer(
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
             .statusBarsPadding() // safe top
             .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
         horizontalAlignment = Alignment.CenterHorizontally
@@ -74,8 +80,10 @@ fun OnFaceErrorScreen(
                     Icon(
                         painter = it,
                         contentDescription = "ic_error",
-                        modifier = Modifier.size(100.dp),
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                        modifier = Modifier.size(60.dp),
+                        tint = Color(
+                            android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
+                        )
                     )
                 }
             }
@@ -84,8 +92,9 @@ fun OnFaceErrorScreen(
 
             Text(
                 text = "Let's try again",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color = BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
                 textAlign = TextAlign.Center,
@@ -96,10 +105,11 @@ fun OnFaceErrorScreen(
 
             Text(
                 text = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color = BaseTheme.BaseTextColor,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Light,
-                  lineHeight = 17.sp,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Thin,
+                lineHeight = 17.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -111,24 +121,27 @@ fun OnFaceErrorScreen(
         // BOTTOM
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-            ),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
+                .background(
+                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                    shape = RoundedCornerShape(28.dp)
+                )
         ) {
             Text(
                 "Retry",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 10.dp)
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal,
+                color = BaseTheme.BaseSecondaryTextColor,
+                modifier = Modifier.padding(vertical = 7.dp)
             )
         }
-    }
+    }}
 
 
 }

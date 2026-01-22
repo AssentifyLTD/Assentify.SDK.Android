@@ -1,11 +1,8 @@
 package com.assentify.sdk.Flow.BlockLoader
 
 
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,46 +25,39 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.assentify.sdk.Core.Constants.toBrush
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.Models.LocalStepModel
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
 @Composable
 fun BlockLoaderScreen(
-    logoBytes: ByteArray?,
     steps: List<LocalStepModel>,
-    backgroundHexColor: Color,
-    clicksHexColor: Color,
-    listItemsSelectedHexColor: Color,
-    listItemsUnSelectedHexColor: Color,
     onBack: () -> Unit,
     onStepClick: (LocalStepModel) -> Unit,
     onNext: () -> Unit
 ) {
     val ctx = LocalContext.current
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val logoBitmap: ImageBitmap? = remember(logoBytes) {
-        logoBytes?.let {
-            BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap()
-        }
-    }
+
 
     MaterialTheme(colorScheme = darkColorScheme()) {
-        Box(
+        BaseBackgroundContainer(
             modifier = Modifier
                 .fillMaxSize()
-                .background(backgroundHexColor)
                 .systemBarsPadding()
         ) {
             Column(
@@ -94,21 +84,23 @@ fun BlockLoaderScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                                tint = BaseTheme.BaseTextColor,
                                 modifier = Modifier.size(30.dp)
                             )
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         // centered logo visually by Row spacer balance
-                        logoBitmap?.let {
-                            Image(
-                                bitmap = it,
-                                contentDescription = "Logo",
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .align(Alignment.CenterVertically)
-                            )
-                        }
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(BaseTheme.BaseLogo)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .size(60.dp)
+                                .align(Alignment.CenterVertically),
+                            contentScale = ContentScale.Fit
+                        )
                         Spacer(modifier = Modifier.weight(1f))
                         // place-holder to keep logo visually centered
                         Spacer(modifier = Modifier.size(48.dp))
@@ -116,37 +108,40 @@ fun BlockLoaderScreen(
 
                     // header
                     Text(
-                        text = "Complete Your Onboarding in ${steps.size} Steps",
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                        fontSize = 30.sp,
+                        text = "Complete Your\nOnboarding in ${steps.size} Steps",
+                        fontFamily = InterFont,
                         fontWeight = FontWeight.Bold,
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 23.sp,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 20.dp, start = 20.dp, end = 20.dp)
+                            .padding(top = 25.dp, start = 25.dp, end = 20.dp)
                     )
                     Text(
                         text = "It will include capturing your ID and your face — it's fast, easy, and secure.",
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                        fontSize = 15.sp,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Normal,
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 12.sp,
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 5.dp, start = 20.dp, end = 20.dp, bottom = 10.dp)
+                            .padding(top = 5.dp, start = 25.dp, end = 25.dp, bottom = 10.dp)
                     )
 
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp),
+                            .padding(top = 4.dp),
                     ) {
                         itemsIndexed(steps) { index, step ->
                             StepCard(
                                 step = step,
-                                selectedColor = listItemsSelectedHexColor,
-                                unselectedColor = listItemsUnSelectedHexColor,
+                                selectedColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                unselectedColor = BaseTheme.FieldColor,
                                 onClick = { onStepClick(step) }
                             )
                             Spacer(modifier = Modifier.height(6.dp))
@@ -157,19 +152,22 @@ fun BlockLoaderScreen(
                 // ======= BOTTOM BUTTON (ALWAYS AT END OF SCREEN) =======
                 Button(
                     onClick = onNext,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = clicksHexColor,
-                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 20.dp)
+                        .padding(vertical = 25.dp, horizontal = 25.dp)
+                        .background(
+                            brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
+                        )
                 ) {
                     Text(
                         "Next",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        fontFamily = InterFont,
+                        color = BaseTheme.BaseSecondaryTextColor,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(vertical = 7.dp)
                     )
                 }
             }

@@ -27,7 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.ConfigModelObject
+
 import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.OtpHelper
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
@@ -75,8 +78,9 @@ fun SecurePhoneWithOtpField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = if (!isOtpStep || isVerified) title else "Enter OTP",
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -91,12 +95,12 @@ fun SecurePhoneWithOtpField(
                     readOnly = true,
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                        unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
+                        focusedContainerColor = BaseTheme.FieldColor,
+                        unfocusedContainerColor = BaseTheme.FieldColor,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
-                        unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
+                        focusedTextColor = BaseTheme.BaseTextColor,
+                        unfocusedTextColor = BaseTheme.BaseTextColor
                     ),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
@@ -112,12 +116,12 @@ fun SecurePhoneWithOtpField(
                         onValueChange(buildLebanonE164(localNumber, countryDial))
                     },
                     singleLine = true,
-                    placeholder = { Text("", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
+                    placeholder = { Text("", color = BaseTheme.BaseTextColor) },
                     trailingIcon = {
                         if (phoneLooksValidLB(localNumber))
                             Box(
                                 modifier = Modifier.background(
-                                    Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                                    Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                             ) {
@@ -143,7 +147,7 @@ fun SecurePhoneWithOtpField(
                                 ) {
                                     Text(
                                         "Send OTP",
-                                        color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)),
+                                        color = BaseTheme.BaseTextColor,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
@@ -154,13 +158,13 @@ fun SecurePhoneWithOtpField(
                         keyboardType = KeyboardType.Number
                     ),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                        unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                        cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                        focusedContainerColor = BaseTheme.FieldColor,
+                        unfocusedContainerColor =BaseTheme.FieldColor,
+                        cursorColor = BaseTheme.FieldColor,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
-                        unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                        focusedTextColor = BaseTheme.BaseTextColor,
+                        unfocusedTextColor = BaseTheme.BaseTextColor,
                         focusedPlaceholderColor = Color.Gray,
                         unfocusedPlaceholderColor = Color.Gray
                     ),
@@ -197,7 +201,7 @@ fun SecurePhoneWithOtpField(
                     }
                 },
                 singleLine = true,
-                placeholder = { Text("OTP ($otpSize)", color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
+                placeholder = { Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor) },
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = when (otpType) {
                         1 -> KeyboardType.Number
@@ -207,13 +211,13 @@ fun SecurePhoneWithOtpField(
                     }
                 ),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                    focusedContainerColor = BaseTheme.FieldColor,
+                    unfocusedContainerColor = BaseTheme.FieldColor,
+                    cursorColor = BaseTheme.FieldColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
-                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    focusedTextColor = BaseTheme.BaseTextColor,
+                    unfocusedTextColor = BaseTheme.BaseTextColor,
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -227,7 +231,7 @@ fun SecurePhoneWithOtpField(
             if (isVerified) {
                 Text(
                     "Verified successfully",
-                    color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                    color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                     fontSize = 12.sp
                 )
             } else {
@@ -260,7 +264,7 @@ fun SecurePhoneWithOtpField(
             Spacer(Modifier.height(4.dp))
             Text(
                 "Otp verifying ...",
-                color = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor)),
+                color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                 fontSize = 12.sp
             )
         }
@@ -268,7 +272,7 @@ fun SecurePhoneWithOtpField(
             Spacer(Modifier.height(4.dp))
             Text(
                 errToShow,
-                color = Color.Red,
+                color = BaseTheme.BaseRedColor,
                 fontSize = 12.sp
             )
         }

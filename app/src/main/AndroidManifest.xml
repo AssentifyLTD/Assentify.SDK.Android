@@ -26,7 +26,8 @@
 
     <application
         android:debuggable="false"
-
+        android:label="Assentify"
+        android:icon="@drawable/app_logo"
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
@@ -47,13 +48,21 @@
         <activity android:name=".Flow.QrStep.QrScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
         <activity android:name=".Flow.NfcStep.NfcScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
         <activity android:name=".Flow.AssistedDataEntryStep.AssistedDataEntryActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.ContextAwareStep.ContextAwareStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
+        <activity android:name=".Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
         <activity android:name=".Flow.SubmitStep.SubmitStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
 
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4926f3132e616e760f865b69a1b93f28" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

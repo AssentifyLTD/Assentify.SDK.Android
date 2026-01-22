@@ -30,8 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.Models.LocalStepModel
-import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
 @Composable
@@ -41,13 +41,12 @@ fun StepCard(
     unselectedColor: Color,
     onClick: () -> Unit
 ) {
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
 
     val backgroundColor = if (step.isDone)  selectedColor else unselectedColor
     val circleColor = if (step.isDone) Color.White else selectedColor
     val iconColor = if (step.isDone) selectedColor else  Color.White
-    val textColor = if (step.isDone) Color(android.graphics.Color.parseColor(flowEnv.listItemsTextSelectedHexColor)) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))
+    val textColor = if (step.isDone)  BaseTheme.BaseSecondaryTextColor else  BaseTheme.BaseTextColor
 
     val context = LocalContext.current
 
@@ -57,8 +56,8 @@ fun StepCard(
 
     Card(
         modifier = Modifier
-            .padding(top = 10.dp, start = 20.dp, end = 20.dp)
-            .heightIn(min = 120.dp)
+            .padding(top = 5.dp, start = 20.dp, end = 20.dp)
+            .heightIn(min = 110.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
@@ -66,7 +65,7 @@ fun StepCard(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 20.dp),
+                .padding(horizontal = 14.dp, vertical = 23.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -74,7 +73,7 @@ fun StepCard(
             iconPainter?.let {
                 Box(
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(50.dp)
                         .background(color = circleColor, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
@@ -82,7 +81,7 @@ fun StepCard(
                         painter = it,
                         contentDescription = step.name,
                         tint = iconColor, // ✅ dynamic tint color
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -91,16 +90,19 @@ fun StepCard(
                 Text(
                     text = step.name,
                     color =textColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = step.description,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Light,
                     color = textColor,
-                    lineHeight = 18.sp,
+                    lineHeight = 15.sp,
                     textAlign = TextAlign.Start,
-                    fontSize = 13.sp
+                    fontSize = 10.sp
                 )
             }
         }

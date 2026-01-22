@@ -2,14 +2,12 @@ package com.assentify.sdk.Flow.QrStep
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,15 +39,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.IDQrKeys
+import com.assentify.sdk.Core.Constants.toBrush
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
@@ -205,9 +208,7 @@ fun QrScanScreen(
         }
     }
 
-    val logoBitmap: ImageBitmap? = remember(flowEnv.appLogo) {
-        flowEnv.appLogo?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
-    }
+
 
     var scanQr by remember { mutableStateOf<ScanQr?>(null) }
     var scanQrManual by remember { mutableStateOf<ScanQrManual?>(null) }
@@ -318,20 +319,24 @@ fun QrScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                        tint =   BaseTheme.BaseTextColor,
                         modifier = Modifier.size(30.dp)
                     )
                 }
 
                 Spacer(Modifier.weight(1f))
 
-                logoBitmap?.let {
-                        Image(
-                            bitmap = it,
-                            contentDescription = "Logo",
-                            modifier = Modifier.size(60.dp)
-                        )
-                    }
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(BaseTheme.BaseLogo)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .align(Alignment.CenterVertically),
+                    contentScale = ContentScale.Fit
+                )
 
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
@@ -352,20 +357,22 @@ fun QrScanScreen(
                     onClick = {
                         scanQrManual!!.takePicture();
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                        contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(vertical = 12.dp, horizontal = 20.dp)
-                        .fillMaxWidth()
+                        .padding(vertical = 25.dp, horizontal = 25.dp)
+                        .fillMaxWidth().background(
+                            brush = BaseTheme.BaseClickColor!!.toBrush(),
+                        )
                 ) {
                     Text(
                         "Take Photo",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Normal,
+                        color = BaseTheme.BaseSecondaryTextColor,
+                        modifier = Modifier.padding(vertical = 7.dp)
                     )
                 }
             }

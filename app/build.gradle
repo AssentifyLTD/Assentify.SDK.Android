@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'de.undercouch.download'
@@ -10,7 +10,7 @@ android {
     compileSdkVersion 36
     android.ndkVersion "27.0.12077973"
     defaultConfig {
-    //applicationId "com.assentify.sdk"
+    applicationId "com.assentify.sdk"
 
         minSdkVersion 24
         targetSdkVersion 34
@@ -103,6 +103,7 @@ dependencies {
     implementation "androidx.camera:camera-view:1.5.1"
     implementation 'androidx.compose.foundation:foundation-layout:1.10.0'
     implementation 'androidx.compose.foundation:foundation:1.10.0'
+    implementation 'androidx.compose.material3:material3:1.4.0'
 
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
