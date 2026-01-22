@@ -35,7 +35,6 @@ object FlowController {
 
 
     fun naveToNextStep(context: Context) {
-        SubmitStepActivity.start(context = context)
         val currentStep = getCurrentStep();
         if (currentStep == null) {
             SubmitStepActivity.start(context = context)
