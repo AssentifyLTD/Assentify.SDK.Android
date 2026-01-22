@@ -1,10 +1,8 @@
 package com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes
 
 import AssistedFormHelper
-import android.app.DatePickerDialog
-import android.graphics.drawable.ColorDrawable
-import android.view.View
-import android.widget.NumberPicker
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -12,11 +10,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.DisplayMode
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +34,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+import com.assentify.sdk.Core.Constants.firstColor
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun dateStringToUtcMillis(dateStr: String, pattern: String): Long? = try {
+    if (dateStr.isBlank()) null else {
+        val fmt = DateTimeFormatter.ofPattern(pattern)
+        val localDate = LocalDate.parse(dateStr, fmt)
+        localDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    }
+} catch (_: Exception) { null }
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun utcMillisToDateString(utcMillis: Long, pattern: String): String {
+    val fmt = DateTimeFormatter.ofPattern(pattern)
+    val date = Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()
+    return date.format(fmt)
+}
 
 @Composable
 fun SecureDateField(
@@ -40,6 +68,7 @@ fun SecureDateField(
     dateFormat: String = "yyyy-MM-dd",
     modifier: Modifier = Modifier
 ) {
+    var show by remember { mutableStateOf(false) }
 
     val defaultValue = remember(field.inputKey) {
         AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
@@ -55,69 +84,150 @@ fun SecureDateField(
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 
-    fun openPicker(
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+    @Composable
+    fun OpenPickerDynamic(
         current: String,
         onPicked: (String) -> Unit,
         dateFormat: String = "yyyy-MM-dd",
         minDateStr: String? = null,
         maxDateStr: String? = null,
-        primaryHex: String = flowEnv.clicksHexColor
+        onDismiss: () -> Unit
     ) {
-        fun parseToMillisOrNull(s: String?): Long? = try {
-            if (s.isNullOrBlank()) null else
-                java.text.SimpleDateFormat(dateFormat, java.util.Locale.US)
-                    .apply { isLenient = false }
-                    .parse(s)?.time
-        } catch (_: Exception) { null }
+        fun colorFromHex(hex: String): androidx.compose.ui.graphics.Color =
+            androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(hex))
 
-        val colorInt = android.graphics.Color.parseColor(primaryHex)
+        val background = BaseTheme.BackgroundColor!!
+        val text = BaseTheme.BaseTextColor
+        val click =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
 
-        val cal = java.util.Calendar.getInstance()
-        if (current.isNotBlank()) {
-            try {
-                java.text.SimpleDateFormat(dateFormat, java.util.Locale.US).apply { isLenient = false }
-                    .parse(current)?.let { cal.time = it }
-            } catch (_: Exception) { }
+        fun contentOn(color: androidx.compose.ui.graphics.Color): androidx.compose.ui.graphics.Color {
+            val luminance = 0.2126f * color.red + 0.7152f * color.green + 0.0722f * color.blue
+            return if (luminance > 0.6f) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
         }
 
-        val dlg = android.app.DatePickerDialog(
-            ctx,
-            { _, y, m, d ->
-                val mm = (m + 1).toString().padStart(2, '0')
-                val dd = d.toString().padStart(2, '0')
-                onPicked("$y-$mm-$dd")
-            },
-            cal.get(java.util.Calendar.YEAR),
-            cal.get(java.util.Calendar.MONTH),
-            cal.get(java.util.Calendar.DAY_OF_MONTH)
-        )
+        val clickContent = contentOn(click)
 
-        parseToMillisOrNull(minDateStr)?.let { dlg.datePicker.minDate = it }
-        parseToMillisOrNull(maxDateStr)?.let { dlg.datePicker.maxDate = it }
+        // ✅ IMPORTANT: use UTC millis for DatePicker
+        val minMillis = minDateStr?.let { dateStringToUtcMillis(it, dateFormat) }
+        val maxMillis = maxDateStr?.let { dateStringToUtcMillis(it, dateFormat) }
+        val initialMillis = dateStringToUtcMillis(current, dateFormat) ?: System.currentTimeMillis()
 
-        dlg.setOnShowListener {
-            dlg.getButton(DatePickerDialog.BUTTON_POSITIVE)?.setTextColor(colorInt)
-            dlg.getButton(DatePickerDialog.BUTTON_NEGATIVE)?.setTextColor(colorInt)
-            val daySpinnerId = ctx.resources.getIdentifier("android:id/day", null, null)
-            val monthSpinnerId = ctx.resources.getIdentifier("android:id/month", null, null)
-            val yearSpinnerId = ctx.resources.getIdentifier("android:id/year", null, null)
-            listOf(daySpinnerId, monthSpinnerId, yearSpinnerId).forEach { id ->
-                (dlg.datePicker.findViewById<View>(id) as? NumberPicker)?.let { picker ->
-                    val fields = NumberPicker::class.java.declaredFields
-                    fields.find { it.name == "mSelectionDivider" }?.apply {
-                        isAccessible = true
-                        set(picker, ColorDrawable(colorInt))
-                    }
+        val state = androidx.compose.material3.rememberDatePickerState(
+            initialSelectedDateMillis = initialMillis,
+            initialDisplayMode = DisplayMode.Picker,
+            selectableDates = object : androidx.compose.material3.SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    if (minMillis != null && utcTimeMillis < minMillis) return false
+                    if (maxMillis != null && utcTimeMillis > maxMillis) return false
+                    return true
                 }
             }
-            val headerId = ctx.resources.getIdentifier("android:id/date_picker_header", null, null)
-            dlg.datePicker.findViewById<View>(headerId)?.setBackgroundColor(colorInt)
+        )
+
+        LaunchedEffect(Unit) {
+            state.displayMode = DisplayMode.Picker
         }
 
+        val tfColors = androidx.compose.material3.TextFieldDefaults.colors(
+            focusedContainerColor = background.firstColor(),
+            unfocusedContainerColor = background.firstColor(),
+            disabledContainerColor = background.firstColor(),
 
+            focusedTextColor = text,
+            unfocusedTextColor = text,
+            disabledTextColor = text.copy(alpha = 0.5f),
 
-        dlg.show()
+            cursorColor = click,
+            focusedIndicatorColor = click,
+            unfocusedIndicatorColor = click.copy(alpha = 0.5f),
+            disabledIndicatorColor = click.copy(alpha = 0.3f),
+
+            focusedLabelColor = text,
+            unfocusedLabelColor = text,
+            disabledLabelColor = text.copy(alpha = 0.5f),
+
+            focusedPlaceholderColor = text.copy(alpha = 0.5f),
+            unfocusedPlaceholderColor = text.copy(alpha = 0.5f),
+            disabledPlaceholderColor = text.copy(alpha = 0.3f)
+        )
+
+        val colors = androidx.compose.material3.DatePickerDefaults.colors(
+            containerColor = background.firstColor(),
+            dividerColor = click.copy(alpha = 0.3f),
+
+            titleContentColor = text,
+            headlineContentColor = text,
+            subheadContentColor = text,
+            navigationContentColor = click,
+
+            weekdayContentColor = text,
+            dayContentColor = text,
+            disabledDayContentColor = text.copy(alpha = 0.3f),
+
+            selectedDayContainerColor = click,
+            selectedDayContentColor = clickContent,
+
+            todayContentColor = click,
+            todayDateBorderColor = click,
+
+            yearContentColor = text,
+            disabledYearContentColor = text.copy(alpha = 0.3f),
+            currentYearContentColor = click,
+            selectedYearContainerColor = click,
+            selectedYearContentColor = clickContent,
+
+            dateTextFieldColors = tfColors
+        )
+
+        androidx.compose.material3.DatePickerDialog(
+            onDismissRequest = onDismiss,
+            colors = androidx.compose.material3.DatePickerDefaults.colors(containerColor = background.firstColor()),
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        val millis = state.selectedDateMillis ?: return@TextButton
+                        // ✅ IMPORTANT: format from UTC millis
+                        onPicked(utcMillisToDateString(millis, dateFormat))
+                        onDismiss()
+                    }
+                ) { androidx.compose.material3.Text("OK", color = click) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = onDismiss) {
+                    androidx.compose.material3.Text("CANCEL", color = click)
+                }
+            }
+        ) {
+            androidx.compose.material3.DatePicker(
+                state = state,
+                colors = colors
+            )
+        }
     }
+
+
+
+
+     @RequiresApi(Build.VERSION_CODES.O)
+     fun dateStringToUtcMillis(dateStr: String, pattern: String): Long? = try {
+        if (dateStr.isBlank()) null else {
+            val fmt = DateTimeFormatter.ofPattern(pattern)
+            val localDate = LocalDate.parse(dateStr, fmt)
+            localDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        }
+    } catch (_: Exception) { null }
+
+     @RequiresApi(Build.VERSION_CODES.O)
+     fun utcMillisToDateString(utcMillis: Long, pattern: String): String {
+        val fmt = DateTimeFormatter.ofPattern(pattern)
+        val date = Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()
+        return date.format(fmt)
+    }
+
 
     fun persist(newValue: String) {
         AssistedFormHelper.changeValue(field.inputKey!!, newValue, page)
@@ -128,8 +238,9 @@ fun SecureDateField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color = BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -146,14 +257,28 @@ fun SecureDateField(
                 enabled = true,
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {  },
+
+                trailingIcon = {
+                    IconButton(onClick = {
+                        // TODO: open date picker here
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Pick date",
+                            modifier = Modifier.size(22.dp),
+                            tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                        )
+                    }
+                },
+
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    unfocusedContainerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)),
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    focusedContainerColor = BaseTheme.FieldColor,
+                    unfocusedContainerColor =  BaseTheme.FieldColor,
+                    cursorColor = BaseTheme.BaseTextColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
-                    unfocusedTextColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    focusedTextColor = BaseTheme.BaseTextColor,
+                    unfocusedTextColor = BaseTheme.BaseTextColor,
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -168,17 +293,21 @@ fun SecureDateField(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
-                        openPicker(
-                            current = value,
-                            onPicked = { picked ->
-                                value = picked
-                                persist(picked)
-                            },
-                            minDateStr = field.from,
-                            maxDateStr = field.to
-                        )
+                       show = true;
 
                     }
+            )
+        }
+        if (show) {
+            OpenPickerDynamic(
+                current = value,
+                onPicked = { picked ->
+                    value = picked
+                    persist(picked)
+                },
+                minDateStr = field.from,
+                maxDateStr = field.to,
+                onDismiss = { show = false }
             )
         }
 
@@ -186,7 +315,7 @@ fun SecureDateField(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color.Red,
+                color = BaseTheme.BaseRedColor,
                 fontSize = 12.sp
             )
         }

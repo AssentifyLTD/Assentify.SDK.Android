@@ -26,7 +26,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
@@ -43,10 +47,12 @@ fun OnWrongTemplateScreen(
     val iconSvg= remember {
         loadSvgFromAssets(context, "ic_wrong_template.svg")
     }
+    BaseBackgroundContainer(
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
             .statusBarsPadding() // safe top
             .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
         horizontalAlignment = Alignment.CenterHorizontally
@@ -76,7 +82,7 @@ fun OnWrongTemplateScreen(
                         painter = it,
                         contentDescription = "ic_wrong_template",
                         modifier = Modifier.size(70.dp),
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                        tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
                     )
                 }
             }
@@ -85,8 +91,9 @@ fun OnWrongTemplateScreen(
 
             Text(
                 text = "Unsupported ID Provided \n Wrong Template",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color =   BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
                 textAlign = TextAlign.Center,
@@ -97,9 +104,10 @@ fun OnWrongTemplateScreen(
 
             Text(
                 text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color =   BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
-                fontWeight = FontWeight.Light,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Thin,
                   lineHeight = 17.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -121,8 +129,9 @@ fun OnWrongTemplateScreen(
 
                 Text(
                     text = "Expected Card Type",
-                    color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                    color =   BaseTheme.BaseTextColor,
                     fontSize = 10.sp,
+                    fontFamily = InterFont,
                     fontWeight = FontWeight.Light,
                       lineHeight = 17.sp,
                     textAlign = TextAlign.Center,
@@ -139,23 +148,26 @@ fun OnWrongTemplateScreen(
         // BOTTOM
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-            ),
+
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .navigationBarsPadding()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp).background(
+                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                    shape = RoundedCornerShape(28.dp)
+                )
         ) {
             Text(
                 "Retry",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 10.dp)
+                color = BaseTheme.BaseSecondaryTextColor,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(vertical = 7.dp)
             )
         }
-    }
+    }}
 
 }

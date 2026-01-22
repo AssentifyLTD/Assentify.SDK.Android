@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.BlockLoaderKeys
+import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
@@ -16,6 +17,25 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
+
+
+object BaseTheme {
+     val BaseTextColor  = Color(android.graphics.Color.parseColor( FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().textColor))
+     val BaseSecondaryTextColor  = Color(android.graphics.Color.parseColor( FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().secondaryTextColor))
+     val FieldColor  = Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundCardColor))
+     val BaseAccentColor  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor;
+
+     val BackgroundColor  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundColor;
+     val BaseClickColor  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().clickColor;
+
+     val BaseGreenColor  = Color(android.graphics.Color.parseColor(ConstantsValues.DetectColor))
+     val BaseRedColor  =Color.Red
+
+     val BaseLogo  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().logoUrl;
+     val BaseBackgroundType  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundType;
+     val BaseBackgroundUrl  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().svgBackgroundImageUrl;
+
+}
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {
     lateinit var flowEnvironmentalConditions: FlowEnvironmentalConditions;
@@ -30,24 +50,7 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
 
         setContent {
             BlockLoaderScreen(
-                logoBytes = flowEnvironmentalConditions.appLogo,
                 steps = buildStepsFromConfig(configModel),
-                backgroundHexColor = Color(
-                    android.graphics.Color.parseColor(
-                        flowEnvironmentalConditions.backgroundHexColor
-                    )
-                ),
-                clicksHexColor = Color(android.graphics.Color.parseColor(flowEnvironmentalConditions.clicksHexColor)),
-                listItemsSelectedHexColor = Color(
-                    android.graphics.Color.parseColor(
-                        flowEnvironmentalConditions.listItemsSelectedHexColor
-                    )
-                ),
-                listItemsUnSelectedHexColor = Color(
-                    android.graphics.Color.parseColor(
-                        flowEnvironmentalConditions.listItemsUnSelectedHexColor
-                    )
-                ),
                 onBack = { onBackPressedDispatcher.onBackPressed() },
                 onStepClick = { /* navigate if needed */ },
                 onNext = {

@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import java.io.File
 import kotlin.math.max
@@ -101,7 +102,7 @@ fun PdfViewerFromBase64(
             inlineLoading.value -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+                        color =   BaseTheme.BaseTextColor
                     )
                 }
             }
@@ -243,7 +244,7 @@ private fun PdfRendererPagedViewer(
             loading.value -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
-                        color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor))
+                        color =   BaseTheme.BaseTextColor
                     )
                 }
             }

@@ -34,6 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
@@ -101,14 +104,15 @@ fun SecureDropdown(
 
 
 
-    val pillColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
+    val pillColor =  BaseTheme.FieldColor
 
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color = BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -125,12 +129,12 @@ fun SecureDropdown(
                 onValueChange = {},
                 readOnly = true,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color =  BaseTheme.BaseTextColor,),
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Dropdown Arrow",
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
+                        tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
                         modifier = Modifier.size(30.dp)
                     )
                 },
@@ -141,7 +145,7 @@ fun SecureDropdown(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    cursorColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                    cursorColor =  BaseTheme.BaseTextColor,
                 ),
                 shape = RoundedCornerShape(16.dp), // keep only one
                 modifier = Modifier
@@ -154,16 +158,16 @@ fun SecureDropdown(
             ExposedDropdownMenu(
                 expanded = expanded && !isReadOnly,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)))
+                modifier = Modifier.background( BaseTheme.FieldColor,)
             ) {
                 options.forEach { option ->
                     Box(
                         modifier = Modifier
-                            .background(Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor)))
+                            .background(BaseTheme.FieldColor)
                     ) {
                         Column {
                             DropdownMenuItem(
-                                text = { Text(option,color = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor))) },
+                                text = { Text(option,color = BaseTheme.BaseTextColor) },
                                 onClick = {
                                     selected = option
                                     expanded = false
@@ -181,7 +185,7 @@ fun SecureDropdown(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color.Red,
+                color = BaseTheme.BaseRedColor,
                 fontSize = 12.sp
             )
         }

@@ -26,7 +26,6 @@
 
     <application
         android:debuggable="false"
-
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
@@ -47,7 +46,7 @@
         <activity android:name=".Flow.QrStep.QrScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
         <activity android:name=".Flow.NfcStep.NfcScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
         <activity android:name=".Flow.AssistedDataEntryStep.AssistedDataEntryActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.ContextAwareStep.ContextAwareStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
+        <activity android:name=".Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
         <activity android:name=".Flow.SubmitStep.SubmitStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
 
         <meta-data

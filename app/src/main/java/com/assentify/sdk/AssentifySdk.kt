@@ -8,6 +8,8 @@ import com.assentify.sdk.AssistedDataEntry.AssistedDataEntry
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
+import com.assentify.sdk.Core.Constants.BackgroundStyle
+import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.BlockLoaderKeys
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
@@ -31,6 +33,7 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
+import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
@@ -71,6 +74,7 @@ class AssentifySdk(
     private var isKeyValid: Boolean = false;
     private var timeStarted: String = "";
     private var configModel: ConfigModel? = null;
+    private var tenantThemeModel: TenantThemeModel? = null;
     private var allTemplates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
 
@@ -129,12 +133,43 @@ class AssentifySdk(
             ) {
                 if (response.isSuccessful) {
                     configModel = response.body()!!
-                    iniSdk();
+                    getTenantTheme()
                 }
 
             }
 
             override fun onFailure(call: Call<ConfigModel>, t: Throwable) {
+                assentifySdkCallback.onAssentifySdkInitError(t.message!!);
+            }
+        })
+    }
+
+    private fun getTenantTheme() {
+        val remoteService = RemoteClient.remoteApiService
+        val call = remoteService.getTenantTheme(
+            apiKey!!,
+            "SDK",
+            configModel!!.flowInstanceId,
+            configModel!!.tenantIdentifier,
+            configModel!!.blockIdentifier,
+            configModel!!.instanceId,
+            configModel!!.flowIdentifier,
+            configModel!!.instanceHash,
+            configModel!!.tenantIdentifier
+        )
+        call.enqueue(object : Callback<TenantThemeModel> {
+            override fun onResponse(
+                call: Call<TenantThemeModel>,
+                response: Response<TenantThemeModel>
+            ) {
+                if (response.isSuccessful) {
+                    tenantThemeModel = response.body()!!
+                    iniSdk();
+                }
+
+            }
+
+            override fun onFailure(call: Call<TenantThemeModel>, t: Throwable) {
                 assentifySdkCallback.onAssentifySdkInitError(t.message!!);
             }
         })
@@ -152,7 +187,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanPassportResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val scanPassportManual = ScanPassportManual(
                     configModel,
                     environmentalConditions,
@@ -187,7 +222,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanIDCardResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val scanIDCardManual = ScanIDCardManual(
                     configModel,
                     environmentalConditions, apiKey,
@@ -220,8 +255,8 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanQrResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
-                val scanQrManual =  ScanQrManual(
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
+                val scanQrManual = ScanQrManual(
                     templatesByCountry,
                     apiKey,
                     language,
@@ -232,7 +267,7 @@ class AssentifySdk(
                 scanQrManual.setScanQrCallback(scanQrCallback)
                 return ScanQrResult.Manual(scanQrManual);
             } else {
-                val scanQr =  ScanQr(
+                val scanQr = ScanQr(
                     templatesByCountry,
                     apiKey,
                     language,
@@ -256,7 +291,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): ScanOtherResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val scanOtherManual = ScanOtherManual(
                     configModel,
                     environmentalConditions, apiKey,
@@ -288,7 +323,7 @@ class AssentifySdk(
         stepId: Int? = null,
     ): FaceMatchResult {
         if (isKeyValid) {
-            if (ImageUtils.isLowCapabilities(context,this.environmentalConditions)) {
+            if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
                 val faceMatchManual = FaceMatchManual(
                     configModel,
                     environmentalConditions,
@@ -316,7 +351,10 @@ class AssentifySdk(
         }
     }
 
-    fun startContextAwareSigning(contextAwareSigningCallback: ContextAwareSigningCallback,stepId: Int? = null,): ContextAwareSigning {
+    fun startContextAwareSigning(
+        contextAwareSigningCallback: ContextAwareSigningCallback,
+        stepId: Int? = null,
+    ): ContextAwareSigning {
         if (isKeyValid) {
             return ContextAwareSigning(
                 contextAwareSigningCallback,
@@ -331,15 +369,18 @@ class AssentifySdk(
         }
     }
 
-    fun startAssistedDataEntry(assistedDataEntryCallback: AssistedDataEntryCallback,stepId: Int? = null,): AssistedDataEntry {
+    fun startAssistedDataEntry(
+        assistedDataEntryCallback: AssistedDataEntryCallback,
+        stepId: Int? = null,
+    ): AssistedDataEntry {
         if (isKeyValid) {
-            val assistedDataEntry =  AssistedDataEntry(
+            val assistedDataEntry = AssistedDataEntry(
                 apiKey!!,
                 configModel!!
             )
             assistedDataEntry.setStepId(stepId?.toString())
             assistedDataEntry.setCallback(assistedDataEntryCallback)
-            return  assistedDataEntry;
+            return assistedDataEntry;
         } else {
             throw Exception("Invalid Keys")
         }
@@ -358,7 +399,6 @@ class AssentifySdk(
             appConfiguration = configModel!!,
         )
     }
-
 
 
     fun startSubmitData(
@@ -384,12 +424,13 @@ class AssentifySdk(
             }
             if (submitList.filter { it.stepDefinition == StepsNames.WrapUp }
                     .isEmpty()) {
-                submitList.add(SubmitRequestModel(
-                    stepDefinition = StepsNames.WrapUp,
-                    stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.WrapUp }
-                        .first().stepId,
-                    extractedInformation = valuesWrapUp
-                ));
+                submitList.add(
+                    SubmitRequestModel(
+                        stepDefinition = StepsNames.WrapUp,
+                        stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.WrapUp }
+                            .first().stepId,
+                        extractedInformation = valuesWrapUp
+                    ));
             }
             /** BlockLoader **/
             val valuesBlockLoader: MutableMap<String, String> = mutableMapOf()
@@ -434,12 +475,13 @@ class AssentifySdk(
             }
             if (submitList.filter { it.stepDefinition == StepsNames.BlockLoader }
                     .isEmpty()) {
-                submitList.add(SubmitRequestModel(
-                    stepDefinition = StepsNames.BlockLoader,
-                    stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.BlockLoader }
-                        .first().stepId,
-                    extractedInformation = valuesBlockLoader
-                ));
+                submitList.add(
+                    SubmitRequestModel(
+                        stepDefinition = StepsNames.BlockLoader,
+                        stepId = configModel!!.stepDefinitions.filter { it.stepDefinition == StepsNames.BlockLoader }
+                            .first().stepId,
+                        extractedInformation = valuesBlockLoader
+                    ));
             }
             /****/
             return SubmitData(apiKey!!, submitDataCallback, submitList, configModel!!)
@@ -509,7 +551,10 @@ class AssentifySdk(
     }
 
 
-    private fun filterToSupportedCountries(dataList: List<TemplatesByCountry>?,stepID:Int): List<TemplatesByCountry>? {
+    private fun filterToSupportedCountries(
+        dataList: List<TemplatesByCountry>?,
+        stepID: Int
+    ): List<TemplatesByCountry>? {
         var selectedCountries: List<String> = emptyList();
         var supportedIdCards: List<String> = emptyList();
         configModel!!.stepDefinitions.forEach { step ->
@@ -582,16 +627,53 @@ class AssentifySdk(
         val stepTemplates = filterToSupportedCountries(allTemplates, stepID)
         return stepTemplates ?: emptyList()
     }
+
     /** FLOW **/
 
-    // 1 _ Text && Icons are white
+    public fun startFlow(
+        activityContext: Context,
+        flowCallback: FlowCallBack,
+        flowEnvironmentalConditions: FlowEnvironmentalConditions
+    ) {
 
-    public fun startFlow(activityContext: Context,flowCallback: FlowCallBack, flowEnvironmentalConditions: FlowEnvironmentalConditions){
-         FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(flowEnvironmentalConditions);
-         ConfigModelObject.setConfigModelObject(configModel!!);
-         FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
-         ApiKeyObject.setApiKeyObject(apiKey!!);
-         val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
+        if (flowEnvironmentalConditions.logoUrl.isEmpty()) {
+            flowEnvironmentalConditions.logoUrl = tenantThemeModel!!.logo!!;
+        }
+        if (flowEnvironmentalConditions.svgBackgroundImageUrl.isEmpty()) {
+            flowEnvironmentalConditions.svgBackgroundImageUrl =
+                "tenantThemeModel!!.svgBackgroundImageUrl!!";
+        }
+        if (flowEnvironmentalConditions.textColor.isEmpty()) {
+            flowEnvironmentalConditions.textColor = tenantThemeModel!!.textColor;
+        }
+        if (flowEnvironmentalConditions.secondaryTextColor.isEmpty()) {
+            flowEnvironmentalConditions.secondaryTextColor = tenantThemeModel!!.secondaryTextColor;
+        }
+        if (flowEnvironmentalConditions.backgroundCardColor.isEmpty()) {
+            flowEnvironmentalConditions.backgroundCardColor =
+                tenantThemeModel!!.backgroundCardColor;
+        }
+        if (flowEnvironmentalConditions.accentColor.isEmpty()) {
+            flowEnvironmentalConditions.accentColor = tenantThemeModel!!.accentColor;
+        }
+        if (flowEnvironmentalConditions.backgroundColor == null) {
+            if (flowEnvironmentalConditions.backgroundType == BackgroundType.Color) {
+                flowEnvironmentalConditions.backgroundColor =
+                    BackgroundStyle.Solid(tenantThemeModel!!.backgroundBodyColor)
+            } else {
+                flowEnvironmentalConditions.backgroundColor =
+                    BackgroundStyle.Solid(tenantThemeModel!!.backgroundCardColor)
+            }
+        }
+        if (flowEnvironmentalConditions.clickColor == null) {
+            flowEnvironmentalConditions.clickColor =
+                BackgroundStyle.Solid(tenantThemeModel!!.accentColor)
+        }
+        FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(flowEnvironmentalConditions);
+        ConfigModelObject.setConfigModelObject(configModel!!);
+        FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
+        ApiKeyObject.setApiKeyObject(apiKey!!);
+        val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
         activityContext.startActivity(intent)
     }
 

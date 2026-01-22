@@ -35,6 +35,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -63,14 +66,15 @@ fun SecureRadioGroup(
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 
-    val containerColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsUnSelectedHexColor))
-    val accentColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+    val containerColor = BaseTheme.FieldColor
+    val accentColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+            color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
+            fontFamily = InterFont,
             fontWeight = FontWeight.Normal
         )
 
@@ -116,9 +120,9 @@ fun SecureRadioGroup(
                         enabled = !isReadOnly,
                         colors = RadioButtonDefaults.colors(
                             selectedColor = accentColor,
-                            unselectedColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.8f),
+                            unselectedColor = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
                             disabledSelectedColor = accentColor.copy(alpha = 0.4f),
-                            disabledUnselectedColor = Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.4f)
+                            disabledUnselectedColor = BaseTheme.BaseTextColor.copy(alpha = 0.4f)
                         )
                     )
 
@@ -126,7 +130,7 @@ fun SecureRadioGroup(
 
                     Text(
                         text = option,
-                        color = if (isReadOnly)Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.6f) else Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)),
+                        color = if (isReadOnly)BaseTheme.FieldColor.copy(alpha = 0.6f) else BaseTheme.BaseTextColor,
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -137,7 +141,7 @@ fun SecureRadioGroup(
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 48.dp),
                         thickness = 1.dp,
-                        color =Color(android.graphics.Color.parseColor(flowEnv.listItemsTextUnSelectedHexColor)).copy(alpha = 0.12f)
+                        color =BaseTheme.FieldColor.copy(alpha = 0.12f)
                     )
                 }
             }
@@ -147,7 +151,7 @@ fun SecureRadioGroup(
             Spacer(Modifier.height(4.dp))
             Text(
                 err,
-                color = Color.Red,
+                color = BaseTheme.BaseRedColor,
                 fontSize = 12.sp
             )
         }

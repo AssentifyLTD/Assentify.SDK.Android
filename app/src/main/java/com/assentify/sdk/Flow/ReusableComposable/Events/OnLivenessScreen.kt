@@ -26,7 +26,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
@@ -39,13 +43,15 @@ fun OnLivenessScreen(
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
 
-    val iconSvg= remember {
+    val iconSvg = remember {
         loadSvgFromAssets(context, "ic_error.svg")
     }
+    BaseBackgroundContainer(
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(android.graphics.Color.parseColor(flowEnv.backgroundHexColor)))
             .statusBarsPadding()
             .padding(horizontal = 32.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -75,8 +81,8 @@ fun OnLivenessScreen(
                     Icon(
                         painter = it,
                         contentDescription = "ic_error",
-                        modifier = Modifier.size(100.dp),
-                        tint = Color(android.graphics.Color.parseColor(flowEnv.listItemsSelectedHexColor))
+                        modifier = Modifier.size(60.dp),
+                        tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
                     )
                 }
             }
@@ -85,8 +91,9 @@ fun OnLivenessScreen(
 
             Text(
                 text = "Seems like you didn't provide a real ID",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color = BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
+                fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 28.sp,
                 textAlign = TextAlign.Center,
@@ -97,10 +104,11 @@ fun OnLivenessScreen(
 
             Text(
                 text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
-                color = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
+                color = BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
-                fontWeight = FontWeight.Light,
-                  lineHeight = 17.sp,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Thin,
+                lineHeight = 17.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -112,24 +120,28 @@ fun OnLivenessScreen(
         // BOTTOM BUTTON (always pinned)
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(android.graphics.Color.parseColor(flowEnv.clicksHexColor)),
-                contentColor = Color(android.graphics.Color.parseColor(flowEnv.textHexColor)),
-            ),
+
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             shape = RoundedCornerShape(28.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
+                .background(
+                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                    shape = RoundedCornerShape(28.dp)
+                )
         ) {
             Text(
                 "Retry",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 10.dp)
+                color = BaseTheme.BaseSecondaryTextColor,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(vertical = 7.dp)
             )
         }
     }
-
+}
 
 }
