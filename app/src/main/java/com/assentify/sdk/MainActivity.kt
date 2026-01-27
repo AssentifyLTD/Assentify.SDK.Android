@@ -18,20 +18,18 @@ import com.assentify.sdk.Core.Constants.ActiveLiveType
 import com.assentify.sdk.Core.Constants.DoneFlags
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
-import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.FaceMatch.FaceMatchManual
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.KycDocumentDetails
 import com.assentify.sdk.RemoteClient.Models.StepMap
-import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
+import com.assentify.sdk.ScanIDCard.IDCardCallback
+import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
+import com.assentify.sdk.ScanIDCard.ScanIDCardResult
 import com.assentify.sdk.ScanOther.ScanOtherManual
-import com.assentify.sdk.ScanPassport.PassportResponseModel
-import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.ScanPassport.ScanPassportManual
-import com.assentify.sdk.ScanPassport.ScanPassportResult
 import com.assentify.sdk.ScanQr.ScanQrManual
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import java.io.ByteArrayOutputStream
@@ -39,7 +37,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCallback,
+class MainActivity : AppCompatActivity(), AssentifySdkCallback, IDCardCallback,
     SubmitDataCallback {
     private lateinit var assentifySdk: AssentifySdk
     private lateinit var configModel: ConfigModel
@@ -185,7 +183,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
 
 
         }*/
-  /*  fun startAssentifySdk() {
+    fun startAssentifySdk() {
 
 
 
@@ -217,7 +215,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
              }
          }
 
-    }*/
+    }
 
    /* fun startAssentifySdk() {
 
@@ -248,7 +246,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
 
   }*/
 
-    fun startAssentifySdk() {
+/*    fun startAssentifySdk() {
 
         when (val result = assentifySdk.startScanPassport(
             this@MainActivity,
@@ -275,7 +273,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
 
 
 
-    }
+    }*/
 
    /*   fun startAssentifySdk() {
 
@@ -360,10 +358,12 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
         Log.e("IDSCAN", "onRetry")
     }
 
-   /* override fun onComplete(dataModel: OtherResponseModel) {
-        Log.e("IDSCAN", dataModel.otherExtractedModel?.outputProperties.toString())
-        Log.e("IDSCAN", dataModel.otherExtractedModel?.extractedData.toString())
-    }*/
+
+
+    /* override fun onComplete(dataModel: OtherResponseModel) {
+         Log.e("IDSCAN", dataModel.otherExtractedModel?.outputProperties.toString())
+         Log.e("IDSCAN", dataModel.otherExtractedModel?.extractedData.toString())
+     }*/
 
  /*     override fun onComplete(dataModel: FaceResponseModel,doneFlag:DoneFlags) {
           Log.e("IDSCAN", dataModel.faceExtractedModel?.outputProperties.toString())
@@ -381,7 +381,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
         Log.e("IDSCAN","onSubmitSuccess")
     }*/
 
-/*      override fun onComplete(dataModel: IDResponseModel, order: Int,doneFlag: DoneFlags) {
+      override fun onComplete(dataModel: IDResponseModel, order: Int,doneFlag: DoneFlags) {
           Log.e("IDSCAN", dataModel.iDExtractedModel?.outputProperties.toString())
           Log.e("IDSCAN", dataModel.iDExtractedModel?.extractedData.toString())
           Log.e("IDSCAN", dataModel.iDExtractedModel?.imageUrl.toString())
@@ -390,11 +390,11 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
            newOder = order+1;
 
       }
-      override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
+   /*   override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
           Log.e("IDSCAN", "onWrongTemplate")
       }*/
 
-    override fun onComplete(dataModel: PassportResponseModel, doneFlag:DoneFlags) {
+  /*  override fun onComplete(dataModel: PassportResponseModel, doneFlag:DoneFlags) {
         Log.e("IDSCAN", dataModel.passportExtractedModel?.outputProperties.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.extractedData.toString())
         Log.e("IDSCAN", dataModel.passportExtractedModel?.imageUrl.toString())
@@ -411,7 +411,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, ScanPassportCall
         ));
         assentifySdk.startSubmitData(this,submitList,customProperties)
 
-    }
+    }*/
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
         Log.e("IDSCAN", "onWrongTemplate")
     }

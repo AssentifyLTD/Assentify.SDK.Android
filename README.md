@@ -38,6 +38,10 @@ dependencies {
 ```
 
 ## Versions
+
+***0.0.92***
+1. *Fixed Issue with Back ID Image*
+
 ***0.0.91***
 1. *Improved Submit Flow Handling , When calling start SubmitData, it is no longer necessary to include the BlockLoader or WrapUp steps in the submitList.*
 

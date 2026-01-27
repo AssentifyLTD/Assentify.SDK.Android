@@ -50,6 +50,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import pl.droidsonroids.gif.GifImageView
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.Locale.getDefault
 
 abstract class CameraPreview : Fragment() {
 
@@ -673,7 +674,7 @@ abstract class CameraPreview : Fragment() {
 
     fun capitalizeFirstLetter(input: String): String {
         if (input.isEmpty()) return input
-        return input.substring(0, 1).toUpperCase() + input.substring(1)
+        return input.substring(0, 1).uppercase(getDefault()) + input.substring(1)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

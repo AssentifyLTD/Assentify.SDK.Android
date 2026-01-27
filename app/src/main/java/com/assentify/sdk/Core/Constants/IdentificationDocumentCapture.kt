@@ -3,7 +3,6 @@ package com.assentify.sdk.Core.Constants
 import DataType
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
-import android.util.Log
 
 
 object IdentificationDocumentCaptureKeys {
@@ -474,6 +473,7 @@ fun ignoredKeys(key: String): Boolean {
                 key.contains(IdentificationDocumentCaptureKeys.backTamperHeatmap) ||
                 key.contains(IdentificationDocumentCaptureKeys.originalFrontImage) ||
                 key.contains(IdentificationDocumentCaptureKeys.originalBackImage) ||
+                key.contains(IdentificationDocumentCaptureKeys.idBackImage) ||
                 key.contains(IdentificationDocumentCaptureKeys.ghostImage) ||
                 key.contains(IdentificationDocumentCaptureKeys.isSkippedAfterNFails) ||
                 key.contains(IdentificationDocumentCaptureKeys.isFailedFront) ||
