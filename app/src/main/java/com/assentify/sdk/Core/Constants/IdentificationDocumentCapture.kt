@@ -480,6 +480,7 @@ fun ignoredKeys(key: String): Boolean {
                 key.contains(IdentificationDocumentCaptureKeys.isFailedBack) ||
                 key.contains(IdentificationDocumentCaptureKeys.skippedStatus) ||
                 key.contains(IdentificationDocumentCaptureKeys.image) ||
+                key.contains(IdentificationDocumentCaptureKeys.idBackImage) ||
                 key.contains(IdentificationDocumentCaptureKeys.faceCapture) -> true
 
         else -> false;
