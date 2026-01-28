@@ -48,7 +48,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.ConstantsValues
-import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -56,6 +55,7 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
+import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
@@ -225,9 +225,19 @@ fun NfcScanScreen(
     ) {
 
        if (eventTypes == EventTypes.onComplete) {
-           OnCompleteScreen(imageUrl, onNext = {
-               onNext();
-           })
+           val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
+               ?: false;           if(showResultPage){
+               OnCompleteScreen(imageUrl, onNext = {
+                   onNext();
+               })
+           }else{
+               OnNormalCompleteScreen(imageUrl, onNext = {
+
+                   onNext();
+               })
+           }
+
+
        }
         Column(
             modifier = Modifier
@@ -268,7 +278,7 @@ fun NfcScanScreen(
                         .build(),
                     contentDescription = "Logo",
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(40.dp)
                         .align(Alignment.CenterVertically),
                     contentScale = ContentScale.Fit
                 )

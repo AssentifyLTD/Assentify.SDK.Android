@@ -2,13 +2,17 @@ package com.assentify.sdk
 
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ProgressBar
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
@@ -20,19 +24,28 @@ import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 
+data class StartConfig(
+    val apiKey: String,
+    val interactionHash: String,
+    val tenantIdentifier: String,
+    val language: String,
+    val enableDetect: Boolean,
+    val enableGuide: Boolean,
+    val enableNfc: Boolean,
+    val enableQr: Boolean
+)
+
 class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
 
     private lateinit var progressBar: ProgressBar
+    private lateinit  var config:StartConfig
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        progressBar = findViewById(R.id.progressBar)
-        showLoader()
-
         if (ContextCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.CAMERA
@@ -46,29 +59,100 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
+        val etApiKey = findViewById<EditText>(R.id.etApiKey)
+        val etInteractionHash = findViewById<EditText>(R.id.etInteractionHash)
+        val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
+
+        val spLanguage = findViewById<Spinner>(R.id.spLanguage)
+
+        val swEnableDetect = findViewById<SwitchCompat>(R.id.swEnableDetect)
+        val swEnableGuide = findViewById<SwitchCompat>(R.id.swEnableGuide)
+        val swEnableNfc = findViewById<SwitchCompat>(R.id.swEnableNfc)
+        val swEnableQr = findViewById<SwitchCompat>(R.id.swEnableQr)
+
+        val btnStart = findViewById<Button>(R.id.btnStart)
+         progressBar = findViewById<ProgressBar>(R.id.progressBar)
+
+        // Languages list for dropdown
+        val languages = listOf(
+            Language.English,
+            Language.Arabic,
+            Language.Azerbaijani,
+            Language.Belarusian,
+            Language.Georgian,
+            Language.Korean,
+            Language.Latvian,
+            Language.Lithuanian,
+            Language.Punjabi,
+            Language.Russian,
+            Language.Sanskrit,
+            Language.Sindhi,
+            Language.Thai,
+            Language.Turkish,
+            Language.Ukrainian,
+            Language.Urdu,
+            Language.Uyghur,
+            Language.NON
+        )
+
+        spLanguage.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            languages
+        )
+
+        btnStart.setOnClickListener {
 
 
-        val environmentalConditions = EnvironmentalConditions(
-            false,
-            true,
-            "#FFDE00",
-            CountDownNumbersColor = "#FFDE00",
-            activeLiveType = ActiveLiveType.Actions,
-            activeLivenessCheckCount = 3,
-            faceLivenessRetryCount = 2,
-            minRam = 4
-        );
-        assentifySdk = AssentifySdk(
-            "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
-            "2937c91f-c905-434b-d13d-08dcc04755ec",
-            "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
-            environmentalConditions,
-            assentifySdkCallback = this,
-            performActiveLivenessFace = false,
-            context = this,
-        );
+            btnStart.isEnabled = false
 
+            val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
+            val interactionHash = etInteractionHash.text?.toString()?.trim().orEmpty()
+            val tenantIdentifier = etTenantIdentifier.text?.toString()?.trim().orEmpty()
+            val language = spLanguage.selectedItem?.toString() ?: Language.NON
+
+             config = StartConfig(
+                apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
+                interactionHash = "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
+                tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",
+                language = language,
+                enableDetect = swEnableDetect.isChecked,
+                enableGuide = swEnableGuide.isChecked,
+                enableNfc = swEnableNfc.isChecked,
+                enableQr = swEnableQr.isChecked
+            )
+
+            // Basic validation example
+            if (config.apiKey.isEmpty() || config.tenantIdentifier.isEmpty() || config.interactionHash.isEmpty()) {
+                progressBar.visibility = View.GONE
+                btnStart.isEnabled = true
+                Toast.makeText(this, "API key , Tenant Identifier , Interaction Hash are required.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            showLoader()
+            val environmentalConditions = EnvironmentalConditions(
+                config.enableDetect,
+                config.enableGuide,
+                "#FFDE00",
+                CountDownNumbersColor = "#FFDE00",
+                activeLiveType = ActiveLiveType.Actions,
+                activeLivenessCheckCount = 3,
+                faceLivenessRetryCount = 2,
+                minRam = 4
+            );
+            assentifySdk = AssentifySdk(
+                config.apiKey,
+                config.tenantIdentifier,
+                config.interactionHash,
+                environmentalConditions,
+                assentifySdkCallback = this,
+                performActiveLivenessFace = false,
+                context = this,
+            );
+        }
     }
+
 
     private fun showLoader() {
         progressBar.visibility = View.VISIBLE
@@ -79,7 +163,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     }
 
     override fun onAssentifySdkInitError(message: String) {
-        Log.e("MainActivity", "onAssentifySdkInitError: " + message)
+        hideLoader()
+        Toast.makeText(this, "AssentifySdk Init Error", Toast.LENGTH_SHORT).show()
     }
 
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
@@ -90,40 +175,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
                 backgroundType = BackgroundType.Color,
-                /** Mint Theme **/
-                /*textColor = "#ffffff",
-                 secondaryTextColor = "#ffffff",
-                 backgroundCardColor = "#0D1512",
-                 accentColor = "#D29E00",
-                 backgroundColor = BackgroundStyle.Gradient(
-                     colorsHex = listOf("#0D2918", "#0D1512"),
-                     angleDegrees = 90f,
-                     holdUntil = 0.6f
-                 ),
-                 clickColor = BackgroundStyle.Solid("#0BD884"),*/
-                /** X Theme **/
-                /*  textHexColor = TextColor.BLACK,
-                    accentColor = "#833F89",
-                    fieldHexColor = "#F2F2F2",
-                    backgroundColor = BackgroundStyle.Solid("#FFFFFF"),
-                     clickColor = BackgroundStyle.Gradient(
-                         colorsHex = listOf("#833F89", "#C82B47"),
-                         angleDegrees = 0f,
-                         holdUntil = 0.6f
-                     ),*/
-                /** Mix **/
-                /*  logoUrl = "https://dummyimage.com/300x300/000/fff.png&text=LOGO",
-                  accentColor = "#833F89",
-                  clickColor = BackgroundStyle.Gradient(
-                      colorsHex = listOf("#833F89", "#C82B47"),
-                      angleDegrees = 0f,
-                      holdUntil = 0.6f
-                  ),*/
-                language = Language.English,
-                enableNfc = false,
-                enableQr = true,
+                language = config.language,
+                enableNfc = config.enableNfc,
+                enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
-
             );
 
 
@@ -136,14 +191,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
     }
 
-    fun loadImageFromAssetsAsByteArray(context: Context, assetPath: String): ByteArray {
-        return context.assets.open(assetPath).use { input ->
-            input.readBytes()
-        }
-    }
 
     override fun onFlowCompleted(submitRequestModel: List<SubmitRequestModel>) {
-        Log.e("IDSCAN", submitRequestModel.toString())
+        Toast.makeText(this, "Flow Completed", Toast.LENGTH_SHORT).show()
+
     }
 
 }

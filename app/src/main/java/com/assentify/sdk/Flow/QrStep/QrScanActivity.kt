@@ -56,6 +56,7 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
+import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -209,7 +210,6 @@ fun QrScanScreen(
     }
 
 
-
     var scanQr by remember { mutableStateOf<ScanQr?>(null) }
     var scanQrManual by remember { mutableStateOf<ScanQrManual?>(null) }
 
@@ -225,14 +225,27 @@ fun QrScanScreen(
                 })
             }
             if (eventTypes == EventTypes.onComplete) {
-                OnCompleteScreen(imageUrl, onNext = {
-                    if (isManual) {
-                        scanQrManual?.stopScanning()
-                    } else {
-                        scanQr?.stopScanning()
-                    }
-                    onNext();
-                })
+                val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
+                    ?: false;                if(showResultPage) {
+                    OnCompleteScreen(imageUrl, onNext = {
+                        if (isManual) {
+                            scanQrManual?.stopScanning()
+                        } else {
+                            scanQr?.stopScanning()
+                        }
+                        onNext();
+                    })
+                }else{
+                    OnNormalCompleteScreen(imageUrl, onNext = {
+                        if (isManual) {
+                            scanQrManual?.stopScanning()
+                        } else {
+                            scanQr?.stopScanning()
+                        }
+                        onNext();
+                    })
+                }
+
 
             }
 
@@ -333,7 +346,7 @@ fun QrScanScreen(
                         .build(),
                     contentDescription = "Logo",
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(40.dp)
                         .align(Alignment.CenterVertically),
                     contentScale = ContentScale.Fit
                 )
@@ -344,11 +357,13 @@ fun QrScanScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            ProgressStepper(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 6.dp)
-            )
+            if(eventTypes != EventTypes.none){
+                ProgressStepper(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp)
+                )
+            }
         }
 
         if (eventTypes == EventTypes.none) {
