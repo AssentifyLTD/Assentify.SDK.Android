@@ -136,7 +136,7 @@ fun AssistedDataEntryScreen(
                         .build(),
                     contentDescription = "Logo",
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(40.dp)
                         .align(Alignment.CenterVertically),
                     contentScale = ContentScale.Fit
                 )

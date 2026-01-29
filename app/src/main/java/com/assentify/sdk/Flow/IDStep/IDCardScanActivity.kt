@@ -51,7 +51,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
-import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.toBrush
@@ -215,7 +214,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                 QrIDResponseModelObject.setQrIDResponseModelObject(dataModel)
                 imageUrl.value = dataModel.iDExtractedModel!!.imageUrl.toString();
                 dataModel.iDExtractedModel!!.outputProperties?.forEach { (key, value) ->
-                    if (key.contains(ConstantsValues.ProvidedFaceImageKey)) {
+                    if (key.contains(FlowController.getFaceMatchInputImageKey())) {
                         FlowController.setImage(value.toString())
                     }
                 }
@@ -356,7 +355,10 @@ fun IDCardScanScreen(
             }
             if (eventTypes == EventTypes.onComplete) {
                 if (isLastPage) {
-                    if(flowEnv.enableQr && kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode){
+                    val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
+                        ?: false;
+
+                    if(flowEnv.enableQr && kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode ){
                         OnNormalCompleteScreen(imageUrl, onNext = {
                             if (isManual) {
                                 scanIDManual?.stopScanning()
@@ -368,17 +370,32 @@ fun IDCardScanScreen(
                             );
                         })
                     }else{
+                        if(showResultPage){
+                            OnCompleteScreen(imageUrl, onNext = {
+                                if (isManual) {
+                                    scanIDManual?.stopScanning()
+                                } else {
+                                    scanID?.stopScanning()
+                                }
+                                onNext(
+                                    kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                                );
+                            })
 
-                        OnCompleteScreen(imageUrl, onNext = {
-                            if (isManual) {
-                                scanIDManual?.stopScanning()
-                            } else {
-                                scanID?.stopScanning()
-                            }
-                            onNext(
-                                kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
-                            );
-                        })
+                        }else{
+                            OnNormalCompleteScreen(imageUrl, onNext = {
+                                if (isManual) {
+                                    scanIDManual?.stopScanning()
+                                } else {
+                                    scanID?.stopScanning()
+                                }
+                                onNext(
+                                    kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                                );
+                            })
+                        }
+
+
                     }
 
                 } else {
@@ -493,7 +510,7 @@ fun IDCardScanScreen(
                         .build(),
                     contentDescription = "Logo",
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(40.dp)
                         .align(Alignment.CenterVertically),
                     contentScale = ContentScale.Fit
                 )
@@ -503,11 +520,13 @@ fun IDCardScanScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            ProgressStepper(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 6.dp)
-            )
+            if(eventTypes != EventTypes.none){
+                ProgressStepper(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp)
+                )
+            }
         }
 
         if (eventTypes == EventTypes.none) {

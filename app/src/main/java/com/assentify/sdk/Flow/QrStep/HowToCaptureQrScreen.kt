@@ -61,7 +61,7 @@ fun HowToCaptureQrScreen(
             .systemBarsPadding()
     ) {
         Column(
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().padding(horizontal = 12.dp,),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -95,7 +95,7 @@ fun HowToCaptureQrScreen(
                             .build(),
                         contentDescription = "Logo",
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(40.dp)
                             .align(Alignment.CenterVertically),
                         contentScale = ContentScale.Fit
                     )

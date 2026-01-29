@@ -1,4 +1,5 @@
 package com.assentify.sdk.RemoteClient.Models
+import com.assentify.sdk.AssistedDataEntry.Models.InputProperty
 import com.google.gson.Gson
 
 data class ConfigModel(
@@ -34,6 +35,8 @@ data class StepDefinitions(
     val stepDefinition: String,
     val customization: Customization,
     val outputProperties: List<OutputProperties>,
+    val inputProperties: List<InputProperty>
+
 )
 
 data class OutputProperties(
@@ -48,6 +51,7 @@ data class OutputProperties(
 
 data class Customization(
     val processMrz: Boolean?,
+    val showResultPage: Boolean?,
     val documentLiveness: Boolean?,
     val storeCapturedDocument: Boolean?,
     val performLivenessDetection: Boolean?,

@@ -93,7 +93,7 @@ fun SubmitStepScreen(
          //   .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Column(
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().padding(horizontal = 12.dp,),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -127,7 +127,7 @@ fun SubmitStepScreen(
                             .build(),
                         contentDescription = "Logo",
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(40.dp)
                             .align(Alignment.CenterVertically),
                         contentScale = ContentScale.Fit
                     )

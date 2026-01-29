@@ -67,6 +67,7 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
 
@@ -110,10 +111,23 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                             FlowController.backClick(context = this)
                         },
                         onNext = {
-                            val outputProps: Map<String, String> =
+                            val outputProps: MutableMap<String, String> =
                                 faceModel.value!!.faceExtractedModel!!.outputProperties!!
                                     .mapValues { it.value.toString() }
+                                    .toMutableMap()
                             Base64ImageObject.clear();
+                            IDImageObject.clear();
+                            if(faceModel.value!!.faceExtractedModel!!.percentageMatch!! <= 50){
+                                var isSkippedStatusKey = "";
+                                outputProps.forEach {
+                                    if(it.key.contains("OnBoardMe_FaceImageAcquisition_IsSkippedStatus")){
+                                        isSkippedStatusKey = it.key
+                                    }
+                                }
+                                if(isSkippedStatusKey.isNotEmpty()){
+                                    outputProps[isSkippedStatusKey] = "true";
+                                }
+                            }
                             FlowController.makeCurrentStepDone(outputProps);
                             FlowController.naveToNextStep(context = this)
                         },
@@ -437,7 +451,7 @@ fun FaceMatchScanScreen(
                         .build(),
                     contentDescription = "Logo",
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(40.dp)
                         .align(Alignment.CenterVertically),
                     contentScale = ContentScale.Fit
                 )
@@ -448,11 +462,13 @@ fun FaceMatchScanScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            ProgressStepper(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 6.dp)
-            )
+            if(eventTypes != EventTypes.none){
+                ProgressStepper(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp)
+                )
+            }
         }
 
         if (eventTypes == EventTypes.none) {

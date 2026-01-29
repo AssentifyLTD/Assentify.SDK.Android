@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
@@ -103,7 +104,7 @@ fun OnLivenessScreen(
             Spacer(Modifier.height(15.dp))
 
             Text(
-                text = "Make sure its one of the above IDs presented and allowed by NXT Finance to verify your identity.",
+                text = "Make sure its one of the above IDs presented and allowed by ${ConfigModelObject.getConfigModelObject().flowName} to verify your identity.",
                 color = BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
                 fontFamily = InterFont,

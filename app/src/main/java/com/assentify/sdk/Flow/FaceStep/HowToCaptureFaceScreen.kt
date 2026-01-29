@@ -78,7 +78,7 @@ fun HowToCaptureFaceScreen(
             .systemBarsPadding()
     ) {
         Column(
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().padding(horizontal = 12.dp,),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -112,7 +112,7 @@ fun HowToCaptureFaceScreen(
                             .build(),
                         contentDescription = "Logo",
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(40.dp)
                             .align(Alignment.CenterVertically),
                         contentScale = ContentScale.Fit
                     )
@@ -184,7 +184,7 @@ fun HowToCaptureFaceScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(60.dp),
                         color = BaseTheme.BaseTextColor,
                         strokeWidth = 4.dp
                     )
