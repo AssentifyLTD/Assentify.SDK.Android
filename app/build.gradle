@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'de.undercouch.download'
@@ -10,7 +10,7 @@ android {
     compileSdkVersion 36
     android.ndkVersion "27.0.12077973"
     defaultConfig {
-    applicationId "com.assentify.sdk"
+    //applicationId "com.assentify.sdk"
 
         minSdkVersion 24
         targetSdkVersion 34
@@ -21,21 +21,21 @@ android {
     }
 
 
-    signingConfigs {
+/*    signingConfigs {
         create("release") {
             keyAlias = "release-key"
             keyPassword = "00000000"
             storeFile = file("release-key.jks")
             storePassword = "00000000"
         }
-    }
+    }*/
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources = true
+            minifyEnabled false
+           // shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig = signingConfigs.getByName("release")
+          //  signingConfig = signingConfigs.getByName("release")
         }
     }
 
