@@ -637,7 +637,7 @@ class AssentifySdk(
     ) {
 
         if (flowEnvironmentalConditions.logoUrl.isEmpty()) {
-            flowEnvironmentalConditions.logoUrl = tenantThemeModel!!.logo!!;
+            flowEnvironmentalConditions.logoUrl = tenantThemeModel!!.logoIcon!!;
         }
         if (flowEnvironmentalConditions.svgBackgroundImageUrl.isEmpty()) {
             flowEnvironmentalConditions.svgBackgroundImageUrl =

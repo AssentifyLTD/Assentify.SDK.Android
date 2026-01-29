@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
+import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
@@ -82,16 +84,24 @@ fun IDStepScreen(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
-    val countries = remember {
+    var countries = remember {
         AssentifySdkObject.getAssentifySdkObject().getTemplates(
             FlowController.getCurrentStep()!!.stepDefinition!!.stepId
         )
     }
 
+    countries = countries + TemplatesByCountry(
+        id = -1,
+        name = "Rest of the world",
+        sourceCountryCode = "",
+        flag = " ",
+        templates = emptyList()
+    )
 
 
+    var selectedCountry by remember { mutableStateOf<TemplatesByCountry?>(countries.firstOrNull()) }
 
-    var selectedCountry by remember { mutableStateOf<TemplatesByCountry?>(countries.first()) }
+
     var selectedTemplate by remember { mutableStateOf<Templates?>(null) }
 
 
@@ -110,11 +120,11 @@ fun IDStepScreen(
     BaseBackgroundContainer(
         modifier = modifier
             .fillMaxSize()
-           // .padding(horizontal = 12.dp, vertical = 8.dp)
+            // .padding(horizontal = 12.dp, vertical = 8.dp)
             .systemBarsPadding()
     ) {
         Column(
-            Modifier.fillMaxSize(),
+            Modifier.fillMaxSize().padding(horizontal = 5.dp,),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -148,7 +158,7 @@ fun IDStepScreen(
                             .build(),
                         contentDescription = "Logo",
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(40.dp)
                             .align(Alignment.CenterVertically),
                         contentScale = ContentScale.Fit
                     )
@@ -239,7 +249,7 @@ fun IDStepScreen(
             ) {
                 Spacer(Modifier.height(5.dp))
                 Text(
-                    "Only the presented IDs are supported and accepted by NXT Finance. Make sure to provide one of them.",
+                    "Only the presented IDs are supported and accepted by ${ConfigModelObject.getConfigModelObject().flowName}. Make sure to provide one of them.",
                     color = BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,
@@ -401,10 +411,7 @@ fun DocumentPicker(
     // ✅ Bottom sheet for templates list
     if (showIdsSheet) {
         TemplatesBottomSheet(
-            title = "Supported ${
-                country.templates.first().kycDocumentType.trim().split(" ")
-                    .firstOrNull() ?: ""
-            } IDs",
+            title = "Supported IDs",
             templates = country.templates,
             onDismiss = { showIdsSheet = false },
 
@@ -460,15 +467,12 @@ fun DocumentPicker(
                                     BaseTheme.BaseSecondaryTextColor
                                 else
                                     BaseTheme.BaseTextColor,
-                      )
+                            )
                         )
                     }
                     Spacer(Modifier.width(40.dp))
                     Text(
-                        text = "${
-                            country.templates.first().kycDocumentType.trim().split(" ")
-                                .firstOrNull() ?: ""
-                        } Passport",
+                        text = "Passport",
                         color = if (isSelectedPassport())
                             BaseTheme.BaseSecondaryTextColor
                         else
@@ -482,6 +486,7 @@ fun DocumentPicker(
         }
 
         // ===== 2) Supported IDs card =====
+        if(country.templates.isNotEmpty())
         item(key = "supported_ids") {
             Card(
                 modifier = Modifier
@@ -532,11 +537,8 @@ fun DocumentPicker(
 
                     Column(horizontalAlignment = Alignment.Start) {
                         Text(
-                            text = "Supported\n${
-                                country.templates.first().kycDocumentType.trim().split(" ")
-                                    .firstOrNull() ?: ""
-                            } IDs",
-                            color =     if (isSelectedIDs())
+                            text = "Supported IDs",
+                            color = if (isSelectedIDs())
                                 BaseTheme.BaseSecondaryTextColor
                             else
                                 BaseTheme.BaseTextColor,
@@ -548,7 +550,7 @@ fun DocumentPicker(
                         // ✅ View more => open list
                         Text(
                             text = "View more",
-                            color =     if (isSelectedIDs())
+                            color = if (isSelectedIDs())
                                 BaseTheme.BaseSecondaryTextColor
                             else
                                 BaseTheme.BaseTextColor,
@@ -570,6 +572,7 @@ fun DocumentPicker(
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TemplatesBottomSheet(
@@ -578,7 +581,19 @@ private fun TemplatesBottomSheet(
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
+
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+    // Tune these to match your UI
+    val headerHeight = 52.dp          // title area
+    val itemHeight = 88.dp            // each Card row height (approx)
+    val verticalPadding = 32.dp       // overall padding inside sheet
+    val maxSheetHeight = screenHeight * 0.75f
+
+    val sheetHeight = remember(templates.size) {
+        val calculated = headerHeight + verticalPadding + (itemHeight * templates.size.toFloat())
+        calculated.coerceAtMost(maxSheetHeight)
+    }
 
     ModalBottomSheet(
         modifier = Modifier
@@ -587,88 +602,96 @@ private fun TemplatesBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        dragHandle = null,              // ✅ remove drag handle
+        sheetGesturesEnabled = false
     ) {
         BaseBackgroundContainer(
-            modifier = Modifier.fillMaxSize()
-        ) {
-        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
+                .height(sheetHeight) // ✅ key line: sheet height depends on item count
         ) {
-            Text(
-                text = title,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Bold,
-                color = BaseTheme.BaseTextColor,
-                modifier = Modifier.padding(vertical = 10.dp)
-            )
-
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(bottom = 15.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp)
             ) {
-                items(
-                    items = templates,
-                    key = { it.id }
-                ) { template ->
-                    val iconUrl = template.kycDocumentDetails
-                        .firstOrNull()
-                        ?.templateSpecimen
-                        ?.takeIf { it.isNotBlank() }
+                Text(
+                    text = title,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Bold,
+                    color = BaseTheme.BaseTextColor,
+                    modifier = Modifier.padding(vertical = 10.dp)
+                )
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp)
-                            .clickable { },
-                        colors = CardDefaults.cardColors(
-                            containerColor = BaseTheme.FieldColor
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 6.dp
-                        ),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Row(
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 15.dp)
+                ) {
+                    items(
+                        items = templates,
+                        key = { it.id }
+                    ) { template ->
+                        val iconUrl = template.kycDocumentDetails
+                            .firstOrNull()
+                            ?.templateSpecimen
+                            ?.takeIf { it.isNotBlank() }
+
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(vertical = 6.dp)
+                                .clickable { },
+                            colors = CardDefaults.cardColors(
+                                containerColor = BaseTheme.FieldColor
+                            ),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 6.dp
+                            ),
+                            shape = RoundedCornerShape(10.dp)
                         ) {
-                            // Icon (from URL)
-                            Box(
+                            Row(
                                 modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(RoundedCornerShape(0.dp)),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                AsyncImage(
-                                    model = iconUrl,
-                                    contentDescription = "template_icon",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Fit
+                                // Icon (from URL)
+                                Box(
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .clip(RoundedCornerShape(0.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = iconUrl,
+                                        contentDescription = "template_icon",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
+
+                                Spacer(Modifier.width(12.dp))
+
+                                Text(
+                                    text = template.kycDocumentType,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BaseTheme.BaseTextColor,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
-
-                            Spacer(Modifier.width(12.dp))
-
-                            Text(
-                                text = template.kycDocumentType,
-                                fontFamily = InterFont,
-                                fontWeight = FontWeight.Bold,
-                                color = BaseTheme.BaseTextColor,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
                         }
                     }
                 }
             }
-        }}
+        }
     }
 }
+
+
+
 

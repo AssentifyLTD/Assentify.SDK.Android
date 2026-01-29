@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import com.assentify.sdk.ApiKeyObject
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
@@ -201,9 +202,27 @@ object FlowController {
     }
 
 
+    fun getFaceMatchInputImageKey(): String {
+        val key = ConstantsValues.ProvidedFaceImageKey
+        val currentStep = getCurrentStep()
+        val steps = LocalStepsObject.getLocalSteps()
+
+        val faceStep = steps.firstOrNull { it.stepDefinition?.stepDefinition == StepsNames.FaceImageAcquisition}
+
+        return if (faceStep!!.stepDefinition!!.inputProperties.isNotEmpty()) {
+            if(faceStep.stepDefinition.inputProperties.first().sourceStepId == currentStep!!.stepDefinition!!.stepId ){
+                faceStep.stepDefinition.inputProperties.first().sourceKey
+            }else{
+                "NON"
+            }
+        } else {
+            key
+        }
+    }
+
     fun setImage(url: String) {
-        IDImageObject.clear();
-        IDImageObject.setImage(url);
+         IDImageObject.clear();
+         IDImageObject.setImage(url);
     }
 
     fun getPreviousIDImage(): String {
