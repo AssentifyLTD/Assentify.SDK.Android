@@ -93,7 +93,8 @@ class RemoteProcessing {
                             response = "",
                             error = EventsErrorMessages.OnErrorMessage,
                             success = false,
-                            classifiedTemplate = ""
+                            classifiedTemplate = "",
+                            responseJsonObject =   null
                         )
                     );
                 }
@@ -107,7 +108,8 @@ class RemoteProcessing {
                         response = "",
                         error = EventsErrorMessages.OnErrorMessage,
                         success = false,
-                        classifiedTemplate = ""
+                        classifiedTemplate = "",
+                        responseJsonObject =   null
                     )
                 );
             }
@@ -208,7 +210,8 @@ class RemoteProcessing {
                             response = "",
                             error = EventsErrorMessages.OnErrorMessage,
                             success = false,
-                            classifiedTemplate = ""
+                            classifiedTemplate = "",
+                            responseJsonObject =   null
                         )
                     );
                 }
@@ -222,7 +225,8 @@ class RemoteProcessing {
                         response = "",
                         error = EventsErrorMessages.OnErrorMessage,
                         success = false,
-                        classifiedTemplate = ""
+                        classifiedTemplate = "",
+                        responseJsonObject =   null
                     )
                 );
             }
@@ -338,7 +342,8 @@ class RemoteProcessing {
                             response = "",
                             error = EventsErrorMessages.OnErrorMessage,
                             success = false,
-                            classifiedTemplate = ""
+                            classifiedTemplate = "",
+                            responseJsonObject =   null
                         )
                     );
                 }
@@ -352,7 +357,8 @@ class RemoteProcessing {
                         response = "",
                         error = EventsErrorMessages.OnErrorMessage,
                         success = false,
-                        classifiedTemplate = ""
+                        classifiedTemplate = "",
+                        responseJsonObject =   null
                     )
                 );
             }

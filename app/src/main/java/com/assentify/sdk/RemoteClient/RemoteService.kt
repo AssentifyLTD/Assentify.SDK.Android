@@ -20,6 +20,8 @@ import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
 import com.assentify.sdk.RemoteClient.Models.TokensMappings
+import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
+import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
 import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpResponseOtpModel
@@ -222,6 +224,38 @@ interface RemoteGatewayService {
         @Query("endpointId") endpointId: Int,
         @Body body: DataSourceRequestBody
     ): Call<DataSourceResponse>;
+
+
+    @POST("api/FlowTracker/track-next")
+    @Headers("Content-Type: application/json")
+    fun trackNext(
+        @Header("X-Api-Key") apiKey: String,
+        @Header("X-Source-Agent") userAgent: String,
+        @Header("X-Flow-Instance-Id") flowInstanceId: String,
+        @Header("X-Tenant-Identifier") tenantIdentifier: String,
+        @Header("X-Block-Identifier") blockIdentifier: String,
+        @Header("X-Instance-Id") instanceId: String,
+        @Header("X-Flow-Identifier") flowIdentifier: String,
+        @Header("X-Instance-Hash") instanceHash: String,
+
+        @Body body: TrackNextRequest
+    ): Call<ResponseBody>
+
+    @POST("api/FlowTracker/track-progress")
+    @Headers("Content-Type: application/json")
+    fun trackProgress(
+        @Header("X-Api-Key") apiKey: String,
+        @Header("X-Source-Agent") userAgent: String,
+        @Header("X-Flow-Instance-Id") flowInstanceId: String,
+        @Header("X-Tenant-Identifier") tenantIdentifier: String,
+        @Header("X-Block-Identifier") blockIdentifier: String,
+        @Header("X-Instance-Id") instanceId: String,
+        @Header("X-Flow-Identifier") flowIdentifier: String,
+        @Header("X-Instance-Hash") instanceHash: String,
+
+        @Body body: TrackProgressRequest
+    ): Call<ResponseBody>
+
 }
 
 

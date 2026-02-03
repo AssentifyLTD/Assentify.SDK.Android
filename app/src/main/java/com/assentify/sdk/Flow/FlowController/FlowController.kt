@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.util.Base64
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -14,6 +15,7 @@ import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Flow.AssistedDataEntryStep.AssistedDataEntryActivity
 import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
 import com.assentify.sdk.Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity
@@ -22,12 +24,20 @@ import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
+import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.R
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
+import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
+import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
+import com.assentify.sdk.RemoteClient.RemoteClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -192,13 +202,25 @@ object FlowController {
     fun makeCurrentStepDone(extractedInformation: Map<String, String>) {
         val steps = LocalStepsObject.getLocalSteps()
         val currentStep = steps.firstOrNull { !it.isDone }
-        val submitRequestModel = currentStep!!.submitRequestModel;
+
+        /** Track Next **/
+        val currentIndex = steps.indexOfFirst { !it.isDone }
+        val nextStep = if (currentIndex != -1 && currentIndex + 1 < steps.size) {
+            steps[currentIndex + 1]
+        } else {
+            null
+        }
+        trackNext(currentStep!!, nextStep)
+
+        /** Make Current Step Done **/
+        val submitRequestModel = currentStep.submitRequestModel;
         submitRequestModel!!.extractedInformation = extractedInformation;
         currentStep.let {
             it.isDone = true
             it.submitRequestModel = submitRequestModel
         }
         LocalStepsObject.setLocalSteps(steps)
+
     }
 
 
@@ -207,12 +229,13 @@ object FlowController {
         val currentStep = getCurrentStep()
         val steps = LocalStepsObject.getLocalSteps()
 
-        val faceStep = steps.firstOrNull { it.stepDefinition?.stepDefinition == StepsNames.FaceImageAcquisition}
+        val faceStep =
+            steps.firstOrNull { it.stepDefinition?.stepDefinition == StepsNames.FaceImageAcquisition }
 
         return if (faceStep!!.stepDefinition!!.inputProperties.isNotEmpty()) {
-            if(faceStep.stepDefinition.inputProperties.first().sourceStepId == currentStep!!.stepDefinition!!.stepId ){
+            if (faceStep.stepDefinition.inputProperties.first().sourceStepId == currentStep!!.stepDefinition!!.stepId) {
                 faceStep.stepDefinition.inputProperties.first().sourceKey
-            }else{
+            } else {
                 "NON"
             }
         } else {
@@ -221,8 +244,8 @@ object FlowController {
     }
 
     fun setImage(url: String) {
-         IDImageObject.clear();
-         IDImageObject.setImage(url);
+        IDImageObject.clear();
+        IDImageObject.setImage(url);
     }
 
     fun getPreviousIDImage(): String {
@@ -311,7 +334,107 @@ object FlowController {
         }
     }
 
+    private fun trackNext(currentStep: LocalStepModel, nextStep: LocalStepModel?) {
+        val remoteService = RemoteClient.remoteGatewayService
+        val configModel = ConfigModelObject.getConfigModelObject()
+        val apiKey = ApiKeyObject.getApiKeyObject()
+        val flowEnvironmentalConditions =
+            FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+        val userAgent = System.getProperty("http.agent")
+            ?: "Android ${Build.VERSION.RELEASE}; ${Build.MODEL}"
+        val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
+        val body = TrackNextRequest(
+            ApplicationId = configModel.applicationId,
+            BlockIdentifier = configModel.blockIdentifier,
+            DeviceName = deviceName,
+            FlowIdentifier = configModel.flowIdentifier,
+            FlowInstanceId = configModel.flowInstanceId,
+            FlowName = configModel.flowName,
+            InstanceHash = configModel.instanceHash,
+            TenantIdentifier = configModel.tenantIdentifier,
+            IsSuccessful = true,
+            Language = flowEnvironmentalConditions.language,
+            TimeEnded = getCurrentDateTimeForTracking(),
+            UserAgent = userAgent,
+            StepDefinition = currentStep.stepDefinition!!.stepDefinition,
+            StepId = currentStep.stepDefinition.stepId,
+            StepTypeId = configModel.stepMap.find { it.id == currentStep.stepDefinition.stepId }!!.stepType,
 
+            NextStepDefinition = if (nextStep != null) nextStep.stepDefinition!!.stepDefinition else StepsNames.WrapUp,
+            NextStepId = if (nextStep != null) nextStep.stepDefinition!!.stepId else configModel.stepMap.find { it.stepDefinition == StepsNames.WrapUp }!!.id,
+            NextStepTypeId = if (nextStep != null) configModel.stepMap.find { it.id == nextStep.stepDefinition!!.stepId }!!.stepType else configModel.stepMap.find { it.stepDefinition == StepsNames.WrapUp }!!.stepType,
+
+            BlockType = "Engagement",
+            StatusCode = 200,
+        )
+        val call = remoteService.trackNext(
+            apiKey,
+            "SDK",
+            configModel.flowInstanceId,
+            configModel.tenantIdentifier,
+            configModel.blockIdentifier,
+            configModel.instanceId,
+            configModel.flowIdentifier,
+            configModel.instanceHash,
+            body
+        );
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {}
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {}
+        })
+    }
+
+
+     fun trackProgress(currentStep: LocalStepModel,inputData:Any? = null,response:Any? = null,status: String) {
+        val remoteService = RemoteClient.remoteGatewayService
+        val configModel = ConfigModelObject.getConfigModelObject()
+        val apiKey = ApiKeyObject.getApiKeyObject()
+        val flowEnvironmentalConditions =
+            FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+        val userAgent = System.getProperty("http.agent")
+            ?: "Android ${Build.VERSION.RELEASE}; ${Build.MODEL}"
+        val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
+        val body = TrackProgressRequest(
+            TenantIdentifier = configModel.tenantIdentifier,
+            FlowIdentifier = configModel.flowIdentifier,
+            FlowInstanceId = configModel.flowInstanceId,
+            ApplicationId = configModel.applicationId,
+            BlockIdentifier = configModel.blockIdentifier,
+            InstanceHash = configModel.instanceHash,
+            FlowName = configModel.flowName,
+            StepDefinition = currentStep.stepDefinition!!.stepDefinition,
+            StepId = currentStep.stepDefinition.stepId,
+            StepTypeId = configModel.stepMap.find { it.id == currentStep.stepDefinition.stepId }!!.stepType,
+            DeviceName = deviceName,
+            UserAgent = userAgent,
+            Timestamp = getCurrentDateTimeForTracking(),
+            Language = flowEnvironmentalConditions.language,
+            Status = status,
+            InputData = inputData,
+            Response = response
+        )
+        val call = remoteService.trackProgress(
+            apiKey,
+            "SDK",
+            configModel.flowInstanceId,
+            configModel.tenantIdentifier,
+            configModel.blockIdentifier,
+            configModel.instanceId,
+            configModel.flowIdentifier,
+            configModel.instanceHash,
+            body
+        );
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {}
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {}
+        })
+    }
 }
 
 val InterFont = FontFamily(

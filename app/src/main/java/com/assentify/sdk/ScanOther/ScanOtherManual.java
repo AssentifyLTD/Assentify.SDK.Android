@@ -219,7 +219,7 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
                                             "onRetry",
                                             "",
                                             EventsErrorMessages.OnRetryCardMessage,
-                                            false,""
+                                            false,"",  null
                                     ));
                         }
                     });

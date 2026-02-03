@@ -171,6 +171,15 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             eventTypes.value = EventTypes.onError
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Error",
+            inputData = dataModel.responseJsonObject,
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onRetry(dataModel: BaseResponseDataModel) {
@@ -182,6 +191,15 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             }catch (e:Exception){
                 imageUrl.value = "" ;
             }
+            /** Track Progress **/
+            val  currentStep = FlowController.getCurrentStep()
+            FlowController.trackProgress(
+                currentStep = currentStep!!,
+                response = "Retry",
+                inputData = dataModel.responseJsonObject,
+                status = "InProgress"
+            )
+            /***/
 
         }
     }
@@ -192,6 +210,15 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             start.value = false;
             eventTypes.value = EventTypes.onComplete
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Completed",
+            inputData = dataModel.faceExtractedModel!!.outputProperties,
+            status = "Completed"
+        )
+        /***/
     }
 
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
@@ -200,6 +227,15 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             eventTypes.value = EventTypes.onLivenessUpdate
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "LivenessUpdate",
+            inputData = dataModel.responseJsonObject,
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onCurrentLiveMoveChange(activeLiveEvents: ActiveLiveEvents) {

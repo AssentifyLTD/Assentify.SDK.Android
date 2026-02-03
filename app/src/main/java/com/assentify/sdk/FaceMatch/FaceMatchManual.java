@@ -198,7 +198,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                                             "onRetry",
                                             "",
                                            EventsErrorMessages.OnRetryFaceMessage,
-                                            false,""
+                                            false,"",  null
                                     ));
                         }
                     });
