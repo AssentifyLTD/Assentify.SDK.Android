@@ -272,6 +272,23 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
                 signatureObject.value!!
             )
         }
+
+        /** Track Progress **/
+        val extractedInformation = mutableMapOf<String, String>()
+        for (outputProperty in FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties) {
+            if (outputProperty.key.contains("OnBoardMe_ContextAwareSigning_DocumentURL")) {
+                extractedInformation[outputProperty.key] =
+                    documentWithTokensAndSinged.first()!!.signatureResponseModel.signedDocumentUri
+            }
+        }
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = extractedInformation,
+            status = "Completed"
+        )
+        /***/
     }
 
     override fun onError(message: String) {

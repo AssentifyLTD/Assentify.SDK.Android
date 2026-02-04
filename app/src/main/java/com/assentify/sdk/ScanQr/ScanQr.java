@@ -216,7 +216,7 @@ public class ScanQr extends CameraPreview implements RemoteProcessingCallback , 
 
                     } else {
                          start = true;
-                         scanQrCallback.onErrorQrScan(EventsErrorMessages.OnRetryCardMessage);
+                         scanQrCallback.onErrorQrScan(EventsErrorMessages.OnRetryCardMessage,BaseResponseDataModel);
                     }
 
                 }
