@@ -20,20 +20,28 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 
 
 object BaseTheme {
-     val BaseTextColor  = Color(android.graphics.Color.parseColor( FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().textColor))
-     val BaseSecondaryTextColor  = Color(android.graphics.Color.parseColor( FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().secondaryTextColor))
-     val FieldColor  = Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundCardColor))
-     val BaseAccentColor  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor;
+    val BaseTextColor =
+        Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().textColor))
+    val BaseSecondaryTextColor =
+        Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().secondaryTextColor))
+    val FieldColor =
+        Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundCardColor))
+    val BaseAccentColor =
+        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor;
 
-     val BackgroundColor  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundColor;
-     val BaseClickColor  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().clickColor;
+    val BackgroundColor =
+        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundColor;
+    val BaseClickColor =
+        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().clickColor;
 
-     val BaseGreenColor  = Color(android.graphics.Color.parseColor(ConstantsValues.DetectColor))
-     val BaseRedColor  =Color.Red
+    val BaseGreenColor = Color(android.graphics.Color.parseColor(ConstantsValues.DetectColor))
+    val BaseRedColor = Color.Red
 
-     val BaseLogo  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().logoUrl;
-     val BaseBackgroundType  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundType;
-     val BaseBackgroundUrl  = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().svgBackgroundImageUrl;
+    val BaseLogo = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().logoUrl;
+    val BaseBackgroundType =
+        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundType;
+    val BaseBackgroundUrl =
+        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().svgBackgroundImageUrl;
 
 }
 
@@ -202,6 +210,26 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
              }*/
         }
         LocalStepsObject.setLocalSteps(tempList)
+
+        val steps = LocalStepsObject.getLocalSteps();
+        val currentStep =
+            steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
+        FlowController.trackProgress(
+            currentStep = currentStep,
+            response = null,
+            inputData = currentStep.submitRequestModel!!.extractedInformation,
+            status = "Completed"
+        )
+    } else {
+        val steps = LocalStepsObject.getLocalSteps();
+        val currentStep =
+            steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
+        FlowController.trackProgress(
+            currentStep = currentStep,
+            response = null,
+            inputData = currentStep.submitRequestModel!!.extractedInformation,
+            status = "Completed"
+        )
     }
 
     return tempList.filter { it.show }

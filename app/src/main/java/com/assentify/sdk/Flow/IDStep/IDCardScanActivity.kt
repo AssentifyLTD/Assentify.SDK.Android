@@ -179,6 +179,15 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             eventTypes.value = EventTypes.onError
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Error" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onRetry(dataModel: BaseResponseDataModel) {
@@ -191,6 +200,15 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                 imageUrl.value = "";
             }
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onComplete(
@@ -220,6 +238,17 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                 }
             }
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Completed",
+            inputData = dataModel.iDExtractedModel!!.transformedProperties!!,
+            status = "Completed"
+        )
+        /***/
+
+
     }
 
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
@@ -228,6 +257,15 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             eventTypes.value = EventTypes.onLivenessUpdate
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "LivenessUpdate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
@@ -236,6 +274,15 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             eventTypes.value = EventTypes.onWrongTemplate
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "WrongTemplate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
 

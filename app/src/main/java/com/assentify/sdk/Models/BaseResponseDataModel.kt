@@ -9,6 +9,7 @@ data class BaseResponseDataModel(
     var error: String?,
     var success: Boolean?,
     var classifiedTemplate: String,
+    var responseJsonObject: JSONObject? = null,
 
     )
 
@@ -25,6 +26,7 @@ fun encodeBaseResponseDataModelToJson(data: BaseResponseDataModel?): String {
 fun parseDataToBaseResponseDataModel(data: String): BaseResponseDataModel {
     val json = JSONObject(data)
     return BaseResponseDataModel(
+        responseJsonObject = json ,
         destinationEndpoint = json.optString("destinationEndpoint", ""),
         response = json.optString("response", ""),
         error = json.optString("error"),

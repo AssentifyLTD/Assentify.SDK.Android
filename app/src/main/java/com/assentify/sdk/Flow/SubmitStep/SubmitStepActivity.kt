@@ -13,9 +13,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.assentify.sdk.AssentifySdkObject
+import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Core.Constants.StepsNames
+import com.assentify.sdk.Core.Constants.WrapUpKeys
+import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.FlowController.FlowController
+import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.ReusableComposable.Events.SubmitDataTypes
 import com.assentify.sdk.FlowCallbackObject
+import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -32,7 +38,37 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
 
         val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
 
+        /** Track Progress **/
+        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        val valuesWrapUp: MutableMap<String, String> = mutableMapOf()
+        initSteps.forEach { item ->
+            if (item.stepDefinition == StepsNames.WrapUp) {
+                item.outputProperties.forEach { property ->
+                    if (property.key.contains(WrapUpKeys.TimeEnded)) {
+                        valuesWrapUp.put(property.key, getCurrentDateTime())
+                    }
+                }
+                FlowController.trackProgress(
+                    currentStep = LocalStepModel(
+                        name = "",
+                        description = "",
+                        iconAssetPath = "",
+                        isDone = false,
+                        stepDefinition = item,
+                        submitRequestModel = SubmitRequestModel(
+                            stepDefinition = item.stepDefinition,
+                            stepId = item.stepId,
+                            extractedInformation = valuesWrapUp
+                        )
+                    ),
+                    response = null,
+                    inputData = valuesWrapUp,
+                    status = "Completed"
+                )
+            }
+        }
 
+        /***/
 
         assentifySdk.startSubmitData(this, FlowController.getSubmitList())
 

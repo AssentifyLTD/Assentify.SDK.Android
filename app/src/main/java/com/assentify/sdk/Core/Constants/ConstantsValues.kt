@@ -103,3 +103,6 @@ fun getCurrentDateTime(): String {
     return dateFormat.format(currentDate)
 }
 
+fun getCurrentDateTimeForTracking(): String {
+    return java.time.OffsetDateTime.now().toString()
+}

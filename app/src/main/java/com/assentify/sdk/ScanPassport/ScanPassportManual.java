@@ -217,7 +217,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                             "onRetry",
                                             "",
                                             EventsErrorMessages.OnRetryCardMessage,
-                                            false,""
+                                            false,"",  null
                                     ));
                         }
                     });

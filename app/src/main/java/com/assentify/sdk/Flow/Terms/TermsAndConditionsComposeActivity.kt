@@ -46,15 +46,37 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
                         termsConditionsModel = termsConditionsModel.value,
                         termsAndConditionsEventTypes = termsAndConditionsEventTypes.value,
                         onBack   = { onBackPressedDispatcher.onBackPressed() },
-                        onAccept = {
+                        onAccept = { value ->
                             val confirmationKey = FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties.first().key
                             val extractedInformation: Map<String, String> = mapOf(
-                                confirmationKey to "true"
+                                confirmationKey to value.toString()
                             )
+                            /** Track Progress **/
+                            val  currentStep = FlowController.getCurrentStep()
+                            FlowController.trackProgress(
+                                currentStep = currentStep!!,
+                                response = null,
+                                inputData = extractedInformation,
+                                status = "Completed"
+                            )
+                            /***/
                             FlowController.makeCurrentStepDone(extractedInformation);
                             FlowController.naveToNextStep(this)
                         },
                         onDecline = {
+                            val confirmationKey = FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties.first().key
+                            val extractedInformation: Map<String, String> = mapOf(
+                                confirmationKey to "false"
+                            )
+                            /** Track Progress **/
+                            val  currentStep = FlowController.getCurrentStep()
+                            FlowController.trackProgress(
+                                currentStep = currentStep!!,
+                                response = null,
+                                inputData = extractedInformation,
+                                status = "Completed"
+                            )
+                            /***/
                             onBackPressedDispatcher.onBackPressed()
                         }
                     )

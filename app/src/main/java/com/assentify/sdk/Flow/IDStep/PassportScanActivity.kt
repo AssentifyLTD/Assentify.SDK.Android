@@ -163,6 +163,15 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             eventTypes.value = EventTypes.onError
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Error" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onRetry(dataModel: BaseResponseDataModel) {
@@ -173,7 +182,17 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                 imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
             }catch (e:Exception){
                 imageUrl.value = "" ;
-            }        }
+            }
+        }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
@@ -182,6 +201,15 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             eventTypes.value = EventTypes.onLivenessUpdate
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "LivenessUpdate" + " - "+ FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
@@ -190,6 +218,15 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             eventTypes.value = EventTypes.onWrongTemplate
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "WrongTemplate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onComplete(dataModel: PassportResponseModel) {
@@ -206,9 +243,16 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                     FlowController.setImage(value.toString())
                 }
             }
-
-
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = "Completed",
+            inputData = dataModel.passportExtractedModel!!.transformedProperties,
+            status = "Completed"
+        )
+        /***/
     }
 
     override fun onEnvironmentalConditionsChange(

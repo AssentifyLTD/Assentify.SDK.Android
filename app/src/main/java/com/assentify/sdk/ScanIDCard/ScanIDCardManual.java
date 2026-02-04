@@ -272,7 +272,7 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                                             "",
                                             EventsErrorMessages.OnRetryCardMessage,
                                             false,
-                                            classifiedTemplate
+                                            classifiedTemplate,  null
                                     ));
                         }
                     });

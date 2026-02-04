@@ -113,9 +113,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
-                apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
+                 "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
+                 "F4E4035E6EA5CC9B0FD90C9C91AB62207B001940457B5B0365F2E2967CDC3CE5",
+                 "318e2ca7-fde8-4c47-bbcc-0c94b905630f",
+
+              /*  apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
                 interactionHash = "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
-                tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",
+                tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",*/
               /*  apiKey = apiKey,
                 interactionHash = interactionHash,
                 tenantIdentifier = tenantIdentifier,*/
@@ -179,6 +183,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         hideLoader()
         AssentifySdkObject.setAssentifySdkObject(assentifySdk)
         runOnUiThread {
+
+
             val customProperties: MutableMap<String, String> = mutableMapOf()
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(

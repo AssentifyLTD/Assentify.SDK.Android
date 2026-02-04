@@ -22,6 +22,8 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 
 class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback {
 
+
+    private var status = mutableStateOf("InProgress")
     private var eventTypes = mutableStateOf(EventTypes.onSend)
     private var assistedDataModel = mutableStateOf<AssistedDataEntryModel?>(null)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,6 +89,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                     }
                                 }
                             }
+                            status.value = "Completed"
                             FlowController.makeCurrentStepDone(extractedInformation);
                             FlowController.naveToNextStep(context = this)
                         },
@@ -117,5 +120,62 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
             AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataEntryModel);
             eventTypes.value = EventTypes.onComplete
         }
+    }
+
+
+
+    override fun onStop() {
+        callTrackProgress();
+        super.onStop()
+    }
+    private fun callTrackProgress(){
+        val extractedInformation = mutableMapOf<String, String>()
+        val model =
+            AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+
+        for (page in pages) {
+            for (element in page.dataEntryPageElements) {
+                val key = element.inputKey
+                val isDirtyKey = element.isDirtyKey
+                val value = element.value
+                val fieldType = InputTypes.fromString(element.inputType)
+                /** Normal Key **/
+                if (!key.isNullOrBlank() && !value.isNullOrBlank()) {
+                    if (fieldType == InputTypes.PhoneNumber) {
+                        extractedInformation[key] =
+                            element.defaultCountryCode + value
+                    } else {
+                        extractedInformation[key] = value
+                    }
+
+                }
+                /** Dirty Key **/
+                if (!isDirtyKey.isNullOrBlank() && !value.isNullOrBlank()) {
+                    if (fieldType == InputTypes.PhoneNumber) {
+                        extractedInformation[isDirtyKey] =
+                            element.defaultCountryCode + value
+                    } else {
+                        extractedInformation[isDirtyKey] = value
+                    }
+                }
+                /** Data Source Keys **/
+                if (!element.dataSourceValues.isNullOrEmpty()) {
+                    element.dataSourceValues!!.forEach {
+                        extractedInformation[it.key] = it.value
+                    }
+                }
+            }
+        }
+
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = extractedInformation,
+            status = status.value
+        )
+        /***/
     }
 }

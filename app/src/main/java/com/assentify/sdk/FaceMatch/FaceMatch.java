@@ -563,7 +563,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             "Please hold your hand",
                             EventsErrorMessages.OnRetryFaceMessage,
                             false,
-                            ""
+                            "",
+                            null
 
                     ));
                 }

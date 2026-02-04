@@ -194,7 +194,7 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
                     } else {
                          start = true;
                          manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
-                         scanQrCallback.onErrorQrScan(EventsErrorMessages.OnRetryCardMessage);
+                         scanQrCallback.onErrorQrScan(EventsErrorMessages.OnRetryCardMessage,BaseResponseDataModel);
                     }
 
                 }

@@ -60,6 +60,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.OnCompleteScreenData
 import com.assentify.sdk.QrIDResponseModelObject
 import com.assentify.sdk.ScanIDCard.IDResponseModel
@@ -163,15 +164,34 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
             OnCompleteScreenData.setData(finalIDResponseModelObject.iDExtractedModel!!.transformedProperties);
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = finalIDResponseModelObject.iDExtractedModel!!.imageUrl!!
+            /** Track Progress **/
+            val  currentStep = FlowController.getCurrentStep()
+            FlowController.trackProgress(
+                currentStep = currentStep!!,
+                response = "Completed",
+                inputData = finalIDResponseModelObject.iDExtractedModel!!.transformedProperties,
+                status = "Completed"
+            )
+            /***/
 
         }
+
     }
 
-    override fun onErrorQrScan(message: String) {
+    override fun onErrorQrScan(message: String,dataModel: BaseResponseDataModel) {
         runOnUiThread {
             start.value = false;
             eventTypes.value = EventTypes.onError
         }
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = dataModel.destinationEndpoint + " - " +  FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            status = "InProgress"
+        )
+        /***/
     }
 
     override fun onUploadingProgress(progress: Int) {
@@ -226,7 +246,8 @@ fun QrScanScreen(
             }
             if (eventTypes == EventTypes.onComplete) {
                 val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
-                    ?: false;                if(showResultPage) {
+                    ?: false;
+                if(showResultPage) {
                     OnCompleteScreen(imageUrl, onNext = {
                         if (isManual) {
                             scanQrManual?.stopScanning()
