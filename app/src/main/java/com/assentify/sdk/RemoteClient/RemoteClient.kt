@@ -2,7 +2,6 @@ package   com.assentify.sdk.RemoteClient
 
 import com.assentify.sdk.Core.Constants.Routes.BaseUrls
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -29,11 +28,11 @@ object RemoteClient {
                 .build()
             chain.proceed(newRequest)
         }
-        .addInterceptor(
+      /*  .addInterceptor(
             HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             }
-        )
+        )*/
         .build()
 
 
