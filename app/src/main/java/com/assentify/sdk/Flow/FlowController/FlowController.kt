@@ -32,6 +32,8 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
 import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
 import com.assentify.sdk.RemoteClient.RemoteClient
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -434,6 +436,26 @@ object FlowController {
             ) {}
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {}
         })
+    }
+
+    fun extractAfterDash(error: String?,): String {
+        if (error.isNullOrEmpty()) return ""
+
+        return if (error.contains("-")) {
+            error.substringAfter("-").trim()
+        } else {
+            ""
+        }
+    }
+
+    fun decodeToJsonObject(originalString: String?): JsonObject? {
+        if (originalString.isNullOrEmpty()) return null
+
+        return try {
+            Gson().fromJson(originalString, JsonObject::class.java)
+        } catch (e: Exception) {
+            null
+        }
     }
 }
 

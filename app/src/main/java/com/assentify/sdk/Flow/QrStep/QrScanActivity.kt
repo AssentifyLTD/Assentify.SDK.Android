@@ -187,8 +187,8 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
         val  currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
-            response = dataModel.destinationEndpoint,
-            inputData = dataModel.responseJsonObject,
+            response = dataModel.destinationEndpoint + " - " +  FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
             status = "InProgress"
         )
         /***/

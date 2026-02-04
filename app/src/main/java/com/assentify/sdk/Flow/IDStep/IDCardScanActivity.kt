@@ -183,8 +183,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
         val  currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
-            response = "Error",
-            inputData = dataModel.responseJsonObject,
+            response = "Error" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
             status = "InProgress"
         )
         /***/
@@ -204,8 +204,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
         val  currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
-            response = "Retry",
-            inputData = dataModel.responseJsonObject,
+            response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
             status = "InProgress"
         )
         /***/
@@ -261,8 +261,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
         val  currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
-            response = "LivenessUpdate",
-            inputData = dataModel.responseJsonObject,
+            response = "LivenessUpdate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
             status = "InProgress"
         )
         /***/
@@ -278,8 +278,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
         val  currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
-            response = "WrongTemplate",
-            inputData = dataModel.responseJsonObject,
+            response = "WrongTemplate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+            inputData = FlowController.decodeToJsonObject(dataModel.response),
             status = "InProgress"
         )
         /***/
