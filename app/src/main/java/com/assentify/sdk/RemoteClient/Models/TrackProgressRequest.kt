@@ -18,5 +18,6 @@ data class TrackProgressRequest(
     val Language: String,
     val InputData: Any? = null,
     val Response: Any? = null,
+    val CustomProperties: MutableList<Any> = mutableListOf()
 
 )
