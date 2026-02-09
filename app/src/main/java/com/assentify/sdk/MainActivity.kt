@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        /** Camera Permission **/
         if (ContextCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.CAMERA
@@ -60,6 +62,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
+
+        /** UI **/
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
         val etInteractionHash = findViewById<EditText>(R.id.etInteractionHash)
         val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
@@ -103,26 +107,19 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         )
 
         btnStart.setOnClickListener {
-
-
             btnStart.isEnabled = false
-
             val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
             val interactionHash = etInteractionHash.text?.toString()?.trim().orEmpty()
             val tenantIdentifier = etTenantIdentifier.text?.toString()?.trim().orEmpty()
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
-                 "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
-                 "F4E4035E6EA5CC9B0FD90C9C91AB62207B001940457B5B0365F2E2967CDC3CE5",
-                 "318e2ca7-fde8-4c47-bbcc-0c94b905630f",
-
-              /*  apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
+            /*  apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
                 interactionHash = "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
                 tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",*/
-              /*  apiKey = apiKey,
-                interactionHash = interactionHash,
-                tenantIdentifier = tenantIdentifier,*/
+                apiKey = "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
+                interactionHash = "F4E4035E6EA5CC9B0FD90C9C91AB62207B001940457B5B0365F2E2967CDC3CE5",
+                tenantIdentifier = "318e2ca7-fde8-4c47-bbcc-0c94b905630f",
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
                 enableGuide = swEnableGuide.isChecked,
@@ -130,7 +127,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 enableQr = swEnableQr.isChecked
             )
 
-            // Basic validation example
+            // Validation
             if (config.apiKey.isEmpty() || config.tenantIdentifier.isEmpty() || config.interactionHash.isEmpty()) {
                 progressBar.visibility = View.GONE
                 btnStart.isEnabled = true
@@ -141,8 +138,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 ).show()
                 return@setOnClickListener
             }
-
             showLoader()
+
+
+            /** INIT SDK **/
             val environmentalConditions = EnvironmentalConditions(
                 config.enableDetect,
                 config.enableGuide,
@@ -162,36 +161,31 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 performActiveLivenessFace = false,
                 context = this,
             );
+            /** END **/
         }
     }
 
 
-    private fun showLoader() {
-        progressBar.visibility = View.VISIBLE
-    }
-
-    private fun hideLoader() {
-        progressBar.visibility = View.GONE
-    }
-
+    /** INIT SDK ERROR **/
     override fun onAssentifySdkInitError(message: String) {
         hideLoader()
         Toast.makeText(this, "AssentifySdk Init Error", Toast.LENGTH_SHORT).show()
     }
 
+    /** INIT SDK SUCCESS **/
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         hideLoader()
         AssentifySdkObject.setAssentifySdkObject(assentifySdk)
         runOnUiThread {
-
-
+            /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
                 logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
+               // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
                 backgroundType = BackgroundType.Color,
+                textColor = "#000000",
                 accentColor = "#ffc400",
-                textColor  = "#000000",
                 secondaryTextColor = "#ffffff",
                 backgroundCardColor = "#f3f4f6",
                 backgroundColor = BackgroundStyle.Solid("#ffffff"),
@@ -200,6 +194,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
+                /** X Theme **/
+
             );
 
 
@@ -208,14 +204,24 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 flowCallback = this,
                 flowEnvironmentalConditions = flowEnvironmentalConditions
             )
+            /** END **/
         }
 
     }
 
 
+    /** FLOW Completed **/
     override fun onFlowCompleted(submitRequestModel: List<SubmitRequestModel>) {
         Toast.makeText(this, "Flow Completed", Toast.LENGTH_SHORT).show()
+    }
 
+    /** UI **/
+    private fun showLoader() {
+        progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideLoader() {
+        progressBar.visibility = View.GONE
     }
 
 }

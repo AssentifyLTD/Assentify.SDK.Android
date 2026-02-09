@@ -90,6 +90,15 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                 }
                             }
                             status.value = "Completed"
+                            /** Track Progress **/
+                            val  currentStep = FlowController.getCurrentStep()
+                            FlowController.trackProgress(
+                                currentStep = currentStep!!,
+                                response = null,
+                                inputData = extractedInformation,
+                                status = status.value
+                            )
+                            /***/
                             FlowController.makeCurrentStepDone(extractedInformation);
                             FlowController.naveToNextStep(context = this)
                         },
@@ -129,53 +138,56 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
         super.onStop()
     }
     private fun callTrackProgress(){
-        val extractedInformation = mutableMapOf<String, String>()
-        val model =
-            AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
-        val pages = model!!.assistedDataEntryPages
+        if(status.value != "Completed"){
+            val extractedInformation = mutableMapOf<String, String>()
+            val model =
+                AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+            val pages = model!!.assistedDataEntryPages
 
-        for (page in pages) {
-            for (element in page.dataEntryPageElements) {
-                val key = element.inputKey
-                val isDirtyKey = element.isDirtyKey
-                val value = element.value
-                val fieldType = InputTypes.fromString(element.inputType)
-                /** Normal Key **/
-                if (!key.isNullOrBlank() && !value.isNullOrBlank()) {
-                    if (fieldType == InputTypes.PhoneNumber) {
-                        extractedInformation[key] =
-                            element.defaultCountryCode + value
-                    } else {
-                        extractedInformation[key] = value
-                    }
+            for (page in pages) {
+                for (element in page.dataEntryPageElements) {
+                    val key = element.inputKey
+                    val isDirtyKey = element.isDirtyKey
+                    val value = element.value
+                    val fieldType = InputTypes.fromString(element.inputType)
+                    /** Normal Key **/
+                    if (!key.isNullOrBlank() && !value.isNullOrBlank()) {
+                        if (fieldType == InputTypes.PhoneNumber) {
+                            extractedInformation[key] =
+                                element.defaultCountryCode + value
+                        } else {
+                            extractedInformation[key] = value
+                        }
 
-                }
-                /** Dirty Key **/
-                if (!isDirtyKey.isNullOrBlank() && !value.isNullOrBlank()) {
-                    if (fieldType == InputTypes.PhoneNumber) {
-                        extractedInformation[isDirtyKey] =
-                            element.defaultCountryCode + value
-                    } else {
-                        extractedInformation[isDirtyKey] = value
                     }
-                }
-                /** Data Source Keys **/
-                if (!element.dataSourceValues.isNullOrEmpty()) {
-                    element.dataSourceValues!!.forEach {
-                        extractedInformation[it.key] = it.value
+                    /** Dirty Key **/
+                    if (!isDirtyKey.isNullOrBlank() && !value.isNullOrBlank()) {
+                        if (fieldType == InputTypes.PhoneNumber) {
+                            extractedInformation[isDirtyKey] =
+                                element.defaultCountryCode + value
+                        } else {
+                            extractedInformation[isDirtyKey] = value
+                        }
+                    }
+                    /** Data Source Keys **/
+                    if (!element.dataSourceValues.isNullOrEmpty()) {
+                        element.dataSourceValues!!.forEach {
+                            extractedInformation[it.key] = it.value
+                        }
                     }
                 }
             }
+
+            /** Track Progress **/
+            val  currentStep = FlowController.getCurrentStep()
+            FlowController.trackProgress(
+                currentStep = currentStep!!,
+                response = null,
+                inputData = extractedInformation,
+                status = status.value
+            )
+            /***/
         }
 
-        /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
-        FlowController.trackProgress(
-            currentStep = currentStep!!,
-            response = null,
-            inputData = extractedInformation,
-            status = status.value
-        )
-        /***/
     }
 }

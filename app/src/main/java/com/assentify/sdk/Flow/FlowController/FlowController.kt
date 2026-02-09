@@ -32,6 +32,7 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
 import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
 import com.assentify.sdk.RemoteClient.RemoteClient
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -415,7 +416,7 @@ object FlowController {
             Timestamp = getCurrentDateTimeForTracking(),
             Language = flowEnvironmentalConditions.language,
             Status = status,
-            InputData = inputData,
+            InputData = prepareTrackProgressInputData(currentStep,inputData),
             Response = response
         )
         val call = remoteService.trackProgress(
@@ -457,6 +458,60 @@ object FlowController {
             null
         }
     }
+
+    fun  prepareTrackProgressInputData(currentStep: LocalStepModel,inputData:Any?):Map<String, Any?>{
+        val  stepsData = mutableMapOf<String, Any?>()
+        val steps = LocalStepsObject.getLocalSteps()
+        steps.forEach {
+            if(it.isDone ){
+                val  extractedInformation= mutableMapOf<String, Any>()
+                extractedInformation["stepId"] = it.stepDefinition!!.stepId
+                extractedInformation.putAll(it.submitRequestModel!!.extractedInformation)
+                stepsData[prepareStepName(it.stepDefinition.stepDefinition,it.stepDefinition.stepId)]  = extractedInformation
+            }
+        }
+        val  extractedInformation = mutableMapOf<String, Any?>()
+        extractedInformation["stepId"] = currentStep.stepDefinition!!.stepId
+        toMap(inputData)?.let {
+            extractedInformation.putAll(it)
+        }
+        stepsData[prepareStepName(currentStep.stepDefinition.stepDefinition,currentStep.stepDefinition.stepId)] = extractedInformation
+        return stepsData;
+    }
+    fun toMap(input: Any?): Map<String, Any?>? {
+        return when (input) {
+            null -> null
+
+            is Map<*, *> ->
+                input.filterKeys { it is String }
+                    .mapKeys { it.key as String }
+
+            is JsonObject ->
+                Gson().fromJson(
+                    input,
+                    object : TypeToken<Map<String, Any?>>() {}.type
+                )
+            else -> null
+        }
+    }
+
+    fun prepareStepName(
+        stepDefinition: String,
+        stepId: Int
+    ): String {
+        val steps = LocalStepsObject.getLocalSteps()
+
+        val duplicatesCount = steps.count {
+            it.stepDefinition?.stepDefinition == stepDefinition
+        }
+
+        return if (duplicatesCount > 1) {
+            "${stepDefinition}_$stepId"
+        } else {
+            stepDefinition
+        }
+    }
+
 }
 
 val InterFont = FontFamily(
