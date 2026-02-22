@@ -105,7 +105,11 @@ fun SecureNationalityDropdown(
     var selectedCode by rememberSaveable(field.inputKey, page) { mutableStateOf(defaultCode) }
     LaunchedEffect(defaultCode) { selectedCode = defaultCode }
 
-    val isReadOnly = (field.readOnly == true) || (field.isLocked == true)
+    fun getIsLocked(): Boolean {
+        val identifiers = field.inputPropertyIdentifierList ?: emptyList()
+        return (field.isLocked == true) && identifiers.isNotEmpty()
+    }
+    val isReadOnly = (field.readOnly == true) || getIsLocked()
 
     val err by remember(field.inputKey, page, selectedCode) {
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")

@@ -235,6 +235,11 @@ fun SecureDateField(
         onDateChange(newValue)
     }
 
+     fun getIsLocked(): Boolean {
+        val identifiers = field.inputPropertyIdentifierList ?: emptyList()
+        return (field.isLocked == true) && identifiers.isNotEmpty()
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
@@ -246,7 +251,7 @@ fun SecureDateField(
 
         Spacer(Modifier.height(6.dp))
 
-        val canPick = (field.readOnly != true && field.isLocked != true)
+        val canPick = (field.readOnly != true && !getIsLocked())
 
         Box(Modifier.fillMaxWidth()) {
             TextField(

@@ -16,6 +16,7 @@ import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 
@@ -25,6 +26,9 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
 
     private var status = mutableStateOf("InProgress")
     private var eventTypes = mutableStateOf(EventTypes.onSend)
+
+    private var timeStarted = getCurrentDateTimeForTracking()
+
     private var assistedDataModel = mutableStateOf<AssistedDataEntryModel?>(null)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,7 +103,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                 status = status.value
                             )
                             /***/
-                            FlowController.makeCurrentStepDone(extractedInformation);
+                            FlowController.makeCurrentStepDone(extractedInformation,timeStarted);
                             FlowController.naveToNextStep(context = this)
                         },
                     )

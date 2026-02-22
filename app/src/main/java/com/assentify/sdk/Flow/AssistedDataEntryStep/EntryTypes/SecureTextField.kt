@@ -39,7 +39,10 @@ fun SecureTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
+    fun getIsLocked(): Boolean {
+        val identifiers = field.inputPropertyIdentifierList ?: emptyList()
+        return (field.isLocked == true) && identifiers.isNotEmpty()
+    }
     /** Default Value **/
     var value by rememberSaveable(field.inputKey) { mutableStateOf("") }
     LaunchedEffect(field.inputKey, field.languageTransformation) {
@@ -102,7 +105,7 @@ fun SecureTextField(
                 value = it;
                 onValueChange(it)
             },
-            readOnly = field.readOnly!! || field.isLocked!!,
+            readOnly = field.readOnly!! || getIsLocked(),
             singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = BaseTheme.FieldColor,

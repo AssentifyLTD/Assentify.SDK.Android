@@ -202,7 +202,7 @@ object FlowController {
         return steps.firstOrNull { !it.isDone }
     }
 
-    fun makeCurrentStepDone(extractedInformation: Map<String, String>) {
+    fun makeCurrentStepDone(extractedInformation: Map<String, String>,timeStarted: String) {
         val steps = LocalStepsObject.getLocalSteps()
         val currentStep = steps.firstOrNull { !it.isDone }
 
@@ -213,7 +213,7 @@ object FlowController {
         } else {
             null
         }
-        trackNext(currentStep!!, nextStep)
+        trackNext(currentStep!!, nextStep,timeStarted)
 
         /** Make Current Step Done **/
         val submitRequestModel = currentStep.submitRequestModel;
@@ -337,7 +337,7 @@ object FlowController {
         }
     }
 
-    private fun trackNext(currentStep: LocalStepModel, nextStep: LocalStepModel?) {
+    private fun trackNext(currentStep: LocalStepModel, nextStep: LocalStepModel?,timeStarted: String) {
         val remoteService = RemoteClient.remoteGatewayService
         val configModel = ConfigModelObject.getConfigModelObject()
         val apiKey = ApiKeyObject.getApiKeyObject()
@@ -357,6 +357,7 @@ object FlowController {
             TenantIdentifier = configModel.tenantIdentifier,
             IsSuccessful = true,
             Language = flowEnvironmentalConditions.language,
+            TimeStarted = timeStarted,
             TimeEnded = getCurrentDateTimeForTracking(),
             UserAgent = userAgent,
             StepDefinition = currentStep.stepDefinition!!.stepDefinition,

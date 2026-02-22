@@ -55,6 +55,7 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
@@ -81,6 +82,9 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
     private var imageUrl = mutableStateOf<String>("")
     private var currentActiveLiveEvents = mutableStateOf<ActiveLiveEvents>(ActiveLiveEvents.Good)
     private var faceModel = mutableStateOf<FaceResponseModel?>(null)
+
+    private var timeStarted = getCurrentDateTimeForTracking()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,7 +132,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                                     outputProps[isSkippedStatusKey] = "true";
                                 }
                             }
-                            FlowController.makeCurrentStepDone(outputProps);
+                            FlowController.makeCurrentStepDone(outputProps,timeStarted);
                             FlowController.naveToNextStep(context = this)
                         },
                         feedbackText = feedbackText.value,

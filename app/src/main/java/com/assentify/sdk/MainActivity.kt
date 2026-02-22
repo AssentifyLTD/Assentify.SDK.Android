@@ -114,12 +114,18 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
-            /*  apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
+           /*     interactionHash = "E6161B5C8D85382101B19AD0D86692F121622D108CECBF0E4E23E2709ACC9EB4",
+                tenantIdentifier = "6ae86d79-6b88-4964-a649-08de330c7f4f",
+               apiKey = "ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ",*/
+              // apiKey = apiKey,
+              // interactionHash=interactionHash,
+              // tenantIdentifier=tenantIdentifier,
+               apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
                 interactionHash = "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
-                tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",*/
-                apiKey = "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
+                tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",
+              /*  apiKey = "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
                 interactionHash = "F4E4035E6EA5CC9B0FD90C9C91AB62207B001940457B5B0365F2E2967CDC3CE5",
-                tenantIdentifier = "318e2ca7-fde8-4c47-bbcc-0c94b905630f",
+                tenantIdentifier = "318e2ca7-fde8-4c47-bbcc-0c94b905630f",*/
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
                 enableGuide = swEnableGuide.isChecked,

@@ -78,6 +78,7 @@ import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -131,6 +132,8 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 
     private lateinit var contextAwareSigning: ContextAwareSigning;
 
+    private var timeStarted = getCurrentDateTimeForTracking()
+
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -165,7 +168,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
                                         documentWithTokensAndSinged.first()!!.signatureResponseModel.signedDocumentUri
                                 }
                             }
-                            FlowController.makeCurrentStepDone(extractedInformation)
+                            FlowController.makeCurrentStepDone(extractedInformation,timeStarted)
                             FlowController.naveToNextStep(context = this)
 
                         },

@@ -48,6 +48,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.ConstantsValues
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -73,6 +74,9 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private var imageUrl = mutableStateOf<String>("")
     private var feedbackText = mutableStateOf("Position the passport on the bottom of the phone where the NFC chip reader is and ensure that you have the passport close enough for detection and reading.")
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
+
+    private var timeStarted = getCurrentDateTimeForTracking()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -116,7 +120,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onNext = {
-                            FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!);
+                            FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
                             FlowController.naveToNextStep(this)
                         },
                         onRetry = {

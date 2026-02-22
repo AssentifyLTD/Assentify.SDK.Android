@@ -53,6 +53,7 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -94,6 +95,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     private var extractedInformation = mutableStateOf<Map<String, String>?>(null)
 
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    private var timeStarted = getCurrentDateTimeForTracking()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,7 +136,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                                     context = this,
                                 );
                             } else {
-                                FlowController.makeCurrentStepDone(extractedInformation.value!!);
+                                FlowController.makeCurrentStepDone(extractedInformation.value!!,timeStarted);
                                 FlowController.naveToNextStep(context = this)
                             }
                         },
@@ -238,15 +240,18 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                 }
             }
         }
-        /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
-        FlowController.trackProgress(
-            currentStep = currentStep!!,
-            response = "Completed",
-            inputData = dataModel.iDExtractedModel!!.transformedProperties!!,
-            status = "Completed"
-        )
-        /***/
+        if(isLastPage){
+            /** Track Progress **/
+            val  currentStep = FlowController.getCurrentStep()
+            FlowController.trackProgress(
+                currentStep = currentStep!!,
+                response = "Completed",
+                inputData = extractedInformation.value,
+                status = "Completed"
+            )
+            /***/
+        }
+
 
 
     }
