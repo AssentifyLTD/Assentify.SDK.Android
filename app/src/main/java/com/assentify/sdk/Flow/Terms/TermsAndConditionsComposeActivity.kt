@@ -12,6 +12,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.ReusableComposable.Events.TermsAndConditionsEventTypes
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
@@ -19,6 +20,9 @@ import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
 class TermsAndConditionsComposeActivity : ComponentActivity() {
 
     private var termsConditionsModel = mutableStateOf<TermsConditionsModel?>(null)
+
+    private var timeStarted = getCurrentDateTimeForTracking()
+
     private var termsAndConditionsEventTypes = mutableStateOf<String>(TermsAndConditionsEventTypes.onSend)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +64,7 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
                                 status = "Completed"
                             )
                             /***/
-                            FlowController.makeCurrentStepDone(extractedInformation);
+                            FlowController.makeCurrentStepDone(extractedInformation, timeStarted );
                             FlowController.naveToNextStep(this)
                         },
                         onDecline = {

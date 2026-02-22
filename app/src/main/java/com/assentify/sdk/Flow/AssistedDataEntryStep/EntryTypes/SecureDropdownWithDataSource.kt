@@ -148,8 +148,11 @@ fun SecureDropdownWithDataSource(
 
     var expanded by remember { mutableStateOf(false) }
 
-
-    val isReadOnly = (field.readOnly == true) || (field.isLocked == true)
+    fun getIsLocked(): Boolean {
+        val identifiers = field.inputPropertyIdentifierList ?: emptyList()
+        return (field.isLocked == true) && identifiers.isNotEmpty()
+    }
+    val isReadOnly = (field.readOnly == true) || (getIsLocked())
 
     val err by remember(field.inputKey, page, selected) {
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")

@@ -53,6 +53,7 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -86,6 +87,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     private var imageUrl = mutableStateOf<String>("")
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
 
+    private var timeStarted = getCurrentDateTimeForTracking()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,7 +121,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                             if (flowEnv.enableNfc) {
                                 NfcScanActivity.start(context = this)
                             } else {
-                                FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!);
+                                FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
                                 FlowController.naveToNextStep(this)
                             }
                         },
