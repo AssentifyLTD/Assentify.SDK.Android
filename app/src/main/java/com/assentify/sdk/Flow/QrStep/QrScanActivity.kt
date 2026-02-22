@@ -49,6 +49,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.IDQrKeys
+import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -79,6 +80,8 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
     private var imageUrl = mutableStateOf<String>("")
     private var dataIDModel = mutableStateOf<IDResponseModel?>(null)
 
+    private var timeStarted = getCurrentDateTimeForTracking()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -105,7 +108,7 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
                             eventTypes.value = EventTypes.none;
                         },
                         onNext = {
-                            FlowController.makeCurrentStepDone(dataIDModel.value!!.iDExtractedModel!!.transformedProperties!!);
+                            FlowController.makeCurrentStepDone(dataIDModel.value!!.iDExtractedModel!!.transformedProperties!!,timeStarted);
                             FlowController.naveToNextStep(context = this)
                         },
                         progress = uploadingProgress.value,

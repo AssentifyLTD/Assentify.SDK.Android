@@ -22,6 +22,7 @@ data class TrackNextRequest(
     val StepId: Int,
     val StepTypeId: Int,
     val TenantIdentifier: String,
+    val TimeStarted: String,
     val TimeEnded: String,
     val UserAgent: String
 )

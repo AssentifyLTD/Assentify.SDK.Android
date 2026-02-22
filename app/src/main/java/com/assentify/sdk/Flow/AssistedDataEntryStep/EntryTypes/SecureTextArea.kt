@@ -78,7 +78,10 @@ fun SecureTextArea(
 
     /****/
 
-
+    fun getIsLocked(): Boolean {
+        val identifiers = field.inputPropertyIdentifierList ?: emptyList()
+        return (field.isLocked == true) && identifiers.isNotEmpty()
+    }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
 
@@ -103,7 +106,7 @@ fun SecureTextArea(
                 value = it
                 onValueChange(it)
             },
-            readOnly = (field.readOnly == true) || (field.isLocked == true),
+            readOnly = (field.readOnly == true) || getIsLocked(),
             singleLine = false,
             minLines = field.sizeByRows ?: 3,
             maxLines = Int.MAX_VALUE,
