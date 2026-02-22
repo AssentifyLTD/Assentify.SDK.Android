@@ -29,11 +29,6 @@ object RemoteClient {
                 .build()
             chain.proceed(newRequest)
         }
-        .addInterceptor(
-            HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            }
-        )
         .build()
 
 
