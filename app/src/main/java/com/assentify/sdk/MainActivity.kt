@@ -2,6 +2,7 @@ package com.assentify.sdk
 
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     private lateinit var config: StartConfig
 
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -67,6 +69,16 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
         val etInteractionHash = findViewById<EditText>(R.id.etInteractionHash)
         val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
+
+
+   //  etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
+   //  etInteractionHash.setText("E6161B5C8D85382101B19AD0D86692F121622D108CECBF0E4E23E2709ACC9EB4")
+   //  etTenantIdentifier.setText("6ae86d79-6b88-4964-a649-08de330c7f4f")
+
+
+        /*  apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
+            interactionHash = "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
+            tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",*/
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
 
@@ -107,25 +119,15 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         )
 
         btnStart.setOnClickListener {
-            btnStart.isEnabled = false
             val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
             val interactionHash = etInteractionHash.text?.toString()?.trim().orEmpty()
             val tenantIdentifier = etTenantIdentifier.text?.toString()?.trim().orEmpty()
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
-           /*     interactionHash = "E6161B5C8D85382101B19AD0D86692F121622D108CECBF0E4E23E2709ACC9EB4",
-                tenantIdentifier = "6ae86d79-6b88-4964-a649-08de330c7f4f",
-               apiKey = "ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ",*/
-              // apiKey = apiKey,
-              // interactionHash=interactionHash,
-              // tenantIdentifier=tenantIdentifier,
-               apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
-                interactionHash = "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
-                tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",
-              /*  apiKey = "YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg",
-                interactionHash = "F4E4035E6EA5CC9B0FD90C9C91AB62207B001940457B5B0365F2E2967CDC3CE5",
-                tenantIdentifier = "318e2ca7-fde8-4c47-bbcc-0c94b905630f",*/
+                apiKey = apiKey,
+                interactionHash = interactionHash,
+                tenantIdentifier = tenantIdentifier,
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
                 enableGuide = swEnableGuide.isChecked,
@@ -136,37 +138,36 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             // Validation
             if (config.apiKey.isEmpty() || config.tenantIdentifier.isEmpty() || config.interactionHash.isEmpty()) {
                 progressBar.visibility = View.GONE
-                btnStart.isEnabled = true
                 Toast.makeText(
                     this,
                     "API key , Tenant Identifier , Interaction Hash are required.",
                     Toast.LENGTH_SHORT
                 ).show()
                 return@setOnClickListener
+            } else {
+                /** INIT SDK **/
+                val environmentalConditions = EnvironmentalConditions(
+                    config.enableDetect,
+                    config.enableGuide,
+                    "#ffc400",
+                    CountDownNumbersColor = "#ffc400",
+                    activeLiveType = ActiveLiveType.Actions,
+                    activeLivenessCheckCount = 3,
+                    faceLivenessRetryCount = 2,
+                    minRam = 1
+                );
+                assentifySdk = AssentifySdk(
+                    config.apiKey,
+                    config.tenantIdentifier,
+                    config.interactionHash,
+                    environmentalConditions,
+                    assentifySdkCallback = this,
+                    performActiveLivenessFace = false,
+                    context = this,
+                    );
+                showLoader()
+
             }
-            showLoader()
-
-
-            /** INIT SDK **/
-            val environmentalConditions = EnvironmentalConditions(
-                config.enableDetect,
-                config.enableGuide,
-                "#ffc400",
-                CountDownNumbersColor = "#ffc400",
-                activeLiveType = ActiveLiveType.Actions,
-                activeLivenessCheckCount = 3,
-                faceLivenessRetryCount = 2,
-                minRam = 4
-            );
-            assentifySdk = AssentifySdk(
-                config.apiKey,
-                config.tenantIdentifier,
-                config.interactionHash,
-                environmentalConditions,
-                assentifySdkCallback = this,
-                performActiveLivenessFace = false,
-                context = this,
-            );
             /** END **/
         }
     }
@@ -188,7 +189,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
                 logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
-               // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
+                // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
                 backgroundType = BackgroundType.Color,
                 textColor = "#000000",
                 accentColor = "#ffc400",

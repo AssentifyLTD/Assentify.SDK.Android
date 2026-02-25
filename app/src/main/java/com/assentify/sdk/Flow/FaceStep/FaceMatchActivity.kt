@@ -88,7 +88,15 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
+            status = "InProgress"
+        )
+        /***/
 
         setContent {
             MaterialTheme {
@@ -156,6 +164,12 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     /**  Events **/
 
+    override fun onCollectingManualImages() {
+        runOnUiThread {
+            feedbackText.value = "Hold Steady"
+        }
+    }
+
     override fun onSend() {
         runOnUiThread {
             start.value = true;
@@ -172,6 +186,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
     override fun onError(dataModel: BaseResponseDataModel) {
         runOnUiThread {
             start.value = false;
+            feedbackText.value = ""
             eventTypes.value = EventTypes.onError
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
@@ -189,6 +204,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
     override fun onRetry(dataModel: BaseResponseDataModel) {
         runOnUiThread {
             start.value = false;
+            feedbackText.value = ""
             eventTypes.value = EventTypes.onRetry
             try {
                 imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
@@ -212,6 +228,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
         runOnUiThread {
             faceModel.value = dataModel;
             start.value = false;
+            feedbackText.value = ""
             eventTypes.value = EventTypes.onComplete
         }
         /** Track Progress **/
@@ -220,7 +237,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             currentStep = currentStep!!,
             response = "Completed",
             inputData = dataModel.faceExtractedModel!!.outputProperties,
-            status = "Completed"
+            status = "InProgress"
         )
         /***/
     }
@@ -228,6 +245,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
         runOnUiThread {
             start.value = false;
+            feedbackText.value = ""
             eventTypes.value = EventTypes.onLivenessUpdate
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
@@ -353,6 +371,7 @@ fun FaceMatchScanScreen(
 
 
     var isManual by remember { mutableStateOf<Boolean>(false) }
+    var isCollectingManualImages by remember { mutableStateOf<Boolean>(false) }
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
@@ -513,28 +532,49 @@ fun FaceMatchScanScreen(
 
         if (eventTypes == EventTypes.none) {
             if (isManual) {
-                Button(
-                    onClick = {
-                        faceMatchManual!!.takePicture();
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    shape = RoundedCornerShape(28.dp),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(vertical = 25.dp, horizontal = 25.dp)
-                        .fillMaxWidth().background(
-                            brush = BaseTheme.BaseClickColor!!.toBrush(),
-                            shape = RoundedCornerShape(28.dp)
+                if(feedbackText.isNotEmpty()){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .align(Alignment.BottomCenter)
+                            .padding(start = 12.dp, end = 30.dp, bottom = 100.dp)
+                    ) {
+                        Text(
+                            feedbackText,
+                            color =   BaseTheme.BaseTextColor,                        fontSize = 15.sp,
+                            fontWeight = FontWeight.Light,
+                            lineHeight = 34.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
                         )
-                ) {
-                    Text(
-                        "Take Photo",
-                        fontFamily = InterFont,
-                        color = BaseTheme.BaseSecondaryTextColor,
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier.padding(vertical = 7.dp)
-                    )
+                    }
+                }else{
+                    Button(
+                        onClick = {
+                            faceMatchManual!!.takePicture();
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(28.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(vertical = 25.dp, horizontal = 25.dp)
+                            .fillMaxWidth().background(
+                                brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                shape = RoundedCornerShape(28.dp)
+                            )
+                    ) {
+                        Text(
+                            "Take Photo",
+                            fontFamily = InterFont,
+                            color = BaseTheme.BaseSecondaryTextColor,
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier.padding(vertical = 7.dp)
+                        )
+                    }
                 }
+
             } else {
                 Column(
                     modifier = Modifier

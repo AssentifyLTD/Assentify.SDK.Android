@@ -271,7 +271,9 @@ class RemoteProcessing {
             ){ sent, total, done ->
                 val pct = if (total > 0) ((sent * 100) / total).toInt() else -1
                 if(isManualCapture){
+                    if(!isLivenessEnabled){
                         callback!!.onUploadProgress(pct);
+                    }
                 }
                 if(isAutoCapture){
                     if(!isLivenessEnabled){
@@ -287,7 +289,6 @@ class RemoteProcessing {
                 mimeType = "image/jpeg",
             ){ sent, total, done ->
                 val pct = if (total > 0) ((sent * 100) / total).toInt() else -1
-                if(isAutoCapture){
                     if(isLivenessEnabled){
                         if(pct == 100){
                             currentClip += 1;
@@ -299,7 +300,7 @@ class RemoteProcessing {
                             }
                         }
                     }
-                }
+
             },
             traceIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),
             "true".toRequestBody("text/plain".toMediaTypeOrNull()), // isMobile

@@ -91,6 +91,7 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
             }
         })
 
+
         setContent {
             MaterialTheme {
                 Surface(
@@ -167,15 +168,6 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
             OnCompleteScreenData.setData(finalIDResponseModelObject.iDExtractedModel!!.transformedProperties);
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = finalIDResponseModelObject.iDExtractedModel!!.imageUrl!!
-            /** Track Progress **/
-            val  currentStep = FlowController.getCurrentStep()
-            FlowController.trackProgress(
-                currentStep = currentStep!!,
-                response = "Completed",
-                inputData = finalIDResponseModelObject.iDExtractedModel!!.transformedProperties,
-                status = "Completed"
-            )
-            /***/
 
         }
 
@@ -186,15 +178,6 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
             start.value = false;
             eventTypes.value = EventTypes.onError
         }
-        /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
-        FlowController.trackProgress(
-            currentStep = currentStep!!,
-            response = dataModel.destinationEndpoint + " - " +  FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
-            status = "InProgress"
-        )
-        /***/
     }
 
     override fun onUploadingProgress(progress: Int) {
@@ -397,13 +380,13 @@ fun QrScanScreen(
                         scanQrManual!!.takePicture();
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(vertical = 25.dp, horizontal = 25.dp)
                         .fillMaxWidth().background(
                             brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
                         )
                 ) {
                     Text(

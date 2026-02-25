@@ -90,9 +90,21 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     private var timeStarted = getCurrentDateTimeForTracking()
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
+            status = "InProgress"
+        )
+        /***/
+
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -253,7 +265,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             currentStep = currentStep!!,
             response = "Completed",
             inputData = dataModel.passportExtractedModel!!.transformedProperties,
-            status = "Completed"
+            status = "InProgress"
         )
         /***/
     }
@@ -500,14 +512,16 @@ fun PassportScanScreen(
                         scanPassportManual!!.takePicture();
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-
                     shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(vertical = 25.dp, horizontal = 25.dp)
                         .fillMaxWidth().background(
                             brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
                         )
+
+
                 ) {
                     Text(
                         "Take Photo",

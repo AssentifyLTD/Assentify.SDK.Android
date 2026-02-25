@@ -138,6 +138,17 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
+            status = "InProgress"
+        )
+        /***/
+
+
 
         contextAwareSigning = assentifySdk.startContextAwareSigning(
             this,
@@ -287,9 +298,9 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         val  currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
-            response = null,
+            response = "Completed",
             inputData = extractedInformation,
-            status = "Completed"
+            status = "InProgress"
         )
         /***/
     }

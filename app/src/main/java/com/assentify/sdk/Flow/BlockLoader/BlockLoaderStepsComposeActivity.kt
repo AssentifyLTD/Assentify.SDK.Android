@@ -47,6 +47,7 @@ object BaseTheme {
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {
     lateinit var flowEnvironmentalConditions: FlowEnvironmentalConditions;
+    var firstInit = LocalStepsObject.getLocalSteps().isEmpty();
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -62,6 +63,20 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
                 onBack = { onBackPressedDispatcher.onBackPressed() },
                 onStepClick = { /* navigate if needed */ },
                 onNext = {
+                  /** Track Progress **/
+                    if(firstInit){
+                        val steps = LocalStepsObject.getLocalSteps();
+                        val currentStep =
+                            steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
+                        FlowController.trackProgress(
+                            currentStep = currentStep,
+                            response = null,
+                            inputData = currentStep.submitRequestModel!!.extractedInformation,
+                            status = "Completed"
+                        )
+                    }
+
+                    /***/
                     FlowController.naveToNextStep(context = this)
                 }
             )
@@ -218,17 +233,7 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
             currentStep = currentStep,
             response = null,
             inputData = currentStep.submitRequestModel!!.extractedInformation,
-            status = "Completed"
-        )
-    } else {
-        val steps = LocalStepsObject.getLocalSteps();
-        val currentStep =
-            steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
-        FlowController.trackProgress(
-            currentStep = currentStep,
-            response = null,
-            inputData = currentStep.submitRequestModel!!.extractedInformation,
-            status = "Completed"
+            status = "InProgress"
         )
     }
 

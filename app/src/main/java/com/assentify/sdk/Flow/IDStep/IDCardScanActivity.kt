@@ -106,6 +106,16 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             }
         })
 
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
+            status = "InProgress"
+        )
+        /***/
+
         setContent {
             MaterialTheme {
                 Surface(
@@ -247,7 +257,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                 currentStep = currentStep!!,
                 response = "Completed",
                 inputData = extractedInformation.value,
-                status = "Completed"
+                status = "InProgress"
             )
             /***/
         }
@@ -594,6 +604,7 @@ fun IDCardScanScreen(
                         .padding(vertical = 25.dp, horizontal = 25.dp)
                         .fillMaxWidth().background(
                             brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
                         )
                 ) {
                     Text(
