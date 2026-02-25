@@ -57,7 +57,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
 
 
     private FaceMatchCallback faceMatchCallback;
-    private  EnvironmentalConditions environmentalConditions;
+    private EnvironmentalConditions environmentalConditions;
     private String secondImage = "";
 
     private RemoteProcessing remoteProcessing;
@@ -80,10 +80,21 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
 
     private String faceMatch = "FaceMatch";
 
-    private  Bitmap normalImage;
+    private Bitmap normalImage;
+
+    List<byte[]> clips = new ArrayList<>();
+
+    private List<Bitmap> livenessCheckArray = new ArrayList<>();
+
+    private int localLivenessLimit;
+
+    private long lastProcessedTime = 0L;
+
+    private boolean startCollectingClips = false;
 
     public FaceMatchManual() {
     }
+
     public FaceMatchManual(ConfigModel configModel, EnvironmentalConditions environmentalConditions, String apiKey
     ) {
         this.apiKey = apiKey;
@@ -116,7 +127,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
         for (StepDefinitions item : configModel.getStepDefinitions()) {
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performPassiveLivenessFace == null) {
-                    performPassiveLivenessFace = item.getCustomization().getPerformLivenessDetection();
+                    performPassiveLivenessFace = true;
                 }
                 if (saveCapturedVideo == null) {
                     saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
@@ -126,6 +137,11 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                 }
 
             }
+        }
+        if (this.performPassiveLivenessFace) {
+            localLivenessLimit = 12;
+        } else {
+            localLivenessLimit = 0;
         }
     }
 
@@ -143,6 +159,7 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
         }
 
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
@@ -154,14 +171,23 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
         if (getActivity() != null) {
             BugsnagObject.INSTANCE.initialize(getActivity().getApplicationContext(), configModel);
         }
-        this.normalImage = normalImage;
-    }
-
-
-    public void takePicture(){
-        if(this.start){
-            this.results = detectCardAndFace(normalImage);
-            if(hasFaceOrCard()){
+        if (startCollectingClips) {
+            if (livenessCheckArray.size() < localLivenessLimit) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            faceMatchCallback.onCollectingManualImages();
+                        }
+                    });
+                }
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastProcessedTime > ImageUtils.getDynamicDelay(getActivity())) {
+                    livenessCheckArray.add(normalImage);
+                    lastProcessedTime = currentTime;
+                }
+            }
+            if (livenessCheckArray.size() == localLivenessLimit) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
@@ -170,15 +196,17 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                         }
                     });
                 }
-                start = false;
+                startCollectingClips = false;
                 setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+                runLivenessCheck();
+                int middleIndex = clips.size() / 2;
                 createBase64.execute(() -> {
                     remoteProcessing.starProcessingFace(
                             HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
                             configModel,
                             stepId,
-                            ImageUtils.convertBitmapToByteArray(normalImage, BlockType.FACE_MATCH, getActivity()),
-                            new ArrayList<>(),
+                            clips.get(middleIndex),
+                            clips,
                             ImageUtils.base64ToByteArray(this.secondImage),
                             performPassiveLivenessFace,
                             livnessRetryCount,
@@ -186,19 +214,64 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
                             true,
                             "ConnectionId"
                     );
-
                 });
-            }else {
+
+            }
+        }
+
+
+        this.normalImage = normalImage;
+    }
+
+
+    public void takePicture() {
+        if (this.start) {
+            this.results = detectCardAndFace(normalImage);
+            if (hasFaceOrCard()) {
+                if (performPassiveLivenessFace) {
+                    startCollectingClips = true;
+                } else {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                faceMatchCallback.onSend();
+                            }
+                        });
+                    }
+                    start = false;
+                    clips = new ArrayList<>();
+                    setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+                    createBase64.execute(() -> {
+
+                        remoteProcessing.starProcessingFace(
+                                HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
+                                configModel,
+                                stepId,
+                                ImageUtils.convertBitmapToByteArray(normalImage, BlockType.FACE_MATCH, getActivity()),
+                                new ArrayList<>(),
+                                ImageUtils.base64ToByteArray(this.secondImage),
+                                performPassiveLivenessFace,
+                                livnessRetryCount,
+                                false,
+                                true,
+                                "ConnectionId"
+                        );
+
+                    });
+                }
+            } else {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            livenessCheckArray.clear();
                             faceMatchCallback.onRetry(
                                     new BaseResponseDataModel(
                                             "onRetry",
                                             "",
-                                           EventsErrorMessages.OnRetryFaceMessage,
-                                            false,"",  null
+                                            EventsErrorMessages.OnRetryFaceMessage,
+                                            false, "", null
                                     ));
                         }
                     });
@@ -215,7 +288,8 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    BugsnagObject.INSTANCE.logInfo("Face match done with event  : " + eventName + BaseResponseDataModel.getResponse(),configModel);
+                    livenessCheckArray.clear();
+                    BugsnagObject.INSTANCE.logInfo("Face match done with event  : " + eventName + BaseResponseDataModel.getResponse(), configModel);
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         FaceExtractedModel faceExtractedModel = FaceExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse());
                         FaceResponseModel faceResponseModel = new FaceResponseModel(
@@ -228,23 +302,23 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
 
                         faceMatchCallback.onComplete(faceResponseModel);
                         start = false;
-                    } else if(eventName.equals(HubConnectionTargets.ON_RETRY)){
+                    } else if (eventName.equals(HubConnectionTargets.ON_RETRY)) {
                         retryCount++;
-                            start = true;
-                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
-                            BaseResponseDataModel.setError(EventsErrorMessages.OnRetryFaceMessage);
-                            faceMatchCallback.onRetry(BaseResponseDataModel);
+                        start = true;
+                        manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                        BaseResponseDataModel.setError(EventsErrorMessages.OnRetryFaceMessage);
+                        faceMatchCallback.onRetry(BaseResponseDataModel);
 
-                    } else if(eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)){
+                    } else if (eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE)) {
                         livnessRetryCount++;
                         start = true;
                         manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                         BaseResponseDataModel.setError(EventsErrorMessages.OnLivenessFaceUpdateMessage);
                         faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
 
-                    }else {
-                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) ;
-                        if(start){
+                    } else {
+                        start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED);
+                        if (start) {
                             manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                         }
                         switch (eventName) {
@@ -325,13 +399,14 @@ public class FaceMatchManual extends CameraPreview implements RemoteProcessingCa
     }
 
 
-
     public void stopScanning() {
         closeCamera();
     }
 
-
-
+    private void runLivenessCheck() {
+        ParallelImageProcessing processor = new ParallelImageProcessing();
+        clips = processor.processClipsToByteArrayInParallel(livenessCheckArray, getActivity());
+    }
 
 
     @Override

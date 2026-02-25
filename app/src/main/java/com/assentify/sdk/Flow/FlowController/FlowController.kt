@@ -28,6 +28,7 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.R
+import com.assentify.sdk.RemoteClient.Models.OutputProperties
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
 import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
@@ -206,6 +207,15 @@ object FlowController {
         val steps = LocalStepsObject.getLocalSteps()
         val currentStep = steps.firstOrNull { !it.isDone }
 
+        /** Track Progress **/
+       trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = extractedInformation,
+            status = "Completed"
+        )
+        /***/
+
         /** Track Next **/
         val currentIndex = steps.indexOfFirst { !it.isDone }
         val nextStep = if (currentIndex != -1 && currentIndex + 1 < steps.size) {
@@ -214,6 +224,8 @@ object FlowController {
             null
         }
         trackNext(currentStep!!, nextStep,timeStarted)
+        /***/
+
 
         /** Make Current Step Done **/
         val submitRequestModel = currentStep.submitRequestModel;
@@ -511,6 +523,14 @@ object FlowController {
         } else {
             stepDefinition
         }
+    }
+
+    fun outputPropertiesToMap(outputProperties: List<OutputProperties>):Map<String, String>{
+        val  data = mutableMapOf<String, String>()
+        outputProperties.forEach { it
+        data[it.key] = "";
+        }
+        return  data;
     }
 
 }

@@ -38,6 +38,17 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
             stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
         )
 
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
+            status = "InProgress"
+        )
+        /***/
+
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 FlowController.backClick(this@AssistedDataEntryActivity);
@@ -94,15 +105,6 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                 }
                             }
                             status.value = "Completed"
-                            /** Track Progress **/
-                            val  currentStep = FlowController.getCurrentStep()
-                            FlowController.trackProgress(
-                                currentStep = currentStep!!,
-                                response = null,
-                                inputData = extractedInformation,
-                                status = status.value
-                            )
-                            /***/
                             FlowController.makeCurrentStepDone(extractedInformation,timeStarted);
                             FlowController.naveToNextStep(context = this)
                         },
