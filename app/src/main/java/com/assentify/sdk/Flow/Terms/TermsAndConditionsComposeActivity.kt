@@ -30,6 +30,16 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
         val configModel = ConfigModelObject.getConfigModelObject()
 
 
+        /** Track Progress **/
+        val  currentStep = FlowController.getCurrentStep()
+        FlowController.trackProgress(
+            currentStep = currentStep!!,
+            response = null,
+            inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
+            status = "InProgress"
+        )
+        /***/
+
 
         TermsConditionsHelper.getTermsConditionsStep(configModel, FlowController.getCurrentStep()!!.stepDefinition!!.stepId) { termsModel ->
             termsConditionsModel.value = termsModel
@@ -55,32 +65,10 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
                             val extractedInformation: Map<String, String> = mapOf(
                                 confirmationKey to value.toString()
                             )
-                            /** Track Progress **/
-                            val  currentStep = FlowController.getCurrentStep()
-                            FlowController.trackProgress(
-                                currentStep = currentStep!!,
-                                response = null,
-                                inputData = extractedInformation,
-                                status = "Completed"
-                            )
-                            /***/
                             FlowController.makeCurrentStepDone(extractedInformation, timeStarted );
                             FlowController.naveToNextStep(this)
                         },
                         onDecline = {
-                            val confirmationKey = FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties.first().key
-                            val extractedInformation: Map<String, String> = mapOf(
-                                confirmationKey to "false"
-                            )
-                            /** Track Progress **/
-                            val  currentStep = FlowController.getCurrentStep()
-                            FlowController.trackProgress(
-                                currentStep = currentStep!!,
-                                response = null,
-                                inputData = extractedInformation,
-                                status = "Completed"
-                            )
-                            /***/
                             onBackPressedDispatcher.onBackPressed()
                         }
                     )

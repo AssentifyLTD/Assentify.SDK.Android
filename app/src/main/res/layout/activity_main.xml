@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <!-- API KEY -->
+
+    <!-- Interaction Hash -->
+
+    <EditText
+        android:id="@+id/etApiKey"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:background="@android:drawable/edit_text"
+        android:hint="API key"
+        android:inputType="text"
+        android:padding="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/etInteractionHash"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Interaction hash"
+        android:inputType="text"
+        android:padding="12dp"
+        android:background="@android:drawable/edit_text"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/etApiKey"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Tenant Identifier -->
+    <EditText
+        android:id="@+id/etTenantIdentifier"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Tenant Identifier"
+        android:inputType="text"
+        android:padding="12dp"
+        android:background="@android:drawable/edit_text"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/etInteractionHash"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Language Dropdown -->
+    <TextView
+        android:id="@+id/tvLanguageLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Language"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/etTenantIdentifier"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <Spinner
+        android:id="@+id/spLanguage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tvLanguageLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Switches -->
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/swEnableDetect"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Enable Detect"
+        android:checked="true"
+        app:thumbTint="#ffc400"
+        app:trackTint="#ffc400"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/spLanguage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/swEnableGuide"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Enable Guide"
+        android:checked="true"
+        app:thumbTint="#ffc400"
+        app:trackTint="#ffc400"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/swEnableDetect"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/swEnableNfc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:thumbTint="#ffc400"
+        app:trackTint="#ffc400"
+        android:text="Enable Nfc"
+        android:checked="true"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/swEnableGuide"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/swEnableQr"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:thumbTint="#ffc400"
+        app:trackTint="#ffc400"
+        android:text="Enable Qr"
+        android:checked="true"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/swEnableNfc"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Start Button -->
+    <Button
+        android:id="@+id/btnStart"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Click to start"
+        android:backgroundTint="#FFDE00"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/swEnableQr"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Loader -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        android:indeterminateTint="#FFDE00"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/btnStart"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
