@@ -1,10 +1,12 @@
 package com.assentify.sdk
 
 
+import FlowCompletedModel
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -17,14 +19,12 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
-import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
-import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 
 data class StartConfig(
     val apiKey: String,
@@ -76,9 +76,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
    //  etTenantIdentifier.setText("6ae86d79-6b88-4964-a649-08de330c7f4f")
 
 
-        /*  apiKey = "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g",
-            interactionHash = "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195",
-            tenantIdentifier = "2937c91f-c905-434b-d13d-08dcc04755ec",*/
+        etApiKey.setText( "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+        etInteractionHash.setText( "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
+          etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
 
@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     activeLiveType = ActiveLiveType.Actions,
                     activeLivenessCheckCount = 3,
                     faceLivenessRetryCount = 2,
-                    minRam = 1
+                    minRam = 10
                 );
                 assentifySdk = AssentifySdk(
                     config.apiKey,
@@ -188,10 +188,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             val customProperties: MutableMap<String, String> = mutableMapOf()
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
+               // logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
                 // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
                 backgroundType = BackgroundType.Color,
-                textColor = "#000000",
+             /*   textColor = "#000000",
                 accentColor = "#ffc400",
                 secondaryTextColor = "#ffffff",
                 backgroundCardColor = "#f3f4f6",
@@ -200,12 +200,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 language = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
-                blockLoaderCustomProperties = customProperties,
-                /** X Theme **/
-
+                blockLoaderCustomProperties = customProperties,*/
             );
-
-
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,
@@ -218,7 +214,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
     /** FLOW Completed **/
-    override fun onFlowCompleted(submitRequestModel: List<SubmitRequestModel>) {
+    override fun onFlowCompleted(flowData: List<FlowCompletedModel>) {
+        val x = flowData;
+        Log.e("FlowData",x.toString())
         Toast.makeText(this, "Flow Completed", Toast.LENGTH_SHORT).show()
     }
 

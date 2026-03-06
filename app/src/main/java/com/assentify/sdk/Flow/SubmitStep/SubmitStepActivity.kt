@@ -76,7 +76,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
             override fun handleOnBackPressed() {
                 if (submitDataTypes.value == SubmitDataTypes.onComplete) {
                     FlowCallbackObject.getFlowCallbackObject()
-                        .onFlowCompleted(FlowController.getSubmitList())
+                        .onFlowCompleted(FlowController.getFlowCompletedList())
                     finishAffinity();
                 } else {
                     FlowController.backClick(this@SubmitStepActivity);
@@ -95,7 +95,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
                         onBack = {
                             if (submitDataTypes.value == SubmitDataTypes.onComplete) {
                                 FlowCallbackObject.getFlowCallbackObject()
-                                    .onFlowCompleted(FlowController.getSubmitList())
+                                    .onFlowCompleted(FlowController.getFlowCompletedList())
                                 finishAffinity();
                             } else {
                                 FlowController.backClick(this@SubmitStepActivity);
@@ -105,7 +105,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
                         onSubmit = {
                             if (submitDataTypes.value == SubmitDataTypes.onComplete) {
                                 FlowCallbackObject.getFlowCallbackObject()
-                                    .onFlowCompleted(FlowController.getSubmitList())
+                                    .onFlowCompleted(FlowController.getFlowCompletedList())
                                 finishAffinity();
                             } else {
                                 assentifySdk.startSubmitData(this, FlowController.getSubmitList())

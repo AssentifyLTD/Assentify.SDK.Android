@@ -1,8 +1,8 @@
 package com.assentify.sdk.Flow.Models
 
-import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
+import FlowCompletedModel
 
 
 interface FlowCallBack {
-    fun onFlowCompleted(submitRequestModel: List<SubmitRequestModel>,)
+    fun onFlowCompleted(flowData: List<FlowCompletedModel>,)
 }

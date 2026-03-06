@@ -1,5 +1,6 @@
 package com.assentify.sdk.Flow.FlowController
 
+import FlowCompletedModel
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -283,6 +284,56 @@ object FlowController {
         LocalStepsObject.setLocalSteps(steps)
     }
 
+    fun getFlowCompletedList(): List<FlowCompletedModel> {
+        val steps = LocalStepsObject.getLocalSteps()
+        val flowCompletedList = mutableListOf<FlowCompletedModel>()
+
+        for (step in steps) {
+            val submitModel = step.submitRequestModel
+            if (submitModel != null) {
+                val stepData = mutableMapOf<String, String>()
+                submitModel.extractedInformation.forEach { (key, value) ->
+                    if(!key.contains("IsDirty")){
+                        val newKey = key.substringAfter("${submitModel.stepDefinition}_").split("_").joinToString(" ")
+                        stepData[newKey] = value
+                    }
+                }
+                flowCompletedList.add(FlowCompletedModel(
+                    stepData = stepData.toMap() ,
+                    submitRequestModel = submitModel,
+                ))
+            }
+        }
+
+        var wrapUp: SubmitRequestModel? = null;
+        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        initSteps.forEach { item ->
+            /** WrapUp **/
+            if (item.stepDefinition == StepsNames.WrapUp) {
+                val values: MutableMap<String, String> = mutableMapOf()
+                item.outputProperties.forEach { property ->
+                    if (property.key.contains(WrapUpKeys.TimeEnded)) {
+                        values.put(property.key, getCurrentDateTime())
+                    }
+                }
+                wrapUp = SubmitRequestModel(
+                    item.stepId, StepsNames.WrapUp,
+                    values
+                );
+
+            }
+        }
+        val stepData = mutableMapOf<String, String>()
+        wrapUp!!.extractedInformation.forEach { (key, value) ->
+            val newKey = key.substringAfter("${StepsNames.WrapUp}_").split("_").joinToString(" ")
+            stepData[newKey] = value
+        }
+        flowCompletedList.add(FlowCompletedModel(
+            stepData = stepData.toMap() ,
+            submitRequestModel = wrapUp,
+        ))
+        return flowCompletedList
+    }
 
     fun getSubmitList(): List<SubmitRequestModel> {
         val steps = LocalStepsObject.getLocalSteps()
