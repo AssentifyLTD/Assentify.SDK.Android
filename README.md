@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.4***
+1. *Full Flows integration*
+
 ***1.0.0-Beta.3***
 1. *Full Flows integration*
 
