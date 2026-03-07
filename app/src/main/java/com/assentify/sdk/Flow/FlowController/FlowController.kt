@@ -1,6 +1,5 @@
 package com.assentify.sdk.Flow.FlowController
 
-import FlowCompletedModel
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -22,6 +21,7 @@ import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
 import com.assentify.sdk.Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity
 import com.assentify.sdk.Flow.FaceStep.HowToCaptureFaceActivity
 import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
+import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
@@ -298,10 +298,12 @@ object FlowController {
                         stepData[newKey] = value
                     }
                 }
-                flowCompletedList.add(FlowCompletedModel(
-                    stepData = stepData.toMap() ,
-                    submitRequestModel = submitModel,
-                ))
+                flowCompletedList.add(
+                    FlowCompletedModel(
+                        stepData = stepData.toMap(),
+                        submitRequestModel = submitModel,
+                    )
+                )
             }
         }
 

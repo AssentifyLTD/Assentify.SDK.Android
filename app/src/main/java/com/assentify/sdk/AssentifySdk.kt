@@ -8,8 +8,6 @@ import com.assentify.sdk.AssistedDataEntry.AssistedDataEntry
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
-import com.assentify.sdk.Core.Constants.BackgroundStyle
-import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.BlockLoaderKeys
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
@@ -75,7 +73,7 @@ class AssentifySdk(
     private var timeStarted: String = "";
     private var configModel: ConfigModel? = null;
     private var tenantThemeModel: TenantThemeModel? = null;
-    private var allTemplates: List<TemplatesByCountry> = emptyList();
+    var allTemplates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
 
 
@@ -84,13 +82,10 @@ class AssentifySdk(
             if (apiKey.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "ApiKey must not be empty or null")
             }
-            if (interaction.isNullOrEmpty()) {
-                Log.e("AssentifySdk Init Error ", "Interaction must not be empty or null")
-            }
             if (tenantIdentifier.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "TenantIdentifier must not be empty or null")
             }
-            if (!apiKey.isNullOrEmpty() && !interaction.isNullOrEmpty() && !tenantIdentifier.isNullOrEmpty()) {
+            if (!apiKey.isNullOrEmpty()  && !tenantIdentifier.isNullOrEmpty()) {
                 validateKey()
             }
         }
@@ -108,7 +103,11 @@ class AssentifySdk(
                 if (response.isSuccessful) {
                     if (response.body() != null && response.body()!!.statusCode == 200 && response.body()!!.isSuccessful) {
                         isKeyValid = true;
-                        getStart()
+                        if(interaction.isNullOrEmpty()){
+                            assentifySdkCallback.onAssentifySdkInitSuccess(null);
+                        }else{
+                            getStart()
+                        }
                     }
                 } else {
                     isKeyValid = false;
@@ -624,56 +623,27 @@ class AssentifySdk(
 
 
     fun getTemplates(stepID: Int): List<TemplatesByCountry> {
-        val stepTemplates = filterToSupportedCountries(allTemplates, stepID)
-        return stepTemplates ?: emptyList()
+        if(allTemplates.isNotEmpty()){
+            val stepTemplates = filterToSupportedCountries(allTemplates, stepID)
+            return stepTemplates ?: emptyList()
+        }else{
+            return  emptyList()
+        }
     }
 
     /** FLOW **/
 
     public fun startFlow(
         activityContext: Context,
+         interaction: String,
         flowCallback: FlowCallBack,
         flowEnvironmentalConditions: FlowEnvironmentalConditions
     ) {
-
-        if (flowEnvironmentalConditions.logoUrl.isEmpty()) {
-            flowEnvironmentalConditions.logoUrl = tenantThemeModel!!.logoIcon!!;
-        }
-        if (flowEnvironmentalConditions.svgBackgroundImageUrl.isEmpty()) {
-            flowEnvironmentalConditions.svgBackgroundImageUrl =
-                "tenantThemeModel!!.svgBackgroundImageUrl!!";
-        }
-        if (flowEnvironmentalConditions.textColor.isEmpty()) {
-            flowEnvironmentalConditions.textColor = tenantThemeModel!!.textColor;
-        }
-        if (flowEnvironmentalConditions.secondaryTextColor.isEmpty()) {
-            flowEnvironmentalConditions.secondaryTextColor = tenantThemeModel!!.secondaryTextColor;
-        }
-        if (flowEnvironmentalConditions.backgroundCardColor.isEmpty()) {
-            flowEnvironmentalConditions.backgroundCardColor =
-                tenantThemeModel!!.backgroundCardColor;
-        }
-        if (flowEnvironmentalConditions.accentColor.isEmpty()) {
-            flowEnvironmentalConditions.accentColor = tenantThemeModel!!.accentColor;
-        }
-        if (flowEnvironmentalConditions.backgroundColor == null) {
-            if (flowEnvironmentalConditions.backgroundType == BackgroundType.Color) {
-                flowEnvironmentalConditions.backgroundColor =
-                    BackgroundStyle.Solid(tenantThemeModel!!.backgroundBodyColor)
-            } else {
-                flowEnvironmentalConditions.backgroundColor =
-                    BackgroundStyle.Solid(tenantThemeModel!!.backgroundCardColor)
-            }
-        }
-        if (flowEnvironmentalConditions.clickColor == null) {
-            flowEnvironmentalConditions.clickColor =
-                BackgroundStyle.Solid(tenantThemeModel!!.accentColor)
-        }
         FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(flowEnvironmentalConditions);
-        ConfigModelObject.setConfigModelObject(configModel!!);
         FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
         ApiKeyObject.setApiKeyObject(apiKey!!);
         val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
+        intent.putExtra("interaction", interaction)
         activityContext.startActivity(intent)
     }
 
