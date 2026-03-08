@@ -8,6 +8,8 @@ import com.assentify.sdk.AssistedDataEntry.AssistedDataEntry
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
+import com.assentify.sdk.Core.Constants.BackgroundStyle
+import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.BlockLoaderKeys
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
@@ -23,6 +25,7 @@ import com.assentify.sdk.FaceMatch.FaceMatchManual
 import com.assentify.sdk.FaceMatch.FaceMatchResult
 import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
 import com.assentify.sdk.Flow.Models.FlowCallBack
+import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
@@ -55,6 +58,7 @@ import com.assentify.sdk.ScanQr.ScanQrManual
 import com.assentify.sdk.ScanQr.ScanQrResult
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
+import com.assentify.sdk.logging.BugsnagObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -82,10 +86,13 @@ class AssentifySdk(
             if (apiKey.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "ApiKey must not be empty or null")
             }
+            if (interaction.isNullOrEmpty()) {
+                Log.e("AssentifySdk Init Error ", "Interaction must not be empty or null")
+            }
             if (tenantIdentifier.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "TenantIdentifier must not be empty or null")
             }
-            if (!apiKey.isNullOrEmpty()  && !tenantIdentifier.isNullOrEmpty()) {
+            if (!apiKey.isNullOrEmpty() && !interaction.isNullOrEmpty() && !tenantIdentifier.isNullOrEmpty()) {
                 validateKey()
             }
         }
@@ -103,11 +110,7 @@ class AssentifySdk(
                 if (response.isSuccessful) {
                     if (response.body() != null && response.body()!!.statusCode == 200 && response.body()!!.isSuccessful) {
                         isKeyValid = true;
-                        if(interaction.isNullOrEmpty()){
-                            assentifySdkCallback.onAssentifySdkInitSuccess(null);
-                        }else{
-                            getStart()
-                        }
+                        getStart()
                     }
                 } else {
                     isKeyValid = false;
@@ -623,28 +626,93 @@ class AssentifySdk(
 
 
     fun getTemplates(stepID: Int): List<TemplatesByCountry> {
-        if(allTemplates.isNotEmpty()){
-            val stepTemplates = filterToSupportedCountries(allTemplates, stepID)
-            return stepTemplates ?: emptyList()
-        }else{
-            return  emptyList()
-        }
+        val stepTemplates = filterToSupportedCountries(allTemplates, stepID)
+        return stepTemplates ?: emptyList()
     }
 
     /** FLOW **/
 
     public fun startFlow(
         activityContext: Context,
-         interaction: String,
         flowCallback: FlowCallBack,
         flowEnvironmentalConditions: FlowEnvironmentalConditions
     ) {
-        FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(flowEnvironmentalConditions);
-        FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
-        ApiKeyObject.setApiKeyObject(apiKey!!);
-        val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
-        intent.putExtra("interaction", interaction)
-        activityContext.startActivity(intent)
+        if (isKeyValid) {
+            if (flowEnvironmentalConditions.logoUrl.isEmpty()) {
+                flowEnvironmentalConditions.logoUrl = tenantThemeModel!!.logoIcon!!;
+            }
+            if (flowEnvironmentalConditions.svgBackgroundImageUrl.isEmpty()) {
+                flowEnvironmentalConditions.svgBackgroundImageUrl =
+                    "tenantThemeModel!!.svgBackgroundImageUrl!!";
+            }
+            if (flowEnvironmentalConditions.textColor.isEmpty()) {
+                flowEnvironmentalConditions.textColor = tenantThemeModel!!.textColor;
+            }
+            if (flowEnvironmentalConditions.secondaryTextColor.isEmpty()) {
+                flowEnvironmentalConditions.secondaryTextColor =
+                    tenantThemeModel!!.secondaryTextColor;
+            }
+            if (flowEnvironmentalConditions.backgroundCardColor.isEmpty()) {
+                flowEnvironmentalConditions.backgroundCardColor =
+                    tenantThemeModel!!.backgroundCardColor;
+            }
+            if (flowEnvironmentalConditions.accentColor.isEmpty()) {
+                flowEnvironmentalConditions.accentColor = tenantThemeModel!!.accentColor;
+            }
+            if (flowEnvironmentalConditions.backgroundColor == null) {
+                if (flowEnvironmentalConditions.backgroundType == BackgroundType.Color) {
+                    flowEnvironmentalConditions.backgroundColor =
+                        BackgroundStyle.Solid(tenantThemeModel!!.backgroundBodyColor)
+                } else {
+                    flowEnvironmentalConditions.backgroundColor =
+                        BackgroundStyle.Solid(tenantThemeModel!!.backgroundCardColor)
+                }
+            }
+            if (flowEnvironmentalConditions.clickColor == null) {
+                flowEnvironmentalConditions.clickColor =
+                    BackgroundStyle.Solid(tenantThemeModel!!.accentColor)
+            }
+
+            /** **/
+
+            FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
+            ApiKeyObject.setApiKeyObject(apiKey!!);
+            ContextObject.init(activityContext);
+            InteractionObject.setInteractionObject(interaction!!);
+            FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(
+                flowEnvironmentalConditions
+            )
+
+            /** Local Data Base **/
+            if (ConfigModelObject.getConfigModelObject() != null) {
+                configModel = ConfigModelObject.getConfigModelObject();
+                BugsnagObject.initialize(activityContext, configModel!!)
+                AssentifySdkObject.setAssentifySdkObject(this)
+            } else {
+                ConfigModelObject.setConfigModelObject(
+                    configModel!!
+                )
+                BugsnagObject.initialize(activityContext, configModel!!)
+                AssentifySdkObject.setAssentifySdkObject(this)
+            }
+            /****/
+
+            val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
+            activityContext.startActivity(intent)
+        }
+
+
+    }
+
+    public fun clearFlow(activityContext: Context) {
+        ContextObject.init(activityContext);
+        InteractionObject.setInteractionObject(interaction!!);
+        ConfigModelObject.setConfigModelObject(
+            null
+        )
+        LocalStepsObject.setLocalSteps(
+            emptyList<LocalStepModel>().toMutableList()
+        )
     }
 
 }

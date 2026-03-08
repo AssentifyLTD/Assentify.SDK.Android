@@ -1,10 +1,7 @@
 package com.assentify.sdk
 
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -16,8 +13,6 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
@@ -27,18 +22,8 @@ import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 
-data class StartConfig(
-    val apiKey: String,
-    val interactionHash: String,
-    val tenantIdentifier: String,
-    val language: String,
-    val enableDetect: Boolean,
-    val enableGuide: Boolean,
-    val enableNfc: Boolean,
-    val enableQr: Boolean
-)
 
-class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
+class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     private lateinit var assentifySdk: AssentifySdk
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
 
@@ -49,22 +34,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main2)
 
-        /** Camera Permission **/
-        if (ContextCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CAMERA),
-                CAMERA_PERMISSION_REQUEST_CODE
-            )
-        }
 
         /** UI **/
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
@@ -72,13 +43,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
-        //  etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
-        //  etInteractionHash.setText("E6161B5C8D85382101B19AD0D86692F121622D108CECBF0E4E23E2709ACC9EB4")
-        //  etTenantIdentifier.setText("6ae86d79-6b88-4964-a649-08de330c7f4f")
-
-
         etApiKey.setText( "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        etInteractionHash.setText( "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
+        etInteractionHash.setText( "6A0001F3C7B0F99B14F5BB17B0694BE751F189ADB62A3811591E27558FC30503")
         etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
@@ -90,7 +56,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         val btnStart = findViewById<Button>(R.id.btnStart)
         val clearFlow = findViewById<Button>(R.id.clearFlow)
-        val nextFlow = findViewById<Button>(R.id.nextFlow)
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         // Languages list for dropdown
@@ -122,12 +87,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         )
 
         clearFlow.setOnClickListener {
-         assentifySdk.clearFlow(  this@MainActivity,);
-        }
-
-        nextFlow.setOnClickListener {
-            val intent = Intent(this, MainActivity2::class.java)
-            startActivity(intent)
+            assentifySdk.clearFlow(this@MainActivity2);
         }
 
         btnStart.setOnClickListener {
@@ -215,7 +175,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             );
 
             assentifySdk.startFlow(
-                this@MainActivity,
+                this@MainActivity2,
                 flowCallback = this,
                 flowEnvironmentalConditions = flowEnvironmentalConditions
             )

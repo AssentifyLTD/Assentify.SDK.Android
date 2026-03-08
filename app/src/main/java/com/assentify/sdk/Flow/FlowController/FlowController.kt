@@ -308,7 +308,7 @@ object FlowController {
         }
 
         var wrapUp: SubmitRequestModel? = null;
-        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
         initSteps.forEach { item ->
             /** WrapUp **/
             if (item.stepDefinition == StepsNames.WrapUp) {
@@ -349,7 +349,7 @@ object FlowController {
         }
 
         var wrapUp: SubmitRequestModel? = null;
-        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
         initSteps.forEach { item ->
             /** WrapUp **/
             if (item.stepDefinition == StepsNames.WrapUp) {
@@ -404,7 +404,7 @@ object FlowController {
 
     private fun trackNext(currentStep: LocalStepModel, nextStep: LocalStepModel?,timeStarted: String) {
         val remoteService = RemoteClient.remoteGatewayService
-        val configModel = ConfigModelObject.getConfigModelObject()
+        val configModel = ConfigModelObject.getConfigModelObject()!!
         val apiKey = ApiKeyObject.getApiKeyObject()
         val flowEnvironmentalConditions =
             FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
@@ -459,7 +459,7 @@ object FlowController {
 
      fun trackProgress(currentStep: LocalStepModel,inputData:Any? = null,response:Any? = null,status: String) {
         val remoteService = RemoteClient.remoteGatewayService
-        val configModel = ConfigModelObject.getConfigModelObject()
+        val configModel = ConfigModelObject.getConfigModelObject()!!
         val apiKey = ApiKeyObject.getApiKeyObject()
         val flowEnvironmentalConditions =
             FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()

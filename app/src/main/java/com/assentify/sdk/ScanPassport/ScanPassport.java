@@ -288,7 +288,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     sendingFlagsMotion.clear();
                     sendingFlagsZoom.clear();
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
-                        start = false;
+
                         Map<String, String> transformedProperties = new HashMap<>();
                         PassportExtractedModel passportExtractedModel = PassportExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
                         passportResponseModel = new PassportResponseModel(
@@ -297,17 +297,28 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 BaseResponseDataModel.getError(),
                                 BaseResponseDataModel.getSuccess()
                         );
-                        if (Objects.equals(language, Language.NON)) {
-                            scanPassportCallback.onComplete(passportResponseModel);
-                        } else {
-                            LanguageTransformation translated = new LanguageTransformation(apiKey);
-                            translated.setCallback(ScanPassport.this);
-                            translated.languageTransformation(
-                                    language,
-                                    preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
-                            );
+                        Boolean expired = (Boolean) Objects.requireNonNull(Objects.requireNonNull(passportResponseModel
+                                                .getPassportExtractedModel())
+                                        .getIdentificationDocumentCapture())
+                                .isExpired();
+                        if (Boolean.TRUE.equals(expired)) {
+                            retryCount++;
+                            start = true;
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                            scanPassportCallback.onRetry(BaseResponseDataModel);
+                        }else {
+                            start = false;
+                            if (Objects.equals(language, Language.NON)) {
+                                scanPassportCallback.onComplete(passportResponseModel);
+                            } else {
+                                LanguageTransformation translated = new LanguageTransformation(apiKey);
+                                translated.setCallback(ScanPassport.this);
+                                translated.languageTransformation(
+                                        language,
+                                        preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
+                                );
+                            }
                         }
-
 
                     } else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
                         retryCount++;

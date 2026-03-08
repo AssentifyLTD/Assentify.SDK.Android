@@ -1,5 +1,6 @@
 package  com.assentify.sdk
 
+import android.content.Context
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Flow.Models.FlowCallBack
@@ -8,6 +9,11 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanPassport.PassportResponseModel
+import com.google.common.reflect.TypeToken
+import com.google.gson.Gson
+
+private const val PREF_NAME = "assentify_sdk_prefs"
+
 
 object AssentifySdkObject {
     private lateinit var assentifySdk: AssentifySdk
@@ -19,6 +25,30 @@ object AssentifySdkObject {
         return this.assentifySdk
     }
 
+}
+
+object InteractionObject {
+    private lateinit var interaction: String
+    fun setInteractionObject(interaction: String) {
+        this.interaction = interaction;
+    }
+
+    fun getInteractionObject(): String {
+        return this.interaction
+    }
+
+}
+
+object ContextObject {
+    private var appContext: Context? = null
+
+    fun init(context: Context) {
+        appContext = context.applicationContext
+    }
+
+    fun getContext(): Context {
+        return requireNotNull(appContext) { "ContextObject is not initialized" }
+    }
 }
 
 
@@ -35,27 +65,68 @@ object FlowEnvironmentalConditionsObject {
 }
 
 object ConfigModelObject {
-    private lateinit var configModel: ConfigModel
-    fun setConfigModelObject(configModel: ConfigModel) {
-        this.configModel = configModel;
+
+    private const val PREF_NAME = "assentify_sdk_prefs"
+
+    fun setConfigModelObject(
+        configModel: ConfigModel?
+    ) {
+
+        val prefs = ContextObject.getContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val json = Gson().toJson(configModel)
+
+        prefs.edit()
+            .putString("ConfigModelObject_${InteractionObject.getInteractionObject()}", json)
+            .apply()
     }
 
-    fun getConfigModelObject(): ConfigModel {
-        return this.configModel
-    }
+    fun getConfigModelObject(
+    ): ConfigModel? {
 
+        val prefs = ContextObject.getContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val json = prefs.getString(
+            "ConfigModelObject_${InteractionObject.getInteractionObject()}",
+            null
+        )
+
+        return json?.let {
+            Gson().fromJson(it, ConfigModel::class.java)
+        }
+    }
 }
 
 
 object LocalStepsObject {
-    private var localSteps: MutableList<LocalStepModel> = mutableListOf()
 
-    fun setLocalSteps(localSteps: MutableList<LocalStepModel>) {
-        this.localSteps = localSteps
+    fun setLocalSteps(
+        localSteps: MutableList<LocalStepModel>
+    ) {
+
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val json = Gson().toJson(localSteps)
+
+        prefs.edit()
+            .putString("LocalStepsObject_${InteractionObject.getInteractionObject()}", json)
+            .apply()
     }
 
-    fun getLocalSteps(): MutableList<LocalStepModel> {
-        return localSteps
+    fun getLocalSteps(
+    ): MutableList<LocalStepModel> {
+
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val json = prefs.getString("LocalStepsObject_${InteractionObject.getInteractionObject()}", null)
+
+        if (json.isNullOrEmpty()) return mutableListOf()
+
+        val type = object : TypeToken<MutableList<LocalStepModel>>() {}.type
+
+        return Gson().fromJson(json, type)
     }
 }
 
@@ -141,34 +212,63 @@ object FlowCallbackObject {
 
 
 object Base64ImageObject {
-    private var image: String? = null
+
 
     fun setImage(value: String?) {
-        image = value
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        prefs.edit()
+            .putString("Base64ImageObject_${InteractionObject.getInteractionObject()}", value)
+            .apply()
     }
 
-    fun getImage(): String? = image
+    fun getImage(): String? {
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        return prefs.getString("Base64ImageObject_${InteractionObject.getInteractionObject()}", null)
+    }
 
     fun clear() {
-        image = null
-    }
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
+        prefs.edit()
+            .remove("Base64ImageObject_${InteractionObject.getInteractionObject()}")
+            .apply()
+    }
 }
 
 object IDImageObject {
-    private var image: String? = null
+
 
     fun setImage(value: String?) {
-        image = value
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        prefs.edit()
+            .putString("IDImageObject_${InteractionObject.getInteractionObject()}", value)
+            .apply()
     }
 
-    fun getImage(): String? = image
+    fun getImage(): String? {
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        return prefs.getString("IDImageObject_${InteractionObject.getInteractionObject()}", null)
+    }
 
     fun clear() {
-        image = null
-    }
+        val prefs = ContextObject.getContext().applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
+        prefs.edit()
+            .remove("IDImageObject_${InteractionObject.getInteractionObject()}")
+            .apply()
+    }
 }
+
 
 object OnCompleteScreenData {
     private var data: Map<String, String>? = emptyMap()
