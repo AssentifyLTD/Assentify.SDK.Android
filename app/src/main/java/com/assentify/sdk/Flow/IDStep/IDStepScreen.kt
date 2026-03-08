@@ -249,7 +249,7 @@ fun IDStepScreen(
             ) {
                 Spacer(Modifier.height(5.dp))
                 Text(
-                    "Only the presented IDs are supported and accepted by ${ConfigModelObject.getConfigModelObject().flowName}. Make sure to provide one of them.",
+                    "Only the presented IDs are supported and accepted by ${ConfigModelObject.getConfigModelObject()!!.flowName}. Make sure to provide one of them.",
                     color = BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,

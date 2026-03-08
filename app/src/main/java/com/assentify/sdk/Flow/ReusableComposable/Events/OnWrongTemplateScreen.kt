@@ -104,7 +104,7 @@ fun OnWrongTemplateScreen(
             Spacer(Modifier.height(15.dp))
 
             Text(
-                text = "Make sure its one of the above IDs presented and allowed by ${ConfigModelObject.getConfigModelObject().flowName} to verify your identity.",
+                text = "Make sure its one of the above IDs presented and allowed by ${ConfigModelObject.getConfigModelObject()!!.flowName} to verify your identity.",
                 color =   BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
                 fontFamily = InterFont,

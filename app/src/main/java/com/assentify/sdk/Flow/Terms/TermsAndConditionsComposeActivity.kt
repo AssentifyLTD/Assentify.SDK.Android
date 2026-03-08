@@ -41,7 +41,7 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
         /***/
 
 
-        TermsConditionsHelper.getTermsConditionsStep(configModel, FlowController.getCurrentStep()!!.stepDefinition!!.stepId) { termsModel ->
+        TermsConditionsHelper.getTermsConditionsStep(configModel!!, FlowController.getCurrentStep()!!.stepDefinition!!.stepId) { termsModel ->
             termsConditionsModel.value = termsModel
             termsAndConditionsEventTypes.value = TermsAndConditionsEventTypes.onHasData
         }

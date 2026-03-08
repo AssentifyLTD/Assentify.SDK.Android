@@ -25,6 +25,7 @@ import com.assentify.sdk.FaceMatch.FaceMatchManual
 import com.assentify.sdk.FaceMatch.FaceMatchResult
 import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
 import com.assentify.sdk.Flow.Models.FlowCallBack
+import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
@@ -57,6 +58,7 @@ import com.assentify.sdk.ScanQr.ScanQrManual
 import com.assentify.sdk.ScanQr.ScanQrResult
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
+import com.assentify.sdk.logging.BugsnagObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -75,7 +77,7 @@ class AssentifySdk(
     private var timeStarted: String = "";
     private var configModel: ConfigModel? = null;
     private var tenantThemeModel: TenantThemeModel? = null;
-    private var allTemplates: List<TemplatesByCountry> = emptyList();
+    var allTemplates: List<TemplatesByCountry> = emptyList();
     private lateinit var readJSONFromAsset: ReadJSONFromAsset;
 
 
@@ -635,46 +637,82 @@ class AssentifySdk(
         flowCallback: FlowCallBack,
         flowEnvironmentalConditions: FlowEnvironmentalConditions
     ) {
-
-        if (flowEnvironmentalConditions.logoUrl.isEmpty()) {
-            flowEnvironmentalConditions.logoUrl = tenantThemeModel!!.logoIcon!!;
-        }
-        if (flowEnvironmentalConditions.svgBackgroundImageUrl.isEmpty()) {
-            flowEnvironmentalConditions.svgBackgroundImageUrl =
-                "tenantThemeModel!!.svgBackgroundImageUrl!!";
-        }
-        if (flowEnvironmentalConditions.textColor.isEmpty()) {
-            flowEnvironmentalConditions.textColor = tenantThemeModel!!.textColor;
-        }
-        if (flowEnvironmentalConditions.secondaryTextColor.isEmpty()) {
-            flowEnvironmentalConditions.secondaryTextColor = tenantThemeModel!!.secondaryTextColor;
-        }
-        if (flowEnvironmentalConditions.backgroundCardColor.isEmpty()) {
-            flowEnvironmentalConditions.backgroundCardColor =
-                tenantThemeModel!!.backgroundCardColor;
-        }
-        if (flowEnvironmentalConditions.accentColor.isEmpty()) {
-            flowEnvironmentalConditions.accentColor = tenantThemeModel!!.accentColor;
-        }
-        if (flowEnvironmentalConditions.backgroundColor == null) {
-            if (flowEnvironmentalConditions.backgroundType == BackgroundType.Color) {
-                flowEnvironmentalConditions.backgroundColor =
-                    BackgroundStyle.Solid(tenantThemeModel!!.backgroundBodyColor)
-            } else {
-                flowEnvironmentalConditions.backgroundColor =
-                    BackgroundStyle.Solid(tenantThemeModel!!.backgroundCardColor)
+        if (isKeyValid) {
+            if (flowEnvironmentalConditions.logoUrl.isEmpty()) {
+                flowEnvironmentalConditions.logoUrl = tenantThemeModel!!.logoIcon!!;
             }
+            if (flowEnvironmentalConditions.svgBackgroundImageUrl.isEmpty()) {
+                flowEnvironmentalConditions.svgBackgroundImageUrl =
+                    "tenantThemeModel!!.svgBackgroundImageUrl!!";
+            }
+            if (flowEnvironmentalConditions.textColor.isEmpty()) {
+                flowEnvironmentalConditions.textColor = tenantThemeModel!!.textColor;
+            }
+            if (flowEnvironmentalConditions.secondaryTextColor.isEmpty()) {
+                flowEnvironmentalConditions.secondaryTextColor =
+                    tenantThemeModel!!.secondaryTextColor;
+            }
+            if (flowEnvironmentalConditions.backgroundCardColor.isEmpty()) {
+                flowEnvironmentalConditions.backgroundCardColor =
+                    tenantThemeModel!!.backgroundCardColor;
+            }
+            if (flowEnvironmentalConditions.accentColor.isEmpty()) {
+                flowEnvironmentalConditions.accentColor = tenantThemeModel!!.accentColor;
+            }
+            if (flowEnvironmentalConditions.backgroundColor == null) {
+                if (flowEnvironmentalConditions.backgroundType == BackgroundType.Color) {
+                    flowEnvironmentalConditions.backgroundColor =
+                        BackgroundStyle.Solid(tenantThemeModel!!.backgroundBodyColor)
+                } else {
+                    flowEnvironmentalConditions.backgroundColor =
+                        BackgroundStyle.Solid(tenantThemeModel!!.backgroundCardColor)
+                }
+            }
+            if (flowEnvironmentalConditions.clickColor == null) {
+                flowEnvironmentalConditions.clickColor =
+                    BackgroundStyle.Solid(tenantThemeModel!!.accentColor)
+            }
+
+            /** **/
+
+            FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
+            ApiKeyObject.setApiKeyObject(apiKey!!);
+            ContextObject.init(activityContext);
+            InteractionObject.setInteractionObject(interaction!!);
+            FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(
+                flowEnvironmentalConditions
+            )
+
+            /** Local Data Base **/
+            if (ConfigModelObject.getConfigModelObject() != null) {
+                configModel = ConfigModelObject.getConfigModelObject();
+                BugsnagObject.initialize(activityContext, configModel!!)
+                AssentifySdkObject.setAssentifySdkObject(this)
+            } else {
+                ConfigModelObject.setConfigModelObject(
+                    configModel!!
+                )
+                BugsnagObject.initialize(activityContext, configModel!!)
+                AssentifySdkObject.setAssentifySdkObject(this)
+            }
+            /****/
+
+            val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
+            activityContext.startActivity(intent)
         }
-        if (flowEnvironmentalConditions.clickColor == null) {
-            flowEnvironmentalConditions.clickColor =
-                BackgroundStyle.Solid(tenantThemeModel!!.accentColor)
-        }
-        FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(flowEnvironmentalConditions);
-        ConfigModelObject.setConfigModelObject(configModel!!);
-        FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
-        ApiKeyObject.setApiKeyObject(apiKey!!);
-        val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
-        activityContext.startActivity(intent)
+
+
+    }
+
+    public fun clearFlow(activityContext: Context) {
+        ContextObject.init(activityContext);
+        InteractionObject.setInteractionObject(interaction!!);
+        ConfigModelObject.setConfigModelObject(
+            null
+        )
+        LocalStepsObject.setLocalSteps(
+            emptyList<LocalStepModel>().toMutableList()
+        )
     }
 
 }

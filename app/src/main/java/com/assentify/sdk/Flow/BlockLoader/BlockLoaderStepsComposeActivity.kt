@@ -59,11 +59,11 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
 
         setContent {
             BlockLoaderScreen(
-                steps = buildStepsFromConfig(configModel),
+                steps = buildStepsFromConfig(configModel!!),
                 onBack = { onBackPressedDispatcher.onBackPressed() },
                 onStepClick = { /* navigate if needed */ },
                 onNext = {
-                  /** Track Progress **/
+                    /** Track Progress **/
                     if(firstInit){
                         val steps = LocalStepsObject.getLocalSteps();
                         val currentStep =
@@ -94,7 +94,7 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
         val flowEnvironmentalConditions =
             FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions();
         val values: MutableMap<String, String> = mutableMapOf()
-        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
         initSteps.forEach { item ->
             if (item.stepDefinition == StepsNames.BlockLoader) {
                 ///

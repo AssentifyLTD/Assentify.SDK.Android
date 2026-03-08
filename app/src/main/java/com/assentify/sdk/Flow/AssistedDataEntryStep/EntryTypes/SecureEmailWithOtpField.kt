@@ -111,7 +111,7 @@ fun SecureEmailWithOtpField(
                                         otpType = field.otpType ?: 1,
                                         otpExpiryTime = field.otpExpiryTime ?: 1.0   //
                                     )
-                                    OtpHelper.requestOtp(configModelObject, requestOtpModel) { success ->
+                                    OtpHelper.requestOtp(configModelObject!!, requestOtpModel) { success ->
                                         if (success) {
                                             isOtpStep = true
                                             otp = ""
@@ -168,7 +168,7 @@ fun SecureEmailWithOtpField(
                                 otp = otp,
                                 otpExpiryTime = field.otpExpiryTime ?: 1.0
                             )
-                            OtpHelper.verifyOtp(configModelObject, verifyOtpRequestOtpModel) { success ->
+                            OtpHelper.verifyOtp(configModelObject!!, verifyOtpRequestOtpModel) { success ->
                                 if (success) {
                                     verifying = false;
                                     isVerified = true;
@@ -239,7 +239,7 @@ fun SecureEmailWithOtpField(
                                         otpType = field.otpType ?: 1,
                                         otpExpiryTime = field.otpExpiryTime ?: 1.0   //
                                     )
-                                    OtpHelper.requestOtp(configModelObject, requestOtpModel) { success ->
+                                    OtpHelper.requestOtp(configModelObject!!, requestOtpModel) { success ->
                                         if (success) {
                                             isOtpStep = true
                                             otp = ""

@@ -39,7 +39,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
         val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
 
         /** Track Progress **/
-        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
         val valuesWrapUp: MutableMap<String, String> = mutableMapOf()
         initSteps.forEach { item ->
             if (item.stepDefinition == StepsNames.WrapUp) {

@@ -134,7 +134,7 @@ fun SecurePhoneWithOtpField(
                                             otpType = otpType,
                                             otpExpiryTime = field.otpExpiryTime ?: 1.0
                                         )
-                                        OtpHelper.requestOtp(configModelObject, req) { success ->
+                                        OtpHelper.requestOtp(configModelObject!!, req) { success ->
                                             if (success) {
                                                 isOtpStep = true
                                                 otp = ""
@@ -192,7 +192,7 @@ fun SecurePhoneWithOtpField(
                                 otp = otp,
                                 otpExpiryTime = field.otpExpiryTime ?: 1.0
                             )
-                            OtpHelper.verifyOtp(configModelObject, verifyReq) { success ->
+                            OtpHelper.verifyOtp(configModelObject!!, verifyReq) { success ->
                                 verifying = false
                                 isVerified = success
                                 if (success) onValid()
@@ -246,7 +246,7 @@ fun SecurePhoneWithOtpField(
                                 otpType = otpType,
                                 otpExpiryTime = field.otpExpiryTime ?: 1.0
                             )
-                            OtpHelper.requestOtp(configModelObject, req) { success ->
+                            OtpHelper.requestOtp(configModelObject!!, req) { success ->
                                 if (success) {
                                     isOtpStep = true
                                     otp = ""

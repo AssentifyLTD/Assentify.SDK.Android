@@ -1,6 +1,5 @@
 package com.assentify.sdk.Flow.FlowController
 
-import FlowCompletedModel
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -22,6 +21,7 @@ import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
 import com.assentify.sdk.Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity
 import com.assentify.sdk.Flow.FaceStep.HowToCaptureFaceActivity
 import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
+import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
@@ -298,15 +298,17 @@ object FlowController {
                         stepData[newKey] = value
                     }
                 }
-                flowCompletedList.add(FlowCompletedModel(
-                    stepData = stepData.toMap() ,
-                    submitRequestModel = submitModel,
-                ))
+                flowCompletedList.add(
+                    FlowCompletedModel(
+                        stepData = stepData.toMap(),
+                        submitRequestModel = submitModel,
+                    )
+                )
             }
         }
 
         var wrapUp: SubmitRequestModel? = null;
-        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
         initSteps.forEach { item ->
             /** WrapUp **/
             if (item.stepDefinition == StepsNames.WrapUp) {
@@ -347,7 +349,7 @@ object FlowController {
         }
 
         var wrapUp: SubmitRequestModel? = null;
-        val initSteps = ConfigModelObject.getConfigModelObject().stepDefinitions
+        val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
         initSteps.forEach { item ->
             /** WrapUp **/
             if (item.stepDefinition == StepsNames.WrapUp) {
@@ -402,7 +404,7 @@ object FlowController {
 
     private fun trackNext(currentStep: LocalStepModel, nextStep: LocalStepModel?,timeStarted: String) {
         val remoteService = RemoteClient.remoteGatewayService
-        val configModel = ConfigModelObject.getConfigModelObject()
+        val configModel = ConfigModelObject.getConfigModelObject()!!
         val apiKey = ApiKeyObject.getApiKeyObject()
         val flowEnvironmentalConditions =
             FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
@@ -457,7 +459,7 @@ object FlowController {
 
      fun trackProgress(currentStep: LocalStepModel,inputData:Any? = null,response:Any? = null,status: String) {
         val remoteService = RemoteClient.remoteGatewayService
-        val configModel = ConfigModelObject.getConfigModelObject()
+        val configModel = ConfigModelObject.getConfigModelObject()!!
         val apiKey = ApiKeyObject.getApiKeyObject()
         val flowEnvironmentalConditions =
             FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
