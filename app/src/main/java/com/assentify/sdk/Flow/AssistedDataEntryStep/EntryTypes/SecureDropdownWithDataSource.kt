@@ -63,7 +63,7 @@ fun SecureDropdownWithDataSource(
     var selected by rememberSaveable { mutableStateOf<List<DataSourceAttribute>>(emptyList()) }
     LaunchedEffect(field.inputKey, field.languageTransformation) {
         AssistedFormHelper.getDataSourceValues(
-            configModelObject,
+            configModelObject!!,
             field.elementIdentifier,
             FlowController.getCurrentStep()!!.stepDefinition!!.stepId,
             field.endpointId!!,

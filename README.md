@@ -11,7 +11,7 @@
 
 ## Documentation
 
-[Assentify Sdk Documentation](https://drive.google.com/file/d/1PNK-LohaaObrFKDPTDXUN7hhhLDDw-Zz/view?usp=drive_link)
+[Assentify Sdk Documentation](https://drive.google.com/file/d/1llJQMEqPqebJg3xFqHTdAd2qRILBBLId/view?usp=sharing)
 
 ## Installation
 
@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+
+***1.0.0-Beta.5***
+1. *Support multiple flows*
 
 ***1.0.0-Beta.4***
 1. *Full Flows integration*

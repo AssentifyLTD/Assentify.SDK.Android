@@ -29,25 +29,52 @@
         android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
         android:installLocation="internalOnly"
-        android:theme="@style/Assentify.NoActionBar"
         android:requestLegacyExternalStorage="true"
+        android:theme="@style/Assentify.NoActionBar"
         tools:ignore="HardcodedDebugMode">
 
-
-        <activity android:name=".Flow.BlockLoader.BlockLoaderStepsComposeActivity"     android:taskAffinity="com.assentify.sdk.affinity" />
-        <activity android:name=".Flow.Terms.TermsAndConditionsComposeActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.IDStep.IDStepComposeActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.IDStep.HowToCaptureActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.IDStep.PassportScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.IDStep.IDCardScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.FaceStep.HowToCaptureFaceActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.FaceStep.FaceMatchActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.QrStep.HowToCaptureQrActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.QrStep.QrScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.NfcStep.NfcScanActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.AssistedDataEntryStep.AssistedDataEntryActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
-        <activity android:name=".Flow.SubmitStep.SubmitStepActivity"  android:taskAffinity="com.assentify.sdk.affinity"/>
+        <activity
+            android:name=".Flow.BlockLoader.BlockLoaderStepsComposeActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.Terms.TermsAndConditionsComposeActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.IDStep.IDStepComposeActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.IDStep.HowToCaptureActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.IDStep.PassportScanActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.IDStep.IDCardScanActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.FaceStep.HowToCaptureFaceActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.FaceStep.FaceMatchActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.QrStep.HowToCaptureQrActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.QrStep.QrScanActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.NfcStep.NfcScanActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.AssistedDataEntryStep.AssistedDataEntryActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.SubmitStep.SubmitStepActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
 
         <meta-data
             android:name="com.bugsnag.android.API_KEY"

@@ -1,6 +1,5 @@
 package com.assentify.sdk.Flow.Models
 
-import FlowCompletedModel
 
 
 interface FlowCallBack {
