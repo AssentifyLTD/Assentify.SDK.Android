@@ -19,6 +19,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
+import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
@@ -199,16 +200,20 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             val customProperties: MutableMap<String, String> = mutableMapOf()
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                // logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
+                logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
                 // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
                 backgroundType = BackgroundType.Color,
-                /*   textColor = "#000000",
-                   accentColor = "#ffc400",
-                   secondaryTextColor = "#ffffff",
-                   backgroundCardColor = "#f3f4f6",
-                   backgroundColor = BackgroundStyle.Solid("#ffffff"),
-                   clickColor = BackgroundStyle.Solid("#ffc400"),
-                   blockLoaderCustomProperties = customProperties,*/
+               textColor = "#000000",
+               accentColor = "#833F89",
+               secondaryTextColor = "#000000",
+               backgroundCardColor = "#F2F2F2",
+               backgroundColor = BackgroundStyle.Solid("#FFFFFF"),
+               clickColor =  BackgroundStyle.Gradient(
+                   colorsHex = listOf("#833F89", "#C82B47"),
+                   angleDegrees = 90f,
+                   holdUntil = 0.4f
+               ),
+               blockLoaderCustomProperties = customProperties,
                 language = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,

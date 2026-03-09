@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Core.Constants.BackgroundStyle
+import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.BlockLoaderKeys
 import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
@@ -20,29 +22,48 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 
 
 object BaseTheme {
-    val BaseTextColor =
-        Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().textColor))
-    val BaseSecondaryTextColor =
-        Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().secondaryTextColor))
-    val FieldColor =
-        Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundCardColor))
-    val BaseAccentColor =
-        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor;
 
-    val BackgroundColor =
-        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundColor;
-    val BaseClickColor =
-        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().clickColor;
+    val BaseTextColor: Color
+        get() = Color(
+            android.graphics.Color.parseColor(
+                FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().textColor
+            )
+        )
+
+    val BaseSecondaryTextColor: Color
+        get() = Color(
+            android.graphics.Color.parseColor(
+                FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().secondaryTextColor
+            )
+        )
+
+    val FieldColor: Color
+        get() = Color(
+            android.graphics.Color.parseColor(
+                FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundCardColor
+            )
+        )
+
+    val BaseAccentColor: String
+        get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor
+
+    val BackgroundColor: BackgroundStyle?
+        get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundColor
+
+    val BaseClickColor: BackgroundStyle?
+        get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().clickColor
 
     val BaseGreenColor = Color(android.graphics.Color.parseColor(ConstantsValues.DetectColor))
     val BaseRedColor = Color.Red
 
-    val BaseLogo = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().logoUrl;
-    val BaseBackgroundType =
-        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundType;
-    val BaseBackgroundUrl =
-        FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().svgBackgroundImageUrl;
+    val BaseLogo: String
+        get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().logoUrl
 
+    val BaseBackgroundType: BackgroundType
+        get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().backgroundType!!
+
+    val BaseBackgroundUrl: String
+        get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().svgBackgroundImageUrl
 }
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {
