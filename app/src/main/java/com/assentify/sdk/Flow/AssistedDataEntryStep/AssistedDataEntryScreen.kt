@@ -211,7 +211,7 @@ fun AssistedDataEntryScreen(
                             assistedDataEntryModel = assistedDataEntryModel,
                             modifier = Modifier.height(pagerHeight),
                             pagerState = pagerState,
-                            onFieldChanged = { changeTick++ }
+                            onChanged = { changeTick++ }
                         )
                     }
                 }

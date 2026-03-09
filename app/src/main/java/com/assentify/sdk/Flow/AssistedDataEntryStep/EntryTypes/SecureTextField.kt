@@ -87,6 +87,8 @@ fun SecureTextField(
             AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
         )
     }
+
+    if (!field.isHidden!!)
     Column(modifier = modifier.fillMaxWidth()) {
 
         Text(

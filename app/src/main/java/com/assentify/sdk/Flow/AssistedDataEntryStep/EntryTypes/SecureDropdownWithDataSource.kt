@@ -161,110 +161,111 @@ fun SecureDropdownWithDataSource(
 
     val pillColor =  BaseTheme.FieldColor
 
-  
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            color =   BaseTheme.BaseTextColor,
-            fontSize = 14.sp,
-            fontFamily = InterFont,
-            fontWeight = FontWeight.Normal
-        )
+    if (!field.isHidden!!) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            Text(
+                text = title,
+                color =   BaseTheme.BaseTextColor,
+                fontSize = 14.sp,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal
+            )
 
-        Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(6.dp))
 
 
-        if (dataSourceData != null) {
-            ExposedDropdownMenuBox(
-                expanded = expanded && !isReadOnly,
-                onExpandedChange = { if (!isReadOnly) expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TextField(
-                    value = if (selected.isNotEmpty()) selected.first { i -> i.mappedKey == "Display Value" }.value else "",
-                    onValueChange = {},
-                    readOnly = true,
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color =   BaseTheme.FieldColor,),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Dropdown Arrow",
-                            tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
-                            modifier = Modifier.size(30.dp)
-                        )
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = pillColor,
-                        unfocusedContainerColor = pillColor,
-                        disabledContainerColor = pillColor,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        cursorColor = BaseTheme.BaseTextColor
-                    ),
-                    shape = RoundedCornerShape(16.dp), // keep only one
-                    modifier = Modifier
-                        .menuAnchor(
-                            type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                            enabled = true
-                        )
-                        .fillMaxWidth()
-                        .height(55.dp)
-                )
-
-                ExposedDropdownMenu(
+            if (dataSourceData != null) {
+                ExposedDropdownMenuBox(
                     expanded = expanded && !isReadOnly,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(BaseTheme.FieldColor)
+                    onExpandedChange = { if (!isReadOnly) expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    dataSourceData!!.items.forEach { option ->
-                        Box(
-                            modifier = Modifier
-                                .background(BaseTheme.FieldColor)
-                        ) {
-                            Column {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            option.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value,
-                                            color = BaseTheme.BaseTextColor
-                                        )
-                                    },
-                                    onClick = {
-                                        selected = option.dataSourceAttributes
-                                        expanded = false
-                                        onValueChange(
-                                            option.dataSourceAttributes,
-                                            dataSourceData!!.outputKeys,
-                                        )
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                                )
+                    TextField(
+                        value = if (selected.isNotEmpty()) selected.first { i -> i.mappedKey == "Display Value" }.value else "",
+                        onValueChange = {},
+                        readOnly = true,
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color =   BaseTheme.FieldColor,),
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Dropdown Arrow",
+                                tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
+                                modifier = Modifier.size(30.dp)
+                            )
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = pillColor,
+                            unfocusedContainerColor = pillColor,
+                            disabledContainerColor = pillColor,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            cursorColor = BaseTheme.BaseTextColor
+                        ),
+                        shape = RoundedCornerShape(16.dp), // keep only one
+                        modifier = Modifier
+                            .menuAnchor(
+                                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                enabled = true
+                            )
+                            .fillMaxWidth()
+                            .height(55.dp)
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded && !isReadOnly,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.background(BaseTheme.FieldColor)
+                    ) {
+                        dataSourceData!!.items.forEach { option ->
+                            Box(
+                                modifier = Modifier
+                                    .background(BaseTheme.FieldColor)
+                            ) {
+                                Column {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                option.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value,
+                                                color = BaseTheme.BaseTextColor
+                                            )
+                                        },
+                                        onClick = {
+                                            selected = option.dataSourceAttributes
+                                            expanded = false
+                                            onValueChange(
+                                                option.dataSourceAttributes,
+                                                dataSourceData!!.outputKeys,
+                                            )
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .align(Alignment.CenterHorizontally),
+                    color = BaseTheme.BaseTextColor,
+                    strokeWidth = 2.dp
+                )
             }
-        } else {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .size(30.dp)
-                    .align(Alignment.CenterHorizontally),
-                color = BaseTheme.BaseTextColor,
-                strokeWidth = 2.dp
-            )
-        }
 
 
-        if (err.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                err,
-                color = BaseTheme.BaseRedColor,
-                fontSize = 12.sp
-            )
+            if (err.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    err,
+                    color = BaseTheme.BaseRedColor,
+                    fontSize = 12.sp
+                )
+            }
         }
     }
 }
