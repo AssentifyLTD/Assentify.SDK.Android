@@ -121,7 +121,7 @@ fun SecureNationalityDropdown(
     val selectedCountry = options.firstOrNull { it.code3.equals(selectedCode, true) }
     val displayText = selectedCountry?.let { "${flagEmoji(it.code2)}  ${it.name}" } ?: ""
 
-
+    if (!field.isHidden!!)
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,

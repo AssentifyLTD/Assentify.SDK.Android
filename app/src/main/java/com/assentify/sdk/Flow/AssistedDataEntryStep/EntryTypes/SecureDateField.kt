@@ -239,90 +239,91 @@ fun SecureDateField(
         val identifiers = field.inputPropertyIdentifierList ?: emptyList()
         return (field.isLocked == true) && identifiers.isNotEmpty()
     }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            color = BaseTheme.BaseTextColor,
-            fontSize = 14.sp,
-            fontFamily = InterFont,
-            fontWeight = FontWeight.Normal
-        )
-
-        Spacer(Modifier.height(6.dp))
-
-        val canPick = (field.readOnly != true && !getIsLocked())
-
-        Box(Modifier.fillMaxWidth()) {
-            TextField(
-                value = value,
-                onValueChange = {},
-                readOnly = true,
-                singleLine = true,
-                enabled = true,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {  },
-
-                trailingIcon = {
-                    IconButton(onClick = {
-                        // TODO: open date picker here
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "Pick date",
-                            modifier = Modifier.size(22.dp),
-                            tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
-                        )
-                    }
-                },
-
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = BaseTheme.FieldColor,
-                    unfocusedContainerColor =  BaseTheme.FieldColor,
-                    cursorColor = BaseTheme.BaseTextColor,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = BaseTheme.BaseTextColor,
-                    unfocusedTextColor = BaseTheme.BaseTextColor,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
-
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .clickable(
-                        enabled = canPick,
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                       show = true;
-
-                    }
-            )
-        }
-        if (show) {
-            OpenPickerDynamic(
-                current = value,
-                onPicked = { picked ->
-                    value = picked
-                    persist(picked)
-                },
-                minDateStr = field.from,
-                maxDateStr = field.to,
-                onDismiss = { show = false }
-            )
-        }
-
-        if (err.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
+    if (!field.isHidden!!){
+        Column(modifier = modifier.fillMaxWidth()) {
             Text(
-                err,
-                color = BaseTheme.BaseRedColor,
-                fontSize = 12.sp
+                text = title,
+                color = BaseTheme.BaseTextColor,
+                fontSize = 14.sp,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal
             )
+
+            Spacer(Modifier.height(6.dp))
+
+            val canPick = (field.readOnly != true && !getIsLocked())
+
+            Box(Modifier.fillMaxWidth()) {
+                TextField(
+                    value = value,
+                    onValueChange = {},
+                    readOnly = true,
+                    singleLine = true,
+                    enabled = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {  },
+
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            // TODO: open date picker here
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = "Pick date",
+                                modifier = Modifier.size(22.dp),
+                                tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                            )
+                        }
+                    },
+
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = BaseTheme.FieldColor,
+                        unfocusedContainerColor =  BaseTheme.FieldColor,
+                        cursorColor = BaseTheme.BaseTextColor,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = BaseTheme.BaseTextColor,
+                        unfocusedTextColor = BaseTheme.BaseTextColor,
+                        focusedPlaceholderColor = Color.Gray,
+                        unfocusedPlaceholderColor = Color.Gray
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .clickable(
+                            enabled = canPick,
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            show = true;
+
+                        }
+                )
+            }
+            if (show) {
+                OpenPickerDynamic(
+                    current = value,
+                    onPicked = { picked ->
+                        value = picked
+                        persist(picked)
+                    },
+                    minDateStr = field.from,
+                    maxDateStr = field.to,
+                    onDismiss = { show = false }
+                )
+            }
+
+            if (err.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    err,
+                    color = BaseTheme.BaseRedColor,
+                    fontSize = 12.sp
+                )
+            }
         }
     }
 }

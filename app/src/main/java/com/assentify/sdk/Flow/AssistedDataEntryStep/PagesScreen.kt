@@ -23,7 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -37,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
-
+import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDateField
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDropdown
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDropdownWithDataSource
@@ -58,25 +60,40 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 fun AssistedDataEntryPager(
     assistedDataEntryModel: AssistedDataEntryModel?,
     pagerState: PagerState,
-    onFieldChanged: () -> Unit,
+    onChanged: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val assistedDataEntryPages = assistedDataEntryModel!!.assistedDataEntryPages
+
+
+    val assistedDataEntryPages = remember { mutableStateOf(assistedDataEntryModel!!.assistedDataEntryPages) }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
+    var rebuildTick by remember { mutableStateOf(0) }
+    fun onFieldChanged() {
+        val newModel = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject() ?: return
+
+        assistedDataEntryPages.value = newModel.assistedDataEntryPages.map { page ->
+            page.copy(
+                dataEntryPageElements = page.dataEntryPageElements.toList()
+            )
+        }
+        rebuildTick++
+        onChanged()
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
+        // not rebuild the screen at all
         HorizontalPager(
             state = pagerState,
             userScrollEnabled = false,
             modifier = Modifier.fillMaxWidth()
         ) { page ->
-            val pageModel = assistedDataEntryPages[page]
 
+            val pageModel =  assistedDataEntryPages.value[page]
 
             val listState = remember(page) { LazyListState() } // ✅ one state per page
 
@@ -101,7 +118,7 @@ fun AssistedDataEntryPager(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-
+                val currentTick = rebuildTick
                 items(
                     count = pageModel.dataEntryPageElements.size,
                     key = { index -> pageModel.dataEntryPageElements[index].inputKey ?: index }
@@ -266,8 +283,8 @@ fun AssistedDataEntryPager(
                     }
                 }}
 
-                item { Spacer(Modifier.height(300.dp)) }
-            }
+                item { Spacer(Modifier.height(300.dp)) }}
+
         }
 
         Spacer(Modifier.height(500.dp))

@@ -69,6 +69,7 @@ fun SecureRadioGroup(
     val containerColor = BaseTheme.FieldColor
     val accentColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
 
+    if (!field.isHidden!!)
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
