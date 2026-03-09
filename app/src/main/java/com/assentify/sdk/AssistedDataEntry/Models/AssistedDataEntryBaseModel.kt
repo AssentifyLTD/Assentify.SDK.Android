@@ -76,6 +76,7 @@ data class DataEntryPageElement(
     val inputPropertyIdentifierList: List<String>?,
     val isLocked: Boolean?,
     val readOnly: Boolean?,
+    val isHidden: Boolean?,
     val maxLength: Int?,
     val minLength: Int?,
     val otp: Boolean?,

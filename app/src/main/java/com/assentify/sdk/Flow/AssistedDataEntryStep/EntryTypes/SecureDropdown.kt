@@ -56,7 +56,7 @@ fun SecureDropdown(
     var selected by rememberSaveable { mutableStateOf("") }
     LaunchedEffect(field.inputKey, field.languageTransformation) {
         if (field.languageTransformation == 0) {
-            selected =  AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+            selected = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
             onValueChange(selected)
         } else {
             if (selected.isEmpty()) {
@@ -105,92 +105,93 @@ fun SecureDropdown(
     }
 
 
+    val pillColor = BaseTheme.FieldColor
 
 
-    val pillColor =  BaseTheme.FieldColor
-
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            color = BaseTheme.BaseTextColor,
-            fontSize = 14.sp,
-            fontFamily = InterFont,
-            fontWeight = FontWeight.Normal
-        )
-
-        Spacer(Modifier.height(6.dp))
-
-
-        ExposedDropdownMenuBox(
-            expanded = expanded && !isReadOnly,
-            onExpandedChange = { if (!isReadOnly) expanded = !expanded },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TextField(
-                value = selected,
-                onValueChange = {},
-                readOnly = true,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color =  BaseTheme.BaseTextColor,),
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Dropdown Arrow",
-                        tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
-                        modifier = Modifier.size(30.dp)
-                    )
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = pillColor,
-                    unfocusedContainerColor = pillColor,
-                    disabledContainerColor = pillColor,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    cursorColor =  BaseTheme.BaseTextColor,
-                ),
-                shape = RoundedCornerShape(16.dp), // keep only one
-                modifier = Modifier
-                    .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                        enabled = true)
-                    .fillMaxWidth()
-                    .height(55.dp)
+    if (!field.isHidden!!)
+        Column(modifier = modifier.fillMaxWidth()) {
+            Text(
+                text = title,
+                color = BaseTheme.BaseTextColor,
+                fontSize = 14.sp,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal
             )
 
-            ExposedDropdownMenu(
+            Spacer(Modifier.height(6.dp))
+
+
+            ExposedDropdownMenuBox(
                 expanded = expanded && !isReadOnly,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background( BaseTheme.FieldColor,)
+                onExpandedChange = { if (!isReadOnly) expanded = !expanded },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                options.forEach { option ->
-                    Box(
-                        modifier = Modifier
-                            .background(BaseTheme.FieldColor)
-                    ) {
-                        Column {
-                            DropdownMenuItem(
-                                text = { Text(option,color = BaseTheme.BaseTextColor) },
-                                onClick = {
-                                    selected = option
-                                    expanded = false
-                                    onValueChange(option)
-                                },
-                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                            )
+                TextField(
+                    value = selected,
+                    onValueChange = {},
+                    readOnly = true,
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = BaseTheme.BaseTextColor),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Dropdown Arrow",
+                            tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
+                            modifier = Modifier.size(30.dp)
+                        )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = pillColor,
+                        unfocusedContainerColor = pillColor,
+                        disabledContainerColor = pillColor,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        cursorColor = BaseTheme.BaseTextColor,
+                    ),
+                    shape = RoundedCornerShape(16.dp), // keep only one
+                    modifier = Modifier
+                        .menuAnchor(
+                            type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                            enabled = true
+                        )
+                        .fillMaxWidth()
+                        .height(55.dp)
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded && !isReadOnly,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(BaseTheme.FieldColor)
+                ) {
+                    options.forEach { option ->
+                        Box(
+                            modifier = Modifier
+                                .background(BaseTheme.FieldColor)
+                        ) {
+                            Column {
+                                DropdownMenuItem(
+                                    text = { Text(option, color = BaseTheme.BaseTextColor) },
+                                    onClick = {
+                                        selected = option
+                                        expanded = false
+                                        onValueChange(option)
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if (err.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                err,
-                color = BaseTheme.BaseRedColor,
-                fontSize = 12.sp
-            )
+            if (err.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    err,
+                    color = BaseTheme.BaseRedColor,
+                    fontSize = 12.sp
+                )
+            }
         }
-    }
 }
