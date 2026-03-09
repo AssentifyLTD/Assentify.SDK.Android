@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.6***
+1. *Support multiple flows*
+
 ***1.0.0-Beta.5***
 1. *Support multiple flows*
 
