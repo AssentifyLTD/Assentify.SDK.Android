@@ -243,6 +243,20 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                 BaseResponseDataModel.getError(),
                                 BaseResponseDataModel.getSuccess()
                         );
+                        Boolean expired = (Boolean) Objects.requireNonNull(Objects.requireNonNull(passportResponseModel
+                                                .getPassportExtractedModel())
+                                        .getIdentificationDocumentCapture())
+                                .isExpired();
+                        if (Boolean.TRUE.equals(expired)) {
+                            retryCount++;
+                            start = true;
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                            scanPassportCallback.onRetry(BaseResponseDataModel);
+                            if(start){
+                                manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                            }
+                        }else {
+                            start = false;
                         if (Objects.equals(language, Language.NON)) {
                             scanPassportCallback.onComplete(passportResponseModel);
                         } else {
@@ -253,13 +267,16 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                     preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
                             );
                         }
-
+                    }
 
                     }else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
                         retryCount++;
                         start = true;
                         BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
                         scanPassportCallback.onRetry(BaseResponseDataModel);
+                        if(start){
+                            manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
+                        }
 
                     } else   {
                         start = eventName.equals(HubConnectionTargets.ON_ERROR) || eventName.equals(HubConnectionTargets.ON_UPLOAD_FAILED) || eventName.equals(HubConnectionTargets.ON_LIVENESS_UPDATE) || eventName.equals(HubConnectionTargets.ON_WRONG_TEMPLATE) ;
