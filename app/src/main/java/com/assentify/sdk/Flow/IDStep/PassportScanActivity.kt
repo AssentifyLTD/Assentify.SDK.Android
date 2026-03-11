@@ -254,6 +254,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
             dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
+                val  X = FlowController.getFaceMatchInputImageKey()
                 if (key.contains(FlowController.getFaceMatchInputImageKey(), )) {
                     FlowController.setImage(value.toString())
                 }
