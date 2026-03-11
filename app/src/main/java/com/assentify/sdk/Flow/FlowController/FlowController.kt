@@ -249,11 +249,15 @@ object FlowController {
             steps.firstOrNull { it.stepDefinition?.stepDefinition == StepsNames.FaceImageAcquisition }
 
         return if (faceStep!!.stepDefinition!!.inputProperties.isNotEmpty()) {
-            if (faceStep.stepDefinition.inputProperties.first().sourceStepId == currentStep!!.stepDefinition!!.stepId) {
-                faceStep.stepDefinition.inputProperties.first().sourceKey
-            } else {
-                "NON"
+            var result = ConstantsValues.ProvidedFaceImageKey
+            for (input in faceStep.stepDefinition.inputProperties) {
+                if (input.sourceStepId == currentStep!!.stepDefinition!!.stepId) {
+                    result = input.sourceKey
+                    break
+                }
             }
+            result
+
         } else {
             key
         }

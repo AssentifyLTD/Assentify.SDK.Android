@@ -78,9 +78,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         //  etTenantIdentifier.setText("6ae86d79-6b88-4964-a649-08de330c7f4f")
 
 
-        etApiKey.setText( "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        etInteractionHash.setText( "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
-        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
+        etApiKey.setText( "3vFjQRfBVJL7PQ8APGeSfvNLlHGg7uG6O0GmCtN2e9iid2R51oVYsqJMpynavsALs51Lv3gb2HKknAu9Tgw")
+        etInteractionHash.setText( "658C2E5F32E472A8DF890C12F81603E3A7016AE822C77ADBE8F1047AC42719C1")
+        etTenantIdentifier.setText("588277d8-db12-44ea-b510-08dd6ac0001b")
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
 
@@ -167,7 +167,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     activeLiveType = ActiveLiveType.Actions,
                     activeLivenessCheckCount = 3,
                     faceLivenessRetryCount = 2,
-                    minRam = 10
+                    minRam = 1
                 );
                 assentifySdk = AssentifySdk(
                     config.apiKey,
