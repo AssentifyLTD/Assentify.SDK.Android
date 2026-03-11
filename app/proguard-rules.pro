@@ -10,9 +10,17 @@
 -keep class retrofit2.** { *; }
 
 # Gson
+# Gson
 -dontwarn com.google.gson.**
 -keep class com.google.gson.** { *; }
+-keepattributes Signature,InnerClasses,EnclosingMethod
 -keepattributes *Annotation*
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken { *; }
+# Keep models
+-keepclassmembers class * {
+    @retrofit2.http.* <methods>;
+}
 
 # Keep models
 -keepclassmembers class * {
@@ -83,3 +91,4 @@
 # Bugsnag Performance SDK (optional)
 ########################################
 -keep class com.bugsnag.android.performance.** { *; }
+

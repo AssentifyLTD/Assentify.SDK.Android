@@ -9,8 +9,8 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanPassport.PassportResponseModel
-import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 private const val PREF_NAME = "assentify_sdk_prefs"
 

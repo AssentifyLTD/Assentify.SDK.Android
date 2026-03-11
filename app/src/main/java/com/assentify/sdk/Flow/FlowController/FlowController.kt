@@ -34,9 +34,9 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
 import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
 import com.assentify.sdk.RemoteClient.RemoteClient
-import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
