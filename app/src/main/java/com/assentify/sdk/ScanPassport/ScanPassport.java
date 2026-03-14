@@ -114,6 +114,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         this.environmentalConditions = environmentalConditions;
         this.configModel = configModel;
         this.language = language;
+        setIsPassport();
         setEnvironmentalConditions(this.environmentalConditions);
     }
 

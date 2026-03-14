@@ -298,8 +298,14 @@ object FlowController {
                 val stepData = mutableMapOf<String, String>()
                 submitModel.extractedInformation.forEach { (key, value) ->
                     if(!key.contains("IsDirty")){
-                        val newKey = key.substringAfter("${submitModel.stepDefinition}_").split("_").joinToString(" ")
-                        stepData[newKey] = value
+                        if(key.contains("OnBoardMe_Property")){
+                            val newKey = key.substringAfter("OnBoardMe_Property_").split("_").joinToString(" ")
+                            stepData[newKey] = value
+                        }else{
+                            val newKey = key.substringAfter("${submitModel.stepDefinition}_").split("_").joinToString(" ")
+                            stepData[newKey] = value
+                        }
+
                     }
                 }
                 flowCompletedList.add(

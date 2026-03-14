@@ -585,7 +585,8 @@ fun FaceMatchScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color =   BaseTheme.BaseTextColor,                        fontSize = 15.sp,
+                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,

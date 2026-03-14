@@ -119,7 +119,7 @@ fun SecurePhoneInput(
     val codeDisplay = selected?.let { "${flagEmoji(it.code2)} ${it.dialCode}" }
         ?: if (selectedDial.isNotBlank()) selectedDial else "—"
 
-    if (!field.isHidden!!)
+    if (!field.isHidden!!){
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
@@ -232,7 +232,7 @@ fun SecurePhoneInput(
             Spacer(Modifier.height(4.dp))
             Text(err, color = BaseTheme.BaseRedColor, fontSize = 12.sp)
         }
-    }
+    }}
 }
 
 

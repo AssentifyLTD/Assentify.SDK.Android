@@ -17,7 +17,6 @@ object ConstantsValues {
     const val IsQuantized = false
     const val InputSize = 256
     const val InputFaceModelsSize = 224
-    const val ModelLiveModelFileName = "check-liveness.tflite";
     const val FaceCheckQualityThresholdPositiveUp = 10;
     const val FaceCheckQualityThresholdPositive = 18;
     const val FaceCheckQualityThresholdNegative = -18;

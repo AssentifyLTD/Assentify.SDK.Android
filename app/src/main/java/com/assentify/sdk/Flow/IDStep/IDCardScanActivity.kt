@@ -625,7 +625,7 @@ fun IDCardScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color =   BaseTheme.BaseTextColor,
+                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,

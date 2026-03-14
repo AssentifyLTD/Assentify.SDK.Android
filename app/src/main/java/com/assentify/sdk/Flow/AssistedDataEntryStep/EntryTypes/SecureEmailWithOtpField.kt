@@ -72,7 +72,7 @@ fun SecureEmailWithOtpField(
     }
 
 
-    if (!field.isHidden!!)
+    if (!field.isHidden!!){
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = if (!isOtpStep || isVerified) title else "Enter OTP",
@@ -276,7 +276,7 @@ fun SecureEmailWithOtpField(
                 fontSize = 12.sp
             )
         }
-    }
+    }}
 
 
 }
