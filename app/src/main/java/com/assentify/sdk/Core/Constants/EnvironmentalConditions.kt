@@ -5,8 +5,6 @@ class EnvironmentalConditions(
 
     /**Detect**/
     var enableDetect: Boolean = true,
-    var enableGuide: Boolean = true,
-
 
     var HoldHandColor: String,
     var CountDownNumbersColor: String = "#00FFFFFF",
@@ -27,6 +25,7 @@ class EnvironmentalConditions(
     var minCPUCores : Int = 6,
 ) {
 
+    var enableGuide: Boolean = true;
 
     init {
         require(HoldHandColor.isNotEmpty()) { "Invalid HoldHandColor value" }

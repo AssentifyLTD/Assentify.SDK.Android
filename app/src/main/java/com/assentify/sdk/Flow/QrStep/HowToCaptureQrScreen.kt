@@ -37,7 +37,7 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
-import com.assentify.sdk.Flow.ReusableComposable.GifPlayer
+import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -123,10 +123,13 @@ fun HowToCaptureQrScreen(
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 10.dp, end = 10.dp)
-                        .align(Alignment.CenterHorizontally)
                 ) {
-                    GifPlayer("file:///android_asset/qr_gif.gif")
+                    VideoPlayerFromAssets(
+                        assetFileName = "qr-video.mp4",
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
+
 
                 Spacer(Modifier.height(20.dp))
 

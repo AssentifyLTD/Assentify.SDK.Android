@@ -104,6 +104,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
         this.environmentalConditions = environmentalConditions;
         this.configModel = configModel;
         this.language = language;
+        setIsPassport();
         setEnvironmentalConditions(this.environmentalConditions);
     }
 

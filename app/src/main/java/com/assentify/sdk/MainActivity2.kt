@@ -50,7 +50,6 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
 
         val swEnableDetect = findViewById<SwitchCompat>(R.id.swEnableDetect)
-        val swEnableGuide = findViewById<SwitchCompat>(R.id.swEnableGuide)
         val swEnableNfc = findViewById<SwitchCompat>(R.id.swEnableNfc)
         val swEnableQr = findViewById<SwitchCompat>(R.id.swEnableQr)
 
@@ -102,7 +101,6 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 tenantIdentifier = tenantIdentifier,
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
-                enableGuide = swEnableGuide.isChecked,
                 enableNfc = swEnableNfc.isChecked,
                 enableQr = swEnableQr.isChecked
             )
@@ -120,7 +118,6 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 /** INIT SDK **/
                 val environmentalConditions = EnvironmentalConditions(
                     config.enableDetect,
-                    config.enableGuide,
                     "#ffc400",
                     CountDownNumbersColor = "#ffc400",
                     activeLiveType = ActiveLiveType.Actions,
@@ -188,7 +185,11 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     /** FLOW Completed **/
     override fun onFlowCompleted(flowData: List<FlowCompletedModel>) {
         val x = flowData;
-        Log.e("FlowData",x.toString())
+        flowData.forEach {
+            Log.e("onFlowCompleted",it.stepData.toString())
+            Log.e("onFlowCompleted", it.submitRequestModel?.extractedInformation.toString())
+
+        }
         Toast.makeText(this, "Flow Completed", Toast.LENGTH_SHORT).show()
     }
 

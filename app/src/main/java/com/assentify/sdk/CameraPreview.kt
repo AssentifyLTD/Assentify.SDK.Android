@@ -73,6 +73,7 @@ abstract class CameraPreview : Fragment() {
     private lateinit var rectangleOverlayView: RectangleOverlayView
     private var cameraSelector: CameraSelector? = null;
     private var frontCamera: Boolean = false
+    private var scanBackground: Int  = R.drawable.card_background
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>? = null
@@ -135,6 +136,10 @@ abstract class CameraPreview : Fragment() {
     }
     fun frontCamera() {
         frontCamera = true
+    }
+
+    fun setIsPassport() {
+        scanBackground = R.drawable.passport_background
     }
 
 
@@ -277,7 +282,7 @@ abstract class CameraPreview : Fragment() {
                         }
                         val drawableCard = ResourcesCompat.getDrawable(
                             resources,
-                            R.drawable.card_background,
+                            scanBackground,
                             null
                         ) as VectorDrawable
                         val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
@@ -566,7 +571,7 @@ abstract class CameraPreview : Fragment() {
                             if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
                                 val drawableCard = ResourcesCompat.getDrawable(
                                     resources,
-                                    R.drawable.card_background,
+                                    scanBackground,
                                     null
                                 ) as VectorDrawable
                                 val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
@@ -737,6 +742,50 @@ abstract class CameraPreview : Fragment() {
         }
     }
 
+
+    protected fun changeCardWeightLayoutID(){
+        if (isAdded) {
+            if(layoutTop==null){
+                val layoutTop =  requireActivity().findViewById<LinearLayout>(R.id.card_container_top)
+                val paramsTop = layoutTop.layoutParams as LinearLayout.LayoutParams
+                paramsTop.weight = 1f
+                layoutTop.layoutParams = paramsTop
+
+            }
+
+            if(layoutMiddle==null) {
+                val layoutMiddle =
+                    requireActivity().findViewById<LinearLayout>(R.id.card_container_middle)
+                val paramsMiddle = layoutMiddle.layoutParams as LinearLayout.LayoutParams
+                paramsMiddle.weight = 1.18f
+                layoutMiddle.layoutParams = paramsMiddle
+            }
+
+            if(layoutBottom==null) {
+                val layoutBottom =
+                    requireActivity().findViewById<LinearLayout>(R.id.card_container_bottom)
+                val paramsBottom = layoutBottom.layoutParams as LinearLayout.LayoutParams
+                paramsBottom.weight = 1f
+                layoutBottom.layoutParams = paramsBottom
+            }
+
+            if(layoutLeft==null) {
+                val layoutLeft = requireActivity().findViewById<LinearLayout>(R.id.card_container_left)
+                val paramsLeft = layoutLeft.layoutParams as LinearLayout.LayoutParams
+                paramsLeft.weight = 1.8f
+                layoutLeft.layoutParams = paramsLeft
+            }
+
+            if(layoutRight==null) {
+                val layoutRight =
+                    requireActivity().findViewById<LinearLayout>(R.id.card_container_right)
+                val paramsRight = layoutRight.layoutParams as LinearLayout.LayoutParams
+                paramsRight.weight = 1.8f
+                layoutRight.layoutParams = paramsRight
+            }
+        }
+
+    }
     protected fun changeCardWeightLayout(){
         if (isAdded) {
             if(layoutTop==null){
@@ -751,7 +800,7 @@ abstract class CameraPreview : Fragment() {
                 val layoutMiddle =
                     requireActivity().findViewById<LinearLayout>(R.id.card_container_middle)
                 val paramsMiddle = layoutMiddle.layoutParams as LinearLayout.LayoutParams
-                paramsMiddle.weight = 2.8f
+                paramsMiddle.weight = 2.6f
                 layoutMiddle.layoutParams = paramsMiddle
             }
 
@@ -766,7 +815,7 @@ abstract class CameraPreview : Fragment() {
             if(layoutLeft==null) {
                 val layoutLeft = requireActivity().findViewById<LinearLayout>(R.id.card_container_left)
                 val paramsLeft = layoutLeft.layoutParams as LinearLayout.LayoutParams
-                paramsLeft.weight = 3f
+                paramsLeft.weight = 6.5f
                 layoutLeft.layoutParams = paramsLeft
             }
 
@@ -774,7 +823,7 @@ abstract class CameraPreview : Fragment() {
                 val layoutRight =
                     requireActivity().findViewById<LinearLayout>(R.id.card_container_right)
                 val paramsRight = layoutRight.layoutParams as LinearLayout.LayoutParams
-                paramsRight.weight = 3f
+                paramsRight.weight = 6.5f
                 layoutRight.layoutParams = paramsRight
             }
         }

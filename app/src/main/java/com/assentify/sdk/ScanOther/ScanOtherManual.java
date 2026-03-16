@@ -166,6 +166,14 @@ public class ScanOtherManual extends CameraPreview implements RemoteProcessingCa
     @Override
     protected void processManualImage(@NonNull Bitmap normalImage) {
         if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    changeCardWeightLayoutID();
+                }
+            });
+        }
+        if (getActivity() != null) {
             BugsnagObject.INSTANCE.initialize(getActivity().getApplicationContext(), configModel);
         }
         this.normalImage = normalImage;

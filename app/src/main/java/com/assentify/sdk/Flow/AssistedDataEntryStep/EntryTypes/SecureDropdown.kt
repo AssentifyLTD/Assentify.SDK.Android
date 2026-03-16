@@ -108,7 +108,7 @@ fun SecureDropdown(
     val pillColor = BaseTheme.FieldColor
 
 
-    if (!field.isHidden!!)
+    if (!field.isHidden!!){
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
                 text = title,
@@ -193,5 +193,5 @@ fun SecureDropdown(
                     fontSize = 12.sp
                 )
             }
-        }
+        }}
 }

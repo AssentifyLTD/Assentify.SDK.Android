@@ -4,7 +4,7 @@ import com.assentify.sdk.RemoteClient.Models.StepDefinitions
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 
 data class LocalStepModel(
-    val name: String,
+    var name: String,
     val show: Boolean = true,
     val description: String,
     val iconAssetPath: String,

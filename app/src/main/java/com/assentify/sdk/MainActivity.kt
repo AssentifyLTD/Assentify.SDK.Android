@@ -34,7 +34,6 @@ data class StartConfig(
     val tenantIdentifier: String,
     val language: String,
     val enableDetect: Boolean,
-    val enableGuide: Boolean,
     val enableNfc: Boolean,
     val enableQr: Boolean
 )
@@ -73,19 +72,20 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
-        //  etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
-        //  etInteractionHash.setText("E6161B5C8D85382101B19AD0D86692F121622D108CECBF0E4E23E2709ACC9EB4")
-        //  etTenantIdentifier.setText("6ae86d79-6b88-4964-a649-08de330c7f4f")
+      /* etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
+         etInteractionHash.setText("658C2E5F32E472A8DF890C12F81603E3A7016AE822C77ADBE8F1047AC42719C1")
+         etTenantIdentifier.setText("588277d8-db12-44ea-b510-08dd6ac0001b")
+*/
 
 
-        etApiKey.setText( "3vFjQRfBVJL7PQ8APGeSfvNLlHGg7uG6O0GmCtN2e9iid2R51oVYsqJMpynavsALs51Lv3gb2HKknAu9Tgw")
-        etInteractionHash.setText( "658C2E5F32E472A8DF890C12F81603E3A7016AE822C77ADBE8F1047AC42719C1")
-        etTenantIdentifier.setText("588277d8-db12-44ea-b510-08dd6ac0001b")
+        etApiKey.setText( "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+        etInteractionHash.setText( "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
+        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
+
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
 
         val swEnableDetect = findViewById<SwitchCompat>(R.id.swEnableDetect)
-        val swEnableGuide = findViewById<SwitchCompat>(R.id.swEnableGuide)
         val swEnableNfc = findViewById<SwitchCompat>(R.id.swEnableNfc)
         val swEnableQr = findViewById<SwitchCompat>(R.id.swEnableQr)
 
@@ -143,7 +143,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 tenantIdentifier = tenantIdentifier,
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
-                enableGuide = swEnableGuide.isChecked,
                 enableNfc = swEnableNfc.isChecked,
                 enableQr = swEnableQr.isChecked
             )
@@ -161,8 +160,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 /** INIT SDK **/
                 val environmentalConditions = EnvironmentalConditions(
                     config.enableDetect,
-                    config.enableGuide,
-                    "#ffc400",
+                    "#e30505",
                     CountDownNumbersColor = "#ffc400",
                     activeLiveType = ActiveLiveType.Actions,
                     activeLivenessCheckCount = 3,
@@ -198,6 +196,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
+            customProperties.put("phoneNumber", "value1")
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
                 logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
@@ -232,7 +231,11 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     /** FLOW Completed **/
     override fun onFlowCompleted(flowData: List<FlowCompletedModel>) {
         val x = flowData;
-        Log.e("FlowData",x.toString())
+        flowData.forEach {
+            Log.e("onFlowCompleted",it.stepData.toString())
+            Log.e("onFlowCompleted", it.submitRequestModel?.extractedInformation.toString())
+
+        }
         Toast.makeText(this, "Flow Completed", Toast.LENGTH_SHORT).show()
     }
 

@@ -9,6 +9,7 @@ import android.provider.Settings
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -49,6 +51,7 @@ import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
+import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -76,6 +79,9 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
 
     private var timeStarted = getCurrentDateTimeForTracking()
+
+    private var isComplete = mutableStateOf<Boolean>(false)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,9 +125,17 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                          onBack = {
                             onBackPressedDispatcher.onBackPressed()
                         },
+                        onSkip  = {
+                            eventTypes.value = EventTypes.onComplete
+                        },
                         onNext = {
-                            FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
-                            FlowController.naveToNextStep(this)
+                            if(isComplete.value){
+                                FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                FlowController.naveToNextStep(this)
+                            }else{
+                                FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                FlowController.naveToNextStep(this)
+                            }
                         },
                         onRetry = {
                             feedbackText.value = "Position the passport on the bottom of the phone where the NFC chip reader is and ensure that you have the passport close enough for detection and reading.";
@@ -179,6 +193,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
     override fun onCompleteNfcScan(dataModel: PassportResponseModel) {
         runOnUiThread {
+            isComplete.value = true;
             dataIDModel.value = dataModel;
             feedbackText.value = ""
             OnCompleteScreenData.clear();
@@ -207,6 +222,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 fun NfcScanScreen(
     onBack: () -> Unit = {},
     onNext: () -> Unit = {},
+    onSkip: () -> Unit = {},
     onRetry: () -> Unit = {},
     eventTypes: String,
     imageUrl: String,
@@ -230,7 +246,7 @@ fun NfcScanScreen(
 
        if (eventTypes == EventTypes.onComplete) {
            val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
-               ?: false;           if(showResultPage){
+               ?: false;  if(showResultPage){
                OnCompleteScreen(imageUrl, onNext = {
                    onNext();
                })
@@ -301,112 +317,147 @@ fun NfcScanScreen(
 
         }
 
-        if(eventTypes != EventTypes.onComplete)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 150.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
-        ) {
-            Text(
-                text = "NFC Based Capture",
-                color =   BaseTheme.BaseTextColor,
-                fontSize = 24.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 16.dp)
-                    .fillMaxWidth()
-            )
+        if(eventTypes != EventTypes.onComplete){
 
-            // 🔹 Middle section
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Box(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .padding(top = 150.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
             ) {
-                // Dashed outline behind icon
-                Box(
+                Text(
+                    text = "NFC Based Capture",
+                    color =   BaseTheme.BaseTextColor,
+                    fontSize = 24.sp,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .size(220.dp),
-                    contentAlignment = Alignment.Center
+                        .align(Alignment.TopCenter)
+                        .padding(top = 16.dp)
+                        .fillMaxWidth()
+                )
+
+                // 🔹 Middle section
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
                 ) {
-                    iconSvg?.let {
-                        Icon(
-                            painter = it,
-                            contentDescription = "ic_nfc",
-                            modifier = Modifier.size(240.dp),
-                            tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                    // Dashed outline behind icon
+                    Box(
+                        modifier = Modifier
+                            .size(220.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        iconSvg?.let {
+                            Icon(
+                                painter = it,
+                                contentDescription = "ic_nfc",
+                                modifier = Modifier.size(240.dp),
+                                tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+
+                    if(eventTypes == EventTypes.onSend){
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .align(Alignment.CenterHorizontally),
+                            color =   BaseTheme.BaseTextColor,
+                            strokeWidth = 6.dp
+                        )
+                    }else{
+                        Text(
+                            "NFC DETECTED",
+                            color =   BaseTheme.BaseTextColor,
+                            fontSize = 22.sp,
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Text(
+                        text = feedbackText,
+                        color =   BaseTheme.BaseTextColor,
+                        fontSize = 10.sp,
+                        lineHeight = 15.sp,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Thin,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                    )
+                }
+
+                // 🔹 Bottom section
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+
+                    val isError = eventTypes == EventTypes.onError
+
+                    if (isError) {
+                        Button(
+                            onClick = { onRetry() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = BaseTheme.BaseRedColor
+                            ),
+                            shape = RoundedCornerShape(28.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(54.dp)
+                        ) {
+                            Text(
+                                text = "Retry",
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Normal,
+                                color = BaseTheme.BaseSecondaryTextColor,
+                                modifier = Modifier.padding(vertical = 7.dp)
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = onSkip,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(28.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                shape = RoundedCornerShape(28.dp)
+                            )
+                    ) {
+                        Text(
+                            "Skip",
+                            color = BaseTheme.BaseSecondaryTextColor,
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier.padding(vertical = 7.dp)
                         )
                     }
                 }
-
-                Spacer(Modifier.height(24.dp))
-
-                if(eventTypes == EventTypes.onSend){
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .align(Alignment.CenterHorizontally),
-                        color =   BaseTheme.BaseTextColor,
-                        strokeWidth = 6.dp
-                    )
-                }else{
-                    Text(
-                        "NFC DETECTED",
-                        color =   BaseTheme.BaseTextColor,
-                        fontSize = 22.sp,
-                        fontFamily = InterFont,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-
-                Spacer(Modifier.height(12.dp))
-
-                Text(
-                    text = feedbackText,
-                    color =   BaseTheme.BaseTextColor,
-                    fontSize = 10.sp,
-                    lineHeight = 15.sp,
-                    fontFamily = InterFont,
-                    fontWeight = FontWeight.Thin,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                )
             }
 
-            // 🔹 Bottom section
-            val isError = eventTypes == EventTypes.onError
-           if(isError){
-               Button(
-                   onClick = {onRetry() },
-                   colors = ButtonDefaults.buttonColors(
-                       containerColor = BaseTheme.BaseRedColor,
-                   ),
-                   shape = RoundedCornerShape(28.dp),
-                   modifier = Modifier
-                       .align(Alignment.BottomCenter)
-                       .padding(bottom = 20.dp)
-                       .fillMaxWidth()
-                       .height(54.dp)
-               ) {
-                   Text(
-                       text =  "Retry" ,
-                       fontFamily = InterFont,
-                       fontWeight = FontWeight.Normal,
-                       color = BaseTheme.BaseSecondaryTextColor,
-                       modifier = Modifier.padding(vertical = 7.dp)
-                   )
-               }
-           }
         }
+
+
+
 
 
 

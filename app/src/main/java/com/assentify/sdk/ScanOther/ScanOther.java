@@ -169,7 +169,14 @@ public class ScanOther extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     protected void processImage(@NonNull Bitmap croppedBitmap, @NonNull Bitmap normalImage, @NonNull List<? extends Classifier.Recognition> results, @NonNull List<Pair<RectF, String>> listScaleRectF, int previewWidth, int previewHeight) {
-
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    changeCardWeightLayoutID();
+                }
+            });
+        }
         if (getActivity() != null) {
             BugsnagObject.INSTANCE.initialize(getActivity().getApplicationContext(),configModel);
         }

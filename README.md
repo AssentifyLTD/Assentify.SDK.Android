@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.9***
+1. *Support Split Step*
+
 ***1.0.0-Beta.8***
 1. *Support multiple flows*
 
