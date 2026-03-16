@@ -185,7 +185,11 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     /** FLOW Completed **/
     override fun onFlowCompleted(flowData: List<FlowCompletedModel>) {
         val x = flowData;
-        Log.e("FlowData",x.toString())
+        flowData.forEach {
+            Log.e("onFlowCompleted",it.stepData.toString())
+            Log.e("onFlowCompleted", it.submitRequestModel?.extractedInformation.toString())
+
+        }
         Toast.makeText(this, "Flow Completed", Toast.LENGTH_SHORT).show()
     }
 

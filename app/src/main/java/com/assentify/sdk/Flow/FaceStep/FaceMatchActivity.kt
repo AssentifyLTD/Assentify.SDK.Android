@@ -129,6 +129,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                                     .toMutableMap()
                             Base64ImageObject.clear();
                             IDImageObject.clear();
+
                             if(faceModel.value!!.faceExtractedModel!!.percentageMatch!! <= 50){
                                 var isSkippedStatusKey = "";
                                 outputProps.forEach {

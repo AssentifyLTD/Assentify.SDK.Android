@@ -757,7 +757,7 @@ abstract class CameraPreview : Fragment() {
                 val layoutMiddle =
                     requireActivity().findViewById<LinearLayout>(R.id.card_container_middle)
                 val paramsMiddle = layoutMiddle.layoutParams as LinearLayout.LayoutParams
-                paramsMiddle.weight = 1.2f
+                paramsMiddle.weight = 1.18f
                 layoutMiddle.layoutParams = paramsMiddle
             }
 
@@ -772,7 +772,7 @@ abstract class CameraPreview : Fragment() {
             if(layoutLeft==null) {
                 val layoutLeft = requireActivity().findViewById<LinearLayout>(R.id.card_container_left)
                 val paramsLeft = layoutLeft.layoutParams as LinearLayout.LayoutParams
-                paramsLeft.weight = 1f
+                paramsLeft.weight = 1.8f
                 layoutLeft.layoutParams = paramsLeft
             }
 
@@ -780,7 +780,7 @@ abstract class CameraPreview : Fragment() {
                 val layoutRight =
                     requireActivity().findViewById<LinearLayout>(R.id.card_container_right)
                 val paramsRight = layoutRight.layoutParams as LinearLayout.LayoutParams
-                paramsRight.weight = 1f
+                paramsRight.weight = 1.8f
                 layoutRight.layoutParams = paramsRight
             }
         }
@@ -800,7 +800,7 @@ abstract class CameraPreview : Fragment() {
                 val layoutMiddle =
                     requireActivity().findViewById<LinearLayout>(R.id.card_container_middle)
                 val paramsMiddle = layoutMiddle.layoutParams as LinearLayout.LayoutParams
-                paramsMiddle.weight = 2.8f
+                paramsMiddle.weight = 2.6f
                 layoutMiddle.layoutParams = paramsMiddle
             }
 
@@ -815,7 +815,7 @@ abstract class CameraPreview : Fragment() {
             if(layoutLeft==null) {
                 val layoutLeft = requireActivity().findViewById<LinearLayout>(R.id.card_container_left)
                 val paramsLeft = layoutLeft.layoutParams as LinearLayout.LayoutParams
-                paramsLeft.weight = 3f
+                paramsLeft.weight = 6.5f
                 layoutLeft.layoutParams = paramsLeft
             }
 
@@ -823,7 +823,7 @@ abstract class CameraPreview : Fragment() {
                 val layoutRight =
                     requireActivity().findViewById<LinearLayout>(R.id.card_container_right)
                 val paramsRight = layoutRight.layoutParams as LinearLayout.LayoutParams
-                paramsRight.weight = 3f
+                paramsRight.weight = 6.5f
                 layoutRight.layoutParams = paramsRight
             }
         }

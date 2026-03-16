@@ -39,6 +39,10 @@ data class StepDefinitions(
 
 )
 
+data class StepTypeDto(
+    val id: Int,
+)
+
 data class OutputProperties(
     val id: Int,
     val key: String,
@@ -55,6 +59,7 @@ data class Customization(
     val documentLiveness: Boolean?,
     val storeCapturedDocument: Boolean?,
     val performLivenessDetection: Boolean?,
+    val stepTypeDto: StepTypeDto,
     val storeImageStream: Boolean?,
     val saveCapturedVideo: Boolean?,
     val outputProperties: List<OutputProperties>,
