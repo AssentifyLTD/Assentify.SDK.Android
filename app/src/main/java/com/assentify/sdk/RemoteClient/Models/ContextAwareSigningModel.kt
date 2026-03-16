@@ -9,4 +9,5 @@ data class DataModel(
     val header: String?,
     val confirmationMessage: String?,
     val subHeader: String?,
+    val autoDownload: Boolean,
 )

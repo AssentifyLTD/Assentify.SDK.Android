@@ -388,7 +388,11 @@ fun SwipeToSubmit(
                     modifier = Modifier.size(30.dp),
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(
-                          BaseTheme.BaseTextColor.copy(alpha = 0.5f),
+                        Color(
+                            android.graphics.Color.parseColor(
+                                "#f3f4f6"
+                            )
+                        )
                     )
                 )
             }
@@ -404,7 +408,11 @@ fun SwipeToSubmit(
                 defaultElevation = 6.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                containerColor = Color(
+                    android.graphics.Color.parseColor(
+                        "#f3f4f6"
+                    )
+                )
             )
         ) {
             Box(

@@ -129,6 +129,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                                     .toMutableMap()
                             Base64ImageObject.clear();
                             IDImageObject.clear();
+
                             if(faceModel.value!!.faceExtractedModel!!.percentageMatch!! <= 50){
                                 var isSkippedStatusKey = "";
                                 outputProps.forEach {
@@ -585,7 +586,8 @@ fun FaceMatchScanScreen(
                 ) {
                     Text(
                         feedbackText,
-                        color =   BaseTheme.BaseTextColor,                        fontSize = 15.sp,
+                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,

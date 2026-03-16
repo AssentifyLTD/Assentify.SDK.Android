@@ -88,7 +88,7 @@ fun SecureTextField(
         )
     }
 
-    if (!field.isHidden!!)
+    if (!field.isHidden!!){
     Column(modifier = modifier.fillMaxWidth()) {
 
         Text(
@@ -134,6 +134,6 @@ fun SecureTextField(
                 fontSize = 12.sp
             )
         }
-    }
+    }}
 }
 

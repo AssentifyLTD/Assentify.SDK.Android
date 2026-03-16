@@ -89,6 +89,7 @@ import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromBase64
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromUrl
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.Flow.ReusableComposable.SignaturePad
+import com.assentify.sdk.Flow.ReusableComposable.startPdfDownload
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
@@ -133,6 +134,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     private lateinit var contextAwareSigning: ContextAwareSigning;
 
     private var timeStarted = getCurrentDateTimeForTracking()
+    private lateinit var localContext: Context;
 
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -162,6 +164,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         })
 
         setContent {
+            localContext =  LocalContext.current
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -276,6 +279,13 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
                 signatureResponseModel
             )
         )
+        if(contextAwareSigningObject.value!!.data.autoDownload){
+            startPdfDownload(
+                context = localContext,
+                url = signatureResponseModel.signedDocumentUri,
+                fileName = "SignedDocument.pdf"
+            )
+        }
         approvedDocumentsObject.removeFirstOrNull()
         if (contextAwareSigningObject.value!!.data.selectedTemplates.size == documentWithTokensAndSinged.size) {
             contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSignature

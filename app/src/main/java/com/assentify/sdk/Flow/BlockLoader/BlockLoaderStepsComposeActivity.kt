@@ -190,13 +190,10 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                         description = meta.description,
                         iconAssetPath = meta.icon,
                         isDone = false,
-                        stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                            .first(),
+                        stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id },
                         submitRequestModel = SubmitRequestModel(
-                            stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                .first().stepDefinition,
-                            stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                .first().stepId,
+                            stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id }.stepDefinition,
+                            stepId = configModel.stepDefinitions.first { it.stepId == step.id }.stepId,
                             extractedInformation = emptyMap()
                         )
                     )
@@ -204,7 +201,7 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                 displayCounter++
             }
 
-            /* val isSplit = (def == StepsNames.Split)
+             val isSplit = (def == StepsNames.Split)
              if(isSplit){
                  tempList.add(
                      LocalStepModel(
@@ -213,37 +210,15 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                          iconAssetPath = "",
                          show = false,
                          isDone = false,
-                         stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                             .first(),
+                         stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id },
                          submitRequestModel = SubmitRequestModel(
-                             stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                 .first().stepDefinition,
-                             stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                 .first().stepId,
+                             stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id }.stepDefinition,
+                             stepId = configModel.stepDefinitions.first { it.stepId == step.id }.stepId,
                              extractedInformation = emptyMap()
                          )
                      )
                  )
-             }else{
-                 tempList.add(
-                     LocalStepModel(
-                         name = "Step ${displayCounter}: ${meta.name}",
-                         description = meta.description,
-                         iconAssetPath = meta.icon,
-                         isDone = false,
-                         stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                             .first(),
-                         submitRequestModel = SubmitRequestModel(
-                             stepDefinition = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                 .first().stepDefinition,
-                             stepId = configModel.stepDefinitions.filter { it.stepId == step.id }
-                                 .first().stepId,
-                             extractedInformation = emptyMap()
-                         )
-                     )
-                 )
-                 displayCounter++
-             }*/
+             }
         }
         LocalStepsObject.setLocalSteps(tempList)
 

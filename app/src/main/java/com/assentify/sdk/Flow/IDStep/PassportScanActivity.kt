@@ -538,11 +538,12 @@ fun PassportScanScreen(
                         .fillMaxWidth()
                         .statusBarsPadding()
                         .align(Alignment.BottomCenter)
-                        .padding(start = 12.dp, end = 30.dp, bottom = 100.dp)
+                        .padding(start = 12.dp, end = 30.dp, bottom = 70.dp)
                 ) {
                     Text(
                         feedbackText,
-                        color =   BaseTheme.BaseTextColor,                        fontSize = 15.sp,
+                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Light,
                         lineHeight = 34.sp,
                         textAlign = TextAlign.Center,
