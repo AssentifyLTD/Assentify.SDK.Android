@@ -39,6 +39,11 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
             status = "InProgress"
         )
         /***/
+        val defaultTitle = ConfigModelObject.getConfigModelObject()
+            ?.stepDefinitions
+            ?.find { it.stepId == currentStep.stepDefinition!!.stepId }
+            ?.customization?.header
+            ?: ""
 
 
         TermsConditionsHelper.getTermsConditionsStep(configModel!!, FlowController.getCurrentStep()!!.stepDefinition!!.stepId) { termsModel ->
@@ -57,6 +62,7 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     TermsAndConditionsScreen(
+                        defaultTitle = defaultTitle,
                         termsConditionsModel = termsConditionsModel.value,
                         termsAndConditionsEventTypes = termsAndConditionsEventTypes.value,
                         onBack   = { onBackPressedDispatcher.onBackPressed() },

@@ -77,6 +77,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
+import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -120,6 +121,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         mutableStateOf<String>(ContextAwareStepEventTypes.onSend)
     private var contextAwareSigningObject = mutableStateOf<ContextAwareSigningModel?>(null)
     private var currentTemplateId = mutableStateOf<Int?>(null)
+    private var clickLoading = mutableStateOf<Boolean>(false)
 
     private var selectedTemplates = mutableStateListOf<SelectedTemplatesTokens>()
 
@@ -148,6 +150,12 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
             inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
             status = "InProgress"
         )
+        val defaultTitle = ConfigModelObject.getConfigModelObject()
+            ?.stepDefinitions
+            ?.find { it.stepId == currentStep.stepDefinition!!.stepId }
+            ?.customization?.header
+            ?: ""
+
         /***/
 
 
@@ -187,7 +195,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 
                         },
                         onSign = { signature, approvedDocuments ->
-                            contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSend
+                           clickLoading.value = true
                             approvedDocumentsObject.addAll(approvedDocuments);
                             signatureObject.value = signature
                             contextAwareSigning.signature(
@@ -199,7 +207,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 
                         },
                         onCreateUserDocumentResponseModel = {
-                            contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSend
+                            clickLoading.value = true
                             val tokenValues = mutableMapOf<String, String>()
                             it.documentTokens.forEach { token ->
                                 tokenValues[token.tokenId.toString()] =
@@ -211,6 +219,8 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
                                 tokenValues
                             )
                         },
+                        defaultTitle = defaultTitle,
+                        clickLoading = clickLoading.value,
                         eventTypes = contextAwareStepEventTypes.value,
                         contextAwareSigningObject = contextAwareSigningObject.value,
                         selectedTemplates = selectedTemplates,
@@ -270,6 +280,8 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         )
 
         contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onTokensComplete
+        clickLoading.value = false
+
     }
 
     override fun onSignature(signatureResponseModel: SignatureResponseModel) {
@@ -289,6 +301,8 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         approvedDocumentsObject.removeFirstOrNull()
         if (contextAwareSigningObject.value!!.data.selectedTemplates.size == documentWithTokensAndSinged.size) {
             contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSignature
+            clickLoading.value = false
+
         } else {
             contextAwareSigning.signature(
                 approvedDocumentsObject.first()!!.createUserDocumentResponseModel.templateInstanceId,
@@ -324,6 +338,8 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun MultipleFilesContextAwareStepScreen(
+    clickLoading: Boolean,
+    defaultTitle: String = "",
     onBack: () -> Unit = {},
     onCreateUserDocumentResponseModel: (SelectedTemplatesTokens) -> Unit = {},
     onNext: () -> Unit = {},
@@ -423,16 +439,37 @@ fun MultipleFilesContextAwareStepScreen(
 
 
                 if (eventTypes == ContextAwareStepEventTypes.onSend) {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(screenHeight - 200.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .height(screenHeight - 200.dp)
                     ) {
+
+                        /// TOP Title
+                        Text(
+                            text = if (contextAwareSigningObject?.data?.header.isNullOrEmpty()) {
+                                defaultTitle
+                            } else {
+                                contextAwareSigningObject?.data?.header ?: defaultTitle
+                            },
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Bold,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 23.sp,
+                            lineHeight = 34.sp,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.TopStart)
+                                .padding(horizontal = 25.dp)
+                        )
+
+                        /// CENTER Loader
                         CircularProgressIndicator(
-                            modifier = Modifier.size(60.dp),
-                            color =   BaseTheme.BaseTextColor,
+                            modifier = Modifier
+                                .size(60.dp)
+                                .align(Alignment.Center),
+                            color = BaseTheme.BaseTextColor,
                             strokeWidth = 6.dp
                         )
                     }
@@ -703,8 +740,23 @@ fun MultipleFilesContextAwareStepScreen(
                             }
                         )
                     }
-                    // Spacer(Modifier.height(30.dp))
+                  //
                     // ============ BOTTOM ============ //
+                    if (clickLoading && eventTypes == ContextAwareStepEventTypes.onTokensComplete) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 10.dp),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            Spacer(Modifier.height(100.dp))
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(35.dp),
+                                color = BaseTheme.BaseTextColor,
+                                strokeWidth = 4.dp
+                            )
+                        }
+                    }
 
                 }
 
@@ -724,32 +776,38 @@ fun MultipleFilesContextAwareStepScreen(
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    Button(
-                        onClick = {
-                            if (signatureB64!!.isNotEmpty()) {
-                                onSign(signatureB64!!, approvedDocuments)
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        shape = RoundedCornerShape(28.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 25.dp, horizontal = 25.dp) .background(
-                                brush = if (signatureB64!!.isNotEmpty())
-                                    BaseTheme.BaseClickColor!!.toBrush()
-                                else
-                                    SolidColor(BaseTheme.FieldColor),
-                                shape = RoundedCornerShape(28.dp)
+
+                    if(!clickLoading){
+                        Button(
+                            onClick = {
+                                if (signatureB64!!.isNotEmpty()) {
+                                    onSign(signatureB64!!, approvedDocuments)
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            shape = RoundedCornerShape(28.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 25.dp, horizontal = 25.dp) .background(
+                                    brush = if (signatureB64!!.isNotEmpty())
+                                        BaseTheme.BaseClickColor!!.toBrush()
+                                    else
+                                        SolidColor(BaseTheme.FieldColor),
+                                    shape = RoundedCornerShape(28.dp)
+                                )
+                        ) {
+                            Text(
+                                "Accept Terms & Sign",
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Normal,
+                                color = BaseTheme.BaseSecondaryTextColor,
+                                modifier = Modifier.padding(vertical = 7.dp)
                             )
-                    ) {
-                        Text(
-                            "Accept Terms & Sign",
-                            fontFamily = InterFont,
-                            fontWeight = FontWeight.Normal,
-                            color = BaseTheme.BaseSecondaryTextColor,
-                            modifier = Modifier.padding(vertical = 7.dp)
-                        )
+                        }
+
                     }
+
+
                 }
             }
 
@@ -769,27 +827,28 @@ fun MultipleFilesContextAwareStepScreen(
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    Button(
-                        onClick = {
-                            onNext()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        shape = RoundedCornerShape(28.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 25.dp, horizontal = 25.dp)  .background(
-                                brush = BaseTheme.BaseClickColor!!.toBrush(),
-                                shape = RoundedCornerShape(28.dp)
+                        Button(
+                            onClick = {
+                                onNext()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            shape = RoundedCornerShape(28.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 25.dp, horizontal = 25.dp).background(
+                                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                    shape = RoundedCornerShape(28.dp)
+                                )
+                        ) {
+                            Text(
+                                "Next",
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Normal,
+                                color = BaseTheme.BaseSecondaryTextColor,
+                                modifier = Modifier.padding(vertical = 7.dp)
                             )
-                    ) {
-                        Text(
-                            "Next",
-                            fontFamily = InterFont,
-                            fontWeight = FontWeight.Normal,
-                            color = BaseTheme.BaseSecondaryTextColor,
-                            modifier = Modifier.padding(vertical = 7.dp)
-                        )
-                    }
+                        }
+
                 }
             }
 

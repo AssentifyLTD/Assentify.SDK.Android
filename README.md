@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.10***
+1. *Support Split Step*
+
 ***1.0.0-Beta.9***
 1. *Support Split Step*
 

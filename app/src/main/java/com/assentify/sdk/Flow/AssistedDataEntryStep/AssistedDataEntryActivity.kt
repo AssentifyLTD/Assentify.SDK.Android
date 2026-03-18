@@ -16,6 +16,7 @@ import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
+import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
@@ -48,7 +49,11 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
         )
         /***/
 
-
+        val defaultTitle = ConfigModelObject.getConfigModelObject()
+            ?.stepDefinitions
+            ?.find { it.stepId == currentStep.stepDefinition!!.stepId }
+            ?.customization?.header
+            ?: ""
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 FlowController.backClick(this@AssistedDataEntryActivity);
@@ -62,6 +67,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AssistedDataEntryScreen(
+                        defaultTitle = defaultTitle,
                         assistedDataEntryModel = assistedDataModel.value,
                         eventTypes = eventTypes.value,
                         onBack = { onBackPressedDispatcher.onBackPressed() },

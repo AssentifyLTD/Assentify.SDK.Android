@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AssistedDataEntryScreen(
+    defaultTitle: String = "",
     onBack: () -> Unit,
     onNext: () -> Unit,
     assistedDataEntryModel: AssistedDataEntryModel?,
@@ -171,13 +172,40 @@ fun AssistedDataEntryScreen(
 
                 when (eventTypes) {
                     EventTypes.onSend -> {
-                        CircularProgressIndicator(
+                        val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+                        Box(
                             modifier = Modifier
-                                .size(60.dp)
-                                .align(Alignment.CenterHorizontally),
-                            color =  BaseTheme.BaseTextColor,
-                            strokeWidth = 6.dp
-                        )
+                                .fillMaxWidth()
+                                .height(screenHeight - 200.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = 15.dp)
+
+                            ) {
+                                Text(
+                                    text = defaultTitle,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BaseTheme.BaseTextColor,
+                                    fontSize = 23.sp,
+                                    lineHeight = 34.sp,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 5.dp, start = 20.dp, end = 20.dp)
+                                )
+                            }
+                            /// CENTER Loader
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .align(Alignment.Center),
+                                color = BaseTheme.BaseTextColor,
+                                strokeWidth = 6.dp
+                            )
+                        }
                     }
 
                     EventTypes.onError -> {
