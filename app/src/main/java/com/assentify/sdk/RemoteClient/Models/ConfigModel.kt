@@ -54,6 +54,7 @@ data class OutputProperties(
 )
 
 data class Customization(
+    val header: String?,
     val processMrz: Boolean?,
     val showResultPage: Boolean?,
     val documentLiveness: Boolean?,
