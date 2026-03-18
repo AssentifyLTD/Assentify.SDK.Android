@@ -74,11 +74,15 @@ object FlowController {
                 .branches
                 ?: emptyList()
 
-            val matchedBranch = branches.firstOrNull { branch ->
-                ConditionEvaluator.evaluateBranch(
-                    branch = branch,
-                )
-            } ?: branches.firstOrNull { it.branchIndex == 0 }
+            val matchedBranch =
+                branches
+                    .filter { it.conditions!!.isNotEmpty() }
+                    .firstOrNull { branch ->
+                        ConditionEvaluator.evaluateBranch(
+                            branch = branch,
+                        )
+                    }
+                    ?: branches.firstOrNull { it.conditions!!.isEmpty() }
 
 
             val splitStep =
@@ -354,9 +358,12 @@ object FlowController {
 
         var wrapUp: SubmitRequestModel? = null;
         val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
+        val initStepsMap = ConfigModelObject.getConfigModelObject()!!.stepMap.first { it.stepDefinition  ==  StepsNames.WrapUp}
+
+
         initSteps.forEach { item ->
             /** WrapUp **/
-            if (item.stepDefinition == StepsNames.WrapUp) {
+            if (item.stepId ==initStepsMap.id) {
                 val values: MutableMap<String, String> = mutableMapOf()
                 item.outputProperties.forEach { property ->
                     if (property.key.contains(WrapUpKeys.TimeEnded)) {
@@ -397,9 +404,13 @@ object FlowController {
 
         var wrapUp: SubmitRequestModel? = null;
         val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
+
+        val initStepsMap = ConfigModelObject.getConfigModelObject()!!.stepMap.first { it.stepDefinition  ==  StepsNames.WrapUp}
+
+
         initSteps.forEach { item ->
             /** WrapUp **/
-            if (item.stepDefinition == StepsNames.WrapUp) {
+            if (item.stepId ==initStepsMap.id) {
                 val values: MutableMap<String, String> = mutableMapOf()
                 item.outputProperties.forEach { property ->
                     if (property.key.contains(WrapUpKeys.TimeEnded)) {

@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +51,7 @@ import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
 
 @Composable
 fun TermsAndConditionsScreen(
+    defaultTitle: String = "",
     onBack: () -> Unit,
     onAccept: (Boolean) -> Unit,
     onDecline: () -> Unit,
@@ -89,7 +91,7 @@ fun TermsAndConditionsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint =   BaseTheme.BaseTextColor,
+                            tint = BaseTheme.BaseTextColor,
                             modifier = Modifier.size(30.dp)
                         )
                     }
@@ -122,31 +124,64 @@ fun TermsAndConditionsScreen(
                 // MIDDLE (content area fills remaining space)
                 when (termsAndConditionsEventTypes) {
                     TermsAndConditionsEventTypes.onSend -> {
+                        val screenHeight = LocalConfiguration.current.screenHeightDp.dp
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .weight(1f), // center loader in available middle space
-                            contentAlignment = Alignment.Center
+                                .height(screenHeight - 200.dp)
                         ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 10.dp)
+
+                            ) {
+                                Text(
+                                    text = if (termsConditionsModel?.data?.header.isNullOrEmpty()) {
+                                        defaultTitle
+                                    } else {
+                                        termsConditionsModel?.data?.header ?: defaultTitle
+                                    },
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BaseTheme.BaseTextColor,
+                                    fontSize = 23.sp,
+                                    lineHeight = 34.sp,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 5.dp, start = 20.dp, end = 20.dp)
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                HorizontalDivider(
+                                    thickness = 1.dp,
+                                    color = BaseTheme.BaseTextColor,
+                                )
+                            }
+                            /// CENTER Loader
                             CircularProgressIndicator(
-                                modifier = Modifier.size(60.dp),
-                                color =   BaseTheme.BaseTextColor,
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .align(Alignment.Center),
+                                color = BaseTheme.BaseTextColor,
                                 strokeWidth = 6.dp
                             )
                         }
+
                     }
 
                     TermsAndConditionsEventTypes.onHasData -> {
                         Column(
                             modifier = Modifier
-                                .fillMaxSize().padding(horizontal = 10.dp)
+                                .fillMaxSize()
+                                .padding(horizontal = 10.dp)
 
                         ) {
                             Text(
                                 text = termsConditionsModel!!.data.header!!,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Bold,
-                                color =   BaseTheme.BaseTextColor,
+                                color = BaseTheme.BaseTextColor,
                                 fontSize = 23.sp,
                                 lineHeight = 34.sp,
                                 textAlign = TextAlign.Start,
@@ -157,7 +192,7 @@ fun TermsAndConditionsScreen(
                             Spacer(Modifier.height(10.dp))
                             HorizontalDivider(
                                 thickness = 1.dp,
-                                color =   BaseTheme.BaseTextColor,
+                                color = BaseTheme.BaseTextColor,
                             )
                             // MIDDLE PDF VIEW – takes all remaining height in this area
                             Box(
@@ -216,9 +251,10 @@ fun TermsAndConditionsScreen(
                                 RoundedCornerShape(999.dp)
                             )
                     ) {
-                        Text("Decline",
+                        Text(
+                            "Decline",
                             fontFamily = InterFont,
-                            color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                            color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                             fontWeight = FontWeight.Normal,
                             modifier = Modifier.padding(vertical = 7.dp)
                         )
@@ -231,7 +267,8 @@ fun TermsAndConditionsScreen(
                         shape = RoundedCornerShape(999.dp),
                         modifier = Modifier
                             .weight(1f)
-                            .height(55.dp).background(
+                            .height(55.dp)
+                            .background(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
                                 shape = RoundedCornerShape(28.dp)
                             )
@@ -239,7 +276,7 @@ fun TermsAndConditionsScreen(
                         Text(
                             termsConditionsModel!!.data.nextButtonTitle!!,
                             fontFamily = InterFont,
-                            color =  BaseTheme.BaseSecondaryTextColor,
+                            color = BaseTheme.BaseSecondaryTextColor,
                             fontWeight = FontWeight.Normal,
                             modifier = Modifier.padding(vertical = 7.dp)
                         )

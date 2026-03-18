@@ -1,23 +1,25 @@
 package com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes
+
 import AssistedFormHelper
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -34,15 +36,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
-
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecureNationalityDropdown(
     title: String,
@@ -54,15 +55,13 @@ fun SecureNationalityDropdown(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-
-
     /** Default Value **/
-    var defaultRaw by rememberSaveable { mutableStateOf<String>("") }
+    var defaultRaw by rememberSaveable { mutableStateOf("") }
     LaunchedEffect(field.inputKey, field.languageTransformation) {
         if (field.languageTransformation == 0) {
-            defaultRaw =  AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+            defaultRaw = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
         } else {
-            if(defaultRaw.isEmpty()) {
+            if (defaultRaw.isEmpty()) {
                 val dataList = listOf(
                     LanguageTransformationModel(
                         language = field.targetOutputLanguage!!,
@@ -79,7 +78,7 @@ fun SecureNationalityDropdown(
                 ) { data ->
                     if (data != null) {
                         defaultRaw = data.value
-                        AssistedFormHelper.changeValue(field.inputKey, data.value, page);
+                        AssistedFormHelper.changeValue(field.inputKey, data.value, page)
                     } else {
                         defaultRaw =
                             AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
@@ -88,7 +87,6 @@ fun SecureNationalityDropdown(
             }
         }
     }
-
 
     val defaultCode = remember(defaultRaw, options) {
         val raw = defaultRaw.trim()
@@ -100,15 +98,20 @@ fun SecureNationalityDropdown(
             ?: ""
     }
 
-
-    var expanded by remember { mutableStateOf(false) }
     var selectedCode by rememberSaveable(field.inputKey, page) { mutableStateOf(defaultCode) }
-    LaunchedEffect(defaultCode) { selectedCode = defaultCode }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var userStartedTyping by rememberSaveable { mutableStateOf(false) }
+    var showSearchDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(defaultCode) {
+        selectedCode = defaultCode
+    }
 
     fun getIsLocked(): Boolean {
         val identifiers = field.inputPropertyIdentifierList ?: emptyList()
         return (field.isLocked == true) && identifiers.isNotEmpty()
     }
+
     val isReadOnly = (field.readOnly == true) || getIsLocked()
 
     val err by remember(field.inputKey, page, selectedCode) {
@@ -117,90 +120,186 @@ fun SecureNationalityDropdown(
 
     val pillColor = BaseTheme.FieldColor
 
-    // Helper to show current selection text
     val selectedCountry = options.firstOrNull { it.code3.equals(selectedCode, true) }
     val displayText = selectedCountry?.let { "${flagEmoji(it.code2)}  ${it.name}" } ?: ""
 
-    if (!field.isHidden!!){
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            color =   BaseTheme.BaseTextColor,
-            fontSize = 14.sp,
-            fontFamily = InterFont,
-            fontWeight = FontWeight.Normal
-        )
+    val filteredOptions = remember(searchQuery, options, userStartedTyping) {
+        if (!userStartedTyping) {
+            options
+        } else {
+            options.filter { option ->
+                option.name.contains(searchQuery, ignoreCase = true) ||
+                        option.code3.contains(searchQuery, ignoreCase = true) ||
+                        option.code2.contains(searchQuery, ignoreCase = true) ||
+                        option.dialCode.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
 
-        Spacer(Modifier.height(6.dp))
+    if (!field.isHidden!!) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            Text(
+                text = title,
+                color = BaseTheme.BaseTextColor,
+                fontSize = 14.sp,
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Normal
+            )
 
-        ExposedDropdownMenuBox(
-            expanded = expanded && !isReadOnly,
-            onExpandedChange = { if (!isReadOnly) expanded = !expanded },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TextField(
-                value = displayText,
-                onValueChange = {},
-                readOnly = true,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = BaseTheme.BaseTextColor,),
-                trailingIcon = {
+            Spacer(Modifier.height(6.dp))
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .clickable(enabled = !isReadOnly) {
+                        searchQuery = ""
+                        userStartedTyping = false
+                        showSearchDialog = true
+                    },
+                shape = RoundedCornerShape(16.dp),
+                color = pillColor
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = displayText,
+                        modifier = Modifier.weight(1f),
+                        color = BaseTheme.BaseTextColor,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Dropdown Arrow",
                         tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
                         modifier = Modifier.size(30.dp)
                     )
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = pillColor,
-                    unfocusedContainerColor = pillColor,
-                    disabledContainerColor = pillColor,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    cursorColor = BaseTheme.BaseTextColor,
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .menuAnchor(
-                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                        enabled = true
-                    )
-                    .fillMaxWidth()
-                    .height(55.dp)
-            )
+                }
+            }
 
-            ExposedDropdownMenu(
-                expanded = expanded && !isReadOnly,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(pillColor)
+            if (err.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = err,
+                    color = BaseTheme.BaseRedColor,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+
+    if (showSearchDialog && !isReadOnly) {
+        Dialog(
+            onDismissRequest = {
+                showSearchDialog = false
+                searchQuery = ""
+                userStartedTyping = false
+            }
+        ) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = BaseTheme.FieldColor
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        text = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(flagEmoji(option.code2), color = BaseTheme.BaseTextColor,)
-                                Spacer(Modifier.width(10.dp))
-                                Text(option.name, color = BaseTheme.BaseTextColor,)
-                            }
-                        },
-                        onClick = {
-                            selectedCode = option.code3.uppercase()
-                            expanded = false
-                            onValueChange(selectedCode) // return ISO code
-                        },
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = title,
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 16.sp,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Medium
                     )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = {
+                            searchQuery = it
+                            userStartedTyping = true
+                        },
+                        placeholder = {
+                            Text(
+                                text = "Search...",
+                                color = BaseTheme.BaseTextColor.copy(alpha = 0.6f)
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = BaseTheme.BaseTextColor
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = BaseTheme.FieldColor,
+                            unfocusedContainerColor = BaseTheme.FieldColor,
+                            disabledContainerColor = BaseTheme.FieldColor,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            cursorColor = BaseTheme.BaseTextColor,
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    ) {
+                        if (filteredOptions.isEmpty()) {
+                            item {
+                                Text(
+                                    text = "No results found",
+                                    color = BaseTheme.BaseTextColor.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        } else {
+                            items(filteredOptions) { option ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            selectedCode = option.code3.uppercase()
+                                            showSearchDialog = false
+                                            searchQuery = ""
+                                            userStartedTyping = false
+                                            onValueChange(selectedCode)
+                                        }
+                                        .padding(vertical = 14.dp, horizontal = 12.dp)
+                                ) {
+                                    Text(
+                                        text = flagEmoji(option.code2),
+                                        color = BaseTheme.BaseTextColor
+                                    )
+                                    Spacer(Modifier.padding(horizontal = 5.dp))
+                                    Text(
+                                        text = option.name,
+                                        color = BaseTheme.BaseTextColor
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-
-        if (err.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
-            Text(err, color = BaseTheme.BaseRedColor, fontSize = 12.sp)
-        }
-    }}
+    }
 }
 
 data class CountryOption(
