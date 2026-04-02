@@ -181,6 +181,13 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
     }
 
+    /** Step Completed **/
+    override fun onStepCompleted(stepModel: FlowCompletedModel) {
+        Log.e("onStepCompleted", stepModel.stepData.toString())
+        Log.e("onStepCompleted", stepModel.submitRequestModel?.extractedInformation.toString())
+    }
+
+
 
     /** FLOW Completed **/
     override fun onFlowCompleted(flowData: List<FlowCompletedModel>) {

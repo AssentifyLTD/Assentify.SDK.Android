@@ -151,7 +151,7 @@ fun HowToCaptureFaceScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    "Watch how easy it is\nto Take Selfie",
+                    "Watch How Easy It Is\nTo Take A Selfie",
                     color = BaseTheme.BaseTextColor,
                     fontSize = 25.sp,
                     fontFamily = InterFont,
@@ -164,7 +164,7 @@ fun HowToCaptureFaceScreen(
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-                    "The selfie includes liveness capture to ensure your real follow the on screen instructions.",
+                    "The selfie includes liveness capture to ensure you're real, follow the on screen instructions.",
                     color = BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,

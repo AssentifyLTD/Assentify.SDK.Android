@@ -56,7 +56,7 @@ fun HowToCaptureScreen(
 
     val title = if (selectedTemplate.id == -1) "Present Your Passport" else "Present Your ID";
     val subTitle =
-        if (selectedTemplate.id == -1) "Watch how easy it is to capture your Passport" else "Watch how easy it is to capture your ID";
+        if (selectedTemplate.id == -1) "Watch How Easy It Is To Capture Your Passport" else "Watch How Easy It Is To Capture Your ID";
     val assetVideoFileName =
         if (selectedTemplate.id == -1) "passport-video.mp4"
         else "id-video.mp4";

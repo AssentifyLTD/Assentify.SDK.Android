@@ -28,6 +28,7 @@ import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.SplitStep.ConditionEvaluator
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
+import com.assentify.sdk.FlowCallbackObject
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.LocalStepsObject
@@ -269,6 +270,37 @@ object FlowController {
             it.submitRequestModel = submitRequestModel
         }
         LocalStepsObject.setLocalSteps(steps)
+
+
+        /** On Step Completed CallBack**/
+        if(currentStep.stepDefinition!!.stepDefinition != StepsNames.Split){
+            val submitModel = currentStep.submitRequestModel
+            if (submitModel != null) {
+                val stepData = mutableMapOf<String, String>()
+                submitModel.extractedInformation.forEach { (key, value) ->
+                    if (!key.contains("IsDirty")) {
+                        if (key.contains("OnBoardMe_Property")) {
+                            val newKey = key.substringAfter("OnBoardMe_Property_").split("_")
+                                .joinToString(" ")
+                            stepData[newKey] = value
+                        } else {
+                            val newKey =
+                                key.substringAfter("${submitModel.stepDefinition}_").split("_")
+                                    .joinToString(" ")
+                            stepData[newKey] = value
+                        }
+
+                    }
+                }
+                FlowCallbackObject.getFlowCallbackObject()
+                    .onStepCompleted(  FlowCompletedModel(
+                        stepData = stepData.toMap(),
+                        submitRequestModel = submitModel,
+                    ))
+            }
+        }
+
+
 
     }
 

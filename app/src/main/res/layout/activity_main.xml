@@ -133,7 +133,7 @@
         android:id="@+id/clearFlow"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Clear"
+        android:text="Clean"
         android:backgroundTint="#FFDE00"
         android:textColor="#FFFFFF"
         android:layout_marginTop="5dp"

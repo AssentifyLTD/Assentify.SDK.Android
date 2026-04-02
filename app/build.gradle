@@ -3,7 +3,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'de.undercouch.download'
 apply plugin: 'maven-publish'
-
+apply plugin: 'kotlin-parcelize'
 
 android {
     namespace "com.assentify.sdk"
@@ -25,7 +25,7 @@ android {
     }
 
 
-/*
+
     signingConfigs {
         create("release") {
             keyAlias = "release-key"
@@ -34,14 +34,14 @@ android {
             storePassword = "00000000"
         }
     }
-*/
+
 
     buildTypes {
         release {
             minifyEnabled true
-          //  shrinkResources = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-          //  signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -54,6 +54,8 @@ android {
     }
     lintOptions {
         abortOnError false
+        checkReleaseBuilds false
+
     }
     buildFeatures {
         mlModelBinding true

@@ -1,7 +1,9 @@
+
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.Models.DataSourceAttribute
+import com.assentify.sdk.Flow.Models.DataSourceData
 import com.assentify.sdk.Flow.Models.DataSourceRequestBody
 import com.assentify.sdk.Flow.Models.DataSourceResponse
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
@@ -289,9 +291,9 @@ object AssistedFormHelper {
         elementIdentifier: String,
         stepId: Int,
         endpointId: Int,
+        filterKeyValues : Map<String, String>,
         onResult: (DataSourceResponse?) -> Unit
     ) {
-
         val call = RemoteClient.remoteGatewayService.getDataSourceValues(
             "", "Android SDK",
             configModel.flowInstanceId,
@@ -304,7 +306,7 @@ object AssistedFormHelper {
             stepId,
             endpointId,
             DataSourceRequestBody(
-                filterKeyValues = emptyMap(),
+                filterKeyValues = filterKeyValues,
                 inputKeyValues = emptyMap()
             )
         )
@@ -328,6 +330,32 @@ object AssistedFormHelper {
             }
         })
 
+    }
+
+
+    fun getFilterValue(dataSourceData: DataSourceData?): Map<String, String>{
+        val resultMap: MutableMap<String, String> = mutableMapOf()
+        if(dataSourceData != null){
+            val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+            val pages = model!!.assistedDataEntryPages
+            pages.forEach{ page ->
+                page.dataEntryPageElements.forEach { item->
+                    if(item.dataSourceValues != null){
+                        dataSourceData.filterKeys.forEach { filterKey ->
+                            if(item.dataSourceValues!!.contains(filterKey)){
+                                val dataSourceValues = item.dataSourceValues
+                                dataSourceValues?.get(filterKey)?.let { value ->
+                                    resultMap[filterKey!!] = value
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+            }
+        }
+        return  resultMap;
     }
 
 }

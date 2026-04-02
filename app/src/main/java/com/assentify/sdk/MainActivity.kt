@@ -19,7 +19,6 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
-import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
@@ -72,14 +71,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
-      /* etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
-         etInteractionHash.setText("658C2E5F32E472A8DF890C12F81603E3A7016AE822C77ADBE8F1047AC42719C1")
-         etTenantIdentifier.setText("588277d8-db12-44ea-b510-08dd6ac0001b")
-*/
+        /* etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
+           etInteractionHash.setText("658C2E5F32E472A8DF890C12F81603E3A7016AE822C77ADBE8F1047AC42719C1")
+           etTenantIdentifier.setText("588277d8-db12-44ea-b510-08dd6ac0001b")
+  */
 
 
-        etApiKey.setText( "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        etInteractionHash.setText( "E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
+        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+        etInteractionHash.setText("E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
         etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
 
 
@@ -92,6 +91,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val btnStart = findViewById<Button>(R.id.btnStart)
         val clearFlow = findViewById<Button>(R.id.clearFlow)
         val nextFlow = findViewById<Button>(R.id.nextFlow)
+      //  nextFlow.visibility = View.GONE
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         // Languages list for dropdown
@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         )
 
         clearFlow.setOnClickListener {
-         assentifySdk.clearFlow(  this@MainActivity,);
+            assentifySdk.clearFlow(this@MainActivity);
         }
 
         nextFlow.setOnClickListener {
@@ -199,21 +199,38 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             customProperties.put("phoneNumber", "value1")
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
-                // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
+                /**PortalTheme**/
                 backgroundType = BackgroundType.Color,
+                //svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
+
+                /**Theme 1**/
+              /*  logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
                 textColor = "#000000",
                 accentColor = "#ffc400",
                 secondaryTextColor = "#ffffff",
                 backgroundCardColor = "#f3f4f6",
                 backgroundColor = BackgroundStyle.Solid("#ffffff"),
-                clickColor = BackgroundStyle.Solid("#ffc400"),
+                clickColor = BackgroundStyle.Solid("#ffc400"),*/
+
+                /**Theme 2**/
+             /*   logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
+                textColor = "#000000",
+                accentColor = "#833F89",
+                secondaryTextColor = "#000000",
+                backgroundCardColor = "#F2F2F2",
+                backgroundColor = BackgroundStyle.Solid("#FFFFFF"),
+                clickColor = BackgroundStyle.Gradient(
+                    colorsHex = listOf("#833F89", "#C82B47"),
+                    angleDegrees = 90f,
+                    holdUntil = 0.4f
+                ),*/
+
                 language = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
 
-            );
+                );
 
 
 
@@ -227,12 +244,20 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
     }
 
+    /** Step Completed **/
+    override fun onStepCompleted(stepModel: FlowCompletedModel) {
+        Log.e("onStepCompleted", stepModel.stepData.toString())
+        Log.e("onStepCompleted", stepModel.submitRequestModel?.stepId.toString())
+        Log.e("onStepCompleted", stepModel.submitRequestModel?.stepDefinition.toString())
+        Log.e("onStepCompleted", stepModel.submitRequestModel?.extractedInformation.toString())
+    }
+
 
     /** FLOW Completed **/
     override fun onFlowCompleted(flowData: List<FlowCompletedModel>) {
         val x = flowData;
         flowData.forEach {
-            Log.e("onFlowCompleted",it.stepData.toString())
+            Log.e("onFlowCompleted", it.stepData.toString())
             Log.e("onFlowCompleted", it.submitRequestModel?.extractedInformation.toString())
 
         }
