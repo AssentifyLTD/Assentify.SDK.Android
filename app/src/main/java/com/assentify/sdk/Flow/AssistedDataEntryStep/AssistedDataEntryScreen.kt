@@ -270,7 +270,7 @@ fun AssistedDataEntryScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(vertical = 25.dp, horizontal = 25.dp)
+                        .padding(vertical = 25.dp, horizontal = 40.dp)
                         .background(
                             brush = BaseTheme.BaseClickColor!!.toBrush(),
                             shape = RoundedCornerShape(28.dp)

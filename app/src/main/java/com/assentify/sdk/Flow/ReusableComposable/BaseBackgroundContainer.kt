@@ -2,6 +2,8 @@ package com.assentify.sdk.Flow.ReusableComposable
 
 import android.graphics.Picture
 import android.graphics.drawable.PictureDrawable
+import android.util.LruCache
+import android.view.View
 import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -20,8 +22,7 @@ import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.caverock.androidsvg.SVG
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
 import java.net.URL
 
 @Composable
@@ -51,44 +52,77 @@ fun BaseBackgroundContainer(
     }
 }
 
+object SvgMemoryCache {
+    private val cache = object : LruCache<String, PictureDrawable>(20) {
+        override fun sizeOf(key: String, value: PictureDrawable): Int = 1
+    }
 
+    fun get(url: String): PictureDrawable? = cache.get(url)
+
+    fun put(url: String, drawable: PictureDrawable) {
+        cache.put(url, drawable)
+    }
+
+    fun clear() {
+        cache.evictAll()
+    }
+}
+
+suspend fun loadSvgDrawable(url: String): PictureDrawable {
+    return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            connectTimeout = 15_000
+            readTimeout = 15_000
+            doInput = true
+            connect()
+        }
+
+        connection.inputStream.use { input ->
+            val svg = SVG.getFromInputStream(input)
+            val picture: Picture = svg.renderToPicture()
+            PictureDrawable(picture)
+        }.also {
+            connection.disconnect()
+        }
+    }
+}
 
 @Composable
 fun SvgUrlBackground(
     url: String,
     modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
+    content: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit
 ) {
-    var drawable by remember(url) { mutableStateOf<PictureDrawable?>(null) }
+    var drawable by remember(url) { mutableStateOf(SvgMemoryCache.get(url)) }
+    var isLoading by remember(url) { mutableStateOf(drawable == null) }
     var error by remember(url) { mutableStateOf<Throwable?>(null) }
 
     LaunchedEffect(url) {
+        if (drawable != null) return@LaunchedEffect
+
+        isLoading = true
         error = null
-        drawable = null
 
         try {
-            val picDrawable = withContext(Dispatchers.IO) {
-                URL(url).openStream().use { input ->
-                    val svg = SVG.getFromInputStream(input)
-                    val picture: Picture = svg.renderToPicture()
-                    PictureDrawable(picture)
-                }
-            }
-            drawable = picDrawable
+            val loaded = loadSvgDrawable(url)
+            SvgMemoryCache.put(url, loaded)
+            drawable = loaded
         } catch (t: Throwable) {
             error = t
+        } finally {
+            isLoading = false
         }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        val context = LocalContext.current
 
-        // Background SVG
-        val ctx = LocalContext.current
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = {
-                ImageView(ctx).apply {
+                ImageView(context).apply {
                     scaleType = ImageView.ScaleType.CENTER_CROP
+                    setLayerType(View.LAYER_TYPE_SOFTWARE, null)
                 }
             },
             update = { imageView ->
@@ -96,8 +130,6 @@ fun SvgUrlBackground(
             }
         )
 
-        // Your UI on top
         content()
     }
 }
-

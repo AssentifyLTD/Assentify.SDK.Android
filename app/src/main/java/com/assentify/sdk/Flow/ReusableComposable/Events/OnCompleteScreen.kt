@@ -62,51 +62,51 @@ fun OnCompleteScreen(
         return s
     }
 
-    fun keyLabel(key: String): String {
-        // title is the last word after "_" (as requested)
-        return key.substringAfterLast("_").replaceFirstChar { it.uppercase() }
-    }
+
 
     // ✅ allowed keys by "contains" (ignore UUID prefixes)
     val allowedKeyParts = remember {
-        listOf(
-            "OnBoardMe_IdentificationDocumentCapture_Document_Number",
-            "OnBoardMe_IdentificationDocumentCapture_Birth_Date",
-            "OnBoardMe_IdentificationDocumentCapture_name",
-            "OnBoardMe_IdentificationDocumentCapture_surname",
-            "OnBoardMe_IdentificationDocumentCapture_ID_FathersName",
-            "OnBoardMe_IdentificationDocumentCapture_ID_MothersName",
-            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfBirth",
-            "OnBoardMe_IdentificationDocumentCapture_Document_Type",
-            "OnBoardMe_IdentificationDocumentCapture_IDType",
-            "OnBoardMe_IdentificationDocumentCapture_Country",
-            "OnBoardMe_IdentificationDocumentCapture_Nationality",
-            "OnBoardMe_IdentificationDocumentCapture_Image",
-            "OnBoardMe_IdentificationDocumentCapture_ID_CivilRegisterNumber",
-            "OnBoardMe_IdentificationDocumentCapture_ID_DateOfIssuance",
-            "OnBoardMe_IdentificationDocumentCapture_Sex",
-            "OnBoardMe_IdentificationDocumentCapture_ID_MaritalStatus",
-            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfResidence",
-            "OnBoardMe_IdentificationDocumentCapture_ID_Province",
-            "OnBoardMe_IdentificationDocumentCapture_ID_Governorate",
-            "OnBoardMe_IdentificationDocumentCapture_FaceCapture",
-            "OnBoardMe_IdentificationDocumentCapture_ID_BackImage",
+        linkedMapOf(
+            "OnBoardMe_IdentificationDocumentCapture_name" to "First Name",
+            "OnBoardMe_IdentificationDocumentCapture_surname" to "Last Name",
+            "OnBoardMe_IdentificationDocumentCapture_ID_FathersName" to "Father Name",
+            "OnBoardMe_IdentificationDocumentCapture_ID_MothersName" to "Mother Name",
+            "OnBoardMe_IdentificationDocumentCapture_Birth_Date" to "Birth Date",
+            "OnBoardMe_IdentificationDocumentCapture_Expiry_Date" to "Expiry Date",
+            "OnBoardMe_IdentificationDocumentCapture_Country" to "Country",
+            "OnBoardMe_IdentificationDocumentCapture_Nationality" to "Nationality",
+            "OnBoardMe_IdentificationDocumentCapture_Document_Number" to "Document Number",
+            "OnBoardMe_IdentificationDocumentCapture_IDType" to "ID Type",
+            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfBirth" to "Place of Birth",
+            "OnBoardMe_IdentificationDocumentCapture_Document_Type" to "Document Type",
+            "OnBoardMe_IdentificationDocumentCapture_ID_CivilRegisterNumber" to "Civil Register Number",
+            "OnBoardMe_IdentificationDocumentCapture_ID_DateOfIssuance" to "Date of Issuance",
+            "OnBoardMe_IdentificationDocumentCapture_Sex" to "Gender",
+            "OnBoardMe_IdentificationDocumentCapture_ID_MaritalStatus" to "Marital Status",
+            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfResidence" to "Place of Residence",
+            "OnBoardMe_IdentificationDocumentCapture_ID_Province" to "Province",
+            "OnBoardMe_IdentificationDocumentCapture_ID_Governorate" to "Governorate"
         )
     }
 
     fun isAllowedKey(key: String): Boolean {
-        return allowedKeyParts.any { part ->
+        return allowedKeyParts.keys.any { part ->
             key.contains(part, ignoreCase = true)
         }
     }
 
+    fun keyLabel(key: String): String {
+        return allowedKeyParts.entries.firstOrNull { (part, _) ->
+            key.contains(part, ignoreCase = true)
+        }?.value ?: key.substringAfterLast("_")
+    }
 
     // ---------- data rows ----------
     val dataRows = remember(extractedMap) {
         extractedMap?.entries
             ?.filter { isAllowedKey(it.key) }
             ?.mapNotNull { (k, v) ->
-                // 🔥 IGNORE BY ORIGINAL KEY (not label)
+
                 if (
                     k.contains("OnBoardMe_IdentificationDocumentCapture_Image", ignoreCase = true) ||
                     k.contains("OnBoardMe_IdentificationDocumentCapture_FaceCapture", ignoreCase = true) ||
@@ -115,9 +115,17 @@ fun OnCompleteScreen(
 
                 val value = v.asCleanString() ?: return@mapNotNull null
                 val label = keyLabel(k)
+
+                Triple(k, label, value) // 👈 keep original key
+            }
+            ?.sortedBy { (k, _, _) ->
+                allowedKeyParts.keys.indexOfFirst { part ->
+                    k.contains(part, ignoreCase = true)
+                }.let { if (it == -1) Int.MAX_VALUE else it }
+            }
+            ?.map { (_, label, value) ->
                 label to value
             }
-            ?.sortedBy { it.first.lowercase() }
             ?: emptyList()
     }
 

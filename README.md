@@ -39,6 +39,10 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.11***
+1. *Support filters for Assisted Data Entry*
+2. *Support events on step completion*
+
 ***1.0.0-Beta.10***
 1. *Support Split Step*
 

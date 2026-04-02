@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,8 +52,10 @@ import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureRadioGroup
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureTextArea
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureTextField
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.allCountries
+import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.FilterManager
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.Models.DataSourceData
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -67,7 +70,8 @@ fun AssistedDataEntryPager(
 
     val assistedDataEntryPages = remember { mutableStateOf(assistedDataEntryModel!!.assistedDataEntryPages) }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
+    val loadedMap = remember { mutableStateMapOf<String, DataSourceData?>() }
+    val filterMap = remember { mutableStateMapOf<String, Map<String, String>?>() }
     var rebuildTick by remember { mutableStateOf(0) }
     fun onFieldChanged() {
         val newModel = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject() ?: return
@@ -174,9 +178,12 @@ fun AssistedDataEntryPager(
                                             field.inputKey!!, new, outputKeys, page
                                         )
                                         onFieldChanged()
+                                        FilterManager.updateFilter();
                                     },
                                     page = page,
                                     field = field,
+                                    loadedMap = loadedMap,
+                                    filterMap= filterMap,
                                 )
                             } else {
                                 SecureDropdown(

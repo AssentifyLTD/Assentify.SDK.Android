@@ -108,7 +108,8 @@ fun BlockLoaderScreen(
 
                     // header
                     Text(
-                        text = "Complete Your\nOnboarding in ${steps.size} Steps",
+                        text = "Complete Your\nOnboarding in ${steps.size} " +
+                                if (steps.size == 1) "Step" else "Steps",
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Bold,
                         color = BaseTheme.BaseTextColor,

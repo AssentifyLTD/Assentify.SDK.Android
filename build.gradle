@@ -11,7 +11,7 @@ buildscript {
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.1'
+        classpath 'com.android.tools.build:gradle:8.13.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'de.undercouch:gradle-download-task:5.6.0'
         classpath "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:$kotlin_version"

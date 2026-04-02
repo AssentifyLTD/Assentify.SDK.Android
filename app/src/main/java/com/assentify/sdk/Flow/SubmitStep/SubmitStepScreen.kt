@@ -421,7 +421,7 @@ fun SwipeToSubmit(
             ) {
                 Text(
                     text = text,
-                    color = BaseTheme.BaseTextColor,
+                    color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     maxLines = 1,
