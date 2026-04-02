@@ -134,7 +134,7 @@ fun HowToCaptureQrScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    "Watch how easy it is to capture your ID Qr Code",
+                    "Watch How Easy It Is\nTo Capture Your ID Qr Code",
                     color =   BaseTheme.BaseTextColor,
                     fontSize = 25.sp,
                     fontFamily = InterFont,
