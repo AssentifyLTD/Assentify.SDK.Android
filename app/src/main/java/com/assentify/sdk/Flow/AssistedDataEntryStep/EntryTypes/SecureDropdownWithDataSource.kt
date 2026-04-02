@@ -26,6 +26,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.FilterManager
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
@@ -55,26 +57,61 @@ fun SecureDropdownWithDataSource(
     page: Int,
     field: DataEntryPageElement,
     onValueChange: (List<DataSourceAttribute>, outputKeys: Map<String, String>) -> Unit,
-    modifier: Modifier = Modifier
-) {
+    modifier: Modifier = Modifier,
+    loadedMap:MutableMap<String, DataSourceData?>,
+    filterMap:MutableMap<String, Map<String, String>?>,
+    ) {
+
+
+
     val configModelObject = ConfigModelObject.getConfigModelObject()
     var dataSourceData by remember { mutableStateOf<DataSourceData?>(null) }
 
+    val triggerFilter by FilterManager.triggerFilter.collectAsState()
+    var filterKeyValues by remember { mutableStateOf<Map<String, String>?>(emptyMap()) }
+
     /** Default Value **/
-    var selected by rememberSaveable { mutableStateOf<List<DataSourceAttribute>>(emptyList()) }
+    var selected by rememberSaveable  { mutableStateOf<List<DataSourceAttribute>>(emptyList()) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var userStartedTyping by rememberSaveable { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(field.inputKey, field.languageTransformation) {
+    /** Loaded State **/
+
+    val currentKey = field.inputKey ?: ""
+    dataSourceData = loadedMap[currentKey]
+    filterKeyValues = filterMap[currentKey]
+
+    LaunchedEffect(triggerFilter) {
+        val newFilterKeyValues = AssistedFormHelper.getFilterValue(dataSourceData)
+        filterMap[currentKey] = newFilterKeyValues;
+        if (newFilterKeyValues != filterKeyValues) {
+            filterKeyValues = newFilterKeyValues
+            loadedMap[currentKey] = null
+            dataSourceData = null
+            selected = emptyList()
+            searchQuery = ""
+            userStartedTyping = false
+            showSearchDialog = false
+        }
+    }
+
+
+
+
+    LaunchedEffect(field.inputKey, field.languageTransformation,filterKeyValues) {
+        if (loadedMap[currentKey] != null) return@LaunchedEffect
+
         AssistedFormHelper.getDataSourceValues(
             configModelObject!!,
             field.elementIdentifier,
             FlowController.getCurrentStep()!!.stepDefinition!!.stepId,
             field.endpointId!!,
+            filterKeyValues = filterKeyValues!!
         ) { data ->
             if (data != null) {
                 dataSourceData = data.data
+                loadedMap[currentKey] = dataSourceData!!;
                 if (field.languageTransformation == 0) {
                     dataSourceData!!.items.forEach {
                         if (

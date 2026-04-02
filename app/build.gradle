@@ -3,7 +3,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'de.undercouch.download'
 apply plugin: 'maven-publish'
-
+apply plugin: 'kotlin-parcelize'
 
 android {
     namespace "com.assentify.sdk"
