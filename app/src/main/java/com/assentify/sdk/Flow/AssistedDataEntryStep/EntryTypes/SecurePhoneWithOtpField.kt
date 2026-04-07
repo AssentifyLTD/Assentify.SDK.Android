@@ -452,9 +452,10 @@ fun SecurePhoneWithOtpField(
 
 private fun phoneLooksValidLB(local: String): Boolean {
     val digits = local.filter(Char::isDigit)
-    val normalized = if (digits.startsWith("0")) digits.drop(1) else digits
-    return normalized.length in 7..8
+    val pattern = Regex("^(03|70|71|76|78|79|81)\\d{6}$")
+    return pattern.matches(digits)
 }
+
 
 private fun buildLebanonE164(local: String, countryDial: String = "+961"): String {
     val digits = local.filter(Char::isDigit)
