@@ -201,7 +201,7 @@ fun SecurePhoneInput(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        cursorColor = BaseTheme.BaseTextColor
+                        cursorColor = BaseTheme.BaseTextColor,
                     ),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Phone

@@ -1,4 +1,4 @@
-package com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers
+package com.assentify.sdk.Flow.FlowController
 
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
@@ -6,6 +6,9 @@ import com.assentify.sdk.RemoteClient.Models.RequestOtpResponseModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpResponseOtpModel
 import com.assentify.sdk.RemoteClient.RemoteClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 object OtpHelper {
 
@@ -25,16 +28,16 @@ object OtpHelper {
             requestOtpModel
         )
 
-        call.enqueue(object : retrofit2.Callback<RequestOtpResponseModel> {
+        call.enqueue(object : Callback<RequestOtpResponseModel> {
             override fun onResponse(
-                call: retrofit2.Call<RequestOtpResponseModel>,
-                response: retrofit2.Response<RequestOtpResponseModel>
+                call: Call<RequestOtpResponseModel>,
+                response: Response<RequestOtpResponseModel>
             ) {
                 val success = response.isSuccessful && (response.body()?.isSuccessful == true)
                 onResult(success)
             }
 
-            override fun onFailure(call: retrofit2.Call<RequestOtpResponseModel>, t: Throwable) {
+            override fun onFailure(call: Call<RequestOtpResponseModel>, t: Throwable) {
                 onResult(false)
             }
         })
@@ -56,16 +59,16 @@ object OtpHelper {
             verifyOtpRequestOtpModel
         )
 
-        call.enqueue(object : retrofit2.Callback<VerifyOtpResponseOtpModel> {
+        call.enqueue(object : Callback<VerifyOtpResponseOtpModel> {
             override fun onResponse(
-                call: retrofit2.Call<VerifyOtpResponseOtpModel>,
-                response: retrofit2.Response<VerifyOtpResponseOtpModel>
+                call: Call<VerifyOtpResponseOtpModel>,
+                response: Response<VerifyOtpResponseOtpModel>
             ) {
                 val success = response.isSuccessful && (response.body()?.isSuccessful == true)  && (response.body()?.data == true)
                 onResult(success)
             }
 
-            override fun onFailure(call: retrofit2.Call<VerifyOtpResponseOtpModel>, t: Throwable) {
+            override fun onFailure(call: Call<VerifyOtpResponseOtpModel>, t: Throwable) {
                 onResult(false)
             }
         })
