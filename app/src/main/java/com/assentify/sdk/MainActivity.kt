@@ -77,9 +77,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
   */
 
 
-        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        etInteractionHash.setText("E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
-        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
+        etApiKey.setText("Nyrgp1NSQ0xY5gpvyz0EG6hhu8x1TpN9sRDVlKelq8ei49bV07KTYDcaWUsUL7Dqalpa3pxBOX211Ase9JDg")
+        etInteractionHash.setText("6160FBFF71327F6C2CDF6A71CA8E4B0AE9F424F3D4C35ED0BF5D588834549FC8")
+        etTenantIdentifier.setText("d24ace3e-2b7e-4423-f626-08dde079f57f")
 
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
