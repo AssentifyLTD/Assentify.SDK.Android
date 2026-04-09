@@ -1,5 +1,6 @@
 package  com.assentify.sdk
 
+import ConfigFileManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -18,7 +19,6 @@ import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Core.FileUtils.ImageUtils
-import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.FaceMatch.FaceMatchManual
@@ -59,6 +59,7 @@ import com.assentify.sdk.ScanQr.ScanQrResult
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import com.assentify.sdk.logging.BugsnagObject
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -67,6 +68,7 @@ class AssentifySdk(
     private var apiKey: String? = null,
     private var tenantIdentifier: String? = null,
     private var interaction: String? = null,
+    private var configFileName: String? = null,
     private val environmentalConditions: EnvironmentalConditions,
     private val assentifySdkCallback: AssentifySdkCallback,
     private var performActiveLivenessFace: Boolean? = null,
@@ -78,7 +80,7 @@ class AssentifySdk(
     private var configModel: ConfigModel? = null;
     private var tenantThemeModel: TenantThemeModel? = null;
     var allTemplates: List<TemplatesByCountry> = emptyList();
-    private lateinit var readJSONFromAsset: ReadJSONFromAsset;
+    private lateinit var configFileManager: ConfigFileManager;
 
 
     init {
@@ -92,13 +94,15 @@ class AssentifySdk(
             if (tenantIdentifier.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "TenantIdentifier must not be empty or null")
             }
+            if (configFileName.isNullOrEmpty()) {
+                Log.e("AssentifySdk Init Error ", "configFileName must not be empty or null")
+            }
             if (!apiKey.isNullOrEmpty() && !interaction.isNullOrEmpty() && !tenantIdentifier.isNullOrEmpty()) {
                 validateKey()
             }
         }
 
     }
-
     private fun validateKey() {
         val remoteService = remoteAuthenticationService
         val call = remoteService.validateKey(apiKey!!, tenantIdentifier!!, "SDK")
@@ -110,7 +114,11 @@ class AssentifySdk(
                 if (response.isSuccessful) {
                     if (response.body() != null && response.body()!!.statusCode == 200 && response.body()!!.isSuccessful) {
                         isKeyValid = true;
-                        getStart()
+                        configFileManager = ConfigFileManager(context, "${configFileName}.json")
+                        configFileManager.initFromAssetsIfNeeded();
+                        configModel = configFileManager.readEngagement();
+                        tenantThemeModel = configFileManager.readTheme();
+                        initializeCheck();
                     }
                 } else {
                     isKeyValid = false;
@@ -125,58 +133,43 @@ class AssentifySdk(
         })
     }
 
-    private fun getStart() {
+    private fun initializeCheck() {
         val remoteService = RemoteClient.remoteApiService
-        val call = remoteService.getStart(interaction!!)
-        call.enqueue(object : Callback<ConfigModel> {
-            override fun onResponse(
-                call: Call<ConfigModel>,
-                response: Response<ConfigModel>
-            ) {
-                if (response.isSuccessful) {
-                    configModel = response.body()!!
-                    getTenantTheme()
-                }
 
-            }
-
-            override fun onFailure(call: Call<ConfigModel>, t: Throwable) {
-                assentifySdkCallback.onAssentifySdkInitError(t.message!!);
-            }
-        })
-    }
-
-    private fun getTenantTheme() {
-        val remoteService = RemoteClient.remoteApiService
-        val call = remoteService.getTenantTheme(
-            apiKey!!,
-            "SDK",
-            configModel!!.flowInstanceId,
+        val call = remoteService.initializeCheck(
+            interaction!!,
+            interaction!!,
             configModel!!.tenantIdentifier,
             configModel!!.blockIdentifier,
-            configModel!!.instanceId,
-            configModel!!.flowIdentifier,
-            configModel!!.instanceHash,
-            configModel!!.tenantIdentifier
+            configModel!!.instanceId
         )
-        call.enqueue(object : Callback<TenantThemeModel> {
+
+        call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<TenantThemeModel>,
-                response: Response<TenantThemeModel>
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
             ) {
-                if (response.isSuccessful) {
-                    tenantThemeModel = response.body()!!
-                    iniSdk();
+                try {
+                    val jsonContent = response.body()?.string()
+                    if (jsonContent.isNullOrBlank()) {
+                        assentifySdkCallback.onAssentifySdkInitError("Empty initialize response")
+                        return
+                    }
+                    clearFlow(context);
+                    configFileManager.clear()
+                    configFileManager.write(jsonContent)
+                    configModel = configFileManager.readEngagement()
+                    tenantThemeModel = configFileManager.readTheme()
+                    assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
+                } catch (e: Exception) {
+                    assentifySdkCallback.onAssentifySdkInitError(e.message ?: "Unknown initialize error")
                 }
-
             }
-
-            override fun onFailure(call: Call<TenantThemeModel>, t: Throwable) {
-                assentifySdkCallback.onAssentifySdkInitError(t.message!!);
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                assentifySdkCallback.onAssentifySdkInitError(t.message ?: "Network error")
             }
         })
     }
-
 
     private fun iniSdk() {
         timeStarted = getCurrentDateTime();
@@ -380,8 +373,8 @@ class AssentifySdk(
                 apiKey!!,
                 configModel!!
             )
-            assistedDataEntry.setStepId(stepId?.toString())
             assistedDataEntry.setCallback(assistedDataEntryCallback)
+            assistedDataEntry.setStepId(stepId?.toString())
             return assistedDataEntry;
         } else {
             throw Exception("Invalid Keys")
@@ -704,7 +697,7 @@ class AssentifySdk(
 
     }
 
-    public fun clearFlow(activityContext: Context) {
+    private fun clearFlow(activityContext: Context) {
         ContextObject.init(activityContext);
         InteractionObject.setInteractionObject(interaction!!);
         ConfigModelObject.setConfigModelObject(

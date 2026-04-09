@@ -54,7 +54,6 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val swEnableQr = findViewById<SwitchCompat>(R.id.swEnableQr)
 
         val btnStart = findViewById<Button>(R.id.btnStart)
-        val clearFlow = findViewById<Button>(R.id.clearFlow)
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         // Languages list for dropdown
@@ -85,9 +84,7 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             languages
         )
 
-        clearFlow.setOnClickListener {
-            assentifySdk.clearFlow(this@MainActivity2);
-        }
+
 
         btnStart.setOnClickListener {
             val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
@@ -126,9 +123,10 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     minRam = 1
                 );
                 assentifySdk = AssentifySdk(
-                    config.apiKey,
-                    config.tenantIdentifier,
-                    config.interactionHash,
+                    apiKey = config.apiKey,
+                    tenantIdentifier =  config.tenantIdentifier,
+                    interaction = config.interactionHash,
+                    configFileName =   "configFile2",
                     environmentalConditions,
                     assentifySdkCallback = this,
                     performActiveLivenessFace = false,

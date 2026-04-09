@@ -71,15 +71,15 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
-        /* etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
-           etInteractionHash.setText("658C2E5F32E472A8DF890C12F81603E3A7016AE822C77ADBE8F1047AC42719C1")
-           etTenantIdentifier.setText("588277d8-db12-44ea-b510-08dd6ac0001b")
-  */
+          etApiKey.setText("YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg")
+           etInteractionHash.setText("F4E4035E6EA5CC9B0FD90C9C91AB62207B001940457B5B0365F2E2967CDC3CE5")
+          // etInteractionHash.setText("9B932F250D2D0C8C7D878BAF4C0487C82DEA0BFFB06E19922FB33F3B80130F76")
+           etTenantIdentifier.setText("318e2ca7-fde8-4c47-bbcc-0c94b905630f")
 
 
-        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+  /*      etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
         etInteractionHash.setText("E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
-        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
+        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")*/
 
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
@@ -89,7 +89,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val swEnableQr = findViewById<SwitchCompat>(R.id.swEnableQr)
 
         val btnStart = findViewById<Button>(R.id.btnStart)
-        val clearFlow = findViewById<Button>(R.id.clearFlow)
         val nextFlow = findViewById<Button>(R.id.nextFlow)
       //  nextFlow.visibility = View.GONE
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
@@ -122,9 +121,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             languages
         )
 
-        clearFlow.setOnClickListener {
-            assentifySdk.clearFlow(this@MainActivity);
-        }
 
         nextFlow.setOnClickListener {
             val intent = Intent(this, MainActivity2::class.java)
@@ -168,9 +164,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     minRam = 1
                 );
                 assentifySdk = AssentifySdk(
-                    config.apiKey,
-                    config.tenantIdentifier,
-                    config.interactionHash,
+                    apiKey = config.apiKey,
+                    tenantIdentifier =  config.tenantIdentifier,
+                    interaction = config.interactionHash,
+                    configFileName =   "configFile1",
                     environmentalConditions,
                     assentifySdkCallback = this,
                     performActiveLivenessFace = false,
@@ -193,6 +190,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     /** INIT SDK SUCCESS **/
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         hideLoader()
+        Toast.makeText(this, "AssentifySdk Init Success ${configModel.flowName}", Toast.LENGTH_SHORT).show()
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()

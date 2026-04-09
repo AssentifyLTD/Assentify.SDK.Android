@@ -1,4 +1,5 @@
 package com.assentify.sdk.RemoteClient.Models
+import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryPage
 import com.assentify.sdk.AssistedDataEntry.Models.InputProperty
 import com.google.gson.Gson
 
@@ -53,9 +54,15 @@ data class OutputProperties(
     val type: Int
 )
 
+
+
 data class Customization(
     val header: String?,
+    val subHeader: String?,
+    val file: String?,
+    val nextButtonTitle: String?,
     val processMrz: Boolean?,
+    val confirmationRequired: Boolean?,
     val showResultPage: Boolean?,
     val documentLiveness: Boolean?,
     val storeCapturedDocument: Boolean?,
@@ -65,7 +72,20 @@ data class Customization(
     val saveCapturedVideo: Boolean?,
     val outputProperties: List<OutputProperties>,
     val identificationDocuments: List<IdentificationDocuments>?,
-    val branches: List<Branch>?
+    val branches: List<Branch>?,
+    val allowAssistedDataEntry: Boolean?,
+    val assistedDataEntryPages: List<AssistedDataEntryPage>?,
+    val inputProperties: List<InputProperty>?,
+    val selectedTemplates: List<Int>?,
+    val confirmationMessage: String?,
+    val autoDownload: Boolean?,
+    val enableDigitalSignature: Boolean?,
+    val hideSignatureBoard: Boolean?,
+    val otpInputType: String?,
+    val enableOtp: Boolean?,
+    val otpSize: Int?,
+    val otpType: Int?,
+    val otpExpiryTime: Double?,
 )
 
 data class Branch(
