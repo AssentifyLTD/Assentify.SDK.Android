@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
            etTenantIdentifier.setText("318e2ca7-fde8-4c47-bbcc-0c94b905630f")
 
 
-  /*      etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+  /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
         etInteractionHash.setText("E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
         etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")*/
 

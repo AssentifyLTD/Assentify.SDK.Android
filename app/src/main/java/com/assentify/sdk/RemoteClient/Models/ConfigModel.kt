@@ -9,13 +9,13 @@ data class ConfigModel(
     val blockName: String,
     val instanceHash: String,
     val stepDefinition: Any?,
-    val flowInstanceId: String,
+    var flowInstanceId: String,
     val tenantIdentifier: String,
     val blockIdentifier: String,
     val flowIdentifier: String,
     val customProperties: Map<String, Any>,
     val defaultLanguageId: Int,
-    val instanceId: String,
+    var instanceId: String,
     val applicationId: String,
     val userStateStepMap: Map<String, List<UserState>>,
     val stepDefinitions: List<StepDefinitions>,
@@ -115,11 +115,19 @@ data class StepMap(
 )
 
 data class IdentificationDocuments(
-  val key: String?, // IdentificationDocument.IdCard
+  val key: String?,
+  val enabled: Boolean?,
+  val documentType: Int?,
   val selectedCountries: List<String>?,
   val supportedIdCards: List<String>,
 
 )
+
+
+object IdentificationDocumentsDocumentType{
+    const val Passport = 1
+    const val ID = 2
+}
 
 fun encodeStepDefinitionsToJson(data: List<StepDefinitions>): String {
     val gson = Gson()

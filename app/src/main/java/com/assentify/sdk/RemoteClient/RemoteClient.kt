@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit
 
 
 object RemoteClient {
-    private const val BASE_URL_ID_POWER = "https://qa.idpower.assentify.com/api/IDPower/"
     private const val BASE_URL_SIGNING = "https://qa.signme.assentify.com/api/"
     private const val BASE_URL_API = "https://qa.api.gateway.assentify.com/webapi/"
     private const val BASE_URL_AUTHENTICATION =
@@ -44,12 +43,6 @@ object RemoteClient {
         .build()
         .create(RemoteAPIService::class.java)
 
-    val remoteIdPowerService: RemoteIdPowerService = Retrofit.Builder()
-        .baseUrl(BASE_URL_ID_POWER)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
-        .create(RemoteIdPowerService::class.java)
 
     val remoteSigningService: RemoteSigningService = Retrofit.Builder()
         .baseUrl(BASE_URL_SIGNING)

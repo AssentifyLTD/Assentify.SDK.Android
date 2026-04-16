@@ -1,5 +1,7 @@
 import android.content.Context
+import android.util.Log
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
 import com.google.gson.Gson
 import org.json.JSONArray
@@ -34,6 +36,8 @@ class ConfigFileManager(
     }
     fun initFromAssetsIfNeeded() {
         if (!file.exists()) {
+            // TODO SDK
+            Log.e("initializeCheck" , "initFromAssetsIfNeeded")
             val json = readFromAssets()
             file.writeText(json)
         }
@@ -67,6 +71,22 @@ class ConfigFileManager(
             val jsonObject = JSONObject(json)
             val themeJson = jsonObject.getJSONObject("theme")
             Gson().fromJson(themeJson.toString(), TenantThemeModel::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun readTemplates(): List<Templates>? {
+        val json = read() ?: return null
+
+        return try {
+            val jsonObject = JSONObject(json)
+            val templatesArray = jsonObject.getJSONArray("templates")
+
+            val type = object : com.google.gson.reflect.TypeToken<List<Templates>>() {}.type
+
+            Gson().fromJson(templatesArray.toString(), type)
+
         } catch (e: Exception) {
             null
         }

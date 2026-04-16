@@ -11,7 +11,6 @@ import com.assentify.sdk.RemoteClient.Models.RequestOtpResponseModel
 import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
-import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TokensMappings
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
 import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
@@ -48,17 +47,6 @@ interface RemoteAPIService {
 
 
 }
-
-interface RemoteIdPowerService {
-    @GET("GetTemplates")
-    @Headers(
-        "Content-Type: application/json",
-        "x-caller: sdk"
-    )
-    fun getTemplates(): Call<List<Templates>>;
-
-}
-
 
 interface RemoteSigningService {
 

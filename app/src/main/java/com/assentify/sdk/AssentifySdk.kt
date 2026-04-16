@@ -31,6 +31,7 @@ import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.IdentificationDocumentsDocumentType
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
@@ -60,6 +61,7 @@ import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import com.assentify.sdk.logging.BugsnagObject
 import okhttp3.ResponseBody
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -113,11 +115,13 @@ class AssentifySdk(
             ) {
                 if (response.isSuccessful) {
                     if (response.body() != null && response.body()!!.statusCode == 200 && response.body()!!.isSuccessful) {
+                        timeStarted = getCurrentDateTime();
                         isKeyValid = true;
                         configFileManager = ConfigFileManager(context, "${configFileName}.json")
                         configFileManager.initFromAssetsIfNeeded();
                         configModel = configFileManager.readEngagement();
                         tenantThemeModel = configFileManager.readTheme();
+                        getTemplatesByCountry(configFileManager.readTemplates());
                         initializeCheck();
                     }
                 } else {
@@ -138,7 +142,7 @@ class AssentifySdk(
 
         val call = remoteService.initializeCheck(
             interaction!!,
-            interaction!!,
+            ContentHashObject.getValue(interaction!!, context) ?: "",
             configModel!!.tenantIdentifier,
             configModel!!.blockIdentifier,
             configModel!!.instanceId
@@ -150,17 +154,62 @@ class AssentifySdk(
                 response: Response<ResponseBody>
             ) {
                 try {
-                    val jsonContent = response.body()?.string()
-                    if (jsonContent.isNullOrBlank()) {
-                        assentifySdkCallback.onAssentifySdkInitError("Empty initialize response")
-                        return
+                    val bodyString = response.body()?.string()
+
+                    /**Has Change**/
+                    val json = JSONObject(bodyString)
+                    if (json.has("hasChanges")) {
+                        val hasChanges = json.optBoolean("hasChanges", true)
+                        val flowInstanceId = json.optString("flowInstanceId", "")
+                        val instanceId = json.optString("instanceId", "")
+                        // TODO SDK
+                        Log.e("initializeCheck" , "flowInstanceId ${flowInstanceId}"!!)
+                        Log.e("initializeCheck" , "instanceId ${instanceId}"!!)
+                        configModel!!.flowInstanceId = flowInstanceId;
+                        configModel!!.instanceId = instanceId;
+                        if (!hasChanges) {
+                            assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
+                            // TODO SDK
+                            Log.e("initializeCheck" , "hasChanges ${hasChanges}"!!)
+                            return
+                        }
                     }
-                    clearFlow(context);
+
+                    /**Has File**/
+                    val contentDisposition = response.headers()["Content-Disposition"]
+                    val fileName = contentDisposition?.let {
+                        when {
+                            it.contains("filename*=") -> {
+                                it.substringAfter("filename*=")
+                                    .substringAfter("''")
+                                    .substringBefore(";")
+                            }
+                            it.contains("filename=") -> {
+                                it.substringAfter("filename=")
+                                    .substringBefore(";")
+                                    .replace("\"", "")
+                            }
+                            else -> null
+                        }
+                    }
+                    val last8 = fileName
+                        ?.substringBeforeLast(".")
+                        ?.takeLast(8)
+
+                    // TODO SDK
+                    Log.e("initializeCheck" , fileName!!)
+                    Log.e("initializeCheck" , last8!!)
+
+                    ContentHashObject.clear(interaction!!,context);
+                    ContentHashObject.setValue(last8,interaction!!,context);
+                    clearFlow(context)
                     configFileManager.clear()
-                    configFileManager.write(jsonContent)
+                    configFileManager.write(bodyString!!)
                     configModel = configFileManager.readEngagement()
                     tenantThemeModel = configFileManager.readTheme()
-                    assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
+                    getTemplatesByCountry(configFileManager.readTemplates());
+                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
+
                 } catch (e: Exception) {
                     assentifySdkCallback.onAssentifySdkInitError(e.message ?: "Unknown initialize error")
                 }
@@ -169,11 +218,6 @@ class AssentifySdk(
                 assentifySdkCallback.onAssentifySdkInitError(t.message ?: "Network error")
             }
         })
-    }
-
-    private fun iniSdk() {
-        timeStarted = getCurrentDateTime();
-        getTemplatesByCountry();
     }
 
     fun startScanPassport(
@@ -485,39 +529,23 @@ class AssentifySdk(
         }
     }
 
-    private fun getTemplatesByCountry() {
-        val remoteService = RemoteClient.remoteIdPowerService
-        val call: Call<List<Templates>> = remoteService.getTemplates()
-
-        call.enqueue(object : Callback<List<Templates>> {
-            override fun onResponse(
-                call: Call<List<Templates>>,
-                response: Response<List<Templates>>
-            ) {
-                if (response.isSuccessful) {
-                    val remoteResult: List<Templates>? = response.body()
-                    val filteredList = filterBySourceCountryCode(remoteResult)
-                    val templatesByCountry = ArrayList<TemplatesByCountry>()
-                    filteredList?.forEach { data ->
-                        val item = TemplatesByCountry(
-                            data.id,
-                            data.sourceCountry,
-                            data.sourceCountryCode,
-                            data.sourceCountryFlag,
-                            filterTemplatesCountryCode(remoteResult, data.sourceCountryCode)!!
-                        )
-                        templatesByCountry.add(item)
-                    }
+    private fun getTemplatesByCountry(data:List<Templates>?) {
+        val remoteResult: List<Templates>? =data
+        val filteredList = filterBySourceCountryCode(remoteResult)
+        val templatesByCountry = ArrayList<TemplatesByCountry>()
+        filteredList?.forEach { data ->
+            val item = TemplatesByCountry(
+                data.id,
+                data.sourceCountry,
+                data.sourceCountryCode,
+                data.sourceCountryFlag,
+                filterTemplatesCountryCode(remoteResult, data.sourceCountryCode)!!
+            )
+            templatesByCountry.add(item)
+        }
 
 
-                    allTemplates = templatesByCountry;
-                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
-                }
-            }
-
-            override fun onFailure(call: Call<List<Templates>>, t: Throwable) {
-            }
-        })
+        allTemplates = templatesByCountry;
     }
 
     private fun filterBySourceCountryCode(dataList: List<Templates>?): List<Templates>? {
@@ -555,7 +583,7 @@ class AssentifySdk(
         configModel!!.stepDefinitions.forEach { step ->
             if (step.stepId == stepID) {
                 step.customization.identificationDocuments!!.forEach { docStep ->
-                    if (docStep.key == "IdentificationDocument.IdCard") {
+                    if (docStep.documentType == IdentificationDocumentsDocumentType.ID) {
                         if (docStep.selectedCountries != null) {
                             selectedCountries = docStep.selectedCountries;
                             supportedIdCards = docStep.supportedIdCards;

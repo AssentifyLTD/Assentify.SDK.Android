@@ -286,6 +286,35 @@ object OnCompleteScreenData {
 }
 
 
+object ContentHashObject {
+
+    fun setValue(value: String?,interaction: String,appContext: Context) {
+        val prefs =appContext.applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        prefs.edit()
+            .putString("ContentHashObject_${interaction}", value)
+            .apply()
+    }
+
+    fun getValue(interaction: String,appContext: Context): String? {
+        val prefs = appContext.applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        return prefs.getString("ContentHashObject_${interaction}", "")
+    }
+
+    fun clear(interaction: String,appContext: Context) {
+        val prefs = appContext.applicationContext
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        prefs.edit()
+            .remove("ContentHashObject_${interaction}")
+            .apply()
+    }
+}
+
+
 
 
 

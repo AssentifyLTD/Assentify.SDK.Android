@@ -33,6 +33,7 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.R
+import com.assentify.sdk.RemoteClient.Models.IdentificationDocumentsDocumentType
 import com.assentify.sdk.RemoteClient.Models.OutputProperties
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
@@ -699,6 +700,29 @@ object FlowController {
             data[it.key] = "";
         }
         return data;
+    }
+
+
+    fun identificationDocumentStepHasPassport(stepID: Int): Boolean {
+        val configModel = ConfigModelObject.getConfigModelObject() ?: return false
+
+        return configModel.stepDefinitions.any { step ->
+            step.stepId == stepID &&
+                    step.customization.identificationDocuments?.any { doc ->
+                        doc.documentType == IdentificationDocumentsDocumentType.Passport && doc.enabled == true
+                    } == true
+        }
+    }
+
+    fun identificationDocumentStepHasIDCard(stepID: Int): Boolean {
+        val configModel = ConfigModelObject.getConfigModelObject() ?: return false
+
+        return configModel.stepDefinitions.any { step ->
+            step.stepId == stepID &&
+                    step.customization.identificationDocuments?.any { doc ->
+                        doc.documentType == IdentificationDocumentsDocumentType.ID && doc.enabled == true
+                    } == true
+        }
     }
 
 }
