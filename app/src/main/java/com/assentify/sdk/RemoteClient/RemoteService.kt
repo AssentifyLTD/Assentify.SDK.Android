@@ -14,7 +14,6 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.TokensMappings
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
 import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
-import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpResponseOtpModel
 import okhttp3.MultipartBody
@@ -22,8 +21,6 @@ import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
@@ -35,18 +32,7 @@ import retrofit2.http.Query
 import retrofit2.http.Url
 
 
-interface RemoteAPIService {
-    @GET("v1/Manager/Initialize/{contentHash}/check")
-    fun initializeCheck(
-        @Path("contentHash") pathContentHash: String,
-        @Query("contentHash") queryContentHash: String,
-        @Header("x-tenant-identifier") tenantIdentifier: String,
-        @Header("x-block-identifier") blockIdentifier: String,
-        @Header("x-instance-id") instanceId: String,
-    ): Call<ResponseBody>
 
-
-}
 
 interface RemoteSigningService {
 
@@ -73,18 +59,20 @@ interface RemoteSigningService {
 
 }
 
-
-interface RemoteAuthenticationService {
-    @POST("ValidateKey")
-    @FormUrlEncoded
-    fun validateKey(
-        @Field("apiKey") apiKey: String,
-        @Header("x-tenant-identifier") tenantIdentifier: String,
-        @Header("X-Source-Agent") agentSource: String
-    ): Call<ValidateKeyModel>;
-}
-
 interface RemoteGatewayService {
+
+
+    @GET("v1/Manager/Initialize/{contentHash}/check")
+    fun initializeCheck(
+        @Path("contentHash") pathContentHash: String,
+        @Query("contentHash") queryContentHash: String,
+        @Header("x-tenant-identifier") tenantIdentifier: String,
+        @Header("x-block-identifier") blockIdentifier: String,
+        @Header("x-instance-id") instanceId: String,
+        @Header("x-source-agent") sourceAgent: String,
+        @Header("X-Api-Key") apiKey: String,
+    ): Call<ResponseBody>
+
     @POST("v1/Manager/Submit")
     @Headers("Content-Type: application/json")
     fun submit(
@@ -179,7 +167,6 @@ interface RemoteGatewayService {
     ): Call<ResponseBody>
 
 }
-
 
 interface RemoteBlobStorageService {
 

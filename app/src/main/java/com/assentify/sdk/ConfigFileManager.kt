@@ -76,6 +76,9 @@ class ConfigFileManager(
         }
     }
 
+
+
+
     fun readTemplates(): List<Templates>? {
         val json = read() ?: return null
 
@@ -87,6 +90,17 @@ class ConfigFileManager(
 
             Gson().fromJson(templatesArray.toString(), type)
 
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun readContentHash(): String? {
+        val json = read() ?: return null
+
+        return try {
+            val jsonObject = JSONObject(json)
+            jsonObject.optString("contentHash", null)
         } catch (e: Exception) {
             null
         }

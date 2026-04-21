@@ -36,9 +36,7 @@ import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
-import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
 import com.assentify.sdk.RemoteClient.RemoteClient
-import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
@@ -68,8 +66,6 @@ import retrofit2.Response
 
 class AssentifySdk(
     private var apiKey: String? = null,
-    private var tenantIdentifier: String? = null,
-    private var interaction: String? = null,
     private var configFileName: String? = null,
     private val environmentalConditions: EnvironmentalConditions,
     private val assentifySdkCallback: AssentifySdkCallback,
@@ -81,6 +77,7 @@ class AssentifySdk(
     private var timeStarted: String = "";
     private var configModel: ConfigModel? = null;
     private var tenantThemeModel: TenantThemeModel? = null;
+    private var initContentHash: String? = null;
     var allTemplates: List<TemplatesByCountry> = emptyList();
     private lateinit var configFileManager: ConfigFileManager;
 
@@ -90,62 +87,36 @@ class AssentifySdk(
             if (apiKey.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "ApiKey must not be empty or null")
             }
-            if (interaction.isNullOrEmpty()) {
-                Log.e("AssentifySdk Init Error ", "Interaction must not be empty or null")
-            }
-            if (tenantIdentifier.isNullOrEmpty()) {
-                Log.e("AssentifySdk Init Error ", "TenantIdentifier must not be empty or null")
-            }
             if (configFileName.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "configFileName must not be empty or null")
             }
-            if (!apiKey.isNullOrEmpty() && !interaction.isNullOrEmpty() && !tenantIdentifier.isNullOrEmpty()) {
-                validateKey()
+            if (!apiKey.isNullOrEmpty()) {
+                loadLocalFile()
             }
         }
 
     }
-    private fun validateKey() {
-        val remoteService = remoteAuthenticationService
-        val call = remoteService.validateKey(apiKey!!, tenantIdentifier!!, "SDK")
-        call.enqueue(object : Callback<ValidateKeyModel> {
-            override fun onResponse(
-                call: Call<ValidateKeyModel>,
-                response: Response<ValidateKeyModel>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body() != null && response.body()!!.statusCode == 200 && response.body()!!.isSuccessful) {
-                        timeStarted = getCurrentDateTime();
-                        isKeyValid = true;
-                        configFileManager = ConfigFileManager(context, "${configFileName}.json")
-                        configFileManager.initFromAssetsIfNeeded();
-                        configModel = configFileManager.readEngagement();
-                        tenantThemeModel = configFileManager.readTheme();
-                        getTemplatesByCountry(configFileManager.readTemplates());
-                        initializeCheck();
-                    }
-                } else {
-                    isKeyValid = false;
-                    assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
-                }
-            }
-
-            override fun onFailure(call: Call<ValidateKeyModel>, t: Throwable) {
-                isKeyValid = false;
-                assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
-            }
-        })
+    private fun loadLocalFile() {
+        timeStarted = getCurrentDateTime();
+        configFileManager = ConfigFileManager(context, "${configFileName}.json")
+        configFileManager.initFromAssetsIfNeeded();
+        configModel = configFileManager.readEngagement();
+        tenantThemeModel = configFileManager.readTheme();
+        initContentHash = configFileManager.readContentHash();
+        getTemplatesByCountry(configFileManager.readTemplates());
+        initializeCheck();
     }
 
     private fun initializeCheck() {
-        val remoteService = RemoteClient.remoteApiService
-
+        val remoteService = RemoteClient.remoteGatewayService
         val call = remoteService.initializeCheck(
-            interaction!!,
-            ContentHashObject.getValue(interaction!!, context) ?: "",
+            configModel!!.instanceHash,
+            ContentHashObject.getValue(configModel!!.instanceHash, context) ?: initContentHash!!,
             configModel!!.tenantIdentifier,
             configModel!!.blockIdentifier,
-            configModel!!.instanceId
+            configModel!!.instanceId,
+            "SDK",
+            apiKey!!
         )
 
         call.enqueue(object : Callback<ResponseBody> {
@@ -154,19 +125,26 @@ class AssentifySdk(
                 response: Response<ResponseBody>
             ) {
                 try {
+                    isKeyValid = true;
+                    newInstance(context);
                     val bodyString = response.body()?.string()
 
                     /**Has Change**/
                     val json = JSONObject(bodyString)
+                     /** If there is hasChanges param this means there ara no changes **/
                     if (json.has("hasChanges")) {
                         val hasChanges = json.optBoolean("hasChanges", true)
                         val flowInstanceId = json.optString("flowInstanceId", "")
                         val instanceId = json.optString("instanceId", "")
+                        val contentHash = json.optString("contentHash", "")
                         // TODO SDK
                         Log.e("initializeCheck" , "flowInstanceId ${flowInstanceId}"!!)
                         Log.e("initializeCheck" , "instanceId ${instanceId}"!!)
+                        Log.e("initializeCheck" , "contentHash ${contentHash}"!!)
                         configModel!!.flowInstanceId = flowInstanceId;
                         configModel!!.instanceId = instanceId;
+                        ContentHashObject.clear(configModel!!.instanceHash,context);
+                        ContentHashObject.setValue(contentHash,configModel!!.instanceHash,context);
                         if (!hasChanges) {
                             assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
                             // TODO SDK
@@ -176,45 +154,23 @@ class AssentifySdk(
                     }
 
                     /**Has File**/
-                    val contentDisposition = response.headers()["Content-Disposition"]
-                    val fileName = contentDisposition?.let {
-                        when {
-                            it.contains("filename*=") -> {
-                                it.substringAfter("filename*=")
-                                    .substringAfter("''")
-                                    .substringBefore(";")
-                            }
-                            it.contains("filename=") -> {
-                                it.substringAfter("filename=")
-                                    .substringBefore(";")
-                                    .replace("\"", "")
-                            }
-                            else -> null
-                        }
-                    }
-                    val last8 = fileName
-                        ?.substringBeforeLast(".")
-                        ?.takeLast(8)
-
-                    // TODO SDK
-                    Log.e("initializeCheck" , fileName!!)
-                    Log.e("initializeCheck" , last8!!)
-
-                    ContentHashObject.clear(interaction!!,context);
-                    ContentHashObject.setValue(last8,interaction!!,context);
+                    ContentHashObject.clear(configModel!!.instanceHash,context);
                     clearFlow(context)
                     configFileManager.clear()
                     configFileManager.write(bodyString!!)
                     configModel = configFileManager.readEngagement()
                     tenantThemeModel = configFileManager.readTheme()
                     getTemplatesByCountry(configFileManager.readTemplates());
+                    ContentHashObject.setValue(configFileManager.readContentHash(),configModel!!.instanceHash,context);
                     assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
 
                 } catch (e: Exception) {
+                    isKeyValid = false;
                     assentifySdkCallback.onAssentifySdkInitError(e.message ?: "Unknown initialize error")
                 }
             }
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                isKeyValid = false;
                 assentifySdkCallback.onAssentifySdkInitError(t.message ?: "Network error")
             }
         })
@@ -397,8 +353,8 @@ class AssentifySdk(
         if (isKeyValid) {
             return ContextAwareSigning(
                 contextAwareSigningCallback,
-                tenantIdentifier!!,
-                interaction!!,
+                configModel!!.tenantIdentifier,
+                configModel!!.instanceHash,
                 stepId!!,
                 configModel!!,
                 apiKey!!
@@ -699,7 +655,7 @@ class AssentifySdk(
             FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
             ApiKeyObject.setApiKeyObject(apiKey!!);
             ContextObject.init(activityContext);
-            InteractionObject.setInteractionObject(interaction!!);
+            InteractionObject.setInteractionObject(configModel!!.instanceHash);
             FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(
                 flowEnvironmentalConditions
             )
@@ -727,12 +683,20 @@ class AssentifySdk(
 
     private fun clearFlow(activityContext: Context) {
         ContextObject.init(activityContext);
-        InteractionObject.setInteractionObject(interaction!!);
+        InteractionObject.setInteractionObject(configModel!!.instanceHash);
         ConfigModelObject.setConfigModelObject(
             null
         )
         LocalStepsObject.setLocalSteps(
             emptyList<LocalStepModel>().toMutableList()
+        )
+    }
+
+    private fun newInstance(activityContext: Context) {
+        ContextObject.init(activityContext);
+        InteractionObject.setInteractionObject(configModel!!.instanceHash);
+        ConfigModelObject.setConfigModelObject(
+            null
         )
     }
 

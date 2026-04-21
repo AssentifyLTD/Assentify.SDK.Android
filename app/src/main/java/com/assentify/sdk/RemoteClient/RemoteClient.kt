@@ -10,9 +10,6 @@ import java.util.concurrent.TimeUnit
 
 object RemoteClient {
     private const val BASE_URL_SIGNING = "https://qa.signme.assentify.com/api/"
-    private const val BASE_URL_API = "https://qa.api.gateway.assentify.com/webapi/"
-    private const val BASE_URL_AUTHENTICATION =
-        "https://qa.api.admin.assentify.com/api/Authentication/"
     private const val BASE_URL_GATEWAY = "https://qa.api.gateway.assentify.com/webapi/"
     private const val BLOB_STORAGE_URL = "https://qa.blob.assentify.com"
     const val LANGUAGE_TRANSFORM_URL = "https://qa.widgets.socket.assentify.com/api/"
@@ -36,12 +33,6 @@ object RemoteClient {
         .build()
 
 
-    val remoteApiService: RemoteAPIService = Retrofit.Builder()
-        .baseUrl(BASE_URL_API)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
-        .create(RemoteAPIService::class.java)
 
 
     val remoteSigningService: RemoteSigningService = Retrofit.Builder()
@@ -51,12 +42,6 @@ object RemoteClient {
         .build()
         .create(RemoteSigningService::class.java)
 
-    val remoteAuthenticationService: RemoteAuthenticationService = Retrofit.Builder()
-        .baseUrl(BASE_URL_AUTHENTICATION)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
-        .create(RemoteAuthenticationService::class.java)
 
     val remoteGatewayService: RemoteGatewayService = Retrofit.Builder()
         .baseUrl(BASE_URL_GATEWAY)

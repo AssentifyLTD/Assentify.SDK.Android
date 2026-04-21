@@ -28,32 +28,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/etInteractionHash"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Interaction hash"
-        android:inputType="text"
-        android:padding="12dp"
-        android:background="@android:drawable/edit_text"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etApiKey"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- Tenant Identifier -->
-    <EditText
-        android:id="@+id/etTenantIdentifier"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Tenant Identifier"
-        android:inputType="text"
-        android:padding="12dp"
-        android:background="@android:drawable/edit_text"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/etInteractionHash"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Language Dropdown -->
     <TextView
@@ -63,7 +37,7 @@
         android:text="Language"
         android:textStyle="bold"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/etTenantIdentifier"
+        app:layout_constraintTop_toBottomOf="@id/etApiKey"
         app:layout_constraintStart_toStartOf="parent"/>
 
     <Spinner

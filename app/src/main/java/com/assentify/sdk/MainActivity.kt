@@ -29,8 +29,6 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 
 data class StartConfig(
     val apiKey: String,
-    val interactionHash: String,
-    val tenantIdentifier: String,
     val language: String,
     val enableDetect: Boolean,
     val enableNfc: Boolean,
@@ -67,14 +65,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         /** UI **/
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
-        val etInteractionHash = findViewById<EditText>(R.id.etInteractionHash)
-        val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
-          etApiKey.setText("YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg")
-           etInteractionHash.setText("F4E4035E6EA5CC9B0FD90C9C91AB62207B001940457B5B0365F2E2967CDC3CE5")
-          // etInteractionHash.setText("9B932F250D2D0C8C7D878BAF4C0487C82DEA0BFFB06E19922FB33F3B80130F76")
-           etTenantIdentifier.setText("318e2ca7-fde8-4c47-bbcc-0c94b905630f")
+          etApiKey.setText("tsUJAAfkAdkqaLsTBTigN0unsTBksNfPNh56OxmbwWqhbV7LVhfoohaP95svqHmyccVlaqe1RHubOHagwpg")
 
 
   /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
@@ -129,14 +122,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         btnStart.setOnClickListener {
             val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
-            val interactionHash = etInteractionHash.text?.toString()?.trim().orEmpty()
-            val tenantIdentifier = etTenantIdentifier.text?.toString()?.trim().orEmpty()
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
                 apiKey = apiKey,
-                interactionHash = interactionHash,
-                tenantIdentifier = tenantIdentifier,
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
                 enableNfc = swEnableNfc.isChecked,
@@ -144,7 +133,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             )
 
             // Validation
-            if (config.apiKey.isEmpty() || config.tenantIdentifier.isEmpty() || config.interactionHash.isEmpty()) {
+            if (config.apiKey.isEmpty()) {
                 progressBar.visibility = View.GONE
                 Toast.makeText(
                     this,
@@ -165,8 +154,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    tenantIdentifier =  config.tenantIdentifier,
-                    interaction = config.interactionHash,
                     configFileName =   "configFile1",
                     environmentalConditions,
                     assentifySdkCallback = this,

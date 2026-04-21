@@ -39,13 +39,9 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         /** UI **/
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
-        val etInteractionHash = findViewById<EditText>(R.id.etInteractionHash)
-        val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
         etApiKey.setText( "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        etInteractionHash.setText( "6A0001F3C7B0F99B14F5BB17B0694BE751F189ADB62A3811591E27558FC30503")
-        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
 
@@ -88,14 +84,10 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         btnStart.setOnClickListener {
             val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
-            val interactionHash = etInteractionHash.text?.toString()?.trim().orEmpty()
-            val tenantIdentifier = etTenantIdentifier.text?.toString()?.trim().orEmpty()
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
                 apiKey = apiKey,
-                interactionHash = interactionHash,
-                tenantIdentifier = tenantIdentifier,
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
                 enableNfc = swEnableNfc.isChecked,
@@ -103,7 +95,7 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             )
 
             // Validation
-            if (config.apiKey.isEmpty() || config.tenantIdentifier.isEmpty() || config.interactionHash.isEmpty()) {
+            if (config.apiKey.isEmpty() ) {
                 progressBar.visibility = View.GONE
                 Toast.makeText(
                     this,
@@ -124,8 +116,6 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    tenantIdentifier =  config.tenantIdentifier,
-                    interaction = config.interactionHash,
                     configFileName =   "configFile2",
                     environmentalConditions,
                     assentifySdkCallback = this,

@@ -301,7 +301,7 @@ object ContentHashObject {
         val prefs = appContext.applicationContext
             .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-        return prefs.getString("ContentHashObject_${interaction}", "")
+        return prefs.getString("ContentHashObject_${interaction}", null)
     }
 
     fun clear(interaction: String,appContext: Context) {
