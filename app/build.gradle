@@ -26,7 +26,7 @@ android {
 
 
 
-  /*  signingConfigs {
+   /* signingConfigs {
         create("release") {
             keyAlias = "release-key"
             keyPassword = "00000000"
