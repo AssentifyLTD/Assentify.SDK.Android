@@ -314,6 +314,9 @@ object FlowController {
         val faceStep =
             steps.firstOrNull { it.stepDefinition?.stepDefinition == StepsNames.FaceImageAcquisition }
 
+        if(faceStep == null){
+            return  key;
+        }
         return if (faceStep!!.stepDefinition!!.inputProperties.isNotEmpty()) {
             var result = ConstantsValues.ProvidedFaceImageKey
             for (input in faceStep.stepDefinition.inputProperties) {

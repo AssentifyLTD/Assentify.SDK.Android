@@ -137,18 +137,12 @@ class AssentifySdk(
                         val flowInstanceId = json.optString("flowInstanceId", "")
                         val instanceId = json.optString("instanceId", "")
                         val contentHash = json.optString("contentHash", "")
-                        // TODO SDK
-                        Log.e("initializeCheck" , "flowInstanceId ${flowInstanceId}"!!)
-                        Log.e("initializeCheck" , "instanceId ${instanceId}"!!)
-                        Log.e("initializeCheck" , "contentHash ${contentHash}"!!)
                         configModel!!.flowInstanceId = flowInstanceId;
                         configModel!!.instanceId = instanceId;
                         ContentHashObject.clear(configModel!!.instanceHash,context);
                         ContentHashObject.setValue(contentHash,configModel!!.instanceHash,context);
                         if (!hasChanges) {
                             assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
-                            // TODO SDK
-                            Log.e("initializeCheck" , "hasChanges ${hasChanges}"!!)
                             return
                         }
                     }

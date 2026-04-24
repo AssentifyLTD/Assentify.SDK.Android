@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
 
 
-          etApiKey.setText("tsUJAAfkAdkqaLsTBTigN0unsTBksNfPNh56OxmbwWqhbV7LVhfoohaP95svqHmyccVlaqe1RHubOHagwpg")
+          etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
 
 
   /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")

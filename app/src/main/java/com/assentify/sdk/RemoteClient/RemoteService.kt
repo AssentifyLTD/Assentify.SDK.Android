@@ -11,7 +11,6 @@ import com.assentify.sdk.RemoteClient.Models.RequestOtpResponseModel
 import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
-import com.assentify.sdk.RemoteClient.Models.TokensMappings
 import com.assentify.sdk.RemoteClient.Models.TrackNextRequest
 import com.assentify.sdk.RemoteClient.Models.TrackProgressRequest
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
@@ -32,8 +31,6 @@ import retrofit2.http.Query
 import retrofit2.http.Url
 
 
-
-
 interface RemoteSigningService {
 
     @POST("Document/v2/CreateUserDocumentInstance")
@@ -45,17 +42,10 @@ interface RemoteSigningService {
     @POST("Signature")
     @Headers("Content-Type: application/json")
     fun signature(
-        @Body requestBody: SignatureRequestModel
+        @Body requestBody: SignatureRequestModel,
+        @Header("x-tenant-identifier") tenantIdentifier: String,
     ): Call<SignatureResponseModel>;
 
-    @GET("Mappings/{blockIdentifier}/{stepId}/{templateId}")
-    @Headers("Content-Type: application/json")
-    fun mappings(
-        @Header("x-tenant-identifier") tenantIdentifier: String,
-        @Path("blockIdentifier") blockIdentifier: String,
-        @Path("stepId") stepId: Int,
-        @Path("templateId") templateId: Int,
-    ): Call<List<TokensMappings>>;
 
 }
 

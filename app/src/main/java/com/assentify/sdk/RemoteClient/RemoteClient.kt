@@ -9,11 +9,11 @@ import java.util.concurrent.TimeUnit
 
 object RemoteClient {
 
-    const val  WIDGETS_SOCKET_URL = "https://qa.widgets.socket.assentify.com/";
-    private const val BASE_URL_SIGNING = "https://qa.signme.assentify.com/api/"
-    private const val BASE_URL_GATEWAY = "https://qa.api.gateway.assentify.com/webapi/"
-    private const val BLOB_STORAGE_URL = "https://qa.blob.assentify.com"
-    const val LANGUAGE_TRANSFORM_URL = "https://qa.widgets.socket.assentify.com/api/"
+    const val  WIDGETS_SOCKET_URL = "https://widgets.socket.assentify.com/";
+    private const val BASE_URL_SIGNING = "https://signme.assentify.com/api/"
+    private const val BASE_URL_GATEWAY = "https://api.gateway.assentify.com/webapi/"
+    private const val BLOB_STORAGE_URL = "https://blob.assentify.com"
+    const val LANGUAGE_TRANSFORM_URL = "https://widgets.socket.assentify.com/api/"
 
 
     val okHttpClient = OkHttpClient.Builder()

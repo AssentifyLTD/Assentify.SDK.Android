@@ -36,8 +36,6 @@ class ConfigFileManager(
     }
     fun initFromAssetsIfNeeded() {
         if (!file.exists()) {
-            // TODO SDK
-            Log.e("initializeCheck" , "initFromAssetsIfNeeded")
             val json = readFromAssets()
             file.writeText(json)
         }

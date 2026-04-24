@@ -35,6 +35,7 @@ data class StepDefinitions(
     val stepId: Int,
     val stepDefinition: String,
     val customization: Customization,
+    val mappings: List<TokensMappings>?,
     val outputProperties: List<OutputProperties>,
     val inputProperties: List<InputProperty>
 

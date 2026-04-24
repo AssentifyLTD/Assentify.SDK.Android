@@ -10,7 +10,6 @@ import com.assentify.sdk.RemoteClient.Models.Customization
 import com.assentify.sdk.RemoteClient.Models.DataModel
 import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
-import com.assentify.sdk.RemoteClient.Models.TokensMappings
 import com.assentify.sdk.RemoteClient.RemoteClient.remoteSigningService
 import retrofit2.Call
 import retrofit2.Callback
@@ -70,27 +69,14 @@ class ContextAwareSigning(
 
 
     private  fun getTokensMappings(templateId: Int) {
-        val remoteService = remoteSigningService
-        val call = remoteService.mappings(
-            configModel.tenantIdentifier,
-            configModel.blockIdentifier,
-            stepID,
-            templateId
-        )
-        call.enqueue(object : Callback<List<TokensMappings>> {
-            override fun onResponse(
-                call: Call<List<TokensMappings>>,
-                response: Response<List<TokensMappings>>
-            ) {
-                if (response.isSuccessful) {
-                    contextAwareSigningCallback.onHasTokens(templateId,response.body()!!,contextAwareSigningModel);
-                }
+        val stepDefinitions = configModel.stepDefinitions
+        stepDefinitions.forEach {
+            if (it.stepId == this.stepID) {
+                val mappings = it.mappings
+                contextAwareSigningCallback.onHasTokens(templateId,mappings!!,contextAwareSigningModel);
             }
+        }
 
-            override fun onFailure(call: Call<List<TokensMappings>>, t: Throwable) {
-                contextAwareSigningCallback.onError(t.message!!)
-            }
-        })
     }
 
 
@@ -137,7 +123,7 @@ class ContextAwareSigning(
             signature = signature,
         )
         val remoteService = remoteSigningService
-        val call = remoteService.signature(signatureRequestModel)
+        val call = remoteService.signature(signatureRequestModel,configModel.tenantIdentifier)
         call.enqueue(object : Callback<SignatureResponseModel> {
             override fun onResponse(
                 call: Call<SignatureResponseModel>,
