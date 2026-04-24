@@ -1,6 +1,5 @@
 package   com.assentify.sdk.RemoteClient
 
-import com.assentify.sdk.Core.Constants.Routes.BaseUrls
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -9,6 +8,8 @@ import java.util.concurrent.TimeUnit
 
 
 object RemoteClient {
+
+    const val  WIDGETS_SOCKET_URL = "https://qa.widgets.socket.assentify.com/";
     private const val BASE_URL_SIGNING = "https://qa.signme.assentify.com/api/"
     private const val BASE_URL_GATEWAY = "https://qa.api.gateway.assentify.com/webapi/"
     private const val BLOB_STORAGE_URL = "https://qa.blob.assentify.com"
@@ -58,7 +59,7 @@ object RemoteClient {
         .create(RemoteBlobStorageService::class.java)
 
     val remoteWidgetsService: RemoteWidgetsService = Retrofit.Builder()
-        .baseUrl(BaseUrls.SignalRHub)
+        .baseUrl(WIDGETS_SOCKET_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .client(okHttpClient)
         .build()
