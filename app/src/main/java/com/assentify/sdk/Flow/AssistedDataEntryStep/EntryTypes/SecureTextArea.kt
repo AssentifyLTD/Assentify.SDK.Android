@@ -115,7 +115,7 @@ fun SecureTextArea(
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = BaseTheme.FieldColor,
                 unfocusedContainerColor = BaseTheme.FieldColor,
-                cursorColor = BaseTheme.FieldColor,
+                cursorColor = BaseTheme.BaseTextColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 focusedTextColor = BaseTheme.BaseTextColor,

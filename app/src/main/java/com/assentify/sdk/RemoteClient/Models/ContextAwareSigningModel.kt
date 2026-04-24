@@ -10,4 +10,12 @@ data class DataModel(
     val confirmationMessage: String?,
     val subHeader: String?,
     val autoDownload: Boolean,
+    val enableDigitalSignature: Boolean,
+    val hideSignatureBoard: Boolean,
+    val otpInputType: String,
+    val enableOtp: Boolean,
+    val otpSize: Int?,
+    val otpType: Int?,
+    val otpExpiryTime: Double?,
 )
+

@@ -743,6 +743,7 @@ abstract class CameraPreview : Fragment() {
     }
 
 
+
     protected fun changeCardWeightLayoutID() {
         if (!isAdded) return
 

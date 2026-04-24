@@ -1,6 +1,5 @@
 package   com.assentify.sdk.RemoteClient
 
-import com.assentify.sdk.Core.Constants.Routes.BaseUrls
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -9,11 +8,9 @@ import java.util.concurrent.TimeUnit
 
 
 object RemoteClient {
-    private const val BASE_URL_ID_POWER = "https://idpower.assentify.com/api/IDPower/"
+
+    const val  WIDGETS_SOCKET_URL = "https://widgets.socket.assentify.com/";
     private const val BASE_URL_SIGNING = "https://signme.assentify.com/api/"
-    private const val BASE_URL_API = "https://api.gateway.assentify.com/webapi/"
-    private const val BASE_URL_AUTHENTICATION =
-        "https://api.admin.assentify.com/api/Authentication/"
     private const val BASE_URL_GATEWAY = "https://api.gateway.assentify.com/webapi/"
     private const val BLOB_STORAGE_URL = "https://blob.assentify.com"
     const val LANGUAGE_TRANSFORM_URL = "https://widgets.socket.assentify.com/api/"
@@ -32,19 +29,7 @@ object RemoteClient {
         .build()
 
 
-    val remoteApiService: RemoteAPIService = Retrofit.Builder()
-        .baseUrl(BASE_URL_API)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
-        .create(RemoteAPIService::class.java)
 
-    val remoteIdPowerService: RemoteIdPowerService = Retrofit.Builder()
-        .baseUrl(BASE_URL_ID_POWER)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
-        .create(RemoteIdPowerService::class.java)
 
     val remoteSigningService: RemoteSigningService = Retrofit.Builder()
         .baseUrl(BASE_URL_SIGNING)
@@ -53,12 +38,6 @@ object RemoteClient {
         .build()
         .create(RemoteSigningService::class.java)
 
-    val remoteAuthenticationService: RemoteAuthenticationService = Retrofit.Builder()
-        .baseUrl(BASE_URL_AUTHENTICATION)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
-        .create(RemoteAuthenticationService::class.java)
 
     val remoteGatewayService: RemoteGatewayService = Retrofit.Builder()
         .baseUrl(BASE_URL_GATEWAY)
@@ -75,7 +54,7 @@ object RemoteClient {
         .create(RemoteBlobStorageService::class.java)
 
     val remoteWidgetsService: RemoteWidgetsService = Retrofit.Builder()
-        .baseUrl(BaseUrls.SignalRHub)
+        .baseUrl(WIDGETS_SOCKET_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .client(okHttpClient)
         .build()

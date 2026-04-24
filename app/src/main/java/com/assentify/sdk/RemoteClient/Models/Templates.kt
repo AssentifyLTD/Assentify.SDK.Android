@@ -15,9 +15,9 @@ data class TemplatesByCountry(
 
 data class KycDocumentDetails(
     val name: String,
-    var order:Int,
-    var templateSpecimen:String,
-    var hasQrCode:Boolean,
+    var order: Int,
+    var templateSpecimen: String,
+    var hasQrCode: Boolean = false,
     val templateProcessingKeyInformation: String,
 )
 

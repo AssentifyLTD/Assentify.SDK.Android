@@ -396,7 +396,7 @@ val allCountries = listOf(
     CountryOption("IRN", "IR", "Iran", "+98", Regex("^9\\d{9}$")),
     CountryOption("IRQ", "IQ", "Iraq", "+964", Regex("^7[3-9]\\d{8}$")),
     CountryOption("JOR", "JO", "Jordan", "+962", Regex("^7\\d{8}$")),
-    CountryOption("LBN", "LB", "Lebanon", "+961", Regex("^\\d{7,8}$")),
+    CountryOption("LBN", "LB", "Lebanon", "+961", Regex("^(03|70|71|76|78|79|81)\\d{6}$")),
     CountryOption("KWT", "KW", "Kuwait", "+965", Regex("^[569]\\d{7}$")),
     CountryOption("QAT", "QA", "Qatar", "+974", Regex("^3\\d{7}$")),
     CountryOption("OMN", "OM", "Oman", "+968", Regex("^(9|7)\\d{7}$")),

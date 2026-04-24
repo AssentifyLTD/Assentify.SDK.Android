@@ -1,4 +1,5 @@
 package com.assentify.sdk.RemoteClient.Models
+import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryPage
 import com.assentify.sdk.AssistedDataEntry.Models.InputProperty
 import com.google.gson.Gson
 
@@ -8,13 +9,13 @@ data class ConfigModel(
     val blockName: String,
     val instanceHash: String,
     val stepDefinition: Any?,
-    val flowInstanceId: String,
+    var flowInstanceId: String,
     val tenantIdentifier: String,
     val blockIdentifier: String,
     val flowIdentifier: String,
     val customProperties: Map<String, Any>,
     val defaultLanguageId: Int,
-    val instanceId: String,
+    var instanceId: String,
     val applicationId: String,
     val userStateStepMap: Map<String, List<UserState>>,
     val stepDefinitions: List<StepDefinitions>,
@@ -34,6 +35,7 @@ data class StepDefinitions(
     val stepId: Int,
     val stepDefinition: String,
     val customization: Customization,
+    val mappings: List<TokensMappings>?,
     val outputProperties: List<OutputProperties>,
     val inputProperties: List<InputProperty>
 
@@ -53,9 +55,15 @@ data class OutputProperties(
     val type: Int
 )
 
+
+
 data class Customization(
     val header: String?,
+    val subHeader: String?,
+    val file: String?,
+    val nextButtonTitle: String?,
     val processMrz: Boolean?,
+    val confirmationRequired: Boolean?,
     val showResultPage: Boolean?,
     val documentLiveness: Boolean?,
     val storeCapturedDocument: Boolean?,
@@ -65,7 +73,20 @@ data class Customization(
     val saveCapturedVideo: Boolean?,
     val outputProperties: List<OutputProperties>,
     val identificationDocuments: List<IdentificationDocuments>?,
-    val branches: List<Branch>?
+    val branches: List<Branch>?,
+    val allowAssistedDataEntry: Boolean?,
+    val assistedDataEntryPages: List<AssistedDataEntryPage>?,
+    val inputProperties: List<InputProperty>?,
+    val selectedTemplates: List<Int>?,
+    val confirmationMessage: String?,
+    val autoDownload: Boolean?,
+    val enableDigitalSignature: Boolean?,
+    val hideSignatureBoard: Boolean?,
+    val otpInputType: String?,
+    val enableOtp: Boolean?,
+    val otpSize: Int?,
+    val otpType: Int?,
+    val otpExpiryTime: Double?,
 )
 
 data class Branch(
@@ -95,11 +116,19 @@ data class StepMap(
 )
 
 data class IdentificationDocuments(
-  val key: String?, // IdentificationDocument.IdCard
+  val key: String?,
+  val enabled: Boolean?,
+  val documentType: Int?,
   val selectedCountries: List<String>?,
   val supportedIdCards: List<String>,
 
 )
+
+
+object IdentificationDocumentsDocumentType{
+    const val Passport = 1
+    const val ID = 2
+}
 
 fun encodeStepDefinitionsToJson(data: List<StepDefinitions>): String {
     val gson = Gson()

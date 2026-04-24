@@ -83,20 +83,32 @@ fun IDStepScreen(
     onDocumentSelected: (Templates) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+
+    val hasPassport = FlowController.identificationDocumentStepHasPassport(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+    val hasID = FlowController.identificationDocumentStepHasIDCard(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
-    var countries = remember {
-        AssentifySdkObject.getAssentifySdkObject().getTemplates(
-            FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+
+
+    var countries = remember(hasID, ) {
+        if (hasID) {
+            AssentifySdkObject.getAssentifySdkObject().getTemplates(FlowController.getCurrentStep()?.stepDefinition?.stepId!!)
+        } else {
+            emptyList()
+        }
+    }
+
+    if(hasPassport){
+        countries = countries + TemplatesByCountry(
+            id = -1,
+            name = "Rest of the world",
+            sourceCountryCode = "",
+            flag = " ",
+            templates = emptyList()
         )
     }
 
-    countries = countries + TemplatesByCountry(
-        id = -1,
-        name = "Rest of the world",
-        sourceCountryCode = "",
-        flag = " ",
-        templates = emptyList()
-    )
 
 
     var selectedCountry by remember { mutableStateOf<TemplatesByCountry?>(countries.firstOrNull()) }
@@ -227,7 +239,9 @@ fun IDStepScreen(
                             BaseTheme.FieldColor
 
                         DocumentPicker(
-                            country = country,   // your country model
+                            country = country,
+                            hasPassport = hasPassport,
+                            hasID = hasID,
                             iconPainterPassport = iconPainterPassport,
                             iconPainterIDCard = iconPainterID,
                             selectedBg = selectedBg,
@@ -393,6 +407,8 @@ fun CountryDropdownStyled(
 @Composable
 fun DocumentPicker(
     country: TemplatesByCountry,
+    hasPassport: Boolean,
+    hasID: Boolean,
     iconPainterPassport: Painter?,
     iconPainterIDCard: Painter?,
     selectedBg: Color,
@@ -424,7 +440,7 @@ fun DocumentPicker(
             .padding(top = 4.dp)
     ) {
 
-        // ===== 1) Passport card =====
+        if(hasPassport)
         item(key = "default_passport") {
             Card(
                 modifier = Modifier
@@ -485,7 +501,7 @@ fun DocumentPicker(
             }
         }
 
-        // ===== 2) Supported IDs card =====
+        if(hasID)
         if(country.templates.isNotEmpty())
         item(key = "supported_ids") {
             Card(

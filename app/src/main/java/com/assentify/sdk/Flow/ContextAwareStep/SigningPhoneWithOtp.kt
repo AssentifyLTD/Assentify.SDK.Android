@@ -1,4 +1,4 @@
-package com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes
+package com.assentify.sdk.Flow.ContextAwareStep
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -42,41 +43,42 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.CountryOption
+import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.ResendOtpControl
+import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.flagEmoji
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.OtpHelper
-import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 
 @Composable
-fun SecurePhoneWithOtpField(
+fun SigningPhoneWithOtp(
     title: String,
-    page: Int,
-    field: DataEntryPageElement,
+    contextAwareSigningModel: ContextAwareSigningModel,
     onValueChange: (String) -> Unit,
     onValid: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
     // Lebanon constants
     val countryFlag = "🇱🇧"
-    val countryIso2 = "LB"
     val countryDial = "+961"
 
-    var localNumber by remember(field.inputKey) { mutableStateOf("") }
+    var localNumber by remember { mutableStateOf("") }
     var isVerified by remember { mutableStateOf(false) }
     var verifying by remember { mutableStateOf(false) }
+    var sendingOtp by remember { mutableStateOf(false) }
+    var requestError by remember { mutableStateOf("") }
 
-    val otpSize = field.otpSize ?: 8
-    val otpType = field.otpType ?: 1
-    var otp by remember(field.inputKey) { mutableStateOf("") }
+    val otpSize = contextAwareSigningModel.data.otpSize ?: 8
+    val otpType = contextAwareSigningModel.data.otpType ?: 1
+    var otp by remember { mutableStateOf("") }
 
-    var isOtpStep by remember(field.inputKey) { mutableStateOf(false) }
+    var isOtpStep by remember { mutableStateOf(false) }
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var userStartedTyping by rememberSaveable { mutableStateOf(false) }
@@ -88,15 +90,17 @@ fun SecurePhoneWithOtpField(
         )
     }
 
-    val e164Phone by remember(localNumber) {
-        mutableStateOf(buildLebanonE164(localNumber, countryDial))
+    val e164Phone = remember(localNumber) {
+        buildLebanonE164(localNumber, countryDial)
     }
 
     val errToShow by remember(localNumber) {
         derivedStateOf {
             if (localNumber.isNotBlank() && !phoneLooksValidLB(localNumber)) {
                 "Please enter a valid Lebanese number"
-            } else ""
+            } else {
+                ""
+            }
         }
     }
 
@@ -113,95 +117,106 @@ fun SecurePhoneWithOtpField(
         }
     }
 
-    if (!field.isHidden!!) {
-        Column(modifier = modifier.fillMaxWidth()) {
-            Text(
-                text = if (!isOtpStep || isVerified) title else "Enter OTP",
-                color = BaseTheme.BaseTextColor,
-                fontSize = 14.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Normal
-            )
+    fun sendOtp() {
+        if (sendingOtp || !phoneLooksValidLB(localNumber) || configModelObject == null) return
 
-            Spacer(Modifier.height(6.dp))
+        sendingOtp = true
+        requestError = ""
 
-            if (!isOtpStep) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .weight(0.38f)
-                            .height(55.dp)
-                            .clickable {
-                                searchQuery = ""
-                                userStartedTyping = false
-                                showCountryDialog = true
-                            },
-                        shape = RoundedCornerShape(16.dp),
-                        color = BaseTheme.FieldColor
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "$countryFlag $countryDial",
-                                color = BaseTheme.BaseTextColor,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f)
-                            )
+        val req = RequestOtpModel(
+            token = e164Phone,
+            inputType = "PhoneNumberWithOtp",
+            otpSize = otpSize,
+            otpType = otpType,
+            otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0
+        )
 
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = "Choose code",
-                                tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+        OtpHelper.requestOtp(configModelObject, req) { success ->
+            sendingOtp = false
 
-                    TextField(
-                        value = localNumber,
-                        onValueChange = {
-                            val onlyDigits = it.filter(Char::isDigit)
-                            localNumber = onlyDigits.take(8)
-                            onValueChange(buildLebanonE164(localNumber, countryDial))
+            if (success) {
+                isOtpStep = true
+                otp = ""
+            } else {
+                requestError = "Failed to send OTP. Please try again."
+            }
+        }
+    }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (!isOtpStep) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .weight(0.38f)
+                        .height(55.dp)
+                        .clickable {
+                            searchQuery = ""
+                            userStartedTyping = false
+                            showCountryDialog = true
                         },
-                        singleLine = true,
-                        placeholder = { Text("", color = BaseTheme.BaseTextColor) },
-                        trailingIcon = {
-                            if (phoneLooksValidLB(localNumber)) {
-                                Box(
-                                    modifier = Modifier.background(
-                                        Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
+                    shape = RoundedCornerShape(16.dp),
+                    color = BaseTheme.FieldColor
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "$countryFlag $countryDial",
+                            color = BaseTheme.BaseTextColor,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Choose code",
+                            tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                TextField(
+                    value = localNumber,
+                    onValueChange = {
+                        val onlyDigits = it.filter(Char::isDigit)
+                        localNumber = onlyDigits.take(8)
+                        requestError = ""
+                        onValueChange(buildLebanonE164(localNumber, countryDial))
+                    },
+                    singleLine = true,
+                    placeholder = {
+                        Text(title)
+                    },
+                    trailingIcon = {
+                        if (phoneLooksValidLB(localNumber)) {
+                            Box(
+                                modifier = Modifier.background(
+                                    Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                    shape = RoundedCornerShape(12.dp)
+                                ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                TextButton(
+                                    onClick = { sendOtp() },
+                                    enabled = phoneLooksValidLB(localNumber) && !sendingOtp
                                 ) {
-                                    TextButton(
-                                        onClick = {
-                                            val req = RequestOtpModel(
-                                                token = e164Phone,
-                                                inputType = field.inputType,
-                                                otpSize = otpSize,
-                                                otpType = otpType,
-                                                otpExpiryTime = field.otpExpiryTime ?: 1.0
-                                            )
-                                            OtpHelper.requestOtp(configModelObject!!, req) { success ->
-                                                if (success) {
-                                                    isOtpStep = true
-                                                    otp = ""
-                                                } else {
-                                                    // TODO: show error UI
-                                                }
-                                            }
-                                        },
-                                        enabled = phoneLooksValidLB(localNumber)
-                                    ) {
+                                    if (sendingOtp) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(16.dp),
+                                            strokeWidth = 2.dp,
+                                            color = BaseTheme.BaseTextColor,
+
+                                        )
+                                    } else {
                                         Text(
                                             "Send OTP",
                                             color = BaseTheme.BaseTextColor,
@@ -211,61 +226,10 @@ fun SecurePhoneWithOtpField(
                                     }
                                 }
                             }
-                        },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = BaseTheme.FieldColor,
-                            unfocusedContainerColor = BaseTheme.FieldColor,
-                            cursorColor = BaseTheme.BaseTextColor,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = BaseTheme.BaseTextColor,
-                            unfocusedTextColor = BaseTheme.BaseTextColor,
-                            focusedPlaceholderColor = Color.Gray,
-                            unfocusedPlaceholderColor = Color.Gray
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .weight(0.62f)
-                            .height(55.dp)
-                    )
-                }
-            } else {
-                TextField(
-                    value = if (isVerified) e164Phone else otp,
-                    readOnly = isVerified,
-                    onValueChange = { raw ->
-                        if (!isVerified) {
-                            val filtered = filterByOtpType(raw, otpType)
-                                .take(otpSize)
-                                .let { if (otpType == 2 || otpType == 3) it else it }
-                            otp = filtered
-                            if (filtered.length == otpSize && otpMatchesType(filtered, otpType)) {
-                                verifying = true
-                                val verifyReq = VerifyOtpRequestOtpModel(
-                                    token = e164Phone,
-                                    otp = otp,
-                                    otpExpiryTime = field.otpExpiryTime ?: 1.0
-                                )
-                                OtpHelper.verifyOtp(configModelObject!!, verifyReq) { success ->
-                                    verifying = false
-                                    isVerified = success
-                                    if (success) onValid()
-                                }
-                            }
                         }
                     },
-                    singleLine = true,
-                    placeholder = { Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor) },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = when (otpType) {
-                            1 -> KeyboardType.Number
-                            2 -> KeyboardType.Ascii
-                            3 -> KeyboardType.Text
-                            else -> KeyboardType.Ascii
-                        }
+                        keyboardType = KeyboardType.Number
                     ),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = BaseTheme.FieldColor,
@@ -280,60 +244,135 @@ fun SecurePhoneWithOtpField(
                     ),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .weight(0.62f)
                         .height(55.dp)
                 )
+            }
+        } else {
+            TextField(
+                value = if (isVerified) e164Phone else otp,
+                readOnly = isVerified,
+                onValueChange = { raw ->
+                    if (!isVerified && !verifying) {
+                        requestError = ""
 
-                Spacer(Modifier.height(6.dp))
-                if (isVerified) {
-                    Text(
-                        "Verified successfully",
-                        color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                        fontSize = 12.sp
-                    )
-                } else {
-                    if (!verifying) {
-                        ResendOtpControl(
-                            expiryMinutes = field.otpExpiryTime ?: 1.0,
-                            onResend = {
-                                val req = RequestOtpModel(
-                                    token = e164Phone,
-                                    inputType = field.inputType,
-                                    otpSize = otpSize,
-                                    otpType = otpType,
-                                    otpExpiryTime = field.otpExpiryTime ?: 1.0
-                                )
-                                OtpHelper.requestOtp(configModelObject!!, req) { success ->
-                                    if (success) {
-                                        isOtpStep = true
-                                        otp = ""
-                                    } else {
-                                        // TODO: show error UI
-                                    }
+                        val filtered = filterByOtpType(raw, otpType).take(otpSize)
+                        otp = filtered
+
+                        if (filtered.length == otpSize && otpMatchesType(filtered, otpType)) {
+                            verifying = true
+
+                            val verifyReq = VerifyOtpRequestOtpModel(
+                                token = e164Phone,
+                                otp = otp,
+                                otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0
+                            )
+
+                            OtpHelper.verifyOtp(configModelObject!!, verifyReq) { success ->
+                                verifying = false
+                                isVerified = success
+
+                                if (success) {
+                                    requestError = ""
+                                    onValid()
+                                } else {
+                                    requestError = "Invalid OTP. Please try again."
                                 }
+                            }
+                        }
+                    }
+                },
+                singleLine = true,
+                placeholder = { Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = when (otpType) {
+                        1 -> KeyboardType.Number
+                        2 -> KeyboardType.Ascii
+                        3 -> KeyboardType.Text
+                        else -> KeyboardType.Ascii
+                    }
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = BaseTheme.FieldColor,
+                    unfocusedContainerColor = BaseTheme.FieldColor,
+                    cursorColor = BaseTheme.BaseTextColor,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = BaseTheme.BaseTextColor,
+                    unfocusedTextColor = BaseTheme.BaseTextColor,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+            )
+
+            Spacer(Modifier.height(6.dp))
+
+            if (isVerified) {
+                Text(
+                    "Verified successfully",
+                    color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                    fontSize = 12.sp
+                )
+            } else {
+                when {
+                    verifying -> {
+                        Text(
+                            "Otp verifying ...",
+                            color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    sendingOtp -> {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = BaseTheme.BaseTextColor,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Sending OTP...",
+                                color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    else -> {
+                        ResendOtpControl(
+                            expiryMinutes = contextAwareSigningModel.data.otpExpiryTime ?: 1.0,
+                            onResend = {
+                                sendOtp()
                             }
                         )
                     }
                 }
             }
+        }
 
-            if (verifying) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Otp verifying ...",
-                    color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                    fontSize = 12.sp
-                )
-            }
+        if (requestError.isNotEmpty()) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                requestError,
+                color = BaseTheme.BaseRedColor,
+                fontSize = 12.sp
+            )
+        }
 
-            if (errToShow.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    errToShow,
-                    color = BaseTheme.BaseRedColor,
-                    fontSize = 12.sp
-                )
-            }
+        if (errToShow.isNotEmpty()) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                errToShow,
+                color = BaseTheme.BaseRedColor,
+                fontSize = 12.sp
+            )
         }
     }
 
@@ -456,14 +495,13 @@ private fun phoneLooksValidLB(local: String): Boolean {
     return pattern.matches(digits)
 }
 
-
 private fun buildLebanonE164(local: String, countryDial: String = "+961"): String {
     val digits = local.filter(Char::isDigit)
     val normalized = if (digits.startsWith("0")) digits.drop(1) else digits
     return countryDial + normalized
 }
 
-/* ---------- Reuse your OTP helpers from the email component ---------- */
+/* ---------- OTP helpers ---------- */
 
 private fun otpMatchesType(value: String, type: Int): Boolean = when (type) {
     1 -> value.all { it.isDigit() }
