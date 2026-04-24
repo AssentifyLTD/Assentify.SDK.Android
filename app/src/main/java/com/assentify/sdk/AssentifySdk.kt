@@ -1,5 +1,6 @@
 package  com.assentify.sdk
 
+import ConfigFileManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -18,7 +19,6 @@ import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Core.FileUtils.ImageUtils
-import com.assentify.sdk.Core.FileUtils.ReadJSONFromAsset
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.FaceMatch.FaceMatchManual
@@ -31,13 +31,12 @@ import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.IdentificationDocumentsDocumentType
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
-import com.assentify.sdk.RemoteClient.Models.ValidateKeyModel
 import com.assentify.sdk.RemoteClient.RemoteClient
-import com.assentify.sdk.RemoteClient.RemoteClient.remoteAuthenticationService
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
@@ -59,14 +58,15 @@ import com.assentify.sdk.ScanQr.ScanQrResult
 import com.assentify.sdk.SubmitData.SubmitData
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import com.assentify.sdk.logging.BugsnagObject
+import okhttp3.ResponseBody
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class AssentifySdk(
     private var apiKey: String? = null,
-    private var tenantIdentifier: String? = null,
-    private var interaction: String? = null,
+    private var configFileName: String? = null,
     private val environmentalConditions: EnvironmentalConditions,
     private val assentifySdkCallback: AssentifySdkCallback,
     private var performActiveLivenessFace: Boolean? = null,
@@ -77,8 +77,9 @@ class AssentifySdk(
     private var timeStarted: String = "";
     private var configModel: ConfigModel? = null;
     private var tenantThemeModel: TenantThemeModel? = null;
+    private var initContentHash: String? = null;
     var allTemplates: List<TemplatesByCountry> = emptyList();
-    private lateinit var readJSONFromAsset: ReadJSONFromAsset;
+    private lateinit var configFileManager: ConfigFileManager;
 
 
     init {
@@ -86,101 +87,87 @@ class AssentifySdk(
             if (apiKey.isNullOrEmpty()) {
                 Log.e("AssentifySdk Init Error ", "ApiKey must not be empty or null")
             }
-            if (interaction.isNullOrEmpty()) {
-                Log.e("AssentifySdk Init Error ", "Interaction must not be empty or null")
+            if (configFileName.isNullOrEmpty()) {
+                Log.e("AssentifySdk Init Error ", "configFileName must not be empty or null")
             }
-            if (tenantIdentifier.isNullOrEmpty()) {
-                Log.e("AssentifySdk Init Error ", "TenantIdentifier must not be empty or null")
-            }
-            if (!apiKey.isNullOrEmpty() && !interaction.isNullOrEmpty() && !tenantIdentifier.isNullOrEmpty()) {
-                validateKey()
+            if (!apiKey.isNullOrEmpty()) {
+                loadLocalFile()
             }
         }
 
     }
-
-    private fun validateKey() {
-        val remoteService = remoteAuthenticationService
-        val call = remoteService.validateKey(apiKey!!, tenantIdentifier!!, "SDK")
-        call.enqueue(object : Callback<ValidateKeyModel> {
-            override fun onResponse(
-                call: Call<ValidateKeyModel>,
-                response: Response<ValidateKeyModel>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body() != null && response.body()!!.statusCode == 200 && response.body()!!.isSuccessful) {
-                        isKeyValid = true;
-                        getStart()
-                    }
-                } else {
-                    isKeyValid = false;
-                    assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
-                }
-            }
-
-            override fun onFailure(call: Call<ValidateKeyModel>, t: Throwable) {
-                isKeyValid = false;
-                assentifySdkCallback.onAssentifySdkInitError("Invalid Keys");
-            }
-        })
+    private fun loadLocalFile() {
+        timeStarted = getCurrentDateTime();
+        configFileManager = ConfigFileManager(context, "${configFileName}.json")
+        configFileManager.initFromAssetsIfNeeded();
+        configModel = configFileManager.readEngagement();
+        tenantThemeModel = configFileManager.readTheme();
+        initContentHash = configFileManager.readContentHash();
+        getTemplatesByCountry(configFileManager.readTemplates());
+        initializeCheck();
     }
 
-    private fun getStart() {
-        val remoteService = RemoteClient.remoteApiService
-        val call = remoteService.getStart(interaction!!)
-        call.enqueue(object : Callback<ConfigModel> {
-            override fun onResponse(
-                call: Call<ConfigModel>,
-                response: Response<ConfigModel>
-            ) {
-                if (response.isSuccessful) {
-                    configModel = response.body()!!
-                    getTenantTheme()
-                }
-
-            }
-
-            override fun onFailure(call: Call<ConfigModel>, t: Throwable) {
-                assentifySdkCallback.onAssentifySdkInitError(t.message!!);
-            }
-        })
-    }
-
-    private fun getTenantTheme() {
-        val remoteService = RemoteClient.remoteApiService
-        val call = remoteService.getTenantTheme(
-            apiKey!!,
-            "SDK",
-            configModel!!.flowInstanceId,
+    private fun initializeCheck() {
+        val remoteService = RemoteClient.remoteGatewayService
+        val call = remoteService.initializeCheck(
+            configModel!!.instanceHash,
+            ContentHashObject.getValue(configModel!!.instanceHash, context) ?: initContentHash!!,
             configModel!!.tenantIdentifier,
             configModel!!.blockIdentifier,
             configModel!!.instanceId,
-            configModel!!.flowIdentifier,
-            configModel!!.instanceHash,
-            configModel!!.tenantIdentifier
+            "SDK",
+            apiKey!!
         )
-        call.enqueue(object : Callback<TenantThemeModel> {
+
+        call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<TenantThemeModel>,
-                response: Response<TenantThemeModel>
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
             ) {
-                if (response.isSuccessful) {
-                    tenantThemeModel = response.body()!!
-                    iniSdk();
+                try {
+                    isKeyValid = true;
+                    newInstance(context);
+                    val bodyString = response.body()?.string()
+
+                    /**Has Change**/
+                    val json = JSONObject(bodyString)
+                     /** If there is hasChanges param this means there ara no changes **/
+                    if (json.has("hasChanges")) {
+                        val hasChanges = json.optBoolean("hasChanges", true)
+                        val flowInstanceId = json.optString("flowInstanceId", "")
+                        val instanceId = json.optString("instanceId", "")
+                        val contentHash = json.optString("contentHash", "")
+                        configModel!!.flowInstanceId = flowInstanceId;
+                        configModel!!.instanceId = instanceId;
+                        ContentHashObject.clear(configModel!!.instanceHash,context);
+                        ContentHashObject.setValue(contentHash,configModel!!.instanceHash,context);
+                        if (!hasChanges) {
+                            assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
+                            return
+                        }
+                    }
+
+                    /**Has File**/
+                    ContentHashObject.clear(configModel!!.instanceHash,context);
+                    clearFlow(context)
+                    configFileManager.clear()
+                    configFileManager.write(bodyString!!)
+                    configModel = configFileManager.readEngagement()
+                    tenantThemeModel = configFileManager.readTheme()
+                    getTemplatesByCountry(configFileManager.readTemplates());
+                    ContentHashObject.setValue(configFileManager.readContentHash(),configModel!!.instanceHash,context);
+                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
+
+                } catch (e: Exception) {
+                    isKeyValid = false;
+                    assentifySdkCallback.onAssentifySdkInitError(e.message ?: "Unknown initialize error")
                 }
-
             }
-
-            override fun onFailure(call: Call<TenantThemeModel>, t: Throwable) {
-                assentifySdkCallback.onAssentifySdkInitError(t.message!!);
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                isKeyValid = false;
+                assentifySdkCallback.onAssentifySdkInitError(t.message ?: "Network error")
             }
         })
-    }
-
-
-    private fun iniSdk() {
-        timeStarted = getCurrentDateTime();
-        getTemplatesByCountry();
     }
 
     fun startScanPassport(
@@ -360,8 +347,8 @@ class AssentifySdk(
         if (isKeyValid) {
             return ContextAwareSigning(
                 contextAwareSigningCallback,
-                tenantIdentifier!!,
-                interaction!!,
+                configModel!!.tenantIdentifier,
+                configModel!!.instanceHash,
                 stepId!!,
                 configModel!!,
                 apiKey!!
@@ -380,8 +367,8 @@ class AssentifySdk(
                 apiKey!!,
                 configModel!!
             )
-            assistedDataEntry.setStepId(stepId?.toString())
             assistedDataEntry.setCallback(assistedDataEntryCallback)
+            assistedDataEntry.setStepId(stepId?.toString())
             return assistedDataEntry;
         } else {
             throw Exception("Invalid Keys")
@@ -492,39 +479,23 @@ class AssentifySdk(
         }
     }
 
-    private fun getTemplatesByCountry() {
-        val remoteService = RemoteClient.remoteIdPowerService
-        val call: Call<List<Templates>> = remoteService.getTemplates()
-
-        call.enqueue(object : Callback<List<Templates>> {
-            override fun onResponse(
-                call: Call<List<Templates>>,
-                response: Response<List<Templates>>
-            ) {
-                if (response.isSuccessful) {
-                    val remoteResult: List<Templates>? = response.body()
-                    val filteredList = filterBySourceCountryCode(remoteResult)
-                    val templatesByCountry = ArrayList<TemplatesByCountry>()
-                    filteredList?.forEach { data ->
-                        val item = TemplatesByCountry(
-                            data.id,
-                            data.sourceCountry,
-                            data.sourceCountryCode,
-                            data.sourceCountryFlag,
-                            filterTemplatesCountryCode(remoteResult, data.sourceCountryCode)!!
-                        )
-                        templatesByCountry.add(item)
-                    }
+    private fun getTemplatesByCountry(data:List<Templates>?) {
+        val remoteResult: List<Templates>? =data
+        val filteredList = filterBySourceCountryCode(remoteResult)
+        val templatesByCountry = ArrayList<TemplatesByCountry>()
+        filteredList?.forEach { data ->
+            val item = TemplatesByCountry(
+                data.id,
+                data.sourceCountry,
+                data.sourceCountryCode,
+                data.sourceCountryFlag,
+                filterTemplatesCountryCode(remoteResult, data.sourceCountryCode)!!
+            )
+            templatesByCountry.add(item)
+        }
 
 
-                    allTemplates = templatesByCountry;
-                    assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
-                }
-            }
-
-            override fun onFailure(call: Call<List<Templates>>, t: Throwable) {
-            }
-        })
+        allTemplates = templatesByCountry;
     }
 
     private fun filterBySourceCountryCode(dataList: List<Templates>?): List<Templates>? {
@@ -562,7 +533,7 @@ class AssentifySdk(
         configModel!!.stepDefinitions.forEach { step ->
             if (step.stepId == stepID) {
                 step.customization.identificationDocuments!!.forEach { docStep ->
-                    if (docStep.key == "IdentificationDocument.IdCard") {
+                    if (docStep.documentType == IdentificationDocumentsDocumentType.ID) {
                         if (docStep.selectedCountries != null) {
                             selectedCountries = docStep.selectedCountries;
                             supportedIdCards = docStep.supportedIdCards;
@@ -678,7 +649,7 @@ class AssentifySdk(
             FlowCallbackObject.setFlowCallbackObject(flowCallback!!);
             ApiKeyObject.setApiKeyObject(apiKey!!);
             ContextObject.init(activityContext);
-            InteractionObject.setInteractionObject(interaction!!);
+            InteractionObject.setInteractionObject(configModel!!.instanceHash);
             FlowEnvironmentalConditionsObject.setFlowEnvironmentalConditions(
                 flowEnvironmentalConditions
             )
@@ -704,14 +675,22 @@ class AssentifySdk(
 
     }
 
-    public fun clearFlow(activityContext: Context) {
+    private fun clearFlow(activityContext: Context) {
         ContextObject.init(activityContext);
-        InteractionObject.setInteractionObject(interaction!!);
+        InteractionObject.setInteractionObject(configModel!!.instanceHash);
         ConfigModelObject.setConfigModelObject(
             null
         )
         LocalStepsObject.setLocalSteps(
             emptyList<LocalStepModel>().toMutableList()
+        )
+    }
+
+    private fun newInstance(activityContext: Context) {
+        ContextObject.init(activityContext);
+        InteractionObject.setInteractionObject(configModel!!.instanceHash);
+        ConfigModelObject.setConfigModelObject(
+            null
         )
     }
 

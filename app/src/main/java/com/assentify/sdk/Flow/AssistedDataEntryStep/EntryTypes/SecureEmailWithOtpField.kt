@@ -30,10 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.ConfigModelObject
-
-import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.OtpHelper
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.OtpHelper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
@@ -98,7 +97,7 @@ fun SecureEmailWithOtpField(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    BaseTheme.FieldColor,
+                                    Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                         ) {
@@ -107,7 +106,7 @@ fun SecureEmailWithOtpField(
                                     val requestOtpModel = RequestOtpModel(
                                         token = email.trim(),
                                         inputType = field.inputType,
-                                        otpSize = field.otpSize ?: 6,
+                                        otpSize = field.otpSize ?: 8,
                                         otpType = field.otpType ?: 1,
                                         otpExpiryTime = field.otpExpiryTime ?: 1.0   //
                                     )
@@ -138,7 +137,7 @@ fun SecureEmailWithOtpField(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = BaseTheme.FieldColor,
                     unfocusedContainerColor = BaseTheme.FieldColor,
-                    cursorColor = BaseTheme.FieldColor,
+                    cursorColor = BaseTheme.BaseTextColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedTextColor = BaseTheme.BaseTextColor,
@@ -235,7 +234,7 @@ fun SecureEmailWithOtpField(
                                     val requestOtpModel = RequestOtpModel(
                                         token = email.trim(),
                                         inputType = field.inputType,
-                                        otpSize = field.otpSize ?: 6,
+                                        otpSize = field.otpSize ?: 8,
                                         otpType = field.otpType ?: 1,
                                         otpExpiryTime = field.otpExpiryTime ?: 1.0   //
                                     )

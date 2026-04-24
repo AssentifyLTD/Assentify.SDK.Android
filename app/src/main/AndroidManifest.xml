@@ -79,7 +79,6 @@
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4926f3132e616e760f865b69a1b93f28" />
-
         <activity
             android:name=".MainActivity2"
             android:exported="false" />
@@ -93,6 +92,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

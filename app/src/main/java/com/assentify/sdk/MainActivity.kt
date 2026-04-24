@@ -29,8 +29,6 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 
 data class StartConfig(
     val apiKey: String,
-    val interactionHash: String,
-    val tenantIdentifier: String,
     val language: String,
     val enableDetect: Boolean,
     val enableNfc: Boolean,
@@ -67,19 +65,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         /** UI **/
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
-        val etInteractionHash = findViewById<EditText>(R.id.etInteractionHash)
-        val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
-        /* etApiKey.setText("ZoJMpa5daRvh4iBMFNPlThNucFGrZ5EHii4ZME6f6lto5LUTfpFfj9WXY3nYYmw52eXMoZ8iUqaPoeZSSeQ")
-           etInteractionHash.setText("658C2E5F32E472A8DF890C12F81603E3A7016AE822C77ADBE8F1047AC42719C1")
-           etTenantIdentifier.setText("588277d8-db12-44ea-b510-08dd6ac0001b")
-  */
+          etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
 
 
-        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+  /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
         etInteractionHash.setText("E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
-        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
+        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")*/
 
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
@@ -89,7 +82,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val swEnableQr = findViewById<SwitchCompat>(R.id.swEnableQr)
 
         val btnStart = findViewById<Button>(R.id.btnStart)
-        val clearFlow = findViewById<Button>(R.id.clearFlow)
         val nextFlow = findViewById<Button>(R.id.nextFlow)
       //  nextFlow.visibility = View.GONE
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
@@ -122,9 +114,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             languages
         )
 
-        clearFlow.setOnClickListener {
-            assentifySdk.clearFlow(this@MainActivity);
-        }
 
         nextFlow.setOnClickListener {
             val intent = Intent(this, MainActivity2::class.java)
@@ -133,14 +122,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         btnStart.setOnClickListener {
             val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
-            val interactionHash = etInteractionHash.text?.toString()?.trim().orEmpty()
-            val tenantIdentifier = etTenantIdentifier.text?.toString()?.trim().orEmpty()
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
                 apiKey = apiKey,
-                interactionHash = interactionHash,
-                tenantIdentifier = tenantIdentifier,
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
                 enableNfc = swEnableNfc.isChecked,
@@ -148,7 +133,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             )
 
             // Validation
-            if (config.apiKey.isEmpty() || config.tenantIdentifier.isEmpty() || config.interactionHash.isEmpty()) {
+            if (config.apiKey.isEmpty()) {
                 progressBar.visibility = View.GONE
                 Toast.makeText(
                     this,
@@ -168,9 +153,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     minRam = 1
                 );
                 assentifySdk = AssentifySdk(
-                    config.apiKey,
-                    config.tenantIdentifier,
-                    config.interactionHash,
+                    apiKey = config.apiKey,
+                    configFileName =   "configFile1",
                     environmentalConditions,
                     assentifySdkCallback = this,
                     performActiveLivenessFace = false,
@@ -193,6 +177,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     /** INIT SDK SUCCESS **/
     override fun onAssentifySdkInitSuccess(configModel: ConfigModel) {
         hideLoader()
+        Toast.makeText(this, "AssentifySdk Init Success ${configModel.flowName}", Toast.LENGTH_SHORT).show()
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()

@@ -97,13 +97,11 @@ import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import com.assentify.sdk.RemoteClient.Models.TokensMappings
 
-/// TODO TEST ALL WITH Multiple Files
 data class SelectedTemplatesTokens(
     val templateId: Int,
     val templateName: String,
     val documentTokens: List<TokensMappings>,
 )
-
 
 data class DocumentWithTokensModel(
     val templateId: Int,
@@ -124,41 +122,34 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     private var clickLoading = mutableStateOf<Boolean>(false)
 
     private var selectedTemplates = mutableStateListOf<SelectedTemplatesTokens>()
-
     private var documentWithTokensObject = mutableStateListOf<DocumentWithTokensModel?>()
-
     private var documentWithTokensAndSinged = mutableStateListOf<DocumentWithTokensAndSinged?>()
-
     var approvedDocumentsObject = mutableStateListOf<DocumentWithTokensModel?>()
 
     private var signatureObject = mutableStateOf<String?>(null)
 
-    private lateinit var contextAwareSigning: ContextAwareSigning;
-
+    private lateinit var contextAwareSigning: ContextAwareSigning
     private var timeStarted = getCurrentDateTimeForTracking()
-    private lateinit var localContext: Context;
+    private lateinit var localContext: Context
 
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
+        val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = null,
             inputData = FlowController.outputPropertiesToMap(currentStep.stepDefinition!!.outputProperties),
             status = "InProgress"
         )
+
         val defaultTitle = ConfigModelObject.getConfigModelObject()
             ?.stepDefinitions
             ?.find { it.stepId == currentStep.stepDefinition!!.stepId }
             ?.customization?.header
             ?: ""
-
-        /***/
-
-
 
         contextAwareSigning = assentifySdk.startContextAwareSigning(
             this,
@@ -167,12 +158,12 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                FlowController.backClick(this@MultipleFilesContextAwareStepActivity);
+                FlowController.backClick(this@MultipleFilesContextAwareStepActivity)
             }
         })
 
         setContent {
-            localContext =  LocalContext.current
+            localContext = LocalContext.current
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -187,33 +178,36 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
                             for (outputProperty in FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties) {
                                 if (outputProperty.key.contains("OnBoardMe_ContextAwareSigning_DocumentURL")) {
                                     extractedInformation[outputProperty.key] =
-                                        documentWithTokensAndSinged.first()!!.signatureResponseModel.signedDocumentUri
+                                        documentWithTokensAndSinged.firstOrNull()?.signatureResponseModel?.signedDocumentUri ?: ""
                                 }
                             }
-                            FlowController.makeCurrentStepDone(extractedInformation,timeStarted)
+                            FlowController.makeCurrentStepDone(extractedInformation, timeStarted)
                             FlowController.naveToNextStep(context = this)
-
                         },
                         onSign = { signature, approvedDocuments ->
-                           clickLoading.value = true
-                            approvedDocumentsObject.addAll(approvedDocuments);
+                            clickLoading.value = true
+                            approvedDocumentsObject.clear()
+                            approvedDocumentsObject.addAll(approvedDocuments)
                             signatureObject.value = signature
-                            contextAwareSigning.signature(
-                                approvedDocuments.first()!!.createUserDocumentResponseModel.templateInstanceId,
-                                approvedDocuments.first()!!.createUserDocumentResponseModel.documentId,
-                                signature
-                            )
 
-
+                            val firstApproved = approvedDocuments.firstOrNull()
+                            if (firstApproved != null) {
+                                contextAwareSigning.signature(
+                                    firstApproved.createUserDocumentResponseModel.templateInstanceId,
+                                    firstApproved.createUserDocumentResponseModel.documentId,
+                                    signature
+                                )
+                            } else {
+                                clickLoading.value = false
+                            }
                         },
                         onCreateUserDocumentResponseModel = {
                             clickLoading.value = true
                             val tokenValues = mutableMapOf<String, String>()
                             it.documentTokens.forEach { token ->
-                                tokenValues[token.tokenId.toString()] =
-                                    getValueByKey(token.sourceKey)
+                                tokenValues[token.tokenId.toString()] = getValueByKey(token.sourceKey)
                             }
-                            currentTemplateId.value = it.templateId;
+                            currentTemplateId.value = it.templateId
                             contextAwareSigning.createUserDocumentInstance(
                                 it.templateId,
                                 tokenValues
@@ -233,7 +227,6 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     }
 
     companion object {
-
         fun start(context: Context) {
             val intent = Intent(context, MultipleFilesContextAwareStepActivity::class.java)
             context.startActivity(intent)
@@ -241,15 +234,15 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     }
 
     private fun getValueByKey(key: String): String {
-        val doneList = FlowController.getAllDoneSteps();
+        val doneList = FlowController.getAllDoneSteps()
         doneList.forEach { step ->
             for (info in step.submitRequestModel!!.extractedInformation) {
                 if (info.key == key) {
-                    return info.value;
+                    return info.value
                 }
             }
         }
-        return "";
+        return ""
     }
 
     override fun onHasTokens(
@@ -257,19 +250,19 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         documentTokens: List<TokensMappings>,
         contextAwareSigningModel: ContextAwareSigningModel?
     ) {
-
-        contextAwareSigningObject.value = contextAwareSigningModel;
+        contextAwareSigningObject.value = contextAwareSigningModel
         selectedTemplates.add(
             SelectedTemplatesTokens(
-                templateId, "Agreement", documentTokens
+                templateId = templateId,
+                templateName = "Agreement",
+                documentTokens = documentTokens
             )
-        );
+        )
 
-        if (contextAwareSigningObject.value!!.data.selectedTemplates.size == selectedTemplates.size) {
+        if (contextAwareSigningObject.value?.data?.selectedTemplates?.size == selectedTemplates.size) {
             contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onTokensComplete
         }
     }
-
 
     override fun onCreateUserDocumentInstance(userDocumentResponseModel: CreateUserDocumentResponseModel) {
         documentWithTokensObject.add(
@@ -281,58 +274,66 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 
         contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onTokensComplete
         clickLoading.value = false
-
     }
 
     override fun onSignature(signatureResponseModel: SignatureResponseModel) {
-        documentWithTokensAndSinged.add(
-            DocumentWithTokensAndSinged(
-                approvedDocumentsObject.first()!!.templateId,
-                signatureResponseModel
+        val firstApproved = approvedDocumentsObject.firstOrNull()
+        if (firstApproved != null) {
+            documentWithTokensAndSinged.add(
+                DocumentWithTokensAndSinged(
+                    firstApproved.templateId,
+                    signatureResponseModel
+                )
             )
-        )
-        if(contextAwareSigningObject.value!!.data.autoDownload){
+        }
+
+        if (contextAwareSigningObject.value?.data?.autoDownload == true) {
             startPdfDownload(
                 context = localContext,
                 url = signatureResponseModel.signedDocumentUri,
                 fileName = "SignedDocument.pdf"
             )
         }
+
         approvedDocumentsObject.removeFirstOrNull()
-        if (contextAwareSigningObject.value!!.data.selectedTemplates.size == documentWithTokensAndSinged.size) {
+
+        if (contextAwareSigningObject.value?.data?.selectedTemplates?.size == documentWithTokensAndSinged.size) {
             contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSignature
             clickLoading.value = false
-
         } else {
-            contextAwareSigning.signature(
-                approvedDocumentsObject.first()!!.createUserDocumentResponseModel.templateInstanceId,
-                approvedDocumentsObject.first()!!.createUserDocumentResponseModel.documentId,
-                signatureObject.value!!
-            )
+            val nextApproved = approvedDocumentsObject.firstOrNull()
+            if (nextApproved != null) {
+                contextAwareSigning.signature(
+                    nextApproved.createUserDocumentResponseModel.templateInstanceId,
+                    nextApproved.createUserDocumentResponseModel.documentId,
+                    signatureObject.value ?: ""
+                )
+            } else {
+                clickLoading.value = false
+            }
         }
 
-        /** Track Progress **/
         val extractedInformation = mutableMapOf<String, String>()
         for (outputProperty in FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties) {
             if (outputProperty.key.contains("OnBoardMe_ContextAwareSigning_DocumentURL")) {
                 extractedInformation[outputProperty.key] =
-                    documentWithTokensAndSinged.first()!!.signatureResponseModel.signedDocumentUri
+                    documentWithTokensAndSinged.firstOrNull()?.signatureResponseModel?.signedDocumentUri ?: ""
             }
         }
-        val  currentStep = FlowController.getCurrentStep()
+
+        val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "Completed",
             inputData = extractedInformation,
             status = "InProgress"
         )
-        /***/
     }
 
     override fun onError(message: String) {
         contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onError
+        clickLoading.value = false
     }
-
 }
 
 @SuppressLint("MutableCollectionMutableState")
@@ -350,24 +351,48 @@ fun MultipleFilesContextAwareStepScreen(
     documentWithTokensObject: MutableList<DocumentWithTokensModel?>,
     documentWithTokensAndSinged: MutableList<DocumentWithTokensAndSinged?>,
 ) {
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
-
     var checked by remember { mutableStateOf(false) }
     var selectedTemplate by remember { mutableStateOf<SelectedTemplatesTokens?>(null) }
 
     val approvedDocuments = remember {
         mutableStateListOf<DocumentWithTokensModel?>()
     }
-    var showTemplates by remember { mutableStateOf(false) }
 
+    var showTemplates by remember { mutableStateOf(false) }
     var signatureB64 by remember { mutableStateOf<String?>("") }
 
+    val enableOtp = contextAwareSigningObject?.data?.enableOtp == true
+    val otpInputType = contextAwareSigningObject?.data?.otpInputType
+    val enableDigitalSignature = contextAwareSigningObject?.data?.hideSignatureBoard == false
+
+    var otpValue by remember { mutableStateOf("") }
+    var isOtpValidated by remember { mutableStateOf(false) }
+
+    val canSign = if (enableOtp) {
+        if (enableDigitalSignature) {
+            isOtpValidated && !signatureB64.isNullOrEmpty()
+        } else {
+            isOtpValidated
+        }
+    } else {
+        if (enableDigitalSignature) {
+            !signatureB64.isNullOrEmpty()
+        } else {
+            true
+        }
+    }
+
+    val shouldHideApprovedContentForOtp =
+        enableOtp &&
+                !isOtpValidated &&
+                approvedDocuments.size == selectedTemplates.size &&
+                selectedTemplates.isNotEmpty() &&
+                selectedTemplate == null &&
+                eventTypes != ContextAwareStepEventTypes.onSignature
+
     BaseBackgroundContainer(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
-        // ============ TOP ============ //
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -391,7 +416,7 @@ fun MultipleFilesContextAwareStepScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint =   BaseTheme.BaseTextColor,
+                        tint = BaseTheme.BaseTextColor,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -409,6 +434,7 @@ fun MultipleFilesContextAwareStepScreen(
                         .align(Alignment.CenterVertically),
                     contentScale = ContentScale.Fit
                 )
+
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
             }
@@ -418,25 +444,23 @@ fun MultipleFilesContextAwareStepScreen(
             ProgressStepper(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 0.dp, vertical = 6.dp)
+                    .padding(vertical = 6.dp)
             )
         }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 180.dp) // below header
+                .padding(top = 180.dp)
         ) {
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 10.dp) // leave room for bottom button
+                    .padding(bottom = 10.dp)
                     .verticalScroll(rememberScrollState())
             ) {
                 val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-
-
 
                 if (eventTypes == ContextAwareStepEventTypes.onSend) {
                     Box(
@@ -444,8 +468,6 @@ fun MultipleFilesContextAwareStepScreen(
                             .fillMaxWidth()
                             .height(screenHeight - 200.dp)
                     ) {
-
-                        /// TOP Title
                         Text(
                             text = if (contextAwareSigningObject?.data?.header.isNullOrEmpty()) {
                                 defaultTitle
@@ -464,7 +486,6 @@ fun MultipleFilesContextAwareStepScreen(
                                 .padding(horizontal = 25.dp)
                         )
 
-                        /// CENTER Loader
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .size(60.dp)
@@ -475,19 +496,20 @@ fun MultipleFilesContextAwareStepScreen(
                     }
                 }
 
+                if (
+                    eventTypes == ContextAwareStepEventTypes.onTokensComplete ||
+                    eventTypes == ContextAwareStepEventTypes.onSignature
+                ) {
 
-                /// END
-
-                if (eventTypes == ContextAwareStepEventTypes.onTokensComplete || eventTypes == ContextAwareStepEventTypes.onSignature) {
-
-                    if (selectedTemplate == null || documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null) {
-
-                        /// TOP Screen
+                    if (
+                        selectedTemplate == null ||
+                        documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null
+                    ) {
                         Text(
-                            text = contextAwareSigningObject!!.data.header!!,
+                            text = contextAwareSigningObject?.data?.header ?: defaultTitle,
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Bold,
-                            color =   BaseTheme.BaseTextColor,
+                            color = BaseTheme.BaseTextColor,
                             fontSize = 23.sp,
                             lineHeight = 34.sp,
                             textAlign = TextAlign.Start,
@@ -496,11 +518,11 @@ fun MultipleFilesContextAwareStepScreen(
                                 .padding(horizontal = 25.dp)
                         )
 
-                        if (contextAwareSigningObject.data.subHeader != null) {
+                        if (contextAwareSigningObject?.data?.subHeader != null) {
                             Spacer(Modifier.height(6.dp))
                             Text(
-                                text = contextAwareSigningObject.data.subHeader,
-                                color =   BaseTheme.BaseTextColor,
+                                text = contextAwareSigningObject.data.subHeader ?: "",
+                                color = BaseTheme.BaseTextColor,
                                 fontSize = 15.sp,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Bold,
@@ -512,38 +534,12 @@ fun MultipleFilesContextAwareStepScreen(
                             )
                         }
 
-                        if (contextAwareSigningObject.data.confirmationMessage != null) {
-                            val confirmationMessage =
-                                remember(contextAwareSigningObject!!.data.confirmationMessage) {
-                                    contextAwareSigningObject.data.confirmationMessage
-                                        ?.let { raw ->
-                                            removeHtml(raw)
-                                                .replace(Regex("\\s*\\n\\s*"), " ")
-                                                .replace(Regex("\\s+"), " ")
-                                                .trim()
-                                        }
-                                        ?: ""
-                                }
-
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                text = confirmationMessage,
-                                color =   BaseTheme.BaseTextColor,
-                                fontSize = 12.sp,
-                                lineHeight = 18.sp,
-                                fontFamily = InterFont,
-                                fontWeight = FontWeight.Light,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 25.dp)
-                            )
-                        }
                         Spacer(Modifier.height(12.dp))
+
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.fillMaxWidth()
-                        ) { /// Center Screen
+                        ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Start,
@@ -551,36 +547,28 @@ fun MultipleFilesContextAwareStepScreen(
                                     .fillMaxWidth()
                                     .padding(horizontal = 12.dp)
                             ) {
-
                                 Checkbox(
                                     modifier = Modifier.padding(0.dp),
                                     checked = checked,
                                     onCheckedChange = {
                                         if (approvedDocuments.size != selectedTemplates.size) {
                                             checked = it
-
                                         }
                                     },
                                     colors = CheckboxDefaults.colors(
                                         checkedColor = Color(
-                                            android.graphics.Color.parseColor(
-                                                BaseTheme.BaseAccentColor
-                                            )
+                                            android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
                                         ),
                                         uncheckedColor = Color(
-                                            android.graphics.Color.parseColor(
-                                                BaseTheme.BaseAccentColor
-                                            )
+                                            android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
                                         ),
                                         checkmarkColor = BaseTheme.BaseTextColor,
                                     )
                                 )
 
-                                //  Spacer(modifier = Modifier.width(8.dp))
-
                                 Text(
                                     text = "I agree to the terms and conditions",
-                                    color =   BaseTheme.BaseTextColor,
+                                    color = BaseTheme.BaseTextColor,
                                     fontSize = 12.sp,
                                     lineHeight = 18.sp,
                                     fontFamily = InterFont,
@@ -588,160 +576,235 @@ fun MultipleFilesContextAwareStepScreen(
                                     textAlign = TextAlign.Start,
                                 )
                             }
-                            Text(
-                                text = if (approvedDocuments.size != selectedTemplates.size) "Please review and approve the below files" else "Thank you for approving",
-                                fontFamily = InterFont,
-                                fontWeight = FontWeight.Bold,
-                                color =   BaseTheme.BaseTextColor,
-                                fontSize = 15.sp,
-                                lineHeight = 34.sp,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 25.dp)
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            if (approvedDocuments.size != selectedTemplates.size) {
-                                LazyColumn(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(100.dp)
-                                        .padding(horizontal = 25.dp),
-                                    verticalArrangement = Arrangement.Top
-                                ) {
-                                    itemsIndexed(selectedTemplates) { index, document ->
-                                        DocumentRow(
-                                            title = document.templateName,
-                                            isActive = checked,
-                                            isApproved = approvedDocuments.any { it!!.templateId == document.templateId },
-                                            onClick = {
-                                                if (checked) {
-                                                    selectedTemplate = document
-                                                    if (documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null) {
-                                                        onCreateUserDocumentResponseModel(
-                                                            document
-                                                        )
-                                                    }
+
+                            if (!shouldHideApprovedContentForOtp) {
+                                if (contextAwareSigningObject?.data?.confirmationMessage != null) {
+                                    val confirmationMessage =
+                                        remember(contextAwareSigningObject.data.confirmationMessage) {
+                                            contextAwareSigningObject.data.confirmationMessage
+                                                ?.let { raw ->
+                                                    removeHtml(raw)
+                                                        .replace(Regex("\\s*\\n\\s*"), " ")
+                                                        .replace(Regex("\\s+"), " ")
+                                                        .trim()
                                                 }
+                                                ?: ""
+                                        }
 
-                                            }
-                                        )
-                                    }
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        text = confirmationMessage,
+                                        color = BaseTheme.BaseTextColor,
+                                        fontSize = 12.sp,
+                                        lineHeight = 18.sp,
+                                        fontFamily = InterFont,
+                                        fontWeight = FontWeight.Light,
+                                        textAlign = TextAlign.Start,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 25.dp)
+                                    )
                                 }
-                            } else {
 
-                                Row(
+                                Text(
+                                    text = if (approvedDocuments.size != selectedTemplates.size)
+                                        "Please review and approve the below files"
+                                    else
+                                        "Thank you for approving",
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BaseTheme.BaseTextColor,
+                                    fontSize = 15.sp,
+                                    lineHeight = 34.sp,
+                                    textAlign = TextAlign.Start,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 25.dp)
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .background(
-                                            BaseTheme.FieldColor
-                                        )
-                                        .clickable { showTemplates = !showTemplates }
-                                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Files Reviewed and Approved",
-                                        color = BaseTheme.BaseTextColor, // green text like image
-                                        fontFamily = InterFont,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp,
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                )
 
-                                    Icon(
-                                        imageVector = if (showTemplates) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                        contentDescription = null,
-                                        tint = BaseTheme.BaseTextColor
-                                    )
-                                }
-                                AnimatedVisibility(
-                                    visible = showTemplates,
-                                    enter = expandVertically() + fadeIn(),
-                                    exit = shrinkVertically() + fadeOut()
-                                ) {
-                                    /// Center Screen
+                                Spacer(Modifier.height(12.dp))
+
+                                if (approvedDocuments.size != selectedTemplates.size) {
                                     LazyColumn(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(100.dp)
-                                            .padding(horizontal = 25.dp, vertical = 10.dp),
+                                            .padding(horizontal = 25.dp),
                                         verticalArrangement = Arrangement.Top
                                     ) {
-                                        itemsIndexed(selectedTemplates) { index, document ->
+                                        itemsIndexed(selectedTemplates) { _, document ->
                                             DocumentRow(
                                                 title = document.templateName,
                                                 isActive = checked,
-                                                isApproved = approvedDocuments.any { it!!.templateId == document.templateId },
+                                                isApproved = approvedDocuments.any { it?.templateId == document.templateId },
                                                 onClick = {
                                                     if (checked) {
                                                         selectedTemplate = document
                                                         if (documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null) {
-                                                            onCreateUserDocumentResponseModel(
-                                                                document
-                                                            )
+                                                            onCreateUserDocumentResponseModel(document)
                                                         }
                                                     }
                                                 }
                                             )
                                         }
                                     }
-                                    /// END
+                                } else {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 25.dp)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(BaseTheme.FieldColor)
+                                            .clickable { showTemplates = !showTemplates }
+                                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Files Reviewed and Approved",
+                                            color = BaseTheme.BaseTextColor,
+                                            fontFamily = InterFont,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.weight(1f)
+                                        )
+
+                                        Icon(
+                                            imageVector = if (showTemplates)
+                                                Icons.Filled.KeyboardArrowUp
+                                            else
+                                                Icons.Filled.KeyboardArrowDown,
+                                            contentDescription = null,
+                                            tint = BaseTheme.BaseTextColor
+                                        )
+                                    }
+
+                                    AnimatedVisibility(
+                                        visible = showTemplates,
+                                        enter = expandVertically() + fadeIn(),
+                                        exit = shrinkVertically() + fadeOut()
+                                    ) {
+                                        LazyColumn(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(100.dp)
+                                                .padding(horizontal = 25.dp, vertical = 10.dp),
+                                            verticalArrangement = Arrangement.Top
+                                        ) {
+                                            itemsIndexed(selectedTemplates) { _, document ->
+                                                DocumentRow(
+                                                    title = document.templateName,
+                                                    isActive = checked,
+                                                    isApproved = approvedDocuments.any { it?.templateId == document.templateId },
+                                                    onClick = {
+                                                        if (checked) {
+                                                            selectedTemplate = document
+                                                            if (documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null) {
+                                                                onCreateUserDocumentResponseModel(document)
+                                                            }
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-
                             }
-
-                            /// END
-
-
                         }
                     }
 
-
-                    if (selectedTemplate != null && documentWithTokensAndSinged.find { selectedTemplate!!.templateId == it?.templateId } != null && eventTypes == ContextAwareStepEventTypes.onSignature) {
+                    if (
+                        selectedTemplate != null &&
+                        documentWithTokensAndSinged.find { selectedTemplate!!.templateId == it?.templateId } != null &&
+                        eventTypes == ContextAwareStepEventTypes.onSignature
+                    ) {
                         DocumentPageFromUrl(
-                            url = documentWithTokensAndSinged.find { selectedTemplate!!.templateId == it?.templateId }!!.signatureResponseModel.signedDocumentUri,
+                            url = documentWithTokensAndSinged.find { selectedTemplate!!.templateId == it?.templateId }!!
+                                .signatureResponseModel.signedDocumentUri,
                             onCancel = {
                                 selectedTemplate = null
                             }
                         )
                     }
 
-                    if (selectedTemplate != null && documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } != null && eventTypes != ContextAwareStepEventTypes.onSignature) {
+                    if (
+                        selectedTemplate != null &&
+                        documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } != null &&
+                        eventTypes != ContextAwareStepEventTypes.onSignature
+                    ) {
                         DocumentPage(
-                            userDocumentResponseModel = documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId }!!.createUserDocumentResponseModel,
+                            userDocumentResponseModel = documentWithTokensObject.find {
+                                selectedTemplate!!.templateId == it?.templateId
+                            }!!.createUserDocumentResponseModel,
                             onAccept = {
                                 approvedDocuments.add(
                                     DocumentWithTokensModel(
                                         selectedTemplate!!.templateId,
-                                        documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId }!!.createUserDocumentResponseModel
-
+                                        documentWithTokensObject.find {
+                                            selectedTemplate!!.templateId == it?.templateId
+                                        }!!.createUserDocumentResponseModel
                                     )
                                 )
                                 selectedTemplate = null
                             },
-                            isApproved = approvedDocuments.any { it!!.templateId == selectedTemplate!!.templateId },
+                            isApproved = approvedDocuments.any { it?.templateId == selectedTemplate!!.templateId },
                             onCancel = {
                                 selectedTemplate = null
                             }
                         )
                     }
-                    if (selectedTemplate == null && approvedDocuments.size == selectedTemplates.size && eventTypes != ContextAwareStepEventTypes.onSignature) {
-                        Spacer(Modifier.height(30.dp))
-                        SignaturePad(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(170.dp)
-                                .padding(horizontal = 25.dp),
-                            onConfirmBase64 = { signature ->
-                                signatureB64 = signature;
+
+                    if (
+                        selectedTemplate == null &&
+                        approvedDocuments.size == selectedTemplates.size &&
+                        eventTypes != ContextAwareStepEventTypes.onSignature
+                    ) {
+                        Spacer(Modifier.height(20.dp))
+
+                        if (enableOtp && !isOtpValidated) {
+                            if (otpInputType == "EmailWithOtp") {
+                                SigningEmailWithOtp(
+                                    title = "Email to Receive a Verification Code",
+                                    contextAwareSigningModel = contextAwareSigningObject!!,
+                                    onValueChange = {
+                                        otpValue = it
+                                    },
+                                    onValid = {
+                                        isOtpValidated = true
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 25.dp)
+                                )
+                            } else {
+                                SigningPhoneWithOtp(
+                                    title = "Phone Number",
+                                    contextAwareSigningModel = contextAwareSigningObject!!,
+                                    onValueChange = {
+                                        otpValue = it
+                                    },
+                                    onValid = {
+                                        isOtpValidated = true
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 25.dp)
+                                )
                             }
-                        )
+                        } else {
+                            if (enableDigitalSignature) {
+                                SignaturePad(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(170.dp)
+                                        .padding(horizontal = 25.dp),
+                                    onConfirmBase64 = { signature ->
+                                        signatureB64 = signature
+                                    }
+                                )
+                            }
+                        }
                     }
-                  //
-                    // ============ BOTTOM ============ //
+
                     if (clickLoading && eventTypes == ContextAwareStepEventTypes.onTokensComplete) {
                         Box(
                             modifier = Modifier
@@ -757,18 +820,16 @@ fun MultipleFilesContextAwareStepScreen(
                             )
                         }
                     }
-
                 }
-
             }
         }
+
         if (selectedTemplate == null && eventTypes == ContextAwareStepEventTypes.onTokensComplete) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
                     .background(Color.Transparent)
-
             ) {
                 Column(
                     modifier = Modifier
@@ -776,20 +837,25 @@ fun MultipleFilesContextAwareStepScreen(
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-
-                    if(!clickLoading){
+                    if (!clickLoading) {
                         Button(
                             onClick = {
-                                if (signatureB64!!.isNotEmpty()) {
-                                    onSign(signatureB64!!, approvedDocuments)
+                                if (canSign) {
+                                    val signature = if (enableDigitalSignature) {
+                                        signatureB64 ?: ""
+                                    } else {
+                                        ""
+                                    }
+                                    onSign(signature, approvedDocuments)
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = RoundedCornerShape(28.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 25.dp, horizontal = 25.dp) .background(
-                                    brush = if (signatureB64!!.isNotEmpty())
+                                .padding(vertical = 25.dp, horizontal = 25.dp)
+                                .background(
+                                    brush = if (canSign)
                                         BaseTheme.BaseClickColor!!.toBrush()
                                     else
                                         SolidColor(BaseTheme.FieldColor),
@@ -797,29 +863,28 @@ fun MultipleFilesContextAwareStepScreen(
                                 )
                         ) {
                             Text(
-                                "Accept Terms & Sign",
+                                text = if (enableOtp && !isOtpValidated) {
+                                    "Validate OTP First"
+                                } else {
+                                    if (enableDigitalSignature) "Accept Terms & Sign" else "Accept Terms"
+                                },
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 color = BaseTheme.BaseSecondaryTextColor,
                                 modifier = Modifier.padding(vertical = 7.dp)
                             )
                         }
-
                     }
-
-
                 }
             }
-
-
         }
+
         if (selectedTemplate == null && eventTypes == ContextAwareStepEventTypes.onSignature) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
                     .background(Color.Transparent)
-
             ) {
                 Column(
                     modifier = Modifier
@@ -827,37 +892,33 @@ fun MultipleFilesContextAwareStepScreen(
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                        Button(
-                            onClick = {
-                                onNext()
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            shape = RoundedCornerShape(28.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 25.dp, horizontal = 25.dp).background(
-                                    brush = BaseTheme.BaseClickColor!!.toBrush(),
-                                    shape = RoundedCornerShape(28.dp)
-                                )
-                        ) {
-                            Text(
-                                "Next",
-                                fontFamily = InterFont,
-                                fontWeight = FontWeight.Normal,
-                                color = BaseTheme.BaseSecondaryTextColor,
-                                modifier = Modifier.padding(vertical = 7.dp)
+                    Button(
+                        onClick = {
+                            onNext()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(28.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 25.dp, horizontal = 25.dp)
+                            .background(
+                                brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                shape = RoundedCornerShape(28.dp)
                             )
-                        }
-
+                    ) {
+                        Text(
+                            "Next",
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Normal,
+                            color = BaseTheme.BaseSecondaryTextColor,
+                            modifier = Modifier.padding(vertical = 7.dp)
+                        )
+                    }
                 }
             }
-
-
         }
     }
-
 }
-
 
 fun removeHtml(value: String): String {
     return Html.fromHtml(value, Html.FROM_HTML_MODE_LEGACY).toString()
@@ -870,7 +931,7 @@ fun DocumentRow(
     isActive: Boolean,
     onClick: () -> Unit
 ) {
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     Card(
         modifier = Modifier
@@ -882,8 +943,7 @@ fun DocumentRow(
             containerColor = if (isActive) {
                 BaseTheme.FieldColor
             } else {
-                BaseTheme.FieldColor
-                    .copy(alpha = 0.3f) // 10% opacity
+                BaseTheme.FieldColor.copy(alpha = 0.3f)
             }
         ),
     ) {
@@ -893,9 +953,7 @@ fun DocumentRow(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            // Left icon
-            if (isActive)
+            if (isActive) {
                 Icon(
                     imageVector = if (isApproved) Icons.Default.CheckCircleOutline else Icons.Default.FileOpen,
                     contentDescription = null,
@@ -904,10 +962,10 @@ fun DocumentRow(
                     ),
                     modifier = if (isApproved) Modifier.size(30.dp) else Modifier.size(22.dp)
                 )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Title
             Text(
                 text = title,
                 fontFamily = InterFont,
@@ -916,13 +974,14 @@ fun DocumentRow(
                 modifier = Modifier.weight(1f)
             )
 
-            // Right eye icon
             Icon(
                 imageVector = Icons.Default.Visibility,
                 contentDescription = null,
-                tint = if (isActive) Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)) else Color(
-                    android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
-                ).copy(alpha = 0.3f),
+                tint = if (isActive) {
+                    Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                } else {
+                    Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)).copy(alpha = 0.3f)
+                },
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -936,23 +995,27 @@ fun DocumentPage(
     onAccept: () -> Unit,
     onCancel: () -> Unit
 ) {
-
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
+    FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     PdfViewerFromBase64(
-        base64Data = userDocumentResponseModel!!.templateInstance,
+        base64Data = userDocumentResponseModel.templateInstance,
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (isApproved) LocalConfiguration.current.screenHeightDp.dp - 280.dp else LocalConfiguration.current.screenHeightDp.dp - 340.dp)
+            .height(
+                if (isApproved) {
+                    LocalConfiguration.current.screenHeightDp.dp - 280.dp
+                } else {
+                    LocalConfiguration.current.screenHeightDp.dp - 340.dp
+                }
+            )
             .clip(RoundedCornerShape(12.dp))
             .padding(horizontal = 25.dp)
             .border(1.dp, Color.Gray)
     )
 
-    if (!isApproved)
-        Spacer(Modifier.height(20.dp))
-    if (!isApproved)
+    if (!isApproved) Spacer(Modifier.height(20.dp))
+
+    if (!isApproved) {
         Button(
             onClick = {
                 onAccept()
@@ -976,7 +1039,10 @@ fun DocumentPage(
                 modifier = Modifier.padding(vertical = 7.dp)
             )
         }
+    }
+
     Spacer(Modifier.height(15.dp))
+
     Button(
         onClick = {
             onCancel()
@@ -1010,9 +1076,7 @@ fun DocumentPageFromUrl(
     url: String,
     onCancel: () -> Unit
 ) {
-
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
+    FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     PdfViewerFromUrl(
         url = url,
@@ -1025,8 +1089,8 @@ fun DocumentPageFromUrl(
             .border(1.dp, Color.Gray)
     )
 
-
     Spacer(Modifier.height(15.dp))
+
     Button(
         onClick = {
             onCancel()

@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
+import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
@@ -39,13 +40,9 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
         /** UI **/
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
-        val etInteractionHash = findViewById<EditText>(R.id.etInteractionHash)
-        val etTenantIdentifier = findViewById<EditText>(R.id.etTenantIdentifier)
 
 
         etApiKey.setText( "QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        etInteractionHash.setText( "6A0001F3C7B0F99B14F5BB17B0694BE751F189ADB62A3811591E27558FC30503")
-        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
 
@@ -54,7 +51,6 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val swEnableQr = findViewById<SwitchCompat>(R.id.swEnableQr)
 
         val btnStart = findViewById<Button>(R.id.btnStart)
-        val clearFlow = findViewById<Button>(R.id.clearFlow)
         progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         // Languages list for dropdown
@@ -85,20 +81,14 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             languages
         )
 
-        clearFlow.setOnClickListener {
-            assentifySdk.clearFlow(this@MainActivity2);
-        }
+
 
         btnStart.setOnClickListener {
             val apiKey = etApiKey.text?.toString()?.trim().orEmpty()
-            val interactionHash = etInteractionHash.text?.toString()?.trim().orEmpty()
-            val tenantIdentifier = etTenantIdentifier.text?.toString()?.trim().orEmpty()
             val language = spLanguage.selectedItem?.toString() ?: Language.NON
 
             config = StartConfig(
                 apiKey = apiKey,
-                interactionHash = interactionHash,
-                tenantIdentifier = tenantIdentifier,
                 language = language,
                 enableDetect = swEnableDetect.isChecked,
                 enableNfc = swEnableNfc.isChecked,
@@ -106,7 +96,7 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             )
 
             // Validation
-            if (config.apiKey.isEmpty() || config.tenantIdentifier.isEmpty() || config.interactionHash.isEmpty()) {
+            if (config.apiKey.isEmpty() ) {
                 progressBar.visibility = View.GONE
                 Toast.makeText(
                     this,
@@ -126,9 +116,8 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     minRam = 1
                 );
                 assentifySdk = AssentifySdk(
-                    config.apiKey,
-                    config.tenantIdentifier,
-                    config.interactionHash,
+                    apiKey = config.apiKey,
+                    configFileName =   "configFile2",
                     environmentalConditions,
                     assentifySdkCallback = this,
                     performActiveLivenessFace = false,
@@ -154,18 +143,18 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
-
+            customProperties.put("phoneNumber","key1")
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                // logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
+                 logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
                 // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
                 backgroundType = BackgroundType.Color,
-                /*   textColor = "#000000",
-                   accentColor = "#ffc400",
-                   secondaryTextColor = "#ffffff",
-                   backgroundCardColor = "#f3f4f6",
-                   backgroundColor = BackgroundStyle.Solid("#ffffff"),
-                   clickColor = BackgroundStyle.Solid("#ffc400"),
-                   blockLoaderCustomProperties = customProperties,*/
+                textColor = "#000000",
+                 accentColor = "#ffc400",
+                 secondaryTextColor = "#ffffff",
+                 backgroundCardColor = "#f3f4f6",
+                 backgroundColor = BackgroundStyle.Solid("#ffffff"),
+                 clickColor = BackgroundStyle.Solid("#ffc400"),
+                 blockLoaderCustomProperties = customProperties,
                 language = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,

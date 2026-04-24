@@ -39,6 +39,10 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.12***
+1. *Support SDK initialization from local configuration file*
+2. *Support email and phone number OTP verification on the signing step*
+
 ***1.0.0-Beta.11***
 1. *Support filters for Assisted Data Entry*
 2. *Support events on step completion*

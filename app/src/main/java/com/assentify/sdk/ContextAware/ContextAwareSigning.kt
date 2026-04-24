@@ -6,10 +6,10 @@ import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentRequestModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
+import com.assentify.sdk.RemoteClient.Models.Customization
+import com.assentify.sdk.RemoteClient.Models.DataModel
 import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
-import com.assentify.sdk.RemoteClient.Models.TokensMappings
-import com.assentify.sdk.RemoteClient.RemoteClient.remoteGatewayService
 import com.assentify.sdk.RemoteClient.RemoteClient.remoteSigningService
 import retrofit2.Call
 import retrofit2.Callback
@@ -28,66 +28,55 @@ class ContextAwareSigning(
     private var contextAwareSigningModel :ContextAwareSigningModel? = null;
 
     init {
-        getContextAwareSigningStep()
+        getContextAwareSigningStepFromConfigFile()
     }
 
 
-    private fun getContextAwareSigningStep() {
-        val remoteService = remoteGatewayService
-        val call = remoteService.getContextAwareSigningStep(
-            apiKey, "SDK",
-            configModel.flowInstanceId,
-            configModel.tenantIdentifier,
-            configModel.blockIdentifier,
-            configModel.instanceId,
-            configModel.flowIdentifier,
-            configModel.instanceHash,
-            stepID
-        )
-        call.enqueue(object : Callback<ContextAwareSigningModel> {
-            override fun onResponse(
-                call: Call<ContextAwareSigningModel>,
-                response: Response<ContextAwareSigningModel>
-            ) {
-                if (response.isSuccessful) {
-                    contextAwareSigningModel = response.body();
-                    response.body()!!.data.selectedTemplates.forEach {it->
-                        getTokensMappings(it)
-                    }
+
+    private fun getContextAwareSigningStepFromConfigFile() {
+        val stepDefinitions = configModel.stepDefinitions
+        stepDefinitions.forEach {
+            if (it.stepId == this.stepID) {
+                contextAwareSigningModel = it.customization.toContextAwareSigningModel()
+                contextAwareSigningModel!!.data.selectedTemplates.forEach {it->
+                    getTokensMappings(it)
                 }
             }
+        }
+    }
 
-            override fun onFailure(call: Call<ContextAwareSigningModel>, t: Throwable) {
-                contextAwareSigningCallback.onError(t.message!!)
-            }
-        })
+    fun Customization.toContextAwareSigningModel(): ContextAwareSigningModel {
+        return ContextAwareSigningModel(
+                statusCode = 200,
+                data = DataModel(
+                    header = this.header,
+                    subHeader = this.subHeader,
+                    selectedTemplates = this.selectedTemplates ?: emptyList(),
+                    confirmationMessage = this.confirmationMessage,
+                    autoDownload = this.autoDownload ?: false,
+                    enableDigitalSignature = !(this.hideSignatureBoard ?: false), // Kotlin logic like you used before
+                    hideSignatureBoard = this.hideSignatureBoard ?: false,
+                    otpInputType = this.otpInputType ?: "TEXT",
+                    enableOtp = this.enableOtp ?: false,
+                    otpSize = this.otpSize,
+                    otpType = this.otpType,
+                    otpExpiryTime = this.otpExpiryTime
+                )
+        )
     }
 
 
 
 
     private  fun getTokensMappings(templateId: Int) {
-        val remoteService = remoteSigningService
-        val call = remoteService.mappings(
-            configModel.tenantIdentifier,
-            configModel.blockIdentifier,
-            stepID,
-            templateId
-        )
-        call.enqueue(object : Callback<List<TokensMappings>> {
-            override fun onResponse(
-                call: Call<List<TokensMappings>>,
-                response: Response<List<TokensMappings>>
-            ) {
-                if (response.isSuccessful) {
-                    contextAwareSigningCallback.onHasTokens(templateId,response.body()!!,contextAwareSigningModel);
-                }
+        val stepDefinitions = configModel.stepDefinitions
+        stepDefinitions.forEach {
+            if (it.stepId == this.stepID) {
+                val mappings = it.mappings
+                contextAwareSigningCallback.onHasTokens(templateId,mappings!!,contextAwareSigningModel);
             }
+        }
 
-            override fun onFailure(call: Call<List<TokensMappings>>, t: Throwable) {
-                contextAwareSigningCallback.onError(t.message!!)
-            }
-        })
     }
 
 
@@ -134,7 +123,7 @@ class ContextAwareSigning(
             signature = signature,
         )
         val remoteService = remoteSigningService
-        val call = remoteService.signature(signatureRequestModel)
+        val call = remoteService.signature(signatureRequestModel,configModel.tenantIdentifier)
         call.enqueue(object : Callback<SignatureResponseModel> {
             override fun onResponse(
                 call: Call<SignatureResponseModel>,
