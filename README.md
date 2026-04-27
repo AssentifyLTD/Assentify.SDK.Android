@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.13***
+1. *Support Clean Flow And Start Again*
+
 ***1.0.0-Beta.12***
 1. *Support SDK initialization from local configuration file*
 2. *Support email and phone number OTP verification on the signing step*
