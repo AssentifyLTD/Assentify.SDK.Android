@@ -675,7 +675,7 @@ class AssentifySdk(
 
     }
 
-    private fun clearFlow(activityContext: Context) {
+    public fun clearFlow(activityContext: Context) {
         ContextObject.init(activityContext);
         InteractionObject.setInteractionObject(configModel!!.instanceHash);
         ConfigModelObject.setConfigModelObject(
