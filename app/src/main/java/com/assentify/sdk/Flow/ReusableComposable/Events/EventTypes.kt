@@ -5,6 +5,7 @@ object EventTypes {
     const val onSend = "onSend"
     const val onError = "onError"
     const val onRetry = "onRetry"
+    const val onExpired = "onExpired"
     const val onClipPreparationComplete = "onClipPreparationComplete"
     const val onStatusUpdated = "onStatusUpdated"
     const val onUpdated = "onUpdated"

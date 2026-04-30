@@ -64,6 +64,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
+import com.assentify.sdk.Flow.ReusableComposable.Events.OnPassportExpired
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -190,24 +191,46 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     }
 
     override fun onRetry(dataModel: BaseResponseDataModel) {
-        runOnUiThread {
-            start.value = false;
-            eventTypes.value = EventTypes.onRetry
-            try {
-                imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
-            }catch (e:Exception){
-                imageUrl.value = "" ;
+        if(dataModel.error == "Expired Passport Detected"){
+            runOnUiThread {
+                start.value = false;
+                eventTypes.value = EventTypes.onExpired
+                try {
+                    imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
+                }catch (e:Exception){
+                    imageUrl.value = "" ;
+                }
             }
+            /** Track Progress **/
+            val  currentStep = FlowController.getCurrentStep()
+            FlowController.trackProgress(
+                currentStep = currentStep!!,
+                response = "Expired " + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+                inputData = FlowController.decodeToJsonObject(dataModel.response),
+                status = "InProgress"
+            )
+            /***/
+        }else{
+            runOnUiThread {
+                start.value = false;
+                eventTypes.value = EventTypes.onRetry
+                try {
+                    imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
+                }catch (e:Exception){
+                    imageUrl.value = "" ;
+                }
+            }
+            /** Track Progress **/
+            val  currentStep = FlowController.getCurrentStep()
+            FlowController.trackProgress(
+                currentStep = currentStep!!,
+                response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
+                inputData = FlowController.decodeToJsonObject(dataModel.response),
+                status = "InProgress"
+            )
+            /***/
         }
-        /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
-        FlowController.trackProgress(
-            currentStep = currentStep!!,
-            response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
-            status = "InProgress"
-        )
-        /***/
+
     }
 
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
@@ -342,6 +365,11 @@ fun PassportScanScreen(
         if (eventTypes != EventTypes.none) {
             if (eventTypes == EventTypes.onSend) {
                 OnSendScreen(progress)
+            }
+            if (eventTypes == EventTypes.onExpired) {
+                OnPassportExpired(imageUrl, onRetry = {
+                    onRetry();
+                })
             }
             if (eventTypes == EventTypes.onRetry || eventTypes == EventTypes.onError || eventTypes == EventTypes.onWrongTemplate) {
                 OnErrorScreen(imageUrl, onRetry = {

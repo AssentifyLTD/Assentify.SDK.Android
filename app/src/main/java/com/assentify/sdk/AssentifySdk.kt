@@ -675,12 +675,14 @@ class AssentifySdk(
 
     }
 
-    public fun clearFlow(activityContext: Context) {
+    private fun clearFlow(activityContext: Context) {
         ContextObject.init(activityContext);
         InteractionObject.setInteractionObject(configModel!!.instanceHash);
         ConfigModelObject.setConfigModelObject(
             null
         )
+        CreateUserDocumentObject.clear()
+        SignatureResponseObject.clear()
         LocalStepsObject.setLocalSteps(
             emptyList<LocalStepModel>().toMutableList()
         )

@@ -62,7 +62,7 @@ fun OnFaceSendScreen(
                Icon(
                    painter = it,
                    contentDescription = "UploadingFace",
-                   modifier = Modifier.size(150.dp),
+                   modifier = Modifier.size(140.dp),
                    tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
                )
            }

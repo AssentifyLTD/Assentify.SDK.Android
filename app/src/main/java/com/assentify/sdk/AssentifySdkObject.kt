@@ -6,6 +6,8 @@ import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
+import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.ScanIDCard.IDResponseModel
 import com.assentify.sdk.ScanPassport.PassportResponseModel
@@ -316,5 +318,81 @@ object ContentHashObject {
 
 
 
+object CreateUserDocumentObject {
+
+    fun set(model: CreateUserDocumentResponseModel?, stepId: Int) {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        if (model == null) {
+            prefs.edit().remove("CreateUserDocumentObject_${InteractionObject.getInteractionObject()}_$stepId").apply()
+            return
+        }
+
+        val json = Gson().toJson(model)
+        prefs.edit().putString("CreateUserDocumentObject_${InteractionObject.getInteractionObject()}_$stepId", json).apply()
+    }
+
+    fun get(stepId: Int): CreateUserDocumentResponseModel? {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val json = prefs.getString("CreateUserDocumentObject_${InteractionObject.getInteractionObject()}_$stepId", null) ?: return null
+
+        return try {
+            Gson().fromJson(json, CreateUserDocumentResponseModel::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun clear() {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val prefix = "CreateUserDocumentObject_${InteractionObject.getInteractionObject()}_"
+        prefs.edit().apply {
+            prefs.all.keys.filter { it.startsWith(prefix) }.forEach { remove(it) }
+        }.apply()
+    }
+}
 
 
+object SignatureResponseObject {
+
+    fun set(model: SignatureResponseModel?, stepId: Int) {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        if (model == null) {
+            prefs.edit().remove("SignatureResponseObject_${InteractionObject.getInteractionObject()}_$stepId").apply()
+            return
+        }
+
+        val json = Gson().toJson(model)
+        prefs.edit().putString("SignatureResponseObject_${InteractionObject.getInteractionObject()}_$stepId", json).apply()
+    }
+
+    fun get(stepId: Int): SignatureResponseModel? {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val json = prefs.getString("SignatureResponseObject_${InteractionObject.getInteractionObject()}_$stepId", null) ?: return null
+
+        return try {
+            Gson().fromJson(json, SignatureResponseModel::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun clear() {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val prefix = "SignatureResponseObject_${InteractionObject.getInteractionObject()}_"
+        prefs.edit().apply {
+            prefs.all.keys.filter { it.startsWith(prefix) }.forEach { remove(it) }
+        }.apply()
+    }
+}

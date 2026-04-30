@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.14***
+1. *Enhanced The Overall User Experience*
+
 ***1.0.0-Beta.13***
 1. *Support Clean Flow And Start Again*
 
