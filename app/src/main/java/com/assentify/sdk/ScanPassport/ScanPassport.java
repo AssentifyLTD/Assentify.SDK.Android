@@ -305,7 +305,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                         if (Boolean.TRUE.equals(expired)) {
                             retryCount++;
                             start = true;
-                            BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnExpiredPassportMessage);
                             scanPassportCallback.onRetry(BaseResponseDataModel);
                         }else {
                             start = false;
