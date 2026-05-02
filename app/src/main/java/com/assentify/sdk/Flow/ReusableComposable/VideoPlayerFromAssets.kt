@@ -49,7 +49,7 @@ fun VideoPlayerFromAssets(
             repeatMode = ExoPlayer.REPEAT_MODE_ALL // Loop video
         }
     }
-
+    exoPlayer.volume = 0f
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()

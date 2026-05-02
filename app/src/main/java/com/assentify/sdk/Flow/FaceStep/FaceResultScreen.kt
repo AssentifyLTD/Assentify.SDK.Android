@@ -249,7 +249,7 @@ fun FaceResultScreen(
                         ) {
                             Text("Provide Supporting ID to match with",
                                 fontFamily = InterFont,
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = FontWeight.Bold,
                                 color =  BaseTheme.BaseSecondaryTextColor,
                                 modifier = Modifier.padding(vertical = 7.dp))
                         }

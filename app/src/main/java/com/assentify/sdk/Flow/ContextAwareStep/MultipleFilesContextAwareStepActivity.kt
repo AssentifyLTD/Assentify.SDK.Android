@@ -81,6 +81,7 @@ import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
+import com.assentify.sdk.CreateUserDocumentObject
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
@@ -96,6 +97,7 @@ import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
 import com.assentify.sdk.RemoteClient.Models.SignatureResponseModel
 import com.assentify.sdk.RemoteClient.Models.TokensMappings
+import com.assentify.sdk.SignatureResponseObject
 
 data class SelectedTemplatesTokens(
     val templateId: Int,
@@ -125,6 +127,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     private var documentWithTokensObject = mutableStateListOf<DocumentWithTokensModel?>()
     private var documentWithTokensAndSinged = mutableStateListOf<DocumentWithTokensAndSinged?>()
     var approvedDocumentsObject = mutableStateListOf<DocumentWithTokensModel?>()
+    var checked = mutableStateOf<Boolean?>(false)
 
     private var signatureObject = mutableStateOf<String?>(null)
 
@@ -220,6 +223,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
                         selectedTemplates = selectedTemplates,
                         documentWithTokensObject = documentWithTokensObject,
                         documentWithTokensAndSinged = documentWithTokensAndSinged,
+                        initChecked = checked.value!!
                     )
                 }
             }
@@ -262,9 +266,87 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         if (contextAwareSigningObject.value?.data?.selectedTemplates?.size == selectedTemplates.size) {
             contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onTokensComplete
         }
+
+        CreateUserDocumentObject
+            .get(
+                stepId = FlowController.getCurrentStep()?.stepDefinition?.stepId ?: return,
+            )
+            ?.let { buildOnCreateUserDocumentInstance(it) }
     }
 
+
+    fun buildOnCreateUserDocumentInstance(userDocumentResponseModel: CreateUserDocumentResponseModel){
+        checked.value = true;
+        documentWithTokensObject.add(
+            DocumentWithTokensModel(
+                selectedTemplates.first().templateId,
+                userDocumentResponseModel
+            )
+        )
+
+        contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onTokensComplete
+
+        SignatureResponseObject
+            .get(
+                stepId = FlowController.getCurrentStep()?.stepDefinition?.stepId ?: return,
+            )
+            ?.let { buildOnSignature(it) }
+    }
+
+    fun buildOnSignature(signatureResponseModel: SignatureResponseModel){
+        approvedDocumentsObject.add(
+            DocumentWithTokensModel(
+                documentWithTokensObject.first()!!.templateId,
+                documentWithTokensObject.first()!!.createUserDocumentResponseModel
+            )
+        )
+
+        val firstApproved = approvedDocumentsObject.firstOrNull()
+        if (firstApproved != null) {
+            documentWithTokensAndSinged.add(
+                DocumentWithTokensAndSinged(
+                    firstApproved.templateId,
+                    signatureResponseModel
+                )
+            )
+        }
+
+        if (contextAwareSigningObject.value?.data?.autoDownload == true) {
+            startPdfDownload(
+                context = localContext,
+                url = signatureResponseModel.signedDocumentUri,
+                fileName = "SignedDocument.pdf"
+            )
+        }
+
+        approvedDocumentsObject.removeFirstOrNull()
+
+        if (contextAwareSigningObject.value?.data?.selectedTemplates?.size == documentWithTokensAndSinged.size) {
+            contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onSignature
+            clickLoading.value = false
+        } else {
+            val nextApproved = approvedDocumentsObject.firstOrNull()
+            if (nextApproved != null) {
+                contextAwareSigning.signature(
+                    nextApproved.createUserDocumentResponseModel.templateInstanceId,
+                    nextApproved.createUserDocumentResponseModel.documentId,
+                    signatureObject.value ?: ""
+                )
+            } else {
+                clickLoading.value = false
+            }
+        }
+
+        val extractedInformation = mutableMapOf<String, String>()
+        for (outputProperty in FlowController.getCurrentStep()!!.stepDefinition!!.outputProperties) {
+            if (outputProperty.key.contains("OnBoardMe_ContextAwareSigning_DocumentURL")) {
+                extractedInformation[outputProperty.key] =
+                    documentWithTokensAndSinged.firstOrNull()?.signatureResponseModel?.signedDocumentUri ?: ""
+            }
+        }
+    }
     override fun onCreateUserDocumentInstance(userDocumentResponseModel: CreateUserDocumentResponseModel) {
+        CreateUserDocumentObject.set(userDocumentResponseModel,FlowController.getCurrentStep()?.stepDefinition?.stepId!! );
         documentWithTokensObject.add(
             DocumentWithTokensModel(
                 currentTemplateId.value!!,
@@ -277,6 +359,8 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     }
 
     override fun onSignature(signatureResponseModel: SignatureResponseModel) {
+        SignatureResponseObject.set(signatureResponseModel,FlowController.getCurrentStep()?.stepDefinition?.stepId!! );
+
         val firstApproved = approvedDocumentsObject.firstOrNull()
         if (firstApproved != null) {
             documentWithTokensAndSinged.add(
@@ -340,6 +424,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 @Composable
 fun MultipleFilesContextAwareStepScreen(
     clickLoading: Boolean,
+    initChecked: Boolean,
     defaultTitle: String = "",
     onBack: () -> Unit = {},
     onCreateUserDocumentResponseModel: (SelectedTemplatesTokens) -> Unit = {},
@@ -351,7 +436,7 @@ fun MultipleFilesContextAwareStepScreen(
     documentWithTokensObject: MutableList<DocumentWithTokensModel?>,
     documentWithTokensAndSinged: MutableList<DocumentWithTokensAndSinged?>,
 ) {
-    var checked by remember { mutableStateOf(false) }
+    var checked by remember { mutableStateOf(initChecked) }
     var selectedTemplate by remember { mutableStateOf<SelectedTemplatesTokens?>(null) }
 
     val approvedDocuments = remember {
@@ -462,40 +547,6 @@ fun MultipleFilesContextAwareStepScreen(
             ) {
                 val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-                if (eventTypes == ContextAwareStepEventTypes.onSend) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(screenHeight - 200.dp)
-                    ) {
-                        Text(
-                            text = if (contextAwareSigningObject?.data?.header.isNullOrEmpty()) {
-                                defaultTitle
-                            } else {
-                                contextAwareSigningObject?.data?.header ?: defaultTitle
-                            },
-                            fontFamily = InterFont,
-                            fontWeight = FontWeight.Bold,
-                            color = BaseTheme.BaseTextColor,
-                            fontSize = 23.sp,
-                            lineHeight = 34.sp,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.TopStart)
-                                .padding(horizontal = 25.dp)
-                        )
-
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .align(Alignment.Center),
-                            color = BaseTheme.BaseTextColor,
-                            strokeWidth = 6.dp
-                        )
-                    }
-                }
-
                 if (
                     eventTypes == ContextAwareStepEventTypes.onTokensComplete ||
                     eventTypes == ContextAwareStepEventTypes.onSignature
@@ -503,7 +554,7 @@ fun MultipleFilesContextAwareStepScreen(
 
                     if (
                         selectedTemplate == null ||
-                        documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null
+                        documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null && !clickLoading
                     ) {
                         Text(
                             text = contextAwareSigningObject?.data?.header ?: defaultTitle,
@@ -728,13 +779,12 @@ fun MultipleFilesContextAwareStepScreen(
 
                     if (
                         selectedTemplate != null &&
-                        documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } != null &&
                         eventTypes != ContextAwareStepEventTypes.onSignature
                     ) {
                         DocumentPage(
-                            userDocumentResponseModel = documentWithTokensObject.find {
-                                selectedTemplate!!.templateId == it?.templateId
-                            }!!.createUserDocumentResponseModel,
+                            userDocumentResponseModel = documentWithTokensObject
+                                .find { it?.templateId == selectedTemplate!!.templateId }
+                                ?.createUserDocumentResponseModel,
                             onAccept = {
                                 approvedDocuments.add(
                                     DocumentWithTokensModel(
@@ -749,7 +799,8 @@ fun MultipleFilesContextAwareStepScreen(
                             isApproved = approvedDocuments.any { it?.templateId == selectedTemplate!!.templateId },
                             onCancel = {
                                 selectedTemplate = null
-                            }
+                            },
+                            isLoading = documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null
                         )
                     }
 
@@ -793,6 +844,7 @@ fun MultipleFilesContextAwareStepScreen(
                         } else {
                             if (enableDigitalSignature) {
                                 SignaturePad(
+                                    isLoading = clickLoading,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(170.dp)
@@ -805,21 +857,6 @@ fun MultipleFilesContextAwareStepScreen(
                         }
                     }
 
-                    if (clickLoading && eventTypes == ContextAwareStepEventTypes.onTokensComplete) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(bottom = 10.dp),
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            Spacer(Modifier.height(100.dp))
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(35.dp),
-                                color = BaseTheme.BaseTextColor,
-                                strokeWidth = 4.dp
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -990,66 +1027,81 @@ fun DocumentRow(
 
 @Composable
 fun DocumentPage(
-    userDocumentResponseModel: CreateUserDocumentResponseModel,
+    userDocumentResponseModel: CreateUserDocumentResponseModel?,
     isApproved: Boolean,
+    isLoading: Boolean,
     onAccept: () -> Unit,
     onCancel: () -> Unit
 ) {
     FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-    PdfViewerFromBase64(
-        base64Data = userDocumentResponseModel.templateInstance,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(
-                if (isApproved) {
-                    LocalConfiguration.current.screenHeightDp.dp - 280.dp
-                } else {
-                    LocalConfiguration.current.screenHeightDp.dp - 340.dp
-                }
-            )
-            .clip(RoundedCornerShape(12.dp))
-            .padding(horizontal = 25.dp)
-            .border(1.dp, Color.Gray)
-    )
+    val pdfHeight = if (isApproved) {
+        LocalConfiguration.current.screenHeightDp.dp - 280.dp
+    } else {
+        LocalConfiguration.current.screenHeightDp.dp - 340.dp
+    }
 
-    if (!isApproved) Spacer(Modifier.height(20.dp))
-
-    if (!isApproved) {
-        Button(
-            onClick = {
-                onAccept()
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            shape = RoundedCornerShape(28.dp),
+    if (isLoading) {
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
+                .height(pdfHeight)
                 .padding(horizontal = 25.dp)
-                .background(
-                    brush = BaseTheme.BaseClickColor!!.toBrush(),
-                    shape = RoundedCornerShape(28.dp)
-                )
+                .clip(RoundedCornerShape(12.dp))
+                .background(BaseTheme.FieldColor)
         ) {
-            Text(
-                "Approve",
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Normal,
-                color = BaseTheme.BaseSecondaryTextColor,
-                modifier = Modifier.padding(vertical = 7.dp)
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.Center),
+                color = BaseTheme.BaseTextColor,
+                strokeWidth = 4.dp
             )
+        }
+    } else if (userDocumentResponseModel != null) {
+        PdfViewerFromBase64(
+            base64Data = userDocumentResponseModel.templateInstance,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(pdfHeight)
+                .clip(RoundedCornerShape(12.dp))
+                .padding(horizontal = 25.dp)
+                .border(1.dp, Color.Gray)
+        )
+
+        if (!isApproved) Spacer(Modifier.height(20.dp))
+
+        if (!isApproved) {
+            Button(
+                onClick = { onAccept() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 25.dp)
+                    .background(
+                        brush = BaseTheme.BaseClickColor!!.toBrush(),
+                        shape = RoundedCornerShape(28.dp)
+                    )
+            ) {
+                Text(
+                    "Approve",
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Normal,
+                    color = BaseTheme.BaseSecondaryTextColor,
+                    modifier = Modifier.padding(vertical = 7.dp)
+                )
+            }
         }
     }
 
     Spacer(Modifier.height(15.dp))
 
     Button(
-        onClick = {
-            onCancel()
-        },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
-        ),
+        onClick = { onCancel() },
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier
             .fillMaxWidth()

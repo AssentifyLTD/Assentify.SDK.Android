@@ -153,11 +153,27 @@ fun SubmitStepScreen(
                     when (submitDataTypes) {
 
                         SubmitDataTypes.onSend -> {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(70.dp),
-                                color =   BaseTheme.BaseTextColor,
-                                strokeWidth = 6.dp
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                MiddleContent(
+                                    phoneIcon = phoneIcon,
+                                    flowEnv = flowEnv,
+                                    title = "Almost Done!",
+                                    message = "Your information is being submitted. We'll be done shortly.",
+                                    messageColor = BaseTheme.BaseTextColor
+                                )
+
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(40.dp),
+                                    color = BaseTheme.BaseTextColor,
+                                    strokeWidth = 4.dp
+                                )
+                            }
                         }
 
                         SubmitDataTypes.onError -> {
@@ -218,6 +234,8 @@ fun SubmitStepScreen(
                             onComplete = { onSubmit() }
                         )
                     }
+
+
                 }
             }
 

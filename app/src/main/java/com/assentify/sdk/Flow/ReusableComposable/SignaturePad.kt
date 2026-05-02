@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -36,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
-
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -46,6 +47,7 @@ import java.io.ByteArrayOutputStream
 fun SignaturePad(
     modifier: Modifier = Modifier,
     title: String = "Signature",
+    isLoading: Boolean = false,
     penColorInt: Int = android.graphics.Color.WHITE, // still white on screen
     minStrokeWidth: Float = 3f,
     maxStrokeWidth: Float = 6f,
@@ -109,114 +111,126 @@ fun SignaturePad(
             .background(BaseTheme.BaseClickColor!!.toBrush())
             .onSizeChanged { containerWidthPx = it.width }
     ) {
-        // Drawing area
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(end = pillInitialWidth + 8.dp)
-        ) {
-            Text(
-                text = title,
-                color =   BaseTheme.BaseTextColor,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 14.dp, top = 12.dp, bottom = 6.dp)
-            )
 
-            AndroidView(
-                factory = { signaturePad },
+        if(isLoading){
+            CircularProgressIndicator(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(start = 12.dp, end = 6.dp, bottom = 12.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(Color.Transparent)
+                    .size(40.dp)
+                    .align(Alignment.Center),
+                color = BaseTheme.BaseTextColor,
+                strokeWidth = 4.dp
             )
-        }
-
-        // Expanding confirm overlay
-        Box(
-            modifier = Modifier
-                .zIndex(2f)
-                .align(Alignment.CenterEnd)
-                .height(220.dp)
-                .width(animatedWidth)
-                .clip(
-                    RoundedCornerShape(
-                        topStart = if (animatedWidth < containerWidthDp) 20.dp else 18.dp,
-                        bottomStart = if (animatedWidth < containerWidthDp) 20.dp else 18.dp,
-                        topEnd = 20.dp,
-                        bottomEnd = 20.dp
-                    )
-                )
-                .background(if (hasSignature) Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)) else BaseTheme.FieldColor)
-                .clickable(
-                    enabled = hasSignature && !isExpanding,
-                    onClick = {
-                        val whiteBitmap = signaturePad.transparentSignatureBitmap
-
-                        // 🔹 Convert white strokes → black
-                        val blackBitmap = Bitmap.createBitmap(
-                            whiteBitmap.width,
-                            whiteBitmap.height,
-                            Bitmap.Config.ARGB_8888
-                        )
-                        val canvas = android.graphics.Canvas(blackBitmap)
-                        canvas.drawColor(android.graphics.Color.WHITE) // white background
-
-                        val paint = android.graphics.Paint().apply {
-                            colorFilter = android.graphics.ColorMatrixColorFilter(
-                                android.graphics.ColorMatrix().apply {
-                                    // invert white to black
-                                    set(
-                                        floatArrayOf(
-                                            -1f,  0f,  0f,  0f, 255f, // R
-                                            0f, -1f,  0f,  0f, 255f, // G
-                                            0f,  0f, -1f,  0f, 255f, // B
-                                            0f,  0f,  0f,  1f,   0f  // A
-                                        )
-                                    )
-                                }
-                            )
-                        }
-                        canvas.drawBitmap(whiteBitmap, 0f, 0f, paint)
-
-                        // 🔹 Encode black version to Base64
-                        val baos = ByteArrayOutputStream()
-                        blackBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
-                        val b64 = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
-                        onConfirmBase64(b64)
-
-                        isExpanding = true
-                    }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            if (!isExpanding) {
+        }else{
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(end = pillInitialWidth + 8.dp)
+            ) {
                 Text(
-                    text = "Confirm",
-                    color =  BaseTheme.BaseTextColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.rotate(90f)
+                    text = title,
+                    color =   BaseTheme.BaseTextColor,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(start = 14.dp, top = 12.dp, bottom = 6.dp)
                 )
-            }
 
-            // Step 2: Centered "Confirmed" text (visible during expansion)
-            if (isExpanding) {
-                Text(
-                    text = "Confirmed",
-                    color = BaseTheme.BaseTextColor.copy(
-                        alpha = confirmedTextAlpha
-                    ),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                AndroidView(
+                    factory = { signaturePad },
                     modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(bottom = 4.dp)
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(start = 12.dp, end = 6.dp, bottom = 12.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.Transparent)
                 )
             }
+
+            // Expanding confirm overlay
+            Box(
+                modifier = Modifier
+                    .zIndex(2f)
+                    .align(Alignment.CenterEnd)
+                    .height(220.dp)
+                    .width(animatedWidth)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = if (animatedWidth < containerWidthDp) 20.dp else 18.dp,
+                            bottomStart = if (animatedWidth < containerWidthDp) 20.dp else 18.dp,
+                            topEnd = 20.dp,
+                            bottomEnd = 20.dp
+                        )
+                    )
+                    .background(if (hasSignature) Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)) else BaseTheme.FieldColor)
+                    .clickable(
+                        enabled = hasSignature && !isExpanding,
+                        onClick = {
+                            val whiteBitmap = signaturePad.transparentSignatureBitmap
+
+                            // 🔹 Convert white strokes → black
+                            val blackBitmap = Bitmap.createBitmap(
+                                whiteBitmap.width,
+                                whiteBitmap.height,
+                                Bitmap.Config.ARGB_8888
+                            )
+                            val canvas = android.graphics.Canvas(blackBitmap)
+                            canvas.drawColor(android.graphics.Color.WHITE) // white background
+
+                            val paint = android.graphics.Paint().apply {
+                                colorFilter = android.graphics.ColorMatrixColorFilter(
+                                    android.graphics.ColorMatrix().apply {
+                                        // invert white to black
+                                        set(
+                                            floatArrayOf(
+                                                -1f,  0f,  0f,  0f, 255f, // R
+                                                0f, -1f,  0f,  0f, 255f, // G
+                                                0f,  0f, -1f,  0f, 255f, // B
+                                                0f,  0f,  0f,  1f,   0f  // A
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                            canvas.drawBitmap(whiteBitmap, 0f, 0f, paint)
+
+                            // 🔹 Encode black version to Base64
+                            val baos = ByteArrayOutputStream()
+                            blackBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
+                            val b64 = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
+                            onConfirmBase64(b64)
+
+                            isExpanding = true
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!isExpanding) {
+                    Text(
+                        text = "Confirm",
+                        color =  BaseTheme.BaseTextColor,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.rotate(90f)
+                    )
+                }
+
+                // Step 2: Centered "Confirmed" text (visible during expansion)
+                if (isExpanding) {
+                    Text(
+                        text = "Confirmed",
+                        color = BaseTheme.BaseTextColor.copy(
+                            alpha = confirmedTextAlpha
+                        ),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(bottom = 4.dp)
+                    )
+                }
+            }
         }
+        // Drawing area
+
     }
 }
 

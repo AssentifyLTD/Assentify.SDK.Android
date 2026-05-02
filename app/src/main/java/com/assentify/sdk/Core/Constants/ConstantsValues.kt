@@ -40,6 +40,9 @@ object EventsErrorMessages {
 
     const val OnRetryFaceMessage = "We couldn't complete your request"
     const val OnLivenessFaceUpdateMessage = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos"
+
+    const val OnExpiredPassportMessage = "Expired Passport Detected"
+
 }
 
 
