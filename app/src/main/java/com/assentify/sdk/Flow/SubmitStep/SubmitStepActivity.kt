@@ -31,7 +31,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
 
 
     private var submitDataTypes =
-        mutableStateOf<String>(SubmitDataTypes.onSend)
+        mutableStateOf<String>(SubmitDataTypes.none)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,17 +70,10 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
 
         /***/
 
-        assentifySdk.startSubmitData(this, FlowController.getSubmitList())
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (submitDataTypes.value == SubmitDataTypes.onComplete) {
-                    FlowCallbackObject.getFlowCallbackObject()
-                        .onFlowCompleted(FlowController.getFlowCompletedList())
-                    finishAffinity();
-                } else {
                     FlowController.backClick(this@SubmitStepActivity);
-                }
             }
         })
 
@@ -93,24 +86,11 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
                     SubmitStepScreen(
                         submitDataTypes = submitDataTypes.value,
                         onBack = {
-                            if (submitDataTypes.value == SubmitDataTypes.onComplete) {
-                                FlowCallbackObject.getFlowCallbackObject()
-                                    .onFlowCompleted(FlowController.getFlowCompletedList())
-                                finishAffinity();
-                            } else {
                                 FlowController.backClick(this@SubmitStepActivity);
-                            }
-
                         },
                         onSubmit = {
-                            if (submitDataTypes.value == SubmitDataTypes.onComplete) {
-                                FlowCallbackObject.getFlowCallbackObject()
-                                    .onFlowCompleted(FlowController.getFlowCompletedList())
-                                finishAffinity();
-                            } else {
                                 assentifySdk.startSubmitData(this, FlowController.getSubmitList())
                                 submitDataTypes.value = SubmitDataTypes.onSend
-                            }
                         },
 
                         )
@@ -136,6 +116,11 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
     }
 
     override fun onSubmitSuccess(message: String) {
-        submitDataTypes.value = SubmitDataTypes.onComplete
+        runOnUiThread {
+            FlowCallbackObject.getFlowCallbackObject()
+                .onFlowCompleted(FlowController.getFlowCompletedList())
+            finishAffinity();
+        }
+
     }
 }
