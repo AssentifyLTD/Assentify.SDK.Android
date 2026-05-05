@@ -151,29 +151,14 @@ fun SubmitStepScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     when (submitDataTypes) {
-
-                        SubmitDataTypes.onSend -> {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                MiddleContent(
-                                    phoneIcon = phoneIcon,
-                                    flowEnv = flowEnv,
-                                    title = "Almost Done!",
-                                    message = "Your information is being submitted. We'll be done shortly.",
-                                    messageColor = BaseTheme.BaseTextColor
-                                )
-
-                                Spacer(modifier = Modifier.height(24.dp))
-
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(40.dp),
-                                    color = BaseTheme.BaseTextColor,
-                                    strokeWidth = 4.dp
-                                )
-                            }
+                        SubmitDataTypes.none , SubmitDataTypes.onSend  -> {
+                            MiddleContent(
+                                phoneIcon = phoneIcon,
+                                flowEnv = flowEnv,
+                                title = "Ready to Submit?",
+                                message = "Swipe the button below to confirm your submission.",
+                                messageColor =   BaseTheme.BaseTextColor
+                            )
                         }
 
                         SubmitDataTypes.onError -> {
@@ -185,56 +170,23 @@ fun SubmitStepScreen(
                                 messageColor = BaseTheme.BaseRedColor
                             )
                         }
-
-                        SubmitDataTypes.none -> {
-                            MiddleContent(
-                                phoneIcon = phoneIcon,
-                                flowEnv = flowEnv,
-                                title = "Ready to Submit?",
-                                message = "Swipe the button below to confirm your submission.",
-                                messageColor =   BaseTheme.BaseTextColor
-                            )
-                        }
-
-                        SubmitDataTypes.onComplete -> {
-                            MiddleContent(
-                                phoneIcon = phoneIcon,
-                                flowEnv = flowEnv,
-                                title = "THANK YOU",
-                                message = "Swipe the button below to continue.",
-                                messageColor =   BaseTheme.BaseTextColor
-                            )
-                        }
                     }
                 }
 
                 // =========================
                 // BOTTOM (fixed)
                 // =========================
-                when {
-                    submitDataTypes != SubmitDataTypes.onSend &&
-                            submitDataTypes != SubmitDataTypes.onComplete &&
-                            submitDataTypes != SubmitDataTypes.onError -> {
+                when {submitDataTypes != SubmitDataTypes.onError -> {
                         SwipeToSubmit(
                             text = "Swipe to Submit",
                             resetKey = resetTick,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 20.dp, vertical = 30.dp),
+                            isLoading = submitDataTypes == SubmitDataTypes.onSend,
                             onComplete = { onSubmit() }
                         )
                     }
-
-                    submitDataTypes == SubmitDataTypes.onComplete -> {
-                        SwipeToSubmit(
-                            text = "\t\t\t\t\t\t\tNext\t\t\t\t\t\t\t",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 30.dp),
-                            onComplete = { onSubmit() }
-                        )
-                    }
-
 
                 }
             }
@@ -325,6 +277,7 @@ fun SwipeToSubmit(
     height: Dp = 65.dp,
     corner: Dp = 35.dp,
     onComplete: () -> Unit,
+    isLoading: Boolean = false,
     resetKey: Any? = null,
 ) {
 
@@ -374,83 +327,105 @@ fun SwipeToSubmit(
         } else rawOffset = 0f
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(RoundedCornerShape(corner))
-            .background( BaseTheme.BaseClickColor!!.toBrush())
-            .onGloballyPositioned { trackWidthPx = it.size.width.toFloat() }
-            .padding(horizontal = 8.dp, vertical = 7.dp)
-            .pointerInput(Unit) {
-                detectHorizontalDragGestures(
-                    onHorizontalDrag = { _, dragAmount ->
-                        rawOffset = (rawOffset + dragAmount).coerceIn(0f, maxOffset)
-                    },
-                    onDragEnd = { settle() },
-                    onDragCancel = { settle() }
+    if(isLoading){
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(height)
+        ) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.Center),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Right chevrons hint
+                CircularProgressIndicator(
+                    modifier = Modifier.size(30.dp),
+                    color = BaseTheme.BaseTextColor,
+                    strokeWidth = 3.dp
                 )
             }
-    ) {
-        // Right chevrons hint
-        Row(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 18.dp),
-            verticalAlignment = Alignment.CenterVertically
+        }
+    }else{
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(height)
+                .clip(RoundedCornerShape(corner))
+                .background( BaseTheme.BaseClickColor!!.toBrush())
+                .onGloballyPositioned { trackWidthPx = it.size.width.toFloat() }
+                .padding(horizontal = 8.dp, vertical = 7.dp)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { _, dragAmount ->
+                            rawOffset = (rawOffset + dragAmount).coerceIn(0f, maxOffset)
+                        },
+                        onDragEnd = { settle() },
+                        onDragCancel = { settle() }
+                    )
+                }
         ) {
-            arrowsIcon?.let {
-                Image(
-                    painter = it,
-                    contentDescription = "arrowsIcon",
-                    modifier = Modifier.size(30.dp),
-                    contentScale = ContentScale.Fit,
-                    colorFilter = ColorFilter.tint(
-                        Color(
-                            android.graphics.Color.parseColor(
-                                "#f3f4f6"
+            // Right chevrons hint
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 18.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                arrowsIcon?.let {
+                    Image(
+                        painter = it,
+                        contentDescription = "arrowsIcon",
+                        modifier = Modifier.size(30.dp),
+                        contentScale = ContentScale.Fit,
+                        colorFilter = ColorFilter.tint(
+                            Color(
+                                android.graphics.Color.parseColor(
+                                    "#f3f4f6"
+                                )
                             )
                         )
                     )
-                )
+                }
             }
-        }
 
-        // Draggable knob
-        Card(
-            modifier = Modifier
-                .offset { IntOffset(animatedOffset.roundToInt(), 0) }
-                .fillMaxHeight(),
-            shape = RoundedCornerShape(corner),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 6.dp
-            ),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(
-                    android.graphics.Color.parseColor(
-                        "#f3f4f6"
+            // Draggable knob
+            Card(
+                modifier = Modifier
+                    .offset { IntOffset(animatedOffset.roundToInt(), 0) }
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(corner),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 6.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(
+                        android.graphics.Color.parseColor(
+                            "#f3f4f6"
+                        )
                     )
                 )
-            )
-        ) {
-            Box(
-                modifier = Modifier.fillMaxHeight(),
-                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = text,
-                    color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    softWrap = false,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .onGloballyPositioned { textWidthPx = it.size.width.toFloat() }
-                )
+                Box(
+                    modifier = Modifier.fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = text,
+                        color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .onGloballyPositioned { textWidthPx = it.size.width.toFloat() }
+                    )
+                }
             }
         }
     }
+
 }
 
 

@@ -45,7 +45,6 @@ object SubmitDataTypes {
     const val none = "none"
     const val onSend = "onSend"
     const val onError = "onError"
-    const val onComplete = "onComplete"
 
 
 }
