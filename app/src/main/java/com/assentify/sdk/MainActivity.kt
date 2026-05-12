@@ -19,10 +19,12 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
+import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -67,7 +69,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
 
 
-          etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+        etApiKey.setText("YHRNQEbDAn7R0uVZ7OC4gyAl0PscNgk3cLo2Khka9TPHGUq0EAXltk1XnwPSaee6kq2OjGKtX6ujDAcF1jdg")
 
 
   /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
@@ -182,10 +184,26 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
             customProperties.put("phoneNumber", "value1")
+            customProperties.put("email", "tariq@gmail.com")
+            customProperties.put("city", "ANSAR")
+
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
+                backgroundType = BackgroundType.Image,
+                logoUrl = "https://image2url.com/r2/default/images/1774601396029-0d566673-586b-4d36-9f30-19704f88dba6.png",
+                svgBackgroundImageUrl = "https://image2url.com/r2/default/images/1774603740489-37851385-2e31-402a-9ef2-aa9468e747b4.svg",
+                textColor = "#FFFFFF",
+                secondaryTextColor = "#000000",
+                accentColor = "#E6BF00",
+
+                backgroundCardColor = "#2C2C2E",
+                clickColor = BackgroundStyle.Solid("#E6BF00"),
+
+
+
+
                 /**PortalTheme**/
-                backgroundType = BackgroundType.Color,
+               // backgroundType = BackgroundType.Color,
                 //svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
 
                 /**Theme 1**/
@@ -198,7 +216,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 clickColor = BackgroundStyle.Solid("#ffc400"),*/
 
                 /**Theme 2**/
-             /*   logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
+             /* logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
                 textColor = "#000000",
                 accentColor = "#833F89",
                 secondaryTextColor = "#000000",
@@ -215,10 +233,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
 
+                stepperType = StepperType.PercentageBased,
+                rangeStart = 30,
+                rangeEnd = 90
                 );
 
 
 
+           assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,

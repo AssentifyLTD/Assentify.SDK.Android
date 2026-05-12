@@ -19,6 +19,7 @@ import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -145,19 +146,24 @@ class MainActivity2 : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
             val customProperties: MutableMap<String, String> = mutableMapOf()
             customProperties.put("phoneNumber","key1")
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                 logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
-                // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
+                logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
+                 // svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
                 backgroundType = BackgroundType.Color,
                 textColor = "#000000",
-                 accentColor = "#ffc400",
-                 secondaryTextColor = "#ffffff",
-                 backgroundCardColor = "#f3f4f6",
-                 backgroundColor = BackgroundStyle.Solid("#ffffff"),
-                 clickColor = BackgroundStyle.Solid("#ffc400"),
-                 blockLoaderCustomProperties = customProperties,
+                accentColor = "#ffc400",
+                secondaryTextColor = "#ffffff",
+                backgroundCardColor = "#f3f4f6",
+                backgroundColor = BackgroundStyle.Solid("#ffffff"),
+                clickColor = BackgroundStyle.Solid("#ffc400"),
+                blockLoaderCustomProperties = customProperties,
                 language = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
+
+                stepperType = StepperType.Normal,
+                rangeStart = 40,
+                rangeEnd = 95
+
             );
 
             assentifySdk.startFlow(

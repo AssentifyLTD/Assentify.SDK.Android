@@ -38,13 +38,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.TermsAndConditionsEventTypes
+import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromUrl
-import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
 
@@ -80,44 +82,50 @@ fun TermsAndConditionsScreen(
                     .fillMaxWidth()
             ) {
 
-                // TOP
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = BaseTheme.BaseTextColor,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(BaseTheme.BaseLogo)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Logo",
+                if (BaseTheme.StepperType == StepperType.Normal) {
+                    Row(
                         modifier = Modifier
-                            .size(40.dp)
-                            .align(Alignment.CenterVertically),
-                        contentScale = ContentScale.Fit
-                    )
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = BaseTheme.BaseTextColor,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(BaseTheme.BaseLogo)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.CenterVertically),
+                            contentScale = ContentScale.Fit
+                        )
 
-                    Spacer(modifier = Modifier.weight(1f))
-                    Spacer(modifier = Modifier.size(48.dp))
+                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.size(48.dp))
+                    }
                 }
 
                 Spacer(Modifier.height(10.dp))
 
                 ProgressStepper(
-                    modifier = Modifier
+                    onBack = { onBack() },
+                    normalModifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 0.dp)
+                        .padding(horizontal = 6.dp, vertical = 0.dp),
+                    percentageBased = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                        .padding(top = 20.dp)
                 )
 
 
@@ -174,21 +182,53 @@ fun TermsAndConditionsScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 10.dp)
+                                .padding(horizontal = 10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
 
                         ) {
-                            Text(
-                                text = termsConditionsModel!!.data.header!!,
-                                fontFamily = InterFont,
-                                fontWeight = FontWeight.Bold,
-                                color = BaseTheme.BaseTextColor,
-                                fontSize = 23.sp,
-                                lineHeight = 34.sp,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 5.dp, start = 20.dp, end = 20.dp)
-                            )
+                            Spacer(Modifier.height(10.dp))
+
+                            if (!termsConditionsModel!!.data.svgLogoUrl.isNullOrEmpty() && !termsConditionsModel.data.header.isNullOrEmpty() && !termsConditionsModel.data.subHeader.isNullOrEmpty()) {
+                                LogoSvgUrl(
+                                    url = termsConditionsModel.data.svgLogoUrl,
+                                    modifier = Modifier.size(width = 70.dp, height = 70.dp)
+                                )
+                                Text(
+                                    text = termsConditionsModel.data.header,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BaseTheme.BaseTextColor,
+                                    fontSize = 23.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp, start = 20.dp, end = 20.dp)
+                                )
+                                Text(
+                                    text = termsConditionsModel.data.subHeader,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Medium,
+                                    color = BaseTheme.BaseTextColor.copy(0.5F),
+                                    fontSize = 11.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 3.dp, start = 20.dp, end = 20.dp)
+                                )
+                            } else {
+                                Text(
+                                    text = termsConditionsModel.data.header!!,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BaseTheme.BaseTextColor,
+                                    fontSize = 23.sp,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp, start = 20.dp, end = 20.dp)
+                                )
+                            }
+
                             Spacer(Modifier.height(10.dp))
                             HorizontalDivider(
                                 thickness = 1.dp,

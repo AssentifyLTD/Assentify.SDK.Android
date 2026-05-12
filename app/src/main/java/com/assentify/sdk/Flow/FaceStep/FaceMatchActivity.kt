@@ -66,7 +66,6 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
-import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
@@ -522,13 +521,6 @@ fun FaceMatchScanScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            if(eventTypes != EventTypes.none){
-                ProgressStepper(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 6.dp)
-                )
-            }
         }
 
         if (eventTypes == EventTypes.none) {

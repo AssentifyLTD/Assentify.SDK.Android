@@ -60,6 +60,7 @@ data class OutputProperties(
 data class Customization(
     val header: String?,
     val subHeader: String?,
+    val svgLogoUrl: String?,
     val file: String?,
     val nextButtonTitle: String?,
     val processMrz: Boolean?,

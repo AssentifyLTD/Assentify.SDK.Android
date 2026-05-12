@@ -86,6 +86,11 @@ enum class BackgroundType(val type : String) {
     Color("Color")
 }
 
+enum class StepperType(val type : String) {
+    Normal("Normal"),
+    PercentageBased("PercentageBased")
+}
+
 public class FlowEnvironmentalConditions(
     var logoUrl: String = "",
     var svgBackgroundImageUrl: String = "",
@@ -97,6 +102,11 @@ public class FlowEnvironmentalConditions(
     var clickColor: BackgroundStyle? = null,
     var backgroundType: BackgroundType?,
 
+
+    val stepperType: StepperType = StepperType.Normal,
+    var rangeStart: Int = 25,// Next
+    var rangeEnd : Int = 50, // Next
+    var stepperTitle : String = "Identification",
 
     val language: String = Language.NON,
     val enableNfc: Boolean = false,

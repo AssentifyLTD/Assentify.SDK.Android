@@ -125,6 +125,7 @@ class AssentifySdk(
                 response: Response<ResponseBody>
             ) {
                 try {
+
                     isKeyValid = true;
                     newInstance(context);
                     val bodyString = response.body()?.string()
@@ -683,6 +684,7 @@ class AssentifySdk(
         )
         CreateUserDocumentObject.clear()
         SignatureResponseObject.clear()
+        HasSubmittedObject.clear();
         LocalStepsObject.setLocalSteps(
             emptyList<LocalStepModel>().toMutableList()
         )

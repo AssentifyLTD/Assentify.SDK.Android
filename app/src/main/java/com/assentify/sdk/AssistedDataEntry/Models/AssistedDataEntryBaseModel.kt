@@ -10,7 +10,11 @@ enum class InputTypes(val value: String) {
     Nationality("Nationality"),
     PhoneNumber("PhoneNumber"),
     PhoneNumberWithOTP("PhoneNumberWithOTP"),
-    EmailWithOTP("EmailWithOTP");
+    EmailWithOTP("EmailWithOTP"),
+
+    Checkbox("Checkbox"),
+
+    CheckboxGroup("CheckboxGroup");
 
     companion object {
         fun fromString(type: String?): InputTypes =
@@ -34,7 +38,8 @@ data class AssistedDataEntryModel(
 
 data class AssistedDataEntryPage(
     val title: String,
-    val subTitle: String,
+    val subTitle: String?,
+    val svgLogoUrl: String?,
     val nextButtonTitle: String,
     var dataEntryPageElements: List<DataEntryPageElement>
 )

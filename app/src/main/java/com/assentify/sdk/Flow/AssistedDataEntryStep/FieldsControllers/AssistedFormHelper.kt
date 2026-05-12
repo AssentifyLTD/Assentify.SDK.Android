@@ -17,7 +17,47 @@ import retrofit2.Response
 
 object AssistedFormHelper {
 
+    fun getDefaultValueValueToCheckIsDirty(key: String, page: Int): String? {
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
 
+            if (field!!.inputPropertyIdentifierList!!.isEmpty()) {
+                return "";
+            } else {
+                var defaultValue = "";
+                val doneList = FlowController.getAllDoneSteps();
+                doneList.forEach { step ->
+                    field.inputPropertyIdentifierList.forEach { keyID ->
+                        for (outputProperty in step.stepDefinition!!.customization.outputProperties) {
+                            if (outputProperty.keyIdentifier == keyID) {
+                                if (defaultValue.isEmpty()) {
+                                    if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)){
+                                        defaultValue =
+                                            step.submitRequestModel!!.extractedInformation.getValue(
+                                                outputProperty.key
+                                            )
+                                    }
+
+                                } else {
+                                    if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)) {
+                                        defaultValue += ",${
+                                            step.submitRequestModel!!.extractedInformation.getValue(
+                                                outputProperty.key
+                                            )
+                                        }"
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+                return defaultValue;
+
+            }
+    }
     fun getDefaultValueValue(key: String, page: Int): String? {
         val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
         val pages = model!!.assistedDataEntryPages

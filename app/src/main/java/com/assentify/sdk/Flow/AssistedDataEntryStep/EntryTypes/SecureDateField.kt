@@ -92,7 +92,7 @@ fun SecureDateField(
     fun OpenPickerDynamic(
         current: String,
         onPicked: (String) -> Unit,
-        dateFormat: String = "yyyy-MM-dd",
+        dateFormat: String = "dd/MM/yyyy",
         minDateStr: String? = null,
         maxDateStr: String? = null,
         onDismiss: () -> Unit

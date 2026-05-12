@@ -1,5 +1,6 @@
 package com.assentify.sdk.Flow.AssistedDataEntryStep
 
+import AssistedFormHelper
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -77,7 +78,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                 AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
                             val pages = model!!.assistedDataEntryPages
 
-                            for (page in pages) {
+                            for ((index, page) in pages.withIndex()) {
                                 for (element in page.dataEntryPageElements) {
                                     val key = element.inputKey
                                     val isDirtyKey = element.isDirtyKey
@@ -93,13 +94,16 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                         }
 
                                     }
+
+
+
                                     /** Dirty Key **/
                                     if (!isDirtyKey.isNullOrBlank() && !value.isNullOrBlank()) {
-                                        if (fieldType == InputTypes.PhoneNumber) {
-                                            extractedInformation[isDirtyKey] =
-                                                element.defaultCountryCode + value
+                                        val defaultValue = AssistedFormHelper.getDefaultValueValueToCheckIsDirty(key!!, index)
+                                        if (value == defaultValue) {
+                                            extractedInformation[isDirtyKey] = "false"
                                         } else {
-                                            extractedInformation[isDirtyKey] = value
+                                            extractedInformation[isDirtyKey] = "true"
                                         }
                                     }
                                     /** Data Source Keys **/
@@ -156,7 +160,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                 AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
             val pages = model!!.assistedDataEntryPages
 
-            for (page in pages) {
+            for ((index, page) in pages.withIndex()) {
                 for (element in page.dataEntryPageElements) {
                     val key = element.inputKey
                     val isDirtyKey = element.isDirtyKey
@@ -174,11 +178,11 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                     }
                     /** Dirty Key **/
                     if (!isDirtyKey.isNullOrBlank() && !value.isNullOrBlank()) {
-                        if (fieldType == InputTypes.PhoneNumber) {
-                            extractedInformation[isDirtyKey] =
-                                element.defaultCountryCode + value
+                        val defaultValue = AssistedFormHelper.getDefaultValueValueToCheckIsDirty(key!!, index)
+                        if (value == defaultValue) {
+                            extractedInformation[isDirtyKey] = "false"
                         } else {
-                            extractedInformation[isDirtyKey] = value
+                            extractedInformation[isDirtyKey] = "true"
                         }
                     }
                     /** Data Source Keys **/
