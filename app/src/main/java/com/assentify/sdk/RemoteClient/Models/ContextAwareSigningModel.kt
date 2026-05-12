@@ -9,6 +9,7 @@ data class DataModel(
     val header: String?,
     val confirmationMessage: String?,
     val subHeader: String?,
+    val svgLogoUrl: String?,
     val autoDownload: Boolean,
     val enableDigitalSignature: Boolean,
     val hideSignatureBoard: Boolean,

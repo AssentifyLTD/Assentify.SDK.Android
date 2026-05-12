@@ -1,4 +1,4 @@
-package com.assentify.sdk.Flow.ReusableComposable
+package com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
@@ -39,10 +39,9 @@ import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
 
-private enum class StepVisualState { Done, Active, Upcoming }
 
 @Composable
-fun ProgressStepper(
+fun NormalProgressStepper(
     modifier: Modifier = Modifier,
     nodeSize: Dp = 50.dp,
     ringWidth: Dp = 2.dp,
@@ -171,7 +170,7 @@ private fun StepNode(
     upcomingColor: Color,
     modifier: Modifier = Modifier,
 
-) {
+    ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
     val density = LocalDensity.current

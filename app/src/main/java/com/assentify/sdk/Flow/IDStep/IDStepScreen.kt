@@ -64,14 +64,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
-import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
+import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.Customization
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 
@@ -84,22 +88,29 @@ fun IDStepScreen(
     modifier: Modifier = Modifier
 ) {
 
+    val iDCustomization = getIDStepFromConfigFile(
+        ConfigModelObject.getConfigModelObject()!!,
+        FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+    );
 
-    val hasPassport = FlowController.identificationDocumentStepHasPassport(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
-    val hasID = FlowController.identificationDocumentStepHasIDCard(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+    val hasPassport =
+        FlowController.identificationDocumentStepHasPassport(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+    val hasID =
+        FlowController.identificationDocumentStepHasIDCard(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
 
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
 
-    var countries = remember(hasID, ) {
+    var countries = remember(hasID) {
         if (hasID) {
-            AssentifySdkObject.getAssentifySdkObject().getTemplates(FlowController.getCurrentStep()?.stepDefinition?.stepId!!)
+            AssentifySdkObject.getAssentifySdkObject()
+                .getTemplates(FlowController.getCurrentStep()?.stepDefinition?.stepId!!)
         } else {
             emptyList()
         }
     }
 
-    if(hasPassport){
+    if (hasPassport) {
         countries = countries + TemplatesByCountry(
             id = -1,
             name = "Rest of the world",
@@ -108,7 +119,6 @@ fun IDStepScreen(
             templates = emptyList()
         )
     }
-
 
 
     var selectedCountry by remember { mutableStateOf<TemplatesByCountry?>(countries.firstOrNull()) }
@@ -136,7 +146,9 @@ fun IDStepScreen(
             .systemBarsPadding()
     ) {
         Column(
-            Modifier.fillMaxSize().padding(horizontal = 5.dp,),
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 5.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -147,44 +159,83 @@ fun IDStepScreen(
                     .fillMaxWidth()
             ) {
 
-                // Top bar
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 0.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = BaseTheme.BaseTextColor,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(BaseTheme.BaseLogo)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Logo",
+                if (BaseTheme.StepperType == StepperType.Normal) {
+                    Row(
                         modifier = Modifier
-                            .size(40.dp)
-                            .align(Alignment.CenterVertically),
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Spacer(modifier = Modifier.size(48.dp))
+                            .fillMaxWidth()
+                            .padding(top = 0.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = BaseTheme.BaseTextColor,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(BaseTheme.BaseLogo)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.CenterVertically),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.size(48.dp))
+                    }
                 }
 
                 Spacer(Modifier.height(10.dp))
 
                 ProgressStepper(
-                    modifier = Modifier
+                    onBack = { onBack() },
+                    normalModifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 6.dp)
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                    percentageBased = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                        .padding(top = 20.dp)
                 )
+                if (!iDCustomization!!.svgLogoUrl.isNullOrEmpty() && !iDCustomization.header.isNullOrEmpty() && !iDCustomization.subHeader.isNullOrEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+
+                    LogoSvgUrl(
+                        url = iDCustomization.svgLogoUrl,
+                        modifier = Modifier
+                            .size(width = 70.dp, height = 70.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    Text(
+                        text = iDCustomization.header,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Bold,
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 23.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, start = 20.dp, end = 20.dp)
+                    )
+                    Text(
+                        text = iDCustomization.subHeader,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Medium,
+                        color = BaseTheme.BaseTextColor.copy(0.5F),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 3.dp, start = 20.dp, end = 20.dp)
+                    )
+                }
+
 
                 // MIDDLE CONTENT – takes remaining space between top and bottom
                 Column(
@@ -193,6 +244,7 @@ fun IDStepScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
+
 
                     Text(
                         "Choose your country of residence",
@@ -239,6 +291,7 @@ fun IDStepScreen(
                             BaseTheme.FieldColor
 
                         DocumentPicker(
+                            minVerticalPadding = !iDCustomization.svgLogoUrl.isNullOrEmpty() && !iDCustomization.header.isNullOrEmpty() && !iDCustomization.subHeader.isNullOrEmpty(),
                             country = country,
                             hasPassport = hasPassport,
                             hasID = hasID,
@@ -261,7 +314,9 @@ fun IDStepScreen(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Spacer(Modifier.height(5.dp))
+                if (iDCustomization!!.svgLogoUrl.isNullOrEmpty() && iDCustomization.header.isNullOrEmpty() && iDCustomization.subHeader.isNullOrEmpty()) {
+                    Spacer(Modifier.height(5.dp))
+                }
                 Text(
                     "Only the presented IDs are supported and accepted by ${ConfigModelObject.getConfigModelObject()!!.flowName}. Make sure to provide one of them.",
                     color = BaseTheme.BaseTextColor,
@@ -274,7 +329,9 @@ fun IDStepScreen(
                         .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp)
                 )
-                Spacer(Modifier.height(5.dp))
+                if (iDCustomization!!.svgLogoUrl.isNullOrEmpty() && iDCustomization.header.isNullOrEmpty() && iDCustomization.subHeader.isNullOrEmpty()) {
+                    Spacer(Modifier.height(5.dp))
+                }
                 Button(
                     onClick = {
                         if (selectedTemplate != null) {
@@ -414,6 +471,7 @@ fun DocumentPicker(
     selectedBg: Color,
     unselectedBg: Color,
     selectedTemplate: Templates?,
+    minVerticalPadding: Boolean,
     onDocumentSelected: (Templates) -> Unit,
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
@@ -440,121 +498,68 @@ fun DocumentPicker(
             .padding(top = 4.dp)
     ) {
 
-        if(hasPassport)
-        item(key = "default_passport") {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        onDocumentSelected(
-                            Templates(
-                                id = -1,
-                                sourceCountryFlag = "",
-                                sourceCountryCode = "",
-                                kycDocumentType = "Passport",
-                                sourceCountry = "",
-                                kycDocumentDetails = emptyList()
-                            )!!
-                        )
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isSelectedPassport()) selectedBg else unselectedBg
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = if (isSelectedPassport()) 6.dp else 2.dp
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Row(
+        if (hasPassport)
+            item(key = "default_passport") {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 35.dp, vertical = 28.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            onDocumentSelected(
+                                Templates(
+                                    id = -1,
+                                    sourceCountryFlag = "",
+                                    sourceCountryCode = "",
+                                    kycDocumentType = "Passport",
+                                    sourceCountry = "",
+                                    kycDocumentDetails = emptyList()
+                                )!!
+                            )
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelectedPassport()) selectedBg else unselectedBg
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = if (isSelectedPassport()) 6.dp else 2.dp
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    iconPainterPassport?.let {
-                        Image(
-                            painter = it,
-                            contentDescription = "passport",
-                            modifier = Modifier.size(60.dp),
-                            contentScale = ContentScale.Fit,
-                            colorFilter = ColorFilter.tint(
-                                if (isSelectedPassport())
-                                    BaseTheme.BaseSecondaryTextColor
-                                else
-                                    BaseTheme.BaseTextColor,
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = 35.dp, vertical = if (minVerticalPadding) {
+                                    18.dp
+                                } else {
+                                    28.dp
+                                }
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        iconPainterPassport?.let {
+                            Image(
+                                painter = it,
+                                contentDescription = "passport",
+                                modifier = Modifier.size(
+                                    if (minVerticalPadding) {
+                                        40.dp
+                                    } else {
+                                        60.dp
+                                    }
+                                ),
+                                contentScale = ContentScale.Fit,
+                                colorFilter = ColorFilter.tint(
+                                    if (isSelectedPassport())
+                                        BaseTheme.BaseSecondaryTextColor
+                                    else
+                                        BaseTheme.BaseTextColor,
+                                )
                             )
-                        )
-                    }
-                    Spacer(Modifier.width(40.dp))
-                    Text(
-                        text = "Passport",
-                        color = if (isSelectedPassport())
-                            BaseTheme.BaseSecondaryTextColor
-                        else
-                            BaseTheme.BaseTextColor,
-                        fontFamily = InterFont,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Start
-                    )
-                }
-            }
-        }
-
-        if(hasID)
-        if(country.templates.isNotEmpty())
-        item(key = "supported_ids") {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        onDocumentSelected(
-                            Templates(
-                                id = 1,
-                                sourceCountryFlag = "",
-                                sourceCountryCode = country.sourceCountryCode,
-                                kycDocumentType = "All IDs",
-                                sourceCountry = "",
-                                kycDocumentDetails = emptyList()
-                            )
-                        )
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isSelectedIDs()) selectedBg else unselectedBg
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = if (isSelectedIDs()) 6.dp else 2.dp
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 35.dp, vertical = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    iconPainterIDCard?.let {
-                        Image(
-                            painter = it,
-                            contentDescription = "id_card",
-                            modifier = Modifier.size(60.dp),
-                            contentScale = ContentScale.Fit,
-                            colorFilter = ColorFilter.tint(
-                                if (isSelectedIDs())
-                                    BaseTheme.BaseSecondaryTextColor
-                                else
-                                    BaseTheme.BaseTextColor,
-                            )
-                        )
-                    }
-
-                    Spacer(Modifier.width(40.dp))
-
-                    Column(horizontalAlignment = Alignment.Start) {
+                        }
+                        Spacer(Modifier.width(40.dp))
                         Text(
-                            text = "Supported IDs",
-                            color = if (isSelectedIDs())
+                            text = "Passport",
+                            color = if (isSelectedPassport())
                                 BaseTheme.BaseSecondaryTextColor
                             else
                                 BaseTheme.BaseTextColor,
@@ -562,29 +567,108 @@ fun DocumentPicker(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Start
                         )
-
-                        // ✅ View more => open list
-                        Text(
-                            text = "View more",
-                            color = if (isSelectedIDs())
-                                BaseTheme.BaseSecondaryTextColor
-                            else
-                                BaseTheme.BaseTextColor,
-                            fontFamily = InterFont,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 10.sp,
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .clickable { showIdsSheet = true },
-                            textDecoration = TextDecoration.Underline,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start
-                        )
                     }
                 }
             }
-        }
+
+        if (hasID)
+            if (country.templates.isNotEmpty())
+                item(key = "supported_ids") {
+                    Spacer(Modifier.height(10.dp))
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                onDocumentSelected(
+                                    Templates(
+                                        id = 1,
+                                        sourceCountryFlag = "",
+                                        sourceCountryCode = country.sourceCountryCode,
+                                        kycDocumentType = "All IDs",
+                                        sourceCountry = "",
+                                        kycDocumentDetails = emptyList()
+                                    )
+                                )
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelectedIDs()) selectedBg else unselectedBg
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = if (isSelectedIDs()) 6.dp else 2.dp
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = 35.dp, vertical =
+                                        if (minVerticalPadding) {
+                                            10.dp
+                                        } else {
+                                            20.dp
+                                        }
+                                ),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            iconPainterIDCard?.let {
+                                Image(
+                                    painter = it,
+                                    contentDescription = "id_card",
+                                    modifier = Modifier.size(
+                                        if (minVerticalPadding) {
+                                            40.dp
+                                        } else {
+                                            60.dp
+                                        }
+                                    ),
+                                    contentScale = ContentScale.Fit,
+                                    colorFilter = ColorFilter.tint(
+                                        if (isSelectedIDs())
+                                            BaseTheme.BaseSecondaryTextColor
+                                        else
+                                            BaseTheme.BaseTextColor,
+                                    )
+                                )
+                            }
+
+                            Spacer(Modifier.width(40.dp))
+
+                            Column(horizontalAlignment = Alignment.Start) {
+                                Text(
+                                    text = "Supported IDs",
+                                    color = if (isSelectedIDs())
+                                        BaseTheme.BaseSecondaryTextColor
+                                    else
+                                        BaseTheme.BaseTextColor,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Start
+                                )
+
+                                // ✅ View more => open list
+                                Text(
+                                    text = "View more",
+                                    color = if (isSelectedIDs())
+                                        BaseTheme.BaseSecondaryTextColor
+                                    else
+                                        BaseTheme.BaseTextColor,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 10.sp,
+                                    modifier = Modifier
+                                        .padding(top = 2.dp)
+                                        .clickable { showIdsSheet = true },
+                                    textDecoration = TextDecoration.Underline,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                        }
+                    }
+                }
     }
 }
 
@@ -706,8 +790,16 @@ private fun TemplatesBottomSheet(
             }
         }
     }
+
+
 }
 
+fun getIDStepFromConfigFile(
+    configModel: ConfigModel,
+    id: Int,
+): Customization? = configModel.stepDefinitions
+    .firstOrNull { it.stepId == id }
+    ?.customization
 
 
 

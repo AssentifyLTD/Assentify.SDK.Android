@@ -41,13 +41,17 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.Base64ImageObject
+import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import com.assentify.sdk.RemoteClient.Models.Customization
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,6 +61,12 @@ fun HowToCaptureFaceScreen(
     onNext: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val faceCustomization = getFaceStepFromConfigFile(
+        ConfigModelObject.getConfigModelObject()!!,
+        FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+    );
+
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
 
 
@@ -122,16 +132,51 @@ fun HowToCaptureFaceScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                Text(
-                    "Face Match",
-                    color = BaseTheme.BaseTextColor,
-                    fontSize = 25.sp,
-                    fontFamily = InterFont,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 34.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                if (!faceCustomization!!.svgLogoUrl.isNullOrEmpty() && !faceCustomization.header.isNullOrEmpty() && !faceCustomization.subHeader.isNullOrEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+
+                    LogoSvgUrl(
+                        url = faceCustomization.svgLogoUrl,
+                        modifier = Modifier
+                            .size(width = 70.dp, height = 70.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    Text(
+                        text = faceCustomization.header,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Bold,
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 23.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, start = 20.dp, end = 20.dp)
+                    )
+                    Text(
+                        text = faceCustomization.subHeader,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Medium,
+                        color = BaseTheme.BaseTextColor.copy(0.5F),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 3.dp, start = 20.dp, end = 20.dp)
+                    )
+                }else{
+                    Text(
+                        "Face Match",
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 25.sp,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 34.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+
 
                 Spacer(Modifier.height(20.dp))
 
@@ -220,3 +265,10 @@ fun HowToCaptureFaceScreen(
     }
 
 }
+
+fun getFaceStepFromConfigFile(
+    configModel: ConfigModel,
+    id: Int,
+): Customization? = configModel.stepDefinitions
+    .firstOrNull { it.stepId == id }
+    ?.customization

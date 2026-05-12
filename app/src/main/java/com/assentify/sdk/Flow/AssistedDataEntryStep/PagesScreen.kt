@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -41,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
+import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureCheckbox
+import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureCheckboxGroup
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDateField
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDropdown
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.SecureDropdownWithDataSource
@@ -56,6 +60,7 @@ import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.FilterMana
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.Models.DataSourceData
+import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -112,15 +117,52 @@ fun AssistedDataEntryPager(
                 thumbMaxHeight = 140.dp
             ) {
                 item {
-                    Text(
-                        text = pageModel.title ?: "",
-                        color =   BaseTheme.BaseTextColor,
-                        fontSize = 22.sp,
-                        fontFamily = InterFont,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    if (!pageModel.svgLogoUrl.isNullOrEmpty() && !pageModel.title.isNullOrEmpty() && !pageModel.subTitle.isNullOrEmpty()) {
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            LogoSvgUrl(
+                                url = pageModel.svgLogoUrl!!,
+                                modifier = Modifier.size(width = 70.dp, height = 70.dp)
+                            )
+                        }
+                        Text(
+                            text = pageModel.title,
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Bold,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 23.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, start = 20.dp, end = 20.dp)
+                        )
+                        Text(
+                            text = pageModel.subTitle,
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Medium,
+                            color = BaseTheme.BaseTextColor.copy(0.5F),
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 3.dp, start = 20.dp, end = 20.dp)
+                        )
+                    }else{
+                        Text(
+                            text = pageModel.title ?: "",
+                            color =   BaseTheme.BaseTextColor,
+                            fontSize = 22.sp,
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 15.dp)
+                        )
+                    }
                 }
                 val currentTick = rebuildTick
                 items(
@@ -281,6 +323,33 @@ fun AssistedDataEntryPager(
                                 },
                                 onValid = {
                                     AssistedFormHelper.changeLocalOtpValid(field.inputKey!!, true, page)
+                                    onFieldChanged()
+                                },
+                                page = page,
+                                field = field,
+                            )
+                        }
+                        InputTypes.CheckboxGroup -> {
+                            SecureCheckboxGroup(
+                                title = field.textTitle!!,
+                                onValueChange = { new ->
+                                    val result = new.joinToString(",")
+                                    AssistedFormHelper.changeValue(field.inputKey!!, result, page)
+                                    onFieldChanged()
+                                },
+                                page = page,
+                                field = field,
+                                options = field.dataSourceContent
+                                    ?.split(",")
+                                    ?.map { it.trim() }
+                                    ?: emptyList(),
+                            )
+                        }
+                        InputTypes.Checkbox -> {
+                            SecureCheckbox(
+                                title = field.textTitle!!,
+                                onValueChange = { new ->
+                                    AssistedFormHelper.changeValue(field.inputKey!!, new.toString(), page)
                                     onFieldChanged()
                                 },
                                 page = page,

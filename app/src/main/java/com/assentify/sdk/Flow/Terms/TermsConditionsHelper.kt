@@ -14,12 +14,12 @@ object TermsConditionsHelper {
         onResult: (TermsConditionsModel?) -> Unit
     ) {
 
-        val  stepDefinitions = configModel.stepDefinitions
+        val stepDefinitions = configModel.stepDefinitions
         stepDefinitions.forEach {
-           if(it.stepId == ID){
-               val termsConditionsModel = it.customization.toTermsConditionsModel()
-               onResult(termsConditionsModel)
-           }
+            if (it.stepId == ID) {
+                val termsConditionsModel = it.customization.toTermsConditionsModel()
+                onResult(termsConditionsModel)
+            }
         }
     }
 
@@ -29,6 +29,7 @@ object TermsConditionsHelper {
             data = TermsConditionsDataModel(
                 header = this.header,
                 subHeader = this.subHeader,
+                svgLogoUrl = this.svgLogoUrl,
                 file = this.file,
                 nextButtonTitle = this.nextButtonTitle,
                 confirmationRequired = this.confirmationRequired

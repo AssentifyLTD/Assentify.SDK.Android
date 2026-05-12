@@ -11,6 +11,7 @@ import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.BlockLoaderKeys
 import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -64,6 +65,13 @@ object BaseTheme {
 
     val BaseBackgroundUrl: String
         get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().svgBackgroundImageUrl
+
+    val StepperType: StepperType get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperType
+    val NodeCount: Int get() = 3
+    val RangeStart: Int get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().rangeStart
+    val RangeEnd: Int get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().rangeEnd
+    val StepperTitle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitle
+
 }
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {

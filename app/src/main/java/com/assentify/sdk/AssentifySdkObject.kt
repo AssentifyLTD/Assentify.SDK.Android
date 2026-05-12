@@ -396,3 +396,30 @@ object SignatureResponseObject {
         }.apply()
     }
 }
+
+object HasSubmittedObject {
+
+    private const val PREF_NAME = "assentify_sdk_prefs"
+    private const val KEY_PREFIX = "HasSubmittedObject"
+
+    private fun key() = "${KEY_PREFIX}_${InteractionObject.getInteractionObject()}"
+
+    fun set(value: Boolean) {
+        val prefs = ContextObject.getContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean(key(), value)
+            .apply()
+    }
+
+    fun get(): Boolean {
+        val prefs = ContextObject.getContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(key(), false)
+    }
+
+    fun clear() {
+        val prefs = ContextObject.getContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .remove(key())
+            .apply()
+    }
+}
