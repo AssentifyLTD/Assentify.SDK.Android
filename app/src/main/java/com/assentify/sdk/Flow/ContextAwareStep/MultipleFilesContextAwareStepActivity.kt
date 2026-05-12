@@ -79,6 +79,7 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.CheckEnvironment.ContextAwareSigning
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.ContextAware.ContextAwareSigningCallback
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.CreateUserDocumentObject
@@ -87,9 +88,10 @@ import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.ContextAwareStepEventTypes
+import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromBase64
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromUrl
-import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.Flow.ReusableComposable.SignaturePad
 import com.assentify.sdk.Flow.ReusableComposable.startPdfDownload
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -493,6 +495,7 @@ fun MultipleFilesContextAwareStepScreen(
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+            if(BaseTheme.StepperType == StepperType.Normal){
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -523,13 +526,17 @@ fun MultipleFilesContextAwareStepScreen(
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
             }
+        }
 
             Spacer(Modifier.height(10.dp))
 
             ProgressStepper(
-                modifier = Modifier
+                onBack = { onBack() },
+                normalModifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 6.dp)
+                    .padding(vertical = 6.dp),
+                percentageBased = Modifier
+                    .fillMaxWidth().padding(horizontal = 0.dp).padding(top = 20.dp)
             )
         }
 
@@ -556,34 +563,65 @@ fun MultipleFilesContextAwareStepScreen(
                         selectedTemplate == null ||
                         documentWithTokensObject.find { selectedTemplate!!.templateId == it?.templateId } == null && !clickLoading
                     ) {
-                        Text(
-                            text = contextAwareSigningObject?.data?.header ?: defaultTitle,
-                            fontFamily = InterFont,
-                            fontWeight = FontWeight.Bold,
-                            color = BaseTheme.BaseTextColor,
-                            fontSize = 23.sp,
-                            lineHeight = 34.sp,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 25.dp)
-                        )
 
-                        if (contextAwareSigningObject?.data?.subHeader != null) {
-                            Spacer(Modifier.height(6.dp))
+                        if (!contextAwareSigningObject!!.data.svgLogoUrl.isNullOrEmpty() && !contextAwareSigningObject.data.header.isNullOrEmpty() && !contextAwareSigningObject.data.subHeader.isNullOrEmpty()) {
+                            LogoSvgUrl(
+                                url = contextAwareSigningObject.data.svgLogoUrl,
+                                modifier = Modifier.size(width = 70.dp, height = 70.dp)
+                            )
                             Text(
-                                text = contextAwareSigningObject.data.subHeader ?: "",
-                                color = BaseTheme.BaseTextColor,
-                                fontSize = 15.sp,
+                                text = contextAwareSigningObject.data.header,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Bold,
-                                lineHeight = 28.sp,
+                                color = BaseTheme.BaseTextColor,
+                                fontSize = 23.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, start = 20.dp, end = 20.dp)
+                            )
+                            Text(
+                                text = contextAwareSigningObject.data.subHeader!!,
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Medium,
+                                color = BaseTheme.BaseTextColor.copy(0.5F),
+                                fontSize = 11.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 3.dp, start = 20.dp, end = 20.dp)
+                            )
+                        }else{
+                            Text(
+                                text = contextAwareSigningObject?.data?.header ?: defaultTitle,
+                                fontFamily = InterFont,
+                                fontWeight = FontWeight.Bold,
+                                color = BaseTheme.BaseTextColor,
+                                fontSize = 23.sp,
+                                lineHeight = 34.sp,
                                 textAlign = TextAlign.Start,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 25.dp)
                             )
+
+                            if (contextAwareSigningObject?.data?.subHeader != null) {
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    text = contextAwareSigningObject.data.subHeader ?: "",
+                                    color = BaseTheme.BaseTextColor,
+                                    fontSize = 15.sp,
+                                    fontFamily = InterFont,
+                                    fontWeight = FontWeight.Bold,
+                                    lineHeight = 28.sp,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 25.dp)
+                                )
+                            }
                         }
+
 
                         Spacer(Modifier.height(12.dp))
 

@@ -44,12 +44,13 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
-import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import kotlinx.coroutines.launch
 
@@ -113,6 +114,7 @@ fun AssistedDataEntryScreen(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
+            if(BaseTheme.StepperType == StepperType.Normal){
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -123,7 +125,7 @@ fun AssistedDataEntryScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint =   BaseTheme.BaseTextColor,
+                        tint = BaseTheme.BaseTextColor,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -145,13 +147,16 @@ fun AssistedDataEntryScreen(
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
             }
-
+        }
             Spacer(Modifier.height(10.dp))
 
             ProgressStepper(
-                modifier = Modifier
+                onBack = { onBack() },
+                normalModifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 6.dp)
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
+                percentageBased = Modifier
+                    .fillMaxWidth().padding(horizontal = 5.dp).padding(top = 20.dp)
             )
 
         }
@@ -230,7 +235,7 @@ fun AssistedDataEntryScreen(
                         val cfg = LocalConfiguration.current
                         val screenH = cfg.screenHeightDp.dp
 
-                        val headerReserve = 150.dp + 60.dp
+                        val headerReserve = 150.dp
                         val bottomReserve = 20.dp
                         val pagerHeight = (screenH - headerReserve - bottomReserve)
                             .coerceAtLeast(260.dp)

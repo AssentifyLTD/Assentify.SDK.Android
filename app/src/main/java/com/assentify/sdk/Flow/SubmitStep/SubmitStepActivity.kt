@@ -21,6 +21,7 @@ import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.ReusableComposable.Events.SubmitDataTypes
 import com.assentify.sdk.FlowCallbackObject
+import com.assentify.sdk.HasSubmittedObject
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.SubmitData.SubmitDataCallback
 import kotlinx.coroutines.Dispatchers
@@ -117,6 +118,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
 
     override fun onSubmitSuccess(message: String) {
         runOnUiThread {
+            HasSubmittedObject.set(true);
             FlowCallbackObject.getFlowCallbackObject()
                 .onFlowCompleted(FlowController.getFlowCompletedList())
             finishAffinity();

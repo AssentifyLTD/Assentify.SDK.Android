@@ -41,6 +41,7 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.HasSubmittedObject
 
 
 @Composable
@@ -106,32 +107,60 @@ fun BlockLoaderScreen(
                         Spacer(modifier = Modifier.size(48.dp))
                     }
 
-                    // header
-                    Text(
-                        text = "Complete Your\nOnboarding in ${steps.size} " +
-                                if (steps.size == 1) "Step" else "Steps",
-                        fontFamily = InterFont,
-                        fontWeight = FontWeight.Bold,
-                        color = BaseTheme.BaseTextColor,
-                        fontSize = 23.sp,
-                        lineHeight = 34.sp,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 25.dp, start = 25.dp, end = 20.dp)
-                    )
-                    Text(
-                        text = "It will include capturing your ID and your face — it's fast, easy, and secure.",
-                        fontFamily = InterFont,
-                        fontWeight = FontWeight.Normal,
-                        color = BaseTheme.BaseTextColor,
-                        fontSize = 12.sp,
-                        lineHeight = 22.sp,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 5.dp, start = 25.dp, end = 25.dp, bottom = 10.dp)
-                    )
+                    if(!HasSubmittedObject.get()){
+                        // header
+                        Text(
+                            text = "Complete Your\nOnboarding in ${steps.size} " +
+                                    if (steps.size == 1) "Step" else "Steps",
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Bold,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 23.sp,
+                            lineHeight = 34.sp,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 25.dp, start = 25.dp, end = 20.dp)
+                        )
+                        Text(
+                            text = "It will include capturing your ID and your face — it's fast, easy, and secure.",
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Normal,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 12.sp,
+                            lineHeight = 22.sp,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 5.dp, start = 25.dp, end = 25.dp, bottom = 10.dp)
+                        )
+                    }else{
+                        Text(
+                            text = "Thank you!",
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Bold,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 30.sp,
+                            lineHeight = 34.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 25.dp, start = 25.dp, end = 20.dp)
+                        )
+                        Text(
+                            text = "Completed ${steps.size} ${if (steps.size == 1) "Step" else "Steps"} Successfully",
+                            fontFamily = InterFont,
+                            fontWeight = FontWeight.Normal,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 15.sp,
+                            lineHeight = 22.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 5.dp, start = 25.dp, end = 25.dp, bottom = 10.dp)
+                        )
+                    }
+
 
                     LazyColumn(
                         modifier = Modifier
@@ -150,27 +179,30 @@ fun BlockLoaderScreen(
                     }
                 }
 
-                // ======= BOTTOM BUTTON (ALWAYS AT END OF SCREEN) =======
-                Button(
-                    onClick = onNext,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    shape = RoundedCornerShape(28.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 25.dp, horizontal = 25.dp)
-                        .background(
-                            brush = BaseTheme.BaseClickColor!!.toBrush(),
-                            shape = RoundedCornerShape(28.dp)
+                if(!HasSubmittedObject.get()){
+                    // ======= BOTTOM BUTTON (ALWAYS AT END OF SCREEN) =======
+                    Button(
+                        onClick = onNext,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        shape = RoundedCornerShape(28.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 25.dp, horizontal = 25.dp)
+                            .background(
+                                brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                shape = RoundedCornerShape(28.dp)
+                            )
+                    ) {
+                        Text(
+                            "Next",
+                            fontFamily = InterFont,
+                            color = BaseTheme.BaseSecondaryTextColor,
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier.padding(vertical = 7.dp)
                         )
-                ) {
-                    Text(
-                        "Next",
-                        fontFamily = InterFont,
-                        color = BaseTheme.BaseSecondaryTextColor,
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier.padding(vertical = 7.dp)
-                    )
+                    }
                 }
+
             }
         }
     }

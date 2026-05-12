@@ -67,7 +67,6 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnWrongTemplateScreen
-import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
@@ -582,13 +581,6 @@ fun IDCardScanScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            if(eventTypes != EventTypes.none){
-                ProgressStepper(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 6.dp)
-                )
-            }
         }
 
         if (eventTypes == EventTypes.none) {

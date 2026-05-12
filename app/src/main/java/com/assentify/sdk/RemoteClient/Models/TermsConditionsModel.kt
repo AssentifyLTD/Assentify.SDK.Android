@@ -7,6 +7,7 @@ data class TermsConditionsModel(
 data class TermsConditionsDataModel(
     val header: String?,
     val subHeader: String?,
+    val svgLogoUrl: String?,
     val file: String?,
     val nextButtonTitle: String?,
     val confirmationRequired: Boolean?,

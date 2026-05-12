@@ -51,6 +51,7 @@ class ContextAwareSigning(
                 data = DataModel(
                     header = this.header,
                     subHeader = this.subHeader,
+                    svgLogoUrl = this.svgLogoUrl,
                     selectedTemplates = this.selectedTemplates ?: emptyList(),
                     confirmationMessage = this.confirmationMessage,
                     autoDownload = this.autoDownload ?: false,
