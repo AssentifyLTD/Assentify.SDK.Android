@@ -61,7 +61,8 @@ class ContextAwareSigning(
                     enableOtp = this.enableOtp ?: false,
                     otpSize = this.otpSize,
                     otpType = this.otpType,
-                    otpExpiryTime = this.otpExpiryTime
+                    otpExpiryTime = this.otpExpiryTime,
+                    smsProvider = this.smsProvider,
                 )
         )
     }

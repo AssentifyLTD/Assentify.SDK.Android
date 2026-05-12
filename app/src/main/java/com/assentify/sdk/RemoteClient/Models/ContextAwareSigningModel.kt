@@ -17,6 +17,7 @@ data class DataModel(
     val enableOtp: Boolean,
     val otpSize: Int?,
     val otpType: Int?,
+    val smsProvider: Int?,
     val otpExpiryTime: Double?,
 )
 

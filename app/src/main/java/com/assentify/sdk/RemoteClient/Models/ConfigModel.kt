@@ -88,6 +88,7 @@ data class Customization(
     val otpSize: Int?,
     val otpType: Int?,
     val otpExpiryTime: Double?,
+    val smsProvider: Int?,
 )
 
 data class Branch(

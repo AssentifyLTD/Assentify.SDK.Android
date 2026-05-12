@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.ResendOtpControl
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.OtpHelper
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
@@ -49,7 +51,7 @@ fun SigningEmailWithOtp(
 ) {
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
-    var email by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf(getValueByKey("")) }
     var isVerified by remember { mutableStateOf(false) }
     var verifying by remember { mutableStateOf(false) }
     var sendingOtp by remember { mutableStateOf(false) }
@@ -81,7 +83,8 @@ fun SigningEmailWithOtp(
             inputType = "EmailWithOtp",
             otpSize = contextAwareSigningModel.data.otpSize ?: 8,
             otpType = contextAwareSigningModel.data.otpType ?: 1,
-            otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0
+            otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0,
+            smsProvider = contextAwareSigningModel.data.smsProvider ?: 2
         )
 
         OtpHelper.requestOtp(configModelObject, requestOtpModel) { success ->
@@ -100,6 +103,7 @@ fun SigningEmailWithOtp(
         if (!isOtpStep) {
             TextField(
                 value = email,
+                enabled = false,
                 onValueChange = {
                     email = it
                     requestError = ""
@@ -112,7 +116,8 @@ fun SigningEmailWithOtp(
                 trailingIcon = {
                     if (emailLooksValid(email)) {
                         Box(
-                            modifier = Modifier.background(
+                            modifier = Modifier.padding(end = 5.dp)
+                                .background(
                                 Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                 shape = RoundedCornerShape(12.dp)
                             ),
@@ -297,6 +302,18 @@ fun SigningEmailWithOtp(
             )
         }
     }
+}
+
+private fun getValueByKey(key: String): String {
+    val doneList = FlowController.getAllDoneSteps()
+    doneList.forEach { step ->
+        for (info in step.submitRequestModel!!.extractedInformation) {
+            if (info.key == key) {
+                return info.value
+            }
+        }
+    }
+    return ""
 }
 
 /* ---------- Helpers ---------- */

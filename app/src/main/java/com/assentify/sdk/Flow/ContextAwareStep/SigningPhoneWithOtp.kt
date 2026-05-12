@@ -16,12 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +45,7 @@ import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.CountryOption
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.ResendOtpControl
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.flagEmoji
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.OtpHelper
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
@@ -68,7 +66,7 @@ fun SigningPhoneWithOtp(
     val countryFlag = "🇱🇧"
     val countryDial = "+961"
 
-    var localNumber by remember { mutableStateOf("") }
+    var localNumber by remember { mutableStateOf(getValueByKey("")) }
     var isVerified by remember { mutableStateOf(false) }
     var verifying by remember { mutableStateOf(false) }
     var sendingOtp by remember { mutableStateOf(false) }
@@ -128,7 +126,8 @@ fun SigningPhoneWithOtp(
             inputType = "PhoneNumberWithOtp",
             otpSize = otpSize,
             otpType = otpType,
-            otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0
+            otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0,
+            smsProvider = contextAwareSigningModel.data.smsProvider ?: 2,
         )
 
         OtpHelper.requestOtp(configModelObject, req) { success ->
@@ -151,12 +150,12 @@ fun SigningPhoneWithOtp(
             ) {
                 Surface(
                     modifier = Modifier
-                        .weight(0.38f)
+                        .weight(0.25f)
                         .height(55.dp)
                         .clickable {
-                            searchQuery = ""
+                       /*     searchQuery = ""
                             userStartedTyping = false
-                            showCountryDialog = true
+                            showCountryDialog = true*/
                         },
                     shape = RoundedCornerShape(16.dp),
                     color = BaseTheme.FieldColor
@@ -175,17 +174,18 @@ fun SigningPhoneWithOtp(
                             modifier = Modifier.weight(1f)
                         )
 
-                        Icon(
+                    /*    Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "Choose code",
                             tint = BaseTheme.BaseTextColor.copy(alpha = 0.8f),
                             modifier = Modifier.size(24.dp)
-                        )
+                        )*/
                     }
                 }
 
                 TextField(
                     value = localNumber,
+                    enabled = false,
                     onValueChange = {
                         val onlyDigits = it.filter(Char::isDigit)
                         localNumber = onlyDigits.take(8)
@@ -199,7 +199,7 @@ fun SigningPhoneWithOtp(
                     trailingIcon = {
                         if (phoneLooksValidLB(localNumber)) {
                             Box(
-                                modifier = Modifier.background(
+                                modifier = Modifier.padding(end = 5.dp).background(
                                     Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                     shape = RoundedCornerShape(12.dp)
                                 ),
@@ -487,6 +487,19 @@ fun SigningPhoneWithOtp(
     }
 }
 
+private fun getValueByKey(key: String): String {
+    val doneList = FlowController.getAllDoneSteps()
+    doneList.forEach { step ->
+        for (info in step.submitRequestModel!!.extractedInformation) {
+            if (info.key == key) {
+                return info.value
+                    .removePrefix("+961")
+                    .removePrefix("961")
+            }
+        }
+    }
+    return ""
+}
 /* ---------- Phone helpers (Lebanon) ---------- */
 
 private fun phoneLooksValidLB(local: String): Boolean {

@@ -108,7 +108,9 @@ fun SecureEmailWithOtpField(
                                         inputType = field.inputType,
                                         otpSize = field.otpSize ?: 8,
                                         otpType = field.otpType ?: 1,
-                                        otpExpiryTime = field.otpExpiryTime ?: 1.0   //
+                                        otpExpiryTime = field.otpExpiryTime ?: 1.0 ,
+                                        smsProvider = 2
+
                                     )
                                     OtpHelper.requestOtp(configModelObject!!, requestOtpModel) { success ->
                                         if (success) {
@@ -236,7 +238,8 @@ fun SecureEmailWithOtpField(
                                         inputType = field.inputType,
                                         otpSize = field.otpSize ?: 8,
                                         otpType = field.otpType ?: 1,
-                                        otpExpiryTime = field.otpExpiryTime ?: 1.0   //
+                                        otpExpiryTime = field.otpExpiryTime ?: 1.0 ,
+                                        smsProvider = 2
                                     )
                                     OtpHelper.requestOtp(configModelObject!!, requestOtpModel) { success ->
                                         if (success) {
