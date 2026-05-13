@@ -54,6 +54,7 @@ import com.assentify.sdk.Core.Constants.ActiveLiveEvents
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -66,6 +67,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
@@ -521,6 +523,16 @@ fun FaceMatchScanScreen(
 
             Spacer(Modifier.height(10.dp))
 
+            if(eventTypes != EventTypes.none && BaseTheme.StepperType == StepperType.Normal){
+                ProgressStepper(
+                    onBack = { onBack() },
+                    normalModifier =  Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                    percentageBased = Modifier
+                        .fillMaxWidth().padding(horizontal = 0.dp).padding(top = 20.dp)
+                )
+            }
         }
 
         if (eventTypes == EventTypes.none) {

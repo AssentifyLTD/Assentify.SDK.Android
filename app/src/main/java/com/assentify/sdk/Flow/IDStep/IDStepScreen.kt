@@ -607,7 +607,7 @@ fun DocumentPicker(
                                         if (minVerticalPadding) {
                                             10.dp
                                         } else {
-                                            20.dp
+                                            28.dp
                                         }
                                 ),
                             verticalAlignment = Alignment.CenterVertically,

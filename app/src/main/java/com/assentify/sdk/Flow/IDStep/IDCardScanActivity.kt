@@ -52,6 +52,7 @@ import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -67,6 +68,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnWrongTemplateScreen
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
@@ -581,6 +583,16 @@ fun IDCardScanScreen(
 
             Spacer(Modifier.height(10.dp))
 
+            if(eventTypes != EventTypes.none && BaseTheme.StepperType == StepperType.Normal){
+                ProgressStepper(
+                    onBack = { onBack() },
+                    normalModifier =  Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                    percentageBased = Modifier
+                        .fillMaxWidth().padding(horizontal = 0.dp).padding(top = 20.dp)
+                )
+            }
         }
 
         if (eventTypes == EventTypes.none) {
