@@ -183,8 +183,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
-            customProperties.put("phoneNumber", "value1")
-            customProperties.put("email", "tariq@gmail.com")
+            customProperties.put("phoneNumber", "76640403")
+            customProperties.put("email", "tariq.alskran@gmail.com")
             customProperties.put("city", "ANSAR")
 
 

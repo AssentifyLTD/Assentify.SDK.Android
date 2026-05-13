@@ -46,12 +46,12 @@ fun SigningEmailWithOtp(
     title: String,
     contextAwareSigningModel: ContextAwareSigningModel,
     onValueChange: (String) -> Unit,
-    onValid: () -> Unit,
+    onValid: (VerifyOtpRequestOtpModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
-    var email by remember { mutableStateOf(getValueByKey("")) }
+    var email by remember { mutableStateOf(getValueByKey(contextAwareSigningModel.data.otpTargets.first())) }
     var isVerified by remember { mutableStateOf(false) }
     var verifying by remember { mutableStateOf(false) }
     var sendingOtp by remember { mutableStateOf(false) }
@@ -199,7 +199,7 @@ fun SigningEmailWithOtp(
                                 if (success) {
                                     isVerified = true
                                     requestError = ""
-                                    onValid()
+                                    onValid(verifyOtpRequestOtpModel)
                                 } else {
                                     isVerified = false
                                     requestError = "Invalid OTP. Please try again."

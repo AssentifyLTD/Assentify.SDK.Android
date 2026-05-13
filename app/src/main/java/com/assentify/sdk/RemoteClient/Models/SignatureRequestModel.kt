@@ -6,4 +6,8 @@ data class SignatureRequestModel(
     val username: String,
     val requiresAdditionalData: Boolean,
     val signature: String,
+    var signerName: String? = null,
+    var otpCode: String?= null,
+    var otpLine: String?= null,
+    var deviceLine: String?= null,
 )

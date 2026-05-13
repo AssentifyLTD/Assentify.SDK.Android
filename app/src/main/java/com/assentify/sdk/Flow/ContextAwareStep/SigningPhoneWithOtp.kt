@@ -57,7 +57,7 @@ fun SigningPhoneWithOtp(
     title: String,
     contextAwareSigningModel: ContextAwareSigningModel,
     onValueChange: (String) -> Unit,
-    onValid: () -> Unit,
+    onValid: (VerifyOtpRequestOtpModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val configModelObject = ConfigModelObject.getConfigModelObject()
@@ -66,7 +66,7 @@ fun SigningPhoneWithOtp(
     val countryFlag = "🇱🇧"
     val countryDial = "+961"
 
-    var localNumber by remember { mutableStateOf(getValueByKey("")) }
+    var localNumber by remember { mutableStateOf(getValueByKey(contextAwareSigningModel.data.otpTargets.first())) }
     var isVerified by remember { mutableStateOf(false) }
     var verifying by remember { mutableStateOf(false) }
     var sendingOtp by remember { mutableStateOf(false) }
@@ -274,7 +274,7 @@ fun SigningPhoneWithOtp(
 
                                 if (success) {
                                     requestError = ""
-                                    onValid()
+                                    onValid(verifyReq)
                                 } else {
                                     requestError = "Invalid OTP. Please try again."
                                 }
