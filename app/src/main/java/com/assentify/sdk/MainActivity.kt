@@ -197,6 +197,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 accentColor = "#E6BF00",
 
                 backgroundCardColor = "#2C2C2E",
+                backgroundColor = BackgroundStyle.Solid("#2C2C2E"),
                 clickColor = BackgroundStyle.Solid("#E6BF00"),
 
 
@@ -227,6 +228,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     angleDegrees = 90f,
                     holdUntil = 0.4f
                 ),*/
+
 
                 language = config.language,
                 enableNfc = config.enableNfc,

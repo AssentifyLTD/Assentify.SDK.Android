@@ -52,7 +52,6 @@ import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.MotionType
-import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -544,46 +543,49 @@ fun IDCardScanScreen(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    if (isManual) {
-                        scanIDManual!!.stopScanning()
-                    } else {
-                        scanID!!.stopScanning()
+            if(eventTypes == EventTypes.none){
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = {
+                        if (isManual) {
+                            scanIDManual!!.stopScanning()
+                        } else {
+                            scanID!!.stopScanning()
+                        }
+                        onBack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint =   BaseTheme.BaseTextColor,
+                            modifier = Modifier.size(30.dp)
+                        )
                     }
-                    onBack()
-                }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint =   BaseTheme.BaseTextColor,
-                        modifier = Modifier.size(30.dp)
+
+                    Spacer(Modifier.weight(1f))
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(BaseTheme.BaseLogo)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .align(Alignment.CenterVertically),
+                        contentScale = ContentScale.Fit
                     )
+                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.size(48.dp))
                 }
-
-                Spacer(Modifier.weight(1f))
-
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(BaseTheme.BaseLogo)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.CenterVertically),
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(Modifier.weight(1f))
-                Spacer(Modifier.size(48.dp))
             }
+
 
             Spacer(Modifier.height(10.dp))
 
-            if(eventTypes != EventTypes.none && BaseTheme.StepperType == StepperType.Normal){
+            if(eventTypes != EventTypes.none){
                 ProgressStepper(
                     onBack = { onBack() },
                     normalModifier =  Modifier

@@ -49,7 +49,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.IDQrKeys
-import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
@@ -325,6 +324,7 @@ fun QrScanScreen(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
+            if(eventTypes == EventTypes.none){
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -340,7 +340,7 @@ fun QrScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint =   BaseTheme.BaseTextColor,
+                        tint = BaseTheme.BaseTextColor,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -362,10 +362,11 @@ fun QrScanScreen(
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
             }
+        }
 
             Spacer(Modifier.height(10.dp))
 
-            if(eventTypes != EventTypes.none && BaseTheme.StepperType == StepperType.Normal){
+            if(eventTypes != EventTypes.none){
                 ProgressStepper(
                     onBack = { onBack() },
                     normalModifier =  Modifier
