@@ -67,6 +67,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnWrongTemplateScreen
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
@@ -542,45 +543,58 @@ fun IDCardScanScreen(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    if (isManual) {
-                        scanIDManual!!.stopScanning()
-                    } else {
-                        scanID!!.stopScanning()
+            if(eventTypes == EventTypes.none){
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = {
+                        if (isManual) {
+                            scanIDManual!!.stopScanning()
+                        } else {
+                            scanID!!.stopScanning()
+                        }
+                        onBack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint =   BaseTheme.BaseTextColor,
+                            modifier = Modifier.size(30.dp)
+                        )
                     }
-                    onBack()
-                }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint =   BaseTheme.BaseTextColor,
-                        modifier = Modifier.size(30.dp)
+
+                    Spacer(Modifier.weight(1f))
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(BaseTheme.BaseLogo)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .align(Alignment.CenterVertically),
+                        contentScale = ContentScale.Fit
                     )
+                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.size(48.dp))
                 }
-
-                Spacer(Modifier.weight(1f))
-
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(BaseTheme.BaseLogo)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.CenterVertically),
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(Modifier.weight(1f))
-                Spacer(Modifier.size(48.dp))
             }
+
 
             Spacer(Modifier.height(10.dp))
 
+            if(eventTypes != EventTypes.none){
+                ProgressStepper(
+                    onBack = { onBack() },
+                    normalModifier =  Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                    percentageBased = Modifier
+                        .fillMaxWidth().padding(horizontal = 0.dp).padding(top = 20.dp)
+                )
+            }
         }
 
         if (eventTypes == EventTypes.none) {

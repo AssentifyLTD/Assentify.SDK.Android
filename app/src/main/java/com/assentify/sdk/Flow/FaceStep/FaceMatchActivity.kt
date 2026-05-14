@@ -66,6 +66,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
+import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
@@ -481,6 +482,7 @@ fun FaceMatchScanScreen(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
+            if(eventTypes == EventTypes.none){
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -496,7 +498,7 @@ fun FaceMatchScanScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint =   BaseTheme.BaseTextColor,
+                        tint = BaseTheme.BaseTextColor,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -518,9 +520,20 @@ fun FaceMatchScanScreen(
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.size(48.dp))
             }
+        }
 
             Spacer(Modifier.height(10.dp))
 
+            if(eventTypes != EventTypes.none){
+                ProgressStepper(
+                    onBack = { onBack() },
+                    normalModifier =  Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                    percentageBased = Modifier
+                        .fillMaxWidth().padding(horizontal = 0.dp).padding(top = 20.dp)
+                )
+            }
         }
 
         if (eventTypes == EventTypes.none) {
