@@ -134,7 +134,7 @@ class ContextAwareSigning(
             signature = signature,
         )
         val remoteService = remoteSigningService
-        val call = remoteService.signature(signatureRequestModel,configModel.tenantIdentifier)
+        val call = remoteService.signature(signatureRequestModel)
         call.enqueue(object : Callback<SignatureResponseModel> {
             override fun onResponse(
                 call: Call<SignatureResponseModel>,
