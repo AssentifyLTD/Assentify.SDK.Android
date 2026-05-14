@@ -348,7 +348,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             }
 
             if (this.showCountDownView) {
-                if (!hasFace() || !isRectFInsideTheScreen || faceEvent != FaceEvents.Good) {
+                if (!hasFace() || !isRectFInsideTheScreen || faceEvent != FaceEvents.Good || zoom != ZoomType.SENDING) {
                     stopCountDown();
                     isCountDownStarted = true;
                 }

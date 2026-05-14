@@ -1,7 +1,7 @@
 package com.assentify.sdk.CheckEnvironment
 import android.graphics.RectF
-import android.util.Log
-import  com.assentify.sdk.Core.Constants.ZoomType
+import com.assentify.sdk.Core.Constants.ZoomType
+
 const val ZoomLimit = 10;
 const val ZoomPassportLimit = 10;
 class DetectZoom{
@@ -22,10 +22,10 @@ class DetectZoom{
 
     fun calculateFacePercentageChangeWidth(rect: RectF): ZoomType {
         val aspectRatioDifference = rect.width();
-        if (aspectRatioDifference in 100f..200f) {
+        if (aspectRatioDifference in 130f..200f) {
             return ZoomType.SENDING
         }
-        if (aspectRatioDifference < 100f) {
+        if (aspectRatioDifference < 130f) {
             return ZoomType.ZOOM_IN
         }
         if (aspectRatioDifference > 200f) {

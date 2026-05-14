@@ -10,4 +10,8 @@ data class SignatureRequestModel(
     var otpCode: String?= null,
     var otpLine: String?= null,
     var deviceLine: String?= null,
+    var hasOtp: Boolean?= null,
+    var signerContact: String?= null,
+    var enableVisualVerifier: Boolean?= null,
+    var faceImageUrl: String?= null,
 )
