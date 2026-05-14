@@ -103,6 +103,10 @@ abstract class CameraPreview : Fragment() {
     private var layoutBottom: LinearLayout? = null;
     private var layoutLeft: LinearLayout? = null;
     private var layoutRight: LinearLayout? = null;
+
+    @Volatile
+    private var isCameraActive = false
+
     private var environmentalConditions: EnvironmentalConditions? = null;
     @SuppressLint("MissingInflatedId")
     override fun onCreateView(
@@ -122,13 +126,13 @@ abstract class CameraPreview : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        cameraExecutor = Executors.newCachedThreadPool()
         detector = DetectorFactory.getDetector(requireContext().assets)
         if(ImageUtils.isLowCapabilities(context,this.environmentalConditions)){
             startCameraForManualCapture();
         }else{
             startCamera();
         }
-        cameraExecutor = Executors.newCachedThreadPool()
     }
 
    fun  setEnvironmentalConditions(environmentalConditions:EnvironmentalConditions){
@@ -144,28 +148,31 @@ abstract class CameraPreview : Fragment() {
 
 
     fun closeCamera() {
-        imageAnalysisListener = null
+        isCameraActive = false
 
         imageAnalysis?.clearAnalyzer()
-        imageAnalysis = null
+        imageAnalysisListener = null
 
-        if (!cameraExecutor.isShutdown) {
+        try {
+            cameraProvider?.unbindAll()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        camera = null
+        imageAnalysis = null
+        imageCapture = null
+        videoCapture = null
+    }
+
+    override fun onDestroyView() {
+        closeCamera()
+
+        if (::cameraExecutor.isInitialized && !cameraExecutor.isShutdown) {
             cameraExecutor.shutdown()
         }
 
-        camera?.let {
-            it.cameraControl.cancelFocusAndMetering()
-            it.cameraControl.enableTorch(false)
-            try {
-                it.cameraControl.setZoomRatio(1.0f)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            cameraProvider?.unbindAll()
-            camera = null
-        }
-
-        cameraProvider = null
+        super.onDestroyView()
     }
 
     private fun startCameraForManualCapture() {
@@ -342,6 +349,11 @@ abstract class CameraPreview : Fragment() {
 
 
             imageAnalysisListener = ImageAnalysis.Analyzer { image ->
+                try {
+                if (!isCameraActive || !isAdded) {
+                    image.close()
+                    return@Analyzer
+                }
                 val bitmap = image.toBitmap()
 
                 val scaleImage = ImageUtils.scaleBitmap(bitmap, sensorOrientation!!)
@@ -426,12 +438,15 @@ abstract class CameraPreview : Fragment() {
 
 
 
-                image.close()
+            }  finally {
+                    image.close()
+                }
             }
 
             imageAnalysis = ImageAnalysis.Builder()
                 .setTargetAspectRatio(AspectRatio.RATIO_16_9)
                 .setTargetRotation(Surface.ROTATION_0)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {
                     it.setAnalyzer(cameraExecutor, imageAnalysisListener!!)
@@ -450,6 +465,7 @@ abstract class CameraPreview : Fragment() {
                 )
                 camera?.cameraControl?.setZoomRatio(0f)
                 sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
+                isCameraActive = true
             } catch (exc: Exception) {
             }
 
@@ -741,6 +757,7 @@ abstract class CameraPreview : Fragment() {
             }
         }
     }
+
 
 
     protected fun changeCardWeightLayoutID() {
