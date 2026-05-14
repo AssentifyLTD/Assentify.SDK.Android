@@ -183,8 +183,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
-            customProperties.put("phoneNumber", "value1")
-            customProperties.put("email", "tariq@gmail.com")
+            customProperties.put("phoneNumber", "76640403")
+            customProperties.put("email", "tariq.alskran@gmail.com")
             customProperties.put("city", "ANSAR")
 
 
@@ -197,6 +197,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 accentColor = "#E6BF00",
 
                 backgroundCardColor = "#2C2C2E",
+                backgroundColor = BackgroundStyle.Solid("#2C2C2E"),
                 clickColor = BackgroundStyle.Solid("#E6BF00"),
 
 
@@ -228,6 +229,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     holdUntil = 0.4f
                 ),*/
 
+
                 language = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
@@ -240,7 +242,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
 
-           assentifySdk.clearFlow(this@MainActivity,)
+            assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,

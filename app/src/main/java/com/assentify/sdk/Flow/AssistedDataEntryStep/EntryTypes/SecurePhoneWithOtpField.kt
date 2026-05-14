@@ -189,7 +189,8 @@ fun SecurePhoneWithOtpField(
                                                 inputType = field.inputType,
                                                 otpSize = otpSize,
                                                 otpType = otpType,
-                                                otpExpiryTime = field.otpExpiryTime ?: 1.0
+                                                otpExpiryTime = field.otpExpiryTime ?: 1.0,
+                                                smsProvider = 2,
                                             )
                                             OtpHelper.requestOtp(configModelObject!!, req) { success ->
                                                 if (success) {
@@ -301,7 +302,8 @@ fun SecurePhoneWithOtpField(
                                     inputType = field.inputType,
                                     otpSize = otpSize,
                                     otpType = otpType,
-                                    otpExpiryTime = field.otpExpiryTime ?: 1.0
+                                    otpExpiryTime = field.otpExpiryTime ?: 1.0,
+                                    smsProvider = 2,
                                 )
                                 OtpHelper.requestOtp(configModelObject!!, req) { success ->
                                     if (success) {

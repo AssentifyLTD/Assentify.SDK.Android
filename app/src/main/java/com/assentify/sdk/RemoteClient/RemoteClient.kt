@@ -16,6 +16,7 @@ object RemoteClient {
     const val LANGUAGE_TRANSFORM_URL = "https://widgets.socket.assentify.com/api/"
 
 
+
     val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(120, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
