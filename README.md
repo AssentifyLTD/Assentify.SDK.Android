@@ -39,11 +39,12 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.18***
+1. *Enhanced Flow Design*
+
 ***1.0.0-Beta.17***
 1. *Enhanced User Experience*
 2. *Auto Generated Signature*
-
-
 
 ***1.0.0-Beta.16***
 1. *Enhanced Flow Design*

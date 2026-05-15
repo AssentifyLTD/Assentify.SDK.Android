@@ -54,6 +54,7 @@ import com.assentify.sdk.Core.Constants.ActiveLiveEvents
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -482,7 +483,7 @@ fun FaceMatchScanScreen(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            if(eventTypes == EventTypes.none){
+            if(eventTypes == EventTypes.none || BaseTheme.StepperType == StepperType.Normal){
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically

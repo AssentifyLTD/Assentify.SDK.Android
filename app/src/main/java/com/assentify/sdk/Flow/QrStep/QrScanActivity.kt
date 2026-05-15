@@ -49,6 +49,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.IDQrKeys
+import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
@@ -324,7 +325,7 @@ fun QrScanScreen(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            if(eventTypes == EventTypes.none){
+            if(eventTypes == EventTypes.none || BaseTheme.StepperType == StepperType.Normal){
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
