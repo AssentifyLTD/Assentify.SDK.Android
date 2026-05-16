@@ -76,6 +76,7 @@ fun AssistedDataEntryPager(
     val assistedDataEntryPages = remember { mutableStateOf(assistedDataEntryModel!!.assistedDataEntryPages) }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val loadedMap = remember { mutableStateMapOf<String, DataSourceData?>() }
+    val loadingMap = remember { mutableStateMapOf<String, Boolean>() }
     val filterMap = remember { mutableStateMapOf<String, Map<String, String>?>() }
     var rebuildTick by remember { mutableStateOf(0) }
     fun onFieldChanged() {
@@ -225,6 +226,7 @@ fun AssistedDataEntryPager(
                                     page = page,
                                     field = field,
                                     loadedMap = loadedMap,
+                                    loadingMap = loadingMap,
                                     filterMap= filterMap,
                                 )
                             } else {
