@@ -328,20 +328,25 @@ fun SigningPhoneWithOtp(
                     }
 
                     sendingOtp -> {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
-                                strokeWidth = 2.dp,
-                                color = BaseTheme.BaseTextColor,
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                "Sending OTP...",
-                                color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                                fontSize = 12.sp
-                            )
+                        Column(modifier = modifier.fillMaxWidth()) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .size(20.dp),
+                                    color = BaseTheme.BaseTextColor,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    "Sending OTP...",
+                                    color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
 

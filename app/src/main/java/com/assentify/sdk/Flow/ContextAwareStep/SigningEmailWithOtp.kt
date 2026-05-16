@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
@@ -257,20 +258,25 @@ fun SigningEmailWithOtp(
                             fontSize = 12.sp
                         )
                     } else if (sendingOtp) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.height(14.dp),
-                                strokeWidth = 2.dp,
-                                color = BaseTheme.BaseTextColor,
-                            )
-                            Spacer(modifier = Modifier.height(0.dp))
-                            Text(
-                                "Sending OTP...",
-                                color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                                fontSize = 12.sp
-                            )
+                        Column(modifier = modifier.fillMaxWidth()) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .size(20.dp),
+                                    color = BaseTheme.BaseTextColor,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    "Sending OTP...",
+                                    color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     } else {
                         ResendOtpControl(
