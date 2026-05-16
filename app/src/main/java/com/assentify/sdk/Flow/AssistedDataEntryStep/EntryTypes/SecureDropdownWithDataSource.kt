@@ -47,9 +47,13 @@ import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.Models.DataSourceAttribute
 import com.assentify.sdk.Flow.Models.DataSourceData
-import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.Flow.Models.DataSourceResponse
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
 
 @Composable
 fun SecureDropdownWithDataSource(
@@ -58,170 +62,194 @@ fun SecureDropdownWithDataSource(
     field: DataEntryPageElement,
     onValueChange: (List<DataSourceAttribute>, outputKeys: Map<String, String>) -> Unit,
     modifier: Modifier = Modifier,
-    loadedMap:MutableMap<String, DataSourceData?>,
-    filterMap:MutableMap<String, Map<String, String>?>,
-    ) {
-
-
-
+    loadedMap: MutableMap<String, DataSourceData?>,
+    loadingMap: MutableMap<String, Boolean>,
+    filterMap: MutableMap<String, Map<String, String>?>,
+) {
     val configModelObject = ConfigModelObject.getConfigModelObject()
-    var dataSourceData by remember { mutableStateOf<DataSourceData?>(null) }
+    val currentKey = field.inputKey ?: ""
+
+    var dataSourceData by remember(currentKey) {
+        mutableStateOf<DataSourceData?>(loadedMap[currentKey])
+    }
 
     val triggerFilter by FilterManager.triggerFilter.collectAsState()
-    var filterKeyValues by remember { mutableStateOf<Map<String, String>?>(emptyMap()) }
 
-    /** Default Value **/
-    var selected by rememberSaveable  { mutableStateOf<List<DataSourceAttribute>>(emptyList()) }
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var userStartedTyping by rememberSaveable { mutableStateOf(false) }
-    var showSearchDialog by remember { mutableStateOf(false) }
+    var filterKeyValues by remember(currentKey) {
+        mutableStateOf(filterMap[currentKey] ?: emptyMap())
+    }
 
-    /** Loaded State **/
+    var selected by rememberSaveable(currentKey) {
+        mutableStateOf<List<DataSourceAttribute>>(emptyList())
+    }
 
-    val currentKey = field.inputKey ?: ""
-    dataSourceData = loadedMap[currentKey]
-    filterKeyValues = filterMap[currentKey]
+    var searchQuery by rememberSaveable(currentKey) {
+        mutableStateOf("")
+    }
+
+    var userStartedTyping by rememberSaveable(currentKey) {
+        mutableStateOf(false)
+    }
+
+    var showSearchDialog by remember(currentKey) {
+        mutableStateOf(false)
+    }
+
+    var filteredItems by remember(currentKey) {
+        mutableStateOf(dataSourceData?.items ?: emptyList())
+    }
 
     LaunchedEffect(triggerFilter) {
-        val newFilterKeyValues = AssistedFormHelper.getFilterValue(dataSourceData)
-        filterMap[currentKey] = newFilterKeyValues;
+        val newFilterKeyValues = withContext(Dispatchers.Default) {
+            AssistedFormHelper.getFilterValue(dataSourceData)
+        }
+
+        filterMap[currentKey] = newFilterKeyValues
+
         if (newFilterKeyValues != filterKeyValues) {
-            filterKeyValues = newFilterKeyValues
+            filterKeyValues = newFilterKeyValues ?: emptyMap()
             loadedMap[currentKey] = null
             dataSourceData = null
             selected = emptyList()
             searchQuery = ""
             userStartedTyping = false
             showSearchDialog = false
+            filteredItems = emptyList()
+            loadingMap[currentKey] = false
         }
     }
 
+    LaunchedEffect(field.inputKey, field.languageTransformation, filterKeyValues) {
+        if (currentKey.isBlank()) return@LaunchedEffect
+        if (configModelObject == null) return@LaunchedEffect
+        if (field.endpointId == null) return@LaunchedEffect
 
+        val cachedData = loadedMap[currentKey]
+        if (cachedData != null) {
+            dataSourceData = cachedData
+            filteredItems = cachedData.items
+            loadingMap[currentKey] = false
+            return@LaunchedEffect
+        }
 
+        if (loadingMap[currentKey] == true && loadedMap[currentKey] == null) {
+            loadingMap[currentKey] = false
+        }
 
-    LaunchedEffect(field.inputKey, field.languageTransformation,filterKeyValues) {
-        if (loadedMap[currentKey] != null) return@LaunchedEffect
+        loadingMap[currentKey] = true
 
-        AssistedFormHelper.getDataSourceValues(
-            configModelObject!!,
-            field.elementIdentifier,
-            FlowController.getCurrentStep()!!.stepDefinition!!.stepId,
-            field.endpointId!!,
-            filterKeyValues = filterKeyValues!!
-        ) { data ->
-            if (data != null) {
-                dataSourceData = data.data
-                loadedMap[currentKey] = dataSourceData!!;
-                if (field.languageTransformation == 0) {
-                    dataSourceData!!.items.forEach {
-                        if (
-                            it.dataSourceAttributes.isNotEmpty() &&
-                            it.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value ==
-                            AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
-                        ) {
-                            selected = it.dataSourceAttributes
-                        }
-                    }
-                    if (selected.isNotEmpty()) {
-                        onValueChange(selected, dataSourceData!!.outputKeys)
-                    }
-                } else {
-                    if (selected.isEmpty()) {
-                        val dataList = listOf(
-                            LanguageTransformationModel(
-                                language = field.targetOutputLanguage!!,
-                                languageTransformationEnum = field.languageTransformation!!,
-                                value = AssistedFormHelper.getDefaultValueValue(
-                                    field.inputKey!!,
-                                    page
-                                ) ?: "",
-                                key = field.inputKey!!,
-                                dataType = field.inputType
-                            )
+        try {
+            val response = loadDataSourceSuspend(
+                field = field,
+                filterKeyValues = filterKeyValues ?: emptyMap()
+            )
+
+            val loadedData = response?.data ?: return@LaunchedEffect
+
+            dataSourceData = loadedData
+            loadedMap[currentKey] = loadedData
+            filteredItems = loadedData.items
+
+            if (field.languageTransformation == 0) {
+                val defaultValue = AssistedFormHelper.getDefaultValueValue(
+                    field.inputKey!!,
+                    page
+                )
+
+                val defaultSelected = withContext(Dispatchers.Default) {
+                    findSelectedByDisplayValue(loadedData, defaultValue)
+                }
+
+                if (defaultSelected.isNotEmpty()) {
+                    selected = defaultSelected
+                    onValueChange(defaultSelected, loadedData.outputKeys)
+                }
+            } else {
+                if (selected.isEmpty()) {
+                    val dataList = listOf(
+                        LanguageTransformationModel(
+                            language = field.targetOutputLanguage!!,
+                            languageTransformationEnum = field.languageTransformation!!,
+                            value = AssistedFormHelper.getDefaultValueValue(
+                                field.inputKey!!,
+                                page
+                            ) ?: "",
+                            key = field.inputKey!!,
+                            dataType = field.inputType
                         )
-                        AssistedFormHelper.valueTransformation(
-                            field.targetOutputLanguage,
-                            TransformationModel(LanguageTransformationModels = dataList)
-                        ) { transformationData ->
-                            if (transformationData != null) {
-                                dataSourceData!!.items.forEach {
-                                    if (
-                                        it.dataSourceAttributes.isNotEmpty() &&
-                                        it.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value ==
-                                        transformationData.value
-                                    ) {
-                                        selected = it.dataSourceAttributes
-                                    }
-                                }
-                                if (selected.isNotEmpty()) {
-                                    AssistedFormHelper.changeValueSecureDropdownWithDataSource(
-                                        field.inputKey,
-                                        selected,
-                                        dataSourceData!!.outputKeys,
-                                        page
-                                    )
-                                    onValueChange(selected, dataSourceData!!.outputKeys)
-                                }
-                            } else {
-                                dataSourceData!!.items.forEach {
-                                    if (
-                                        it.dataSourceAttributes.isNotEmpty() &&
-                                        it.dataSourceAttributes.first { i -> i.mappedKey == "Display Value" }.value ==
-                                        AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
-                                    ) {
-                                        selected = it.dataSourceAttributes
-                                    }
-                                }
-                                if (selected.isNotEmpty()) {
-                                    onValueChange(selected, dataSourceData!!.outputKeys)
-                                }
-                            }
-                        }
+                    )
+
+                    val transformationData = valueTransformationSuspend(
+                        field.targetOutputLanguage,
+                        TransformationModel(LanguageTransformationModels = dataList)
+                    )
+
+                    val valueToCompare = transformationData?.value
+                        ?: AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
+
+                    val transformedSelected = withContext(Dispatchers.Default) {
+                        findSelectedByDisplayValue(loadedData, valueToCompare)
                     }
+
+                    if (transformedSelected.isNotEmpty()) {
+                        selected = transformedSelected
+
+                        if (transformationData != null) {
+                            AssistedFormHelper.changeValueSecureDropdownWithDataSource(
+                                field.inputKey,
+                                transformedSelected,
+                                loadedData.outputKeys,
+                                page
+                            )
+                        }
+
+                        onValueChange(transformedSelected, loadedData.outputKeys)
+                    }
+                }
+            }
+        } finally {
+            loadingMap[currentKey] = false
+        }
+    }
+
+    LaunchedEffect(searchQuery, dataSourceData, userStartedTyping) {
+        val currentData = dataSourceData
+        val query = searchQuery
+
+        filteredItems = withContext(Dispatchers.Default) {
+            val items = currentData?.items ?: emptyList()
+
+            if (!userStartedTyping || query.isBlank()) {
+                items
+            } else {
+                items.filter { item ->
+                    item.dataSourceAttributes
+                        .firstOrNull { it.mappedKey == "Display Value" }
+                        ?.value
+                        .orEmpty()
+                        .contains(query, ignoreCase = true)
                 }
             }
         }
     }
 
-    /****/
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
     fun getIsLocked(): Boolean {
         val identifiers = field.inputPropertyIdentifierList ?: emptyList()
-        return (field.isLocked == true) && identifiers.isNotEmpty()
+        return field.isLocked == true && identifiers.isNotEmpty()
     }
 
-    val isReadOnly = (field.readOnly == true) || getIsLocked()
+    val isReadOnly = field.readOnly == true || getIsLocked()
 
     val err by remember(field.inputKey, page, selected) {
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 
-    val pillColor = BaseTheme.FieldColor
+    val selectedDisplayValue = selected
+        .firstOrNull { it.mappedKey == "Display Value" }
+        ?.value
+        .orEmpty()
 
-    val filteredItems = remember(searchQuery, dataSourceData, userStartedTyping) {
-        val items = dataSourceData?.items ?: emptyList()
-        if (!userStartedTyping) {
-            items
-        } else {
-            items.filter { item ->
-                val displayValue = item.dataSourceAttributes
-                    .firstOrNull { it.mappedKey == "Display Value" }
-                    ?.value
-                    .orEmpty()
-
-                displayValue.contains(searchQuery, ignoreCase = true)
-            }
-        }
-    }
-
-    val selectedDisplayValue = if (selected.isNotEmpty()) {
-        selected.firstOrNull { it.mappedKey == "Display Value" }?.value ?: ""
-    } else {
-        ""
-    }
-
-    if (!field.isHidden!!) {
+    if (field.isHidden != true) {
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
                 text = title,
@@ -244,7 +272,7 @@ fun SecureDropdownWithDataSource(
                             showSearchDialog = true
                         },
                     shape = RoundedCornerShape(16.dp),
-                    color = pillColor
+                    color = BaseTheme.FieldColor
                 ) {
                     Row(
                         modifier = Modifier
@@ -364,7 +392,15 @@ fun SecureDropdownWithDataSource(
                                 )
                             }
                         } else {
-                            items(filteredItems) { option ->
+                            items(
+                                items = filteredItems,
+                                key = { option ->
+                                    option.dataSourceAttributes
+                                        .firstOrNull { it.mappedKey == "Display Value" }
+                                        ?.value
+                                        ?: option.hashCode()
+                                }
+                            ) { option ->
                                 val displayValue = option.dataSourceAttributes
                                     .firstOrNull { it.mappedKey == "Display Value" }
                                     ?.value
@@ -380,6 +416,7 @@ fun SecureDropdownWithDataSource(
                                             showSearchDialog = false
                                             searchQuery = ""
                                             userStartedTyping = false
+
                                             onValueChange(
                                                 option.dataSourceAttributes,
                                                 dataSourceData!!.outputKeys
@@ -394,4 +431,58 @@ fun SecureDropdownWithDataSource(
             }
         }
     }
+}
+
+private suspend fun loadDataSourceSuspend(
+    field: DataEntryPageElement,
+    filterKeyValues: Map<String, String>
+): DataSourceResponse? {
+    return withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { continuation ->
+            val configModelObject = ConfigModelObject.getConfigModelObject()
+
+            AssistedFormHelper.getDataSourceValues(
+                configModelObject!!,
+                field.elementIdentifier,
+                FlowController.getCurrentStep()!!.stepDefinition!!.stepId,
+                field.endpointId!!,
+                filterKeyValues = filterKeyValues
+            ) { data ->
+                if (continuation.isActive) {
+                    continuation.resume(data)
+                }
+            }
+        }
+    }
+}
+
+private suspend fun valueTransformationSuspend(
+    targetOutputLanguage: String?,
+    transformationModel: TransformationModel
+): LanguageTransformationModel? {
+    return withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { continuation ->
+            AssistedFormHelper.valueTransformation(
+                targetOutputLanguage!!,
+                transformationModel
+            ) { transformationData ->
+                if (continuation.isActive) {
+                    continuation.resume(transformationData)
+                }
+            }
+        }
+    }
+}
+
+private fun findSelectedByDisplayValue(
+    dataSourceData: DataSourceData,
+    value: String?
+): List<DataSourceAttribute> {
+    if (value.isNullOrEmpty()) return emptyList()
+
+    return dataSourceData.items.firstOrNull { item ->
+        item.dataSourceAttributes
+            .firstOrNull { it.mappedKey == "Display Value" }
+            ?.value == value
+    }?.dataSourceAttributes ?: emptyList()
 }
