@@ -168,21 +168,15 @@ dependencies {
 
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.assentify.sdk'
+            artifactId = 'Assentify.SDK.Android'
+            version = '1.0.0-alpha'
+            afterEvaluate {
                 from components.release
-                groupId = 'com.assentify.sdk'
-                artifactId = 'Assentify.SDK.Android'
-                version = '1.0.0-local'
-            }
-        }
-        repositories {
-            maven {
-                url = uri("${System.getProperty('user.home')}/.m2/repository")
             }
         }
     }
 }
-
