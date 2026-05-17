@@ -11,4 +11,5 @@ data class TermsConditionsDataModel(
     val file: String?,
     val nextButtonTitle: String?,
     val confirmationRequired: Boolean?,
+    val isNormalClick: Boolean?,
 )

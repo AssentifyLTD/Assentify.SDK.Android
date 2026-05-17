@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <cache-path name="sdk_pdf_cache" path="." />
+    <external-cache-path name="sdk_pdf_external_cache" path="." />
+    <files-path name="sdk_pdf_files" path="." />
+</paths>

@@ -32,7 +32,8 @@ object TermsConditionsHelper {
                 svgLogoUrl = this.svgLogoUrl,
                 file = this.file,
                 nextButtonTitle = this.nextButtonTitle,
-                confirmationRequired = this.confirmationRequired
+                confirmationRequired = this.confirmationRequired,
+                isNormalClick = this.isNormalClick ?: false
             )
         )
     }

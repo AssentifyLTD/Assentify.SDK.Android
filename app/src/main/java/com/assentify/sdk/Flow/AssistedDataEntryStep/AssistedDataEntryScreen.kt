@@ -17,8 +17,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -49,6 +46,7 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -252,9 +250,25 @@ fun AssistedDataEntryScreen(
 
             if(eventTypes == EventTypes.onComplete){
                 val lastIndex = pagerState.pageCount - 1
-                Button(
-                    onClick = {
+                val isNotLastPage = pagerState.currentPage < lastIndex
 
+                BaseClick(
+                    isNormalClick = if (isNotLastPage) true else assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].isNormalClick!!,
+                    label = assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].nextButtonTitle,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(vertical = 25.dp, horizontal = 40.dp)
+                        .background(
+                            brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            shape = RoundedCornerShape(28.dp)
+                        ),
+                    isActive = enabled,
+                    sliderModifier =  Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(vertical = 25.dp, horizontal = 40.dp),
+                    onNext = {
                         scope.launch {
                             if (enabled && pagerState.currentPage < lastIndex) {
                                 currentPage++;
@@ -265,30 +279,10 @@ fun AssistedDataEntryScreen(
                                     onNext()
                                 }
                             }
-
                         }
-                    },
-                    enabled = enabled,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    }
 
-                    shape = RoundedCornerShape(28.dp),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(vertical = 25.dp, horizontal = 40.dp)
-                        .background(
-                            brush = BaseTheme.BaseClickColor!!.toBrush(),
-                            shape = RoundedCornerShape(28.dp)
-                        )
-                ) {
-                    Text(
-                        assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].nextButtonTitle,
-                        fontFamily = InterFont,
-                        fontWeight = FontWeight.Normal,
-                        color = BaseTheme.BaseSecondaryTextColor,
-                        modifier = Modifier.padding(vertical = 7.dp)
-                    )
-                }
+                )
             }
 
         }
