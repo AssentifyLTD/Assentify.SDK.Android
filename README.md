@@ -38,6 +38,8 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.20***
+1. *Support for new button design*
 
 ***1.0.0-Beta.19***
 1. *Enhanced Flow Design*

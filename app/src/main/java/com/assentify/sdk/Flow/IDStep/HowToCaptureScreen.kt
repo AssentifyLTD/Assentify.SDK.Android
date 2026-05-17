@@ -14,8 +14,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -33,10 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.SelectedTemplatesObject
@@ -61,6 +62,12 @@ fun HowToCaptureScreen(
         if (selectedTemplate.id == -1) "passport-video.mp4"
         else "id-video.mp4";
 
+
+
+    val iDCustomization = getIDStepFromConfigFile(
+        ConfigModelObject.getConfigModelObject()!!,
+        FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+    );
 
     BaseBackgroundContainer(
         modifier = modifier
@@ -169,29 +176,26 @@ fun HowToCaptureScreen(
             }
 
             // BOTTOM – pinned
-            Button(
-                onClick = {
-                    onNext()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
 
-                shape = RoundedCornerShape(28.dp),
+            BaseClick(
+                isNormalClick = iDCustomization!!.isNormalClick!!,
+                label = "Lets Start",
+                icon = Icons.Outlined.PhotoCamera,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 25.dp, horizontal = 25.dp).background(
                         brush = BaseTheme.BaseClickColor!!.toBrush(),
                         shape = RoundedCornerShape(28.dp)
-                    )
-            ) {
-                Text(
-                    "Lets Start",
-                    fontFamily = InterFont,
-                    fontWeight = FontWeight.Normal,
-                    color =BaseTheme.BaseSecondaryTextColor,
-                    modifier = Modifier.padding(vertical = 7.dp)
-                )
-            }
+                    ),
+                sliderModifier =  Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 25.dp, horizontal = 15.dp),
+                onNext = {   onNext() }
+
+            )
+
         }
     }
 
 }
+

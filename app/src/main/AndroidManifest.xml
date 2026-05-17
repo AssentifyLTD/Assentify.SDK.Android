@@ -79,7 +79,7 @@
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4926f3132e616e760f865b69a1b93f28" />
-       <!-- <activity
+        <activity
             android:name=".MainActivity2"
             android:exported="false" />
 
@@ -91,7 +91,18 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>-->
+        </activity>
+
+        <!-- PDF FileProvider -->
+        <provider
+            android:name=".Flow.ReusableComposable.InlineFileProvider"
+            android:authorities="${applicationId}.inline_provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/sdk_file_provider_paths" />
+        </provider>
 
     </application>
 
