@@ -15,8 +15,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,7 +30,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +45,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -235,31 +234,27 @@ fun HowToCaptureFaceScreen(
                     )
                 }
             } else {
-                Button(
-                    onClick = {
-                        Base64ImageObject.clear()
-                        Base64ImageObject.setImage(base64Image)
-                        onNext()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-
-                    shape = RoundedCornerShape(28.dp),
+                BaseClick(
+                    isNormalClick = faceCustomization!!.isNormalClick!!,
+                    label = "Lets Start",
+                    icon = Icons.Outlined.PhotoCamera,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 12.dp, horizontal = 20.dp)
                         .background(
                             brush = BaseTheme.BaseClickColor!!.toBrush(),
                             shape = RoundedCornerShape(28.dp)
-                        )
-                ) {
-                    Text(
-                        "Next",
-                        fontFamily = InterFont,
-                        fontWeight = FontWeight.Normal,
-                        color = BaseTheme.BaseSecondaryTextColor,
-                        modifier = Modifier.padding(vertical = 7.dp)
-                    )
-                }
+                        ),
+                    sliderModifier =  Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 25.dp, horizontal =15.dp),
+                    onNext = {       Base64ImageObject.clear()
+                        Base64ImageObject.setImage(base64Image)
+                        onNext()}
+
+                )
+
+
             }
         }
     }

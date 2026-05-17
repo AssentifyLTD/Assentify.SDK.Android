@@ -40,6 +40,7 @@ data class AssistedDataEntryPage(
     val title: String,
     val subTitle: String?,
     val svgLogoUrl: String?,
+    val isNormalClick: Boolean?,
     val nextButtonTitle: String,
     var dataEntryPageElements: List<DataEntryPageElement>
 )

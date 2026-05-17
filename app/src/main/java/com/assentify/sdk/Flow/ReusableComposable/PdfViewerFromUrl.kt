@@ -1,27 +1,27 @@
 package com.assentify.sdk.Flow.ReusableComposable
 
 import android.app.DownloadManager
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.ParcelFileDescriptor
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,12 +39,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.core.content.FileProvider
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
-import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,6 +54,61 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.math.max
 
+// ─────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────
+private const val TAG                = "PdfViewer"
+private const val MIN_CONTENT_PIXELS = 50
+private const val WHITE_TOLERANCE    = 245
+private const val RENDER_SCALE       = 2.5f
+private const val PADDING_PX         = 24
+
+// ─────────────────────────────────────────────
+// FileProvider — backed by res/xml/sdk_file_provider_paths.xml
+// ─────────────────────────────────────────────
+class InlineFileProvider : FileProvider() {
+    companion object {
+        fun getUri(context: Context, file: File): Uri =
+            getUriForFile(
+                context,
+                "${context.packageName}.inline_provider",
+                file
+            )
+    }
+}
+
+// ─────────────────────────────────────────────
+// Open PDF in system viewer
+// ─────────────────────────────────────────────
+fun openPdfWithSystemViewer(context: Context, pdfFile: File) {
+    try {
+        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            InlineFileProvider.getUri(context, pdfFile)
+        } else {
+            @Suppress("DEPRECATION")
+            Uri.fromFile(pdfFile)
+        }
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+        }
+
+        context.startActivity(Intent.createChooser(intent, "Open PDF with…"))
+
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "No PDF viewer app found", Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+        Log.e(TAG, "Failed to open PDF with system viewer", e)
+        Toast.makeText(context, "Failed to open PDF", Toast.LENGTH_SHORT).show()
+    }
+}
+
+// ─────────────────────────────────────────────
+// Public entry point
+// ─────────────────────────────────────────────
 @Composable
 fun PdfViewerFromUrl(
     url: String,
@@ -60,51 +116,45 @@ fun PdfViewerFromUrl(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-    var showFullScreen by remember { mutableStateOf(false) }
-
-    val iconPainter = remember("ic_fullscreen.svg") {
+    val iconFullscreen = remember("ic_fullscreen.svg") {
         loadSvgFromAssets(context, "ic_fullscreen.svg")
     }
-    val iconSvg = remember {
+    val iconDownload = remember("ic_download.svg") {
         loadSvgFromAssets(context, "ic_download.svg")
     }
 
-    var isLoading by remember(url) { mutableStateOf(true) }
-    var error by remember(url) { mutableStateOf<String?>(null) }
-    var pdfFile by remember(url) { mutableStateOf<File?>(null) }
-
-    // Inline preview bitmap (page 0 only)
+    var isLoading     by remember(url) { mutableStateOf(true) }
+    var error         by remember(url) { mutableStateOf<String?>(null) }
+    var pdfFile       by remember(url) { mutableStateOf<File?>(null) }
     var previewBitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
+    val pages         = remember(url) { mutableStateListOf<Bitmap>() }
 
-    // Fullscreen pages
-    val pages = remember(url) { mutableStateListOf<Bitmap>() }
-
-    // Download the PDF to cache when URL changes
+    // Download + render preview
     LaunchedEffect(url) {
         isLoading = true
-        error = null
-        pdfFile = null
+        error     = null
+        pdfFile   = null
+        previewBitmap?.recycle()
         previewBitmap = null
+        pages.forEach { it.recycle() }
         pages.clear()
 
         try {
             val f = withContext(Dispatchers.IO) { downloadPdfToCache(context, url) }
             pdfFile = f
-
-            // render preview (first page)
             previewBitmap = withContext(Dispatchers.IO) {
-                renderPdfPageToBitmap(f, pageIndex = 0, scale = 1.5f)
+                renderFirstMeaningfulPage(f, scale = 1.5f)
             }
         } catch (t: Throwable) {
+            Log.e(TAG, "Load failed: $url", t)
             error = t.message ?: "Failed to load PDF"
         } finally {
             isLoading = false
         }
     }
 
-    // --- Inline Preview ---
+    // ── Inline preview ──
     Box(
         modifier = modifier
             .background(Color.White)
@@ -113,68 +163,74 @@ fun PdfViewerFromUrl(
         when {
             isLoading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(
-                        color =   BaseTheme.BaseTextColor
-                    )
+                    CircularProgressIndicator(color = BaseTheme.BaseTextColor)
                 }
             }
 
             error != null -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Failed to load PDF", color = BaseTheme.BaseRedColor)
+                    Text("Failed to load PDF", color = BaseTheme.BaseRedColor)
                 }
             }
 
-            pdfFile != null && previewBitmap != null -> {
-                Image(
-                    bitmap = previewBitmap!!.asImageBitmap(),
-                    contentDescription = "PDF preview",
-                    modifier = Modifier.fillMaxSize()
-                )
+            pdfFile != null -> {
+                // Preview bitmap or placeholder
+                if (previewBitmap != null && !previewBitmap!!.isRecycled) {
+                    Image(
+                        bitmap             = previewBitmap!!.asImageBitmap(),
+                        contentDescription = "PDF preview",
+                        contentScale       = ContentScale.Fit,
+                        modifier           = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Box(
+                        modifier         = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF0F0F0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("PDF", color = Color.Gray, fontWeight = FontWeight.Bold)
+                    }
+                }
 
+                // Action buttons
                 Row(
-                    modifier = Modifier
+                    modifier              = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // 🔹 Download icon
+                    // Download
                     IconButton(
-                        onClick = {
-                            startPdfDownload(
-                                context = context,
-                                url = url,
-                                fileName = fileName
-                            )
-                        },
+                        onClick  = { startPdfDownload(context, url, fileName) },
                         modifier = Modifier
                             .background(Color.Black.copy(alpha = 0.4f), CircleShape)
                             .size(36.dp)
                     ) {
-                        iconSvg?.let {
+                        iconDownload?.let {
                             Icon(
-                                painter = it,
+                                painter            = it,
                                 contentDescription = "Download PDF",
-                                modifier = Modifier.size(22.dp),
-                                tint = Color.White
+                                modifier           = Modifier.size(22.dp),
+                                tint               = Color.White
                             )
                         }
                     }
 
-                    // 🔹 Full-screen icon
+                    // Open in system viewer
                     IconButton(
-                        onClick = { showFullScreen = true },
+                        onClick  = { pdfFile?.let { openPdfWithSystemViewer(context, it) } },
                         modifier = Modifier
                             .background(Color.Black.copy(alpha = 0.4f), CircleShape)
                             .size(36.dp)
                     ) {
-                        iconPainter?.let {
+                        iconFullscreen?.let {
                             Icon(
-                                painter = it,
+                                painter            = it,
                                 contentDescription = "Open full screen",
-                                tint = Color.White,
-                                modifier = Modifier.size(22.dp)
+                                tint               = Color.White,
+                                modifier           = Modifier.size(22.dp)
                             )
                         }
                     }
@@ -183,132 +239,140 @@ fun PdfViewerFromUrl(
         }
     }
 
-    // --- Full-screen Dialog ---
-    if (showFullScreen && pdfFile != null) {
-        Dialog(onDismissRequest = { showFullScreen = false }) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Transparent)
-            ) {
-                PdfRendererFullScreen(
-                    pdfFile = pdfFile!!,
-                    pages = pages,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                IconButton(
-                    onClick = { showFullScreen = false },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        }
-    }
-
-    // Cleanup preview bitmap when composable leaves / url changes
+    // Cleanup on url change or composable disposal
     DisposableEffect(url) {
         onDispose {
             previewBitmap?.recycle()
-            previewBitmap = null
-
             pages.forEach { it.recycle() }
             pages.clear()
         }
     }
 }
 
-@Composable
-private fun PdfRendererFullScreen(
-    pdfFile: File,
-    pages: MutableList<Bitmap>,
-    modifier: Modifier = Modifier
-) {
-    var loading by remember(pdfFile.absolutePath) { mutableStateOf(pages.isEmpty()) }
-    var error by remember(pdfFile.absolutePath) { mutableStateOf<String?>(null) }
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+// ─────────────────────────────────────────────
+// Render helpers
+// ─────────────────────────────────────────────
 
-    LaunchedEffect(pdfFile.absolutePath) {
-        if (pages.isNotEmpty()) return@LaunchedEffect
-        loading = true
-        error = null
+private fun renderFirstMeaningfulPage(pdfFile: File, scale: Float): Bitmap? {
+    return try {
+        ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
+            PdfRenderer(fd).use { renderer ->
+                var fallback: Bitmap? = null
 
-        try {
-            val rendered = withContext(Dispatchers.IO) {
-                renderAllPages(pdfFile, targetScale = 2.0f)
-            }
-            pages.clear()
-            pages.addAll(rendered)
-        } catch (t: Throwable) {
-            error = t.message ?: "Failed to render PDF"
-        } finally {
-            loading = false
-        }
-    }
+                for (i in 0 until renderer.pageCount) {
+                    renderer.openPage(i).use { page ->
+                        val w   = max(1, (page.width  * scale).toInt())
+                        val h   = max(1, (page.height * scale).toInt())
+                        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                        android.graphics.Canvas(bmp).drawColor(android.graphics.Color.WHITE)
+                        page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 
-    when {
-        loading -> {
-            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    color =   BaseTheme.BaseTextColor
-                )
-            }
-        }
+                        if (fallback == null) fallback = bmp
 
-        error != null -> {
-            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Failed to render PDF", color = Color.White)
-            }
-        }
-
-        else -> {
-            LazyColumn(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(vertical = 8.dp)
-            ) {
-                itemsIndexed(pages, key = { index, _ -> index }) { index, bmp ->
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = "PDF page ${index + 1}",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                    )
+                        if (countNonWhitePixels(bmp) >= MIN_CONTENT_PIXELS) {
+                            return@use bmp   // first meaningful page found
+                        }
+                    }
                 }
+                fallback // every page was blank — return page 0 anyway
             }
         }
+    } catch (e: Exception) {
+        Log.e(TAG, "renderFirstMeaningfulPage failed", e)
+        null
     }
 }
 
+private fun renderPage(page: PdfRenderer.Page): Bitmap? {
+    return try {
+        val w   = max(1, (page.width  * RENDER_SCALE).toInt())
+        val h   = max(1, (page.height * RENDER_SCALE).toInt())
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        android.graphics.Canvas(bmp).drawColor(android.graphics.Color.WHITE)
+        page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+        bmp
+    } catch (e: Exception) {
+        Log.e(TAG, "renderPage failed", e)
+        null
+    }
+}
+
+// ─────────────────────────────────────────────
+// Pixel helpers
+// ─────────────────────────────────────────────
+
+private fun countNonWhitePixels(bitmap: Bitmap): Int {
+    val w      = bitmap.width
+    val h      = bitmap.height
+    val pixels = IntArray(w * h)
+    bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
+    var count = 0
+    for (i in pixels.indices step 4) {       // sample every 4th pixel for speed
+        val p = pixels[i]
+        val r = (p shr 16) and 0xFF
+        val g = (p shr 8)  and 0xFF
+        val b =  p         and 0xFF
+        if (r < WHITE_TOLERANCE || g < WHITE_TOLERANCE || b < WHITE_TOLERANCE) count++
+    }
+    return count
+}
+
+private fun smartCrop(bitmap: Bitmap): Bitmap {
+    val w      = bitmap.width
+    val h      = bitmap.height
+    val pixels = IntArray(w * h)
+    bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
+
+    var minX = w;  var maxX = 0
+    var minY = h;  var maxY = 0
+
+    for (y in 0 until h) {
+        for (x in 0 until w) {
+            val p = pixels[y * w + x]
+            val r = (p shr 16) and 0xFF
+            val g = (p shr 8)  and 0xFF
+            val b =  p         and 0xFF
+            if (r < WHITE_TOLERANCE || g < WHITE_TOLERANCE || b < WHITE_TOLERANCE) {
+                if (x < minX) minX = x
+                if (x > maxX) maxX = x
+                if (y < minY) minY = y
+                if (y > maxY) maxY = y
+            }
+        }
+    }
+
+    if (maxX <= minX || maxY <= minY) return bitmap
+
+    val left   = (minX - PADDING_PX).coerceAtLeast(0)
+    val top    = (minY - PADDING_PX).coerceAtLeast(0)
+    val right  = (maxX + PADDING_PX).coerceAtMost(w)
+    val bottom = (maxY + PADDING_PX).coerceAtMost(h)
+
+    val cw   = right  - left
+    val ch   = bottom - top
+    val fill = (cw.toFloat() * ch) / (w.toFloat() * h)
+
+    return if (fill > 0.80f) bitmap
+    else Bitmap.createBitmap(bitmap, left, top, cw, ch)
+}
+
+// ─────────────────────────────────────────────
+// Network helpers
+// ─────────────────────────────────────────────
+
 @Suppress("BlockingMethodInNonBlockingContext")
 private fun downloadPdfToCache(context: Context, urlStr: String): File {
-    val uriHash = urlStr.hashCode().toString()
-    val outFile = File(context.cacheDir, "pdf_$uriHash.pdf")
-
-    val url = URL(urlStr)
-    val conn = (url.openConnection() as HttpURLConnection).apply {
-        connectTimeout = 15_000
-        readTimeout = 20_000
+    val outFile = File(context.cacheDir, "pdf_${urlStr.hashCode()}.pdf")
+    val conn    = (URL(urlStr).openConnection() as HttpURLConnection).apply {
+        connectTimeout          = 15_000
+        readTimeout             = 20_000
         instanceFollowRedirects = true
-        requestMethod = "GET"
+        requestMethod           = "GET"
         setRequestProperty(
             "User-Agent",
             "Mozilla/5.0 (Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari"
         )
     }
-
     conn.inputStream.use { input ->
         FileOutputStream(outFile).use { output ->
             val buf = ByteArray(8 * 1024)
@@ -337,64 +401,5 @@ fun startPdfDownload(
         .setAllowedOverMetered(true)
         .setAllowedOverRoaming(true)
 
-    val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    downloadManager.enqueue(request)
-}
-
-private fun renderPdfPageToBitmap(
-    pdfFile: File,
-    pageIndex: Int,
-    scale: Float = 1.0f
-): Bitmap {
-    val pfd = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
-    val renderer = PdfRenderer(pfd)
-
-    try {
-        val safeIndex = pageIndex.coerceIn(0, max(0, renderer.pageCount - 1))
-        val page = renderer.openPage(safeIndex)
-        try {
-            val width = max(1, (page.width * scale).toInt())
-            val height = max(1, (page.height * scale).toInt())
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            bitmap.eraseColor(android.graphics.Color.WHITE)
-
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-            return bitmap
-        } finally {
-            page.close()
-        }
-    } finally {
-        renderer.close()
-        pfd.close()
-    }
-}
-
-private fun renderAllPages(
-    pdfFile: File,
-    targetScale: Float = 2.0f
-): List<Bitmap> {
-    val pfd = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
-    val renderer = PdfRenderer(pfd)
-
-    try {
-        val out = ArrayList<Bitmap>(renderer.pageCount)
-        for (i in 0 until renderer.pageCount) {
-            val page = renderer.openPage(i)
-            try {
-                val width = max(1, (page.width * targetScale).toInt())
-                val height = max(1, (page.height * targetScale).toInt())
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                bitmap.eraseColor(android.graphics.Color.WHITE)
-
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                out.add(bitmap)
-            } finally {
-                page.close()
-            }
-        }
-        return out
-    } finally {
-        renderer.close()
-        pfd.close()
-    }
+    (context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
 }

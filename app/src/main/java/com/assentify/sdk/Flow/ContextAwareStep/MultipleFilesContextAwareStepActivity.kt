@@ -87,6 +87,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.ContextAwareStepEventTypes
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromBase64
@@ -985,28 +986,24 @@ fun MultipleFilesContextAwareStepScreen(
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    Button(
-                        onClick = {
-                            onNext()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        shape = RoundedCornerShape(28.dp),
+
+                    BaseClick(
+                        isNormalClick = contextAwareSigningObject!!.data.isNormalClick!!,
+                        label = "Next",
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 25.dp, horizontal = 25.dp)
                             .background(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
                                 shape = RoundedCornerShape(28.dp)
-                            )
-                    ) {
-                        Text(
-                            "Next",
-                            fontFamily = InterFont,
-                            fontWeight = FontWeight.Normal,
-                            color = BaseTheme.BaseSecondaryTextColor,
-                            modifier = Modifier.padding(vertical = 7.dp)
-                        )
-                    }
+                            ),
+                        sliderModifier =  Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 25.dp, horizontal = 25.dp),
+                        onNext = {
+                            onNext()}
+
+                    )
                 }
             }
         }

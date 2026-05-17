@@ -43,6 +43,7 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.TermsAndConditionsEventTypes
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromUrl
@@ -259,69 +260,89 @@ fun TermsAndConditionsScreen(
 
             // BOTTOM – always at end of screen when we have data
             if (termsAndConditionsEventTypes == TermsAndConditionsEventTypes.onHasData) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 25.dp, horizontal = 25.dp),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        15.dp,
-                        Alignment.CenterHorizontally
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = {
-                            if (termsConditionsModel!!.data.confirmationRequired == true) {
-                                onDecline()
-                            } else {
-                                onAccept(false)
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                if(termsConditionsModel!!.data.isNormalClick == true){
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 25.dp, horizontal = 25.dp),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            15.dp,
+                            Alignment.CenterHorizontally
                         ),
-                        shape = RoundedCornerShape(999.dp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(55.dp)
-                            .border(
-                                1.dp,
-                                Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                                RoundedCornerShape(999.dp)
-                            )
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "Decline",
-                            fontFamily = InterFont,
-                            color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                            fontWeight = FontWeight.Normal,
-                            modifier = Modifier.padding(vertical = 7.dp)
-                        )
+                        Button(
+                            onClick = {
+                                if (termsConditionsModel!!.data.confirmationRequired == true) {
+                                    onDecline()
+                                } else {
+                                    onAccept(false)
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                            ),
+                            shape = RoundedCornerShape(999.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(55.dp)
+                                .border(
+                                    1.dp,
+                                    Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                    RoundedCornerShape(999.dp)
+                                )
+                        ) {
+                            Text(
+                                "Decline",
+                                fontFamily = InterFont,
+                                color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                fontWeight = FontWeight.Normal,
+                                modifier = Modifier.padding(vertical = 7.dp)
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                onAccept(true)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            shape = RoundedCornerShape(999.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(55.dp)
+                                .background(
+                                    brush = BaseTheme.BaseClickColor!!.toBrush(),
+                                    shape = RoundedCornerShape(28.dp)
+                                )
+                        ) {
+                            Text(
+                                termsConditionsModel!!.data.nextButtonTitle!!,
+                                fontFamily = InterFont,
+                                color = BaseTheme.BaseSecondaryTextColor,
+                                fontWeight = FontWeight.Normal,
+                                modifier = Modifier.padding(vertical = 7.dp)
+                            )
+                        }
                     }
-                    Button(
-                        onClick = {
-                            onAccept(true)
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        shape = RoundedCornerShape(999.dp),
+                }else{
+                    BaseClick(
+                        isNormalClick = false,
+                        label = "Accept",
                         modifier = Modifier
-                            .weight(1f)
-                            .height(55.dp)
+                            .fillMaxWidth()
+                            .padding(vertical = 25.dp, horizontal = 25.dp)
                             .background(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
                                 shape = RoundedCornerShape(28.dp)
-                            )
-                    ) {
-                        Text(
-                            termsConditionsModel!!.data.nextButtonTitle!!,
-                            fontFamily = InterFont,
-                            color = BaseTheme.BaseSecondaryTextColor,
-                            fontWeight = FontWeight.Normal,
-                            modifier = Modifier.padding(vertical = 7.dp)
-                        )
-                    }
+                            ),
+                        sliderModifier =  Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 25.dp, horizontal = 25.dp),
+                        onNext = { onAccept(true) }
+
+                    )
                 }
+
             }
         }
     }
