@@ -38,6 +38,7 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 @Composable
 fun OnFaceErrorScreen(
     imageUrl: String,
+    isLiveError: Boolean,
     onRetry: () -> Unit = {},
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
@@ -46,6 +47,11 @@ fun OnFaceErrorScreen(
     val iconSvg = remember {
         loadSvgFromAssets(context, "ic_error.svg")
     }
+
+    val iconWarningSvg = remember {
+        loadSvgFromAssets(context, "ic_warning.svg")
+    }
+
     BaseBackgroundContainer(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -53,7 +59,7 @@ fun OnFaceErrorScreen(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding() // safe top
-            .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
+            .padding(horizontal = 32.dp, vertical = 15.dp), // general page padding
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -76,22 +82,40 @@ fun OnFaceErrorScreen(
             ) {
                 SecureImage(imageUrl = imageUrl)
 
-                iconSvg?.let {
-                    Icon(
-                        painter = it,
-                        contentDescription = "ic_error",
-                        modifier = Modifier.size(60.dp),
-                        tint = Color(
-                            android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
+                if(isLiveError){
+                    iconWarningSvg?.let {
+                        Icon(
+                            painter = it,
+                            contentDescription = "ic_warning",
+                            modifier = Modifier.size(80.dp),
+                            tint = Color(
+                                android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
+                            )
                         )
-                    )
+                    }
+                }else{
+                    iconSvg?.let {
+                        Icon(
+                            painter = it,
+                            contentDescription = "ic_error",
+                            modifier = Modifier.size(80.dp),
+                            tint = Color(
+                                android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
+                            )
+                        )
+                    }
                 }
+
             }
 
             Spacer(Modifier.height(25.dp))
 
             Text(
-                text = "Let's try again",
+                text = if (isLiveError) {
+                    "We couldn't verify a live face. Please try again."
+                } else {
+                    "Let's try again"
+                },
                 color = BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
                 fontFamily = InterFont,
@@ -104,12 +128,16 @@ fun OnFaceErrorScreen(
             Spacer(Modifier.height(15.dp))
 
             Text(
-                text = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos",
+                text = if (isLiveError) {
+                     "We could not verify a live face. Please ensure you are in a well-lit area, and avoid using photos or videos"
+                   } else {
+                       "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos"
+                   },
                 color = BaseTheme.BaseTextColor,
-                fontSize = 15.sp,
+                fontSize = 12.sp,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Thin,
-                lineHeight = 17.sp,
+                lineHeight = 16.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )

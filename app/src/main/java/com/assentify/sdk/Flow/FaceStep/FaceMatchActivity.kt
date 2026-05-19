@@ -388,7 +388,7 @@ fun FaceMatchScanScreen(
                 OnFaceSendScreen(progress)
             }
             if (eventTypes == EventTypes.onRetry || eventTypes == EventTypes.onError || eventTypes == EventTypes.onLivenessUpdate) {
-                OnFaceErrorScreen(imageUrl, onRetry = {
+                OnFaceErrorScreen(imageUrl, isLiveError = eventTypes == EventTypes.onLivenessUpdate, onRetry = {
                     onRetry();
                 })
             }
@@ -427,7 +427,7 @@ fun FaceMatchScanScreen(
                 val result = assentifySdk.startFaceMatch(
                     activity,
                     Base64ImageObject.getImage()!!,
-                    showCountDown = true,
+                    showCountDown = false,
                     stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                 )
 

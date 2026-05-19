@@ -294,7 +294,7 @@ class RemoteProcessing {
                             currentClip += 1;
                             val currentProgress  = currentClip *  8.33333333
                             if(currentProgress <= 100){
-                               // callback!!.onUploadProgress(currentProgress.toInt());
+                                callback!!.onUploadProgress(currentProgress.toInt());
                             }else{
                                 callback!!.onUploadProgress(currentProgress.toInt()-100);
                             }
