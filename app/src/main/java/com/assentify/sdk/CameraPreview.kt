@@ -718,6 +718,7 @@ abstract class CameraPreview : Fragment() {
         color: String,
         isCountDownStarted: Boolean,
     ) {
+        if (!isAdded) return
         if (isCountDownStarted) {
             counter = 3;
             requireActivity().runOnUiThread {
@@ -736,6 +737,7 @@ abstract class CameraPreview : Fragment() {
                     }
 
                     override fun onFinish() {
+                        if (!isAdded) return
                         countDownText.visibility = View.GONE
                         // Call the callback's method
                         callback.onCountDownFinished()
@@ -748,6 +750,7 @@ abstract class CameraPreview : Fragment() {
         }
     }
     protected fun stopCountDown() {
+        if (!isAdded) return
         countDownTimer?.cancel()
         countDownTimer = null
         requireActivity().runOnUiThread {
