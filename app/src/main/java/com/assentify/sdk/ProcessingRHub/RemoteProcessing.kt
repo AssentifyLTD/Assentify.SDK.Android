@@ -248,6 +248,8 @@ class RemoteProcessing {
         isManualCapture : Boolean,
         connectionId: String,
     ) {
+        val completedUploads = mutableSetOf<Int>()
+
         var currentClip = 0;
         val tryCount  = tryNumber + 1;
         val traceIdentifier = UUID.randomUUID().toString()
@@ -289,17 +291,25 @@ class RemoteProcessing {
                 mimeType = "image/jpeg",
             ){ sent, total, done ->
                 val pct = if (total > 0) ((sent * 100) / total).toInt() else -1
-                    if(isLivenessEnabled){
-                        if(pct == 100){
-                            currentClip += 1;
-                            val currentProgress  = currentClip *  8.33333333
-                            if(currentProgress <= 100){
-                               // callback!!.onUploadProgress(currentProgress.toInt());
-                            }else{
-                                callback!!.onUploadProgress(currentProgress.toInt()-100);
-                            }
-                        }
+
+                if (isLivenessEnabled && done) {
+
+                    val uploadId = total.hashCode()
+
+                    if (!completedUploads.contains(uploadId)) {
+
+                        completedUploads.add(uploadId)
+
+                        currentClip += 1
+
+                        val currentProgress = currentClip * 8.33333333
+
+                        val safeProgress = currentProgress
+                            .coerceAtMost(100.0)
+
+                        callback?.onUploadProgress(safeProgress.toInt())
                     }
+                }
 
             },
             traceIdentifier.toRequestBody("text/plain".toMediaTypeOrNull()),

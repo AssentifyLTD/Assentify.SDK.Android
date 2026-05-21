@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.21***
+1. *Optimized Face Match Experience*
+
 ***1.0.0-Beta.20***
 1. *Support for new button design*
 
