@@ -234,6 +234,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
+                showCountDown = true,
 
                 stepperType = StepperType.PercentageBased,
                 rangeStart = 30,
@@ -242,7 +243,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
 
-            assentifySdk.clearFlow(this@MainActivity,)
+           // assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,

@@ -111,6 +111,7 @@ public class FlowEnvironmentalConditions(
     val language: String = Language.NON,
     val enableNfc: Boolean = false,
     val enableQr: Boolean = false,
+    val showCountDown: Boolean = true,
     val blockLoaderCustomProperties: Map<String, Any> = emptyMap(),
 ) {
 

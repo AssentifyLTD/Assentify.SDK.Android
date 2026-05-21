@@ -72,6 +72,8 @@ object BaseTheme {
     val RangeEnd: Int get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().rangeEnd
     val StepperTitle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitle
 
+    val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
+
 }
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {

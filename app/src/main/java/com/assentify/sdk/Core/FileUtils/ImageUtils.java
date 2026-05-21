@@ -237,6 +237,10 @@ public class ImageUtils {
     }
 
     public static long getRecommendedDelayForFaceCheck(Context context) {
+        if (context == null) {
+            return 600L;
+        }
+
         int cpuCores = Runtime.getRuntime().availableProcessors();
 
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
