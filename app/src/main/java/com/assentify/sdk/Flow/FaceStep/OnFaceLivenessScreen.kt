@@ -38,6 +38,7 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 @Composable
 fun OnFaceErrorScreen(
     imageUrl: String,
+    isLiveError: Boolean,
     onRetry: () -> Unit = {},
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
@@ -46,102 +47,129 @@ fun OnFaceErrorScreen(
     val iconSvg = remember {
         loadSvgFromAssets(context, "ic_error.svg")
     }
+
+    val iconWarningSvg = remember {
+        loadSvgFromAssets(context, "ic_warning.svg")
+    }
+
     BaseBackgroundContainer(
         modifier = Modifier.fillMaxSize()
     ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding() // safe top
-            .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        // TOP + MIDDLE CONTENT
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxSize()
+                .statusBarsPadding() // safe top
+                .padding(horizontal = 32.dp, vertical = 15.dp), // general page padding
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Small breathing space instead of 150.dp
-            Spacer(Modifier.height(150.dp))
 
-            // Content
-            Box(
+            // TOP + MIDDLE CONTENT
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                contentAlignment = Alignment.Center
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                SecureImage(imageUrl = imageUrl)
+                // Small breathing space instead of 150.dp
+                Spacer(Modifier.height(150.dp))
 
-                iconSvg?.let {
-                    Icon(
-                        painter = it,
-                        contentDescription = "ic_error",
-                        modifier = Modifier.size(60.dp),
-                        tint = Color(
-                            android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
-                        )
-                    )
+                // Content
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SecureImage(imageUrl = imageUrl)
+
+                    if(isLiveError){
+                        iconWarningSvg?.let {
+                            Icon(
+                                painter = it,
+                                contentDescription = "ic_warning",
+                                modifier = Modifier.size(80.dp),
+                                tint = Color(
+                                    android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
+                                )
+                            )
+                        }
+                    }else{
+                        iconSvg?.let {
+                            Icon(
+                                painter = it,
+                                contentDescription = "ic_error",
+                                modifier = Modifier.size(80.dp),
+                                tint = Color(
+                                    android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)
+                                )
+                            )
+                        }
+                    }
+
                 }
+
+                Spacer(Modifier.height(25.dp))
+
+                Text(
+                    text = if (isLiveError) {
+                        "We couldn't verify a live face. Please try again."
+                    } else {
+                        "Let's try again"
+                    },
+                    color = BaseTheme.BaseTextColor,
+                    fontSize = 20.sp,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 28.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(15.dp))
+
+                Text(
+                    text = if (isLiveError) {
+                        "We could not verify a live face. Please ensure you are in a well-lit area, and avoid using photos or videos"
+                    } else {
+                        "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos"
+                    },
+                    color = BaseTheme.BaseTextColor,
+                    fontSize = 12.sp,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Thin,
+                    lineHeight = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Push content up, leave room for bottom button
+                Spacer(modifier = Modifier.weight(1f))
             }
 
-            Spacer(Modifier.height(25.dp))
-
-            Text(
-                text = "Let's try again",
-                color = BaseTheme.BaseTextColor,
-                fontSize = 20.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 28.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(15.dp))
-
-            Text(
-                text = "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos",
-                color = BaseTheme.BaseTextColor,
-                fontSize = 15.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Thin,
-                lineHeight = 17.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Push content up, leave room for bottom button
-            Spacer(modifier = Modifier.weight(1f))
-        }
-
-        // BOTTOM
-        Button(
-            onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            shape = RoundedCornerShape(28.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .navigationBarsPadding()
-                .padding(bottom = 16.dp)
-                .background(
-                    brush = BaseTheme.BaseClickColor!!.toBrush(),
-                    shape = RoundedCornerShape(28.dp)
+            // BOTTOM
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp)
+                    .background(
+                        brush = BaseTheme.BaseClickColor!!.toBrush(),
+                        shape = RoundedCornerShape(28.dp)
+                    )
+            ) {
+                Text(
+                    "Retry",
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Normal,
+                    color = BaseTheme.BaseSecondaryTextColor,
+                    modifier = Modifier.padding(vertical = 7.dp)
                 )
-        ) {
-            Text(
-                "Retry",
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Normal,
-                color = BaseTheme.BaseSecondaryTextColor,
-                modifier = Modifier.padding(vertical = 7.dp)
-            )
-        }
-    }}
+            }
+        }}
 
 
 }

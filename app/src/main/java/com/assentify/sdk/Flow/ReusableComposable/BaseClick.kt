@@ -25,6 +25,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +46,8 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -104,6 +107,7 @@ private fun SliderClick(
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
 
     val height = 54.dp
     val corner = 100.dp
@@ -113,13 +117,17 @@ private fun SliderClick(
     val knobPaddingPx = with(density) { 5.dp.toPx() }
 
     val maxOffset by remember(trackWidthPx) {
-        derivedStateOf { (trackWidthPx - knobSizePx - knobPaddingPx * 2).coerceAtLeast(0f) }
+        derivedStateOf {
+            (trackWidthPx - knobSizePx - knobPaddingPx * 2)
+                .coerceAtLeast(0f)
+        }
     }
 
     var rawOffset by remember { mutableStateOf(0f) }
+
     val animatedOffset by animateFloatAsState(
         targetValue = rawOffset,
-        animationSpec = tween(50),
+        animationSpec = tween(120),
         label = "swipeOffset"
     )
 
@@ -127,8 +135,19 @@ private fun SliderClick(
 
     fun settle() {
         if (rawOffset >= threshold) {
+
+            // move to end first
             rawOffset = maxOffset
+
+            // trigger action
             onNext()
+
+            // reset slider back to beginning
+            scope.launch {
+                delay(150)
+                rawOffset = 0f
+            }
+
         } else {
             rawOffset = 0f
         }
@@ -143,42 +162,62 @@ private fun SliderClick(
             .height(height)
             .clip(RoundedCornerShape(corner))
             .background(
-                color = if (isActive) BaseTheme.FieldColor  // ← dim when inactive
-                else BaseTheme.FieldColor.copy(alpha = 0.4f),
+                color = if (isActive)
+                    BaseTheme.FieldColor
+                else
+                    BaseTheme.FieldColor.copy(alpha = 0.4f),
                 shape = RoundedCornerShape(corner)
             )
-            .onGloballyPositioned { trackWidthPx = it.size.width.toFloat() }
-            .pointerInput(isActive) {                        // ← reacts to isActive changes
-                if (!isActive) return@pointerInput           // ← block drag if not active
+            .onGloballyPositioned {
+                trackWidthPx = it.size.width.toFloat()
+            }
+            .pointerInput(isActive) {
+
+                if (!isActive) return@pointerInput
+
                 detectHorizontalDragGestures(
+
                     onHorizontalDrag = { _, dragAmount ->
-                        rawOffset = (rawOffset + dragAmount).coerceIn(0f, maxOffset)
+                        rawOffset = (rawOffset + dragAmount)
+                            .coerceIn(0f, maxOffset)
                     },
-                    onDragEnd = { settle() },
-                    onDragCancel = { settle() }
+
+                    onDragEnd = {
+                        settle()
+                    },
+
+                    onDragCancel = {
+                        settle()
+                    }
                 )
             },
         contentAlignment = Alignment.Center
     ) {
 
-        // ── Label ──────────────────────────────────────────────────
+        // ───────────────── Label ─────────────────
+
         Text(
             text = label,
             fontFamily = InterFont,
-            color = if (isActive) BaseTheme.BaseTextColor
-            else BaseTheme.BaseTextColor.copy(alpha = 0.4f),  // ← dim when inactive
+            color = if (isActive)
+                BaseTheme.BaseTextColor
+            else
+                BaseTheme.BaseTextColor.copy(alpha = 0.4f),
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold
         )
 
-        // ── Right arrows ───────────────────────────────────────────
+        // ──────────────── Right arrows ────────────────
+
         Row(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             arrowsIcon?.let {
+
                 Image(
                     painter = it,
                     contentDescription = "arrowsIcon",
@@ -186,32 +225,41 @@ private fun SliderClick(
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(
                         BaseTheme.BaseTextColor.copy(
-                            alpha = if (isActive) 0.5f else 0.2f  // ← dim when inactive
+                            alpha = if (isActive) 0.5f else 0.2f
                         )
                     )
                 )
             }
         }
 
-        // ── Sliding Icon ───────────────────────────────────────────
+        // ─────────────── Sliding knob ───────────────
+
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .offset { IntOffset(animatedOffset.roundToInt(), 0) }
+                .offset {
+                    IntOffset(
+                        animatedOffset.roundToInt(),
+                        0
+                    )
+                }
                 .padding(start = 5.dp)
                 .size(with(density) { knobSizePx.toDp() })
                 .clip(CircleShape)
                 .background(
                     brush = BaseTheme.BaseClickColor!!.toBrush(),
-                    alpha = if (isActive) 1f else 0.4f  // ← dim when inactive
+                    alpha = if (isActive) 1f else 0.4f
                 ),
             contentAlignment = Alignment.Center
         ) {
+
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (isActive) BaseTheme.FieldColor
-                else BaseTheme.FieldColor.copy(alpha = 0.4f),  // ← dim when inactive
+                tint = if (isActive)
+                    BaseTheme.FieldColor
+                else
+                    BaseTheme.FieldColor.copy(alpha = 0.4f),
                 modifier = Modifier.size(25.dp)
             )
         }
