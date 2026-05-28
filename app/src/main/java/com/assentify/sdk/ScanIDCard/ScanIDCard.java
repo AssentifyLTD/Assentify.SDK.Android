@@ -27,8 +27,6 @@ import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
-import com.assentify.sdk.Core.Constants.SentryKeys;
-import com.assentify.sdk.Core.Constants.SentryManager;
 import com.assentify.sdk.Core.Constants.ZoomType;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
@@ -56,7 +54,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import io.sentry.SentryLevel;
 import kotlin.Pair;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -143,7 +140,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     private void changeTemplateId(String templateId) {
-        SentryManager.INSTANCE.registerEvent(SentryKeys.ID, SentryLevel.INFO);
         this.templateId = templateId;
         createBase64 = Executors.newSingleThreadExecutor();
         highQualityBitmaps.clear();
@@ -251,7 +247,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -408,7 +403,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 }
             });
         }
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, "onSend", "");
 
         start = false;
         videoCounter = videoCounter + 1;

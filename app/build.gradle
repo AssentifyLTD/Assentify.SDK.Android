@@ -88,16 +88,13 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.7.0"
 
 
-    implementation 'org.jcodec:jcodec-android:0.1.9'
-    implementation 'com.microsoft.signalr:signalr:8.0.0'
-    implementation 'com.microsoft.signalr.messagepack:signalr-messagepack:6.0.3'
+
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.0'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
     implementation group: 'com.lambdaworks', name: 'scrypt', version: '1.4.0'
-    implementation 'io.sentry:sentry-android:6.8.0'
 
     implementation 'dev.keiji.jp2:jp2-android:1.0.5'
 

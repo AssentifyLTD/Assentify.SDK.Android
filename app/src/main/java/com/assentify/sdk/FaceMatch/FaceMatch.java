@@ -18,8 +18,6 @@ import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
-import com.assentify.sdk.Core.Constants.SentryKeys;
-import com.assentify.sdk.Core.Constants.SentryManager;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.FaceMatch.FaceMatchCallback;
 import com.assentify.sdk.Models.BaseResponseDataModel;
@@ -38,7 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.sentry.SentryLevel;
 import kotlin.Pair;
 
 
@@ -104,7 +101,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
 
     public void setFaceMatchCallback(FaceMatchCallback faceMatchCallback) {
-        SentryManager.INSTANCE.registerEvent(SentryKeys.Face, SentryLevel.INFO);
         this.faceMatchCallback = faceMatchCallback;
     }
 
@@ -224,7 +220,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Face, eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -335,7 +330,6 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     // TODO Later
     @Override
     protected void onStopRecordVideo() {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.ID, "onSend", "");
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override

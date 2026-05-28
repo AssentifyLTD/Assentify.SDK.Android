@@ -24,8 +24,6 @@ import com.assentify.sdk.Core.Constants.Language;
 import  com.assentify.sdk.Core.Constants.MotionType;
 import  com.assentify.sdk.Core.Constants.RemoteProcessing;
 import  com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
-import com.assentify.sdk.Core.Constants.SentryKeys;
-import com.assentify.sdk.Core.Constants.SentryManager;
 import  com.assentify.sdk.Core.Constants.ZoomType;
 import  com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
@@ -49,7 +47,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import io.sentry.SentryLevel;
 import kotlin.Pair;
 
 public class ScanOther  extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
@@ -114,7 +111,6 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
     }
 
     public void setScanOtherCallback(ScanOtherCallback scanOtherCallback) {
-        SentryManager.INSTANCE.registerEvent(SentryKeys.Other, SentryLevel.INFO);
         this.scanOtherCallback = scanOtherCallback;
         try {
             remoteProcessing = new RemoteProcessing();
@@ -218,7 +214,6 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
 
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other,eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -373,7 +368,6 @@ public class ScanOther  extends CameraPreview implements RemoteProcessingCallbac
             });
         }
 
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Other,"onSend", "");
 
         start = false;
         videoCounter = videoCounter + 1;

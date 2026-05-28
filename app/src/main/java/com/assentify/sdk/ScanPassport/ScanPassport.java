@@ -26,8 +26,6 @@ import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.Routes.EndPointsUrls;
-import com.assentify.sdk.Core.Constants.SentryKeys;
-import com.assentify.sdk.Core.Constants.SentryManager;
 import com.assentify.sdk.Core.Constants.ZoomType;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
@@ -49,8 +47,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import io.sentry.Sentry;
-import io.sentry.SentryLevel;
 import kotlin.Pair;
 
 
@@ -117,7 +113,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     }
 
     public void setScanPassportCallback(ScanPassportCallback scanPassportCallback) {
-        SentryManager.INSTANCE.registerEvent(SentryKeys.Passport, SentryLevel.INFO);
         this.scanPassportCallback = scanPassportCallback;
         try {
             remoteProcessing = new RemoteProcessing();
@@ -220,7 +215,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     @Override
     public void onMessageReceived(@NonNull String eventName, @NonNull BaseResponseDataModel BaseResponseDataModel) {
 
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Passport, eventName, Objects.requireNonNull(BaseResponseDataModel.getResponse()));
         if (getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -355,7 +349,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 }
             });
         }
-        SentryManager.INSTANCE.registerCallbackEvent(SentryKeys.Passport, "onSend", "");
         start = false;
         videoCounter = videoCounter + 1;
         createBase64.execute(() -> {
