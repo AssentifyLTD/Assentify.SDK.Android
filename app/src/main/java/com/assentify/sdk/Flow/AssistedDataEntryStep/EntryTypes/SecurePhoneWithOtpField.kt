@@ -73,7 +73,7 @@ fun SecurePhoneWithOtpField(
     var verifying by remember { mutableStateOf(false) }
 
     val otpSize = field.otpSize ?: 8
-    val otpType = field.otpType ?: 1
+    val otpFormat = field.otpFormat ?: 1
     var otp by remember(field.inputKey) { mutableStateOf("") }
 
     var isOtpStep by remember(field.inputKey) { mutableStateOf(false) }
@@ -188,9 +188,11 @@ fun SecurePhoneWithOtpField(
                                                 token = e164Phone,
                                                 inputType = field.inputType,
                                                 otpSize = otpSize,
-                                                otpType = otpType,
+                                                otpType = field.otpType?: 1,
                                                 otpExpiryTime = field.otpExpiryTime ?: 1.0,
-                                                smsProvider = 2,
+                                                smsProvider = field.smsProvider ,
+                                                whatsappProvider = field.whatsappProvider,
+                                                otpFormat = otpFormat
                                             )
                                             OtpHelper.requestOtp(configModelObject!!, req) { success ->
                                                 if (success) {
@@ -239,11 +241,11 @@ fun SecurePhoneWithOtpField(
                     readOnly = isVerified,
                     onValueChange = { raw ->
                         if (!isVerified) {
-                            val filtered = filterByOtpType(raw, otpType)
+                            val filtered = filterByOtpType(raw, otpFormat)
                                 .take(otpSize)
-                                .let { if (otpType == 2 || otpType == 3) it else it }
+                                .let { if (otpFormat == 2 || otpFormat == 3) it else it }
                             otp = filtered
-                            if (filtered.length == otpSize && otpMatchesType(filtered, otpType)) {
+                            if (filtered.length == otpSize && otpMatchesType(filtered, otpFormat)) {
                                 verifying = true
                                 val verifyReq = VerifyOtpRequestOtpModel(
                                     token = e164Phone,
@@ -261,10 +263,11 @@ fun SecurePhoneWithOtpField(
                     singleLine = true,
                     placeholder = { Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor) },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = when (otpType) {
+                        keyboardType = when (otpFormat) {
                             1 -> KeyboardType.Number
                             2 -> KeyboardType.Ascii
                             3 -> KeyboardType.Text
+                            4 -> KeyboardType.Ascii
                             else -> KeyboardType.Ascii
                         }
                     ),
@@ -301,9 +304,11 @@ fun SecurePhoneWithOtpField(
                                     token = e164Phone,
                                     inputType = field.inputType,
                                     otpSize = otpSize,
-                                    otpType = otpType,
+                                    otpType = field.otpType?: 1,
                                     otpExpiryTime = field.otpExpiryTime ?: 1.0,
-                                    smsProvider = 2,
+                                    smsProvider = field.smsProvider ,
+                                    whatsappProvider = field.whatsappProvider,
+                                    otpFormat
                                 )
                                 OtpHelper.requestOtp(configModelObject!!, req) { success ->
                                     if (success) {
@@ -471,6 +476,7 @@ private fun otpMatchesType(value: String, type: Int): Boolean = when (type) {
     1 -> value.all { it.isDigit() }
     2 -> value.all { it.isLetterOrDigit() }
     3 -> value.all { it.isLetter() }
+    4 -> value.all { it.isLetterOrDigit() }
     else -> true
 }
 
@@ -478,5 +484,6 @@ private fun filterByOtpType(raw: String, type: Int): String = when (type) {
     1 -> raw.filter { it.isDigit() }
     2 -> raw.filter { it.isLetterOrDigit() }
     3 -> raw.filter { it.isLetter() }
+    4 -> raw.filter { it.isLetterOrDigit() }
     else -> raw
 }

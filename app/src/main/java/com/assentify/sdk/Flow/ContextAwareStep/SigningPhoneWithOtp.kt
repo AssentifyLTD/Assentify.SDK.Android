@@ -73,7 +73,7 @@ fun SigningPhoneWithOtp(
     var requestError by remember { mutableStateOf("") }
 
     val otpSize = contextAwareSigningModel.data.otpSize ?: 8
-    val otpType = contextAwareSigningModel.data.otpType ?: 1
+    val otpFormat = contextAwareSigningModel.data.otpFormat ?: 1
     var otp by remember { mutableStateOf("") }
 
     var isOtpStep by remember { mutableStateOf(false) }
@@ -125,9 +125,11 @@ fun SigningPhoneWithOtp(
             token = e164Phone,
             inputType = "PhoneNumberWithOtp",
             otpSize = otpSize,
-            otpType = otpType,
+            otpType = contextAwareSigningModel.data.otpType?: 1,
             otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0,
-            smsProvider = contextAwareSigningModel.data.smsProvider ?: 2,
+            smsProvider = contextAwareSigningModel.data.smsProvider ,
+            whatsappProvider = contextAwareSigningModel.data.whatsappProvider,
+            otpFormat = contextAwareSigningModel.data.otpFormat?: 1,
         )
 
         OtpHelper.requestOtp(configModelObject, req) { success ->
@@ -256,10 +258,10 @@ fun SigningPhoneWithOtp(
                     if (!isVerified && !verifying) {
                         requestError = ""
 
-                        val filtered = filterByOtpType(raw, otpType).take(otpSize)
+                        val filtered = filterByOtpType(raw, otpFormat).take(otpSize)
                         otp = filtered
 
-                        if (filtered.length == otpSize && otpMatchesType(filtered, otpType)) {
+                        if (filtered.length == otpSize && otpMatchesType(filtered, otpFormat)) {
                             verifying = true
 
                             val verifyReq = VerifyOtpRequestOtpModel(
@@ -285,10 +287,11 @@ fun SigningPhoneWithOtp(
                 singleLine = true,
                 placeholder = { Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor) },
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = when (otpType) {
+                    keyboardType = when (otpFormat) {
                         1 -> KeyboardType.Number
                         2 -> KeyboardType.Ascii
                         3 -> KeyboardType.Text
+                        4 -> KeyboardType.Ascii
                         else -> KeyboardType.Ascii
                     }
                 ),
@@ -525,6 +528,7 @@ private fun otpMatchesType(value: String, type: Int): Boolean = when (type) {
     1 -> value.all { it.isDigit() }
     2 -> value.all { it.isLetterOrDigit() }
     3 -> value.all { it.isLetter() }
+    4 -> value.all { it.isLetterOrDigit() }
     else -> true
 }
 
@@ -532,5 +536,6 @@ private fun filterByOtpType(raw: String, type: Int): String = when (type) {
     1 -> raw.filter { it.isDigit() }
     2 -> raw.filter { it.isLetterOrDigit() }
     3 -> raw.filter { it.isLetter() }
+    4 -> raw.filter { it.isLetterOrDigit() }
     else -> raw
 }

@@ -56,7 +56,7 @@ fun SecureEmailWithOtpField(
     var verifying by remember() { mutableStateOf(false) }
 
     val otpSize = field.otpSize
-    val otpType = field.otpType
+    val otpType = field.otpFormat
     var otp by remember(field.inputKey) { mutableStateOf("") }
 
     // which step are we on?
@@ -109,7 +109,9 @@ fun SecureEmailWithOtpField(
                                         otpSize = field.otpSize ?: 8,
                                         otpType = field.otpType ?: 1,
                                         otpExpiryTime = field.otpExpiryTime ?: 1.0 ,
-                                        smsProvider = 2
+                                        smsProvider = field.smsProvider ,
+                                        whatsappProvider = field.whatsappProvider,
+                                        otpFormat = field.otpFormat ?: 1,
 
                                     )
                                     OtpHelper.requestOtp(configModelObject!!, requestOtpModel) { success ->
@@ -192,6 +194,7 @@ fun SecureEmailWithOtpField(
                         1 -> KeyboardType.Number
                         2 -> KeyboardType.Ascii
                         3 -> KeyboardType.Text
+                        4 -> KeyboardType.Ascii
                         else -> KeyboardType.Ascii
                     }
                 ),
@@ -239,7 +242,9 @@ fun SecureEmailWithOtpField(
                                         otpSize = field.otpSize ?: 8,
                                         otpType = field.otpType ?: 1,
                                         otpExpiryTime = field.otpExpiryTime ?: 1.0 ,
-                                        smsProvider = 2
+                                        smsProvider = field.smsProvider ,
+                                        whatsappProvider = field.whatsappProvider,
+                                        otpFormat = field.otpFormat ?: 1,
                                     )
                                     OtpHelper.requestOtp(configModelObject!!, requestOtpModel) { success ->
                                         if (success) {
@@ -296,6 +301,7 @@ private fun otpMatchesType(value: String, type: Int): Boolean = when (type) {
     1 -> value.all { it.isDigit() }                          // numeric
     2 -> value.all { it.isLetterOrDigit() }                  // alphanumeric
     3 -> value.all { it.isLetter() }                         // letters only
+    4 -> value.all { it.isLetterOrDigit() }                         // letters only
     else -> true
 }
 
@@ -303,6 +309,7 @@ private fun filterByOtpType(raw: String, type: Int): String = when (type) {
     1 -> raw.filter { it.isDigit() }
     2 -> raw.filter { it.isLetterOrDigit() }
     3 -> raw.filter { it.isLetter() }
+    4 -> raw.filter { it.isLetterOrDigit() }
     else -> raw
 }
 

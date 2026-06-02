@@ -36,7 +36,6 @@ object OtpHelper {
                 val success = response.isSuccessful && (response.body()?.isSuccessful == true)
                 onResult(success)
             }
-
             override fun onFailure(call: Call<RequestOtpResponseModel>, t: Throwable) {
                 onResult(false)
             }
