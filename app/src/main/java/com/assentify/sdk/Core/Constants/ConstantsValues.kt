@@ -4,6 +4,7 @@ import  com.assentify.sdk.RemoteClient.Models.ConfigModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 // const val BRIGHTNESS_HIGH_THRESHOLD: Float = 180.0f;
 // const val BRIGHTNESS_LOW_THRESHOLD: Float = 50.0f;
@@ -100,7 +101,8 @@ fun getIDTag(configModel:ConfigModel,templateName:String): String {
 fun getCurrentDateTime(): String {
     val currentDate = Date()
 
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.US)
+    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
 
     return dateFormat.format(currentDate)
 }

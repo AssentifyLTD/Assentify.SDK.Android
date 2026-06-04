@@ -81,9 +81,9 @@ fun SigningEmailWithOtp(
 
         val requestOtpModel = RequestOtpModel(
             token = email.trim(),
-            inputType = "EmailWithOtp",
+            inputType = OtpChannelEnum.from(contextAwareSigningModel.data.otpInputType ?: 1)!!.displayName,
             otpSize = contextAwareSigningModel.data.otpSize ?: 8,
-            otpType = contextAwareSigningModel.data.otpType ?: 1,
+            otpType = contextAwareSigningModel.data.otpInputType ?: 1,
             otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0,
             smsProvider = contextAwareSigningModel.data.smsProvider ,
             whatsappProvider = contextAwareSigningModel.data.whatsappProvider,

@@ -313,6 +313,7 @@ fun AssistedDataEntryPager(
                                 },
                                 page = page,
                                 field = field,
+                                options = allCountries
                             )
                         }
 
