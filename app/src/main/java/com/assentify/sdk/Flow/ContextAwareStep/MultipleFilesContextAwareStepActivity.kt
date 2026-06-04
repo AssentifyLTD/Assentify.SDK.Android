@@ -103,6 +103,27 @@ import com.assentify.sdk.RemoteClient.Models.TokensMappings
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 import com.assentify.sdk.SignatureResponseObject
 
+enum class OtpChannelEnum(val value: Int) {
+    SMS(1),
+    WHATSAPP(2),
+    BOTH(3),
+    EMAIL(4);
+
+    val displayName: String
+        get() = when (this) {
+            SMS -> "Sms"
+            WHATSAPP -> "WhatsApp"
+            BOTH -> "Both"
+            EMAIL -> "Email"
+        }
+
+    companion object {
+        fun from(value: Int): OtpChannelEnum? {
+            return entries.firstOrNull { it.value == value }
+        }
+    }
+}
+
 data class SelectedTemplatesTokens(
     val templateId: Int,
     val templateName: String,
@@ -858,7 +879,7 @@ fun MultipleFilesContextAwareStepScreen(
                         Spacer(Modifier.height(20.dp))
 
                         if (enableOtp && !isOtpValidated) {
-                            if (otpInputType == "EmailWithOtp") {
+                            if (otpInputType == OtpChannelEnum.EMAIL.value) {
                                 SigningEmailWithOtp(
                                     title = "Email to Receive a Verification Code",
                                     contextAwareSigningModel = contextAwareSigningObject!!,

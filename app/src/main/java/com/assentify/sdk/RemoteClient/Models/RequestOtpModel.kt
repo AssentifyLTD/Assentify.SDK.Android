@@ -7,16 +7,17 @@ data class RequestOtpModel(
     val otpSize: Int,
     val otpType: Int,
     val otpExpiryTime: Double,
-    val smsProvider: Int,
+    val smsProvider: Int?,
+    val whatsappProvider: Int?,
+    val otpFormat: Int?,
 )
 
 data class RequestOtpResponseModel(
     val message: String?,
     val error: String?,
-    val statusCode: Int,
+    val statusCode: Int?,
     val isSuccessful: Boolean,
-    val data: Boolean,
-    val otpExpiryTime: Double,
+    val otpExpiryTime: Double?,
 )
 
 
