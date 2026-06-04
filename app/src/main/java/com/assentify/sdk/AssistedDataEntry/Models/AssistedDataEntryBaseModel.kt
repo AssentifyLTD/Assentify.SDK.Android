@@ -88,10 +88,13 @@ data class DataEntryPageElement(
     val otp: Boolean?,
     val otpSize: Int?,
     val otpType: Int?,
+    val otpFormat: Int?,
     val otpExpiryTime: Double?,
     val additionalFeatures: Boolean?,
     val children: Map<String, List<DataEntryPageElement>>?,
-    var defaultCountryCode: String?
+    var defaultCountryCode: String?,
+    var smsProvider: Int?,
+    var whatsappProvider: Int?
 )
 
 data class InputProperty(

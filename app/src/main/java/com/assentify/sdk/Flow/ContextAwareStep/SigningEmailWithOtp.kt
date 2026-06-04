@@ -59,7 +59,7 @@ fun SigningEmailWithOtp(
     var requestError by remember { mutableStateOf("") }
 
     val otpSize = contextAwareSigningModel.data.otpSize
-    val otpType = contextAwareSigningModel.data.otpType
+    val otpFormat = contextAwareSigningModel.data.otpFormat
     var otp by remember { mutableStateOf("") }
 
     var isOtpStep by remember { mutableStateOf(false) }
@@ -81,11 +81,13 @@ fun SigningEmailWithOtp(
 
         val requestOtpModel = RequestOtpModel(
             token = email.trim(),
-            inputType = "EmailWithOtp",
+            inputType = OtpChannelEnum.from(contextAwareSigningModel.data.otpInputType ?: 1)!!.displayName,
             otpSize = contextAwareSigningModel.data.otpSize ?: 8,
-            otpType = contextAwareSigningModel.data.otpType ?: 1,
+            otpType = contextAwareSigningModel.data.otpInputType ?: 1,
             otpExpiryTime = contextAwareSigningModel.data.otpExpiryTime ?: 1.0,
-            smsProvider = contextAwareSigningModel.data.smsProvider ?: 2
+            smsProvider = contextAwareSigningModel.data.smsProvider ,
+            whatsappProvider = contextAwareSigningModel.data.whatsappProvider,
+            otpFormat = contextAwareSigningModel.data.otpFormat?: 1,
         )
 
         OtpHelper.requestOtp(configModelObject, requestOtpModel) { success ->
@@ -180,12 +182,12 @@ fun SigningEmailWithOtp(
                     if (!isVerified && !verifying) {
                         requestError = ""
 
-                        val filtered = filterByOtpType(raw, otpType ?: 1)
+                        val filtered = filterByOtpType(raw, otpFormat ?: 1)
                             .take(otpSize ?: 8)
 
                         otp = filtered
 
-                        if (filtered.length == (otpSize ?: 8) && otpMatchesType(filtered, otpType ?: 1)) {
+                        if (filtered.length == (otpSize ?: 8) && otpMatchesType(filtered, otpFormat ?: 1)) {
                             verifying = true
 
                             val verifyOtpRequestOtpModel = VerifyOtpRequestOtpModel(
@@ -214,10 +216,11 @@ fun SigningEmailWithOtp(
                     Text("OTP (${otpSize ?: 8})", color = BaseTheme.BaseTextColor)
                 },
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = when (otpType) {
+                    keyboardType = when (otpFormat) {
                         1 -> KeyboardType.Number
                         2 -> KeyboardType.Ascii
                         3 -> KeyboardType.Text
+                        4 -> KeyboardType.Ascii
                         else -> KeyboardType.Ascii
                     }
                 ),
@@ -341,6 +344,7 @@ private fun otpMatchesType(value: String, type: Int): Boolean = when (type) {
     1 -> value.all { it.isDigit() }
     2 -> value.all { it.isLetterOrDigit() }
     3 -> value.all { it.isLetter() }
+    4 -> value.all { it.isLetterOrDigit() }
     else -> true
 }
 
@@ -348,5 +352,6 @@ private fun filterByOtpType(raw: String, type: Int): String = when (type) {
     1 -> raw.filter { it.isDigit() }
     2 -> raw.filter { it.isLetterOrDigit() }
     3 -> raw.filter { it.isLetter() }
+    4 -> raw.filter { it.isLetterOrDigit() }
     else -> raw
 }
