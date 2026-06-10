@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.24***
+1. *Optimized Face Match Experience*
+
 ***1.0.0-Beta.23***
 1. *Optimized OTP Delivery Process*
 
