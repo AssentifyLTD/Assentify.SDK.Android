@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.25***
+1. *Optimized Camera Preview*
+
 ***1.0.0-Beta.24***
 1. *Optimized Face Match Experience*
 
