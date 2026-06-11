@@ -350,95 +350,93 @@ abstract class CameraPreview : Fragment() {
 
             imageAnalysisListener = ImageAnalysis.Analyzer { image ->
                 try {
-                if (!isCameraActive || !isAdded) {
-                    image.close()
-                    return@Analyzer
-                }
-                val bitmap = image.toBitmap()
-
-                val scaleImage = ImageUtils.scaleBitmap(bitmap, sensorOrientation!!)
-                requireActivity().runOnUiThread {
-                    if (transmittingContainer == null) {
-                        transmittingContainer =
-                            requireActivity().findViewById(R.id.transmitting_container)
+                    if (!isCameraActive || !isAdded || activity == null || view == null) {
+                        image.close()
+                        return@Analyzer
                     }
-                    if (enableGuide) {
-                       if (frontCamera) {
-                             if(!this.isActiveLiveEnabled){
-                                if (faceContainer == null) {
-                                    faceContainer =
-                                        requireActivity().findViewById(R.id.face_container)
-                                    faceContainer!!.visibility = View.VISIBLE
-                                } else {
-                                    faceContainer!!.visibility = View.VISIBLE
+
+                    val safeActivity = activity ?: run {
+                        image.close()
+                        return@Analyzer
+                    }
+
+                    val bitmap = image.toBitmap()
+                    val scaleImage = ImageUtils.scaleBitmap(bitmap, sensorOrientation ?: 0)
+
+                    safeActivity.runOnUiThread {
+                        if (!isAdded || view == null || activity == null) return@runOnUiThread
+
+                        transmittingContainer ?: run {
+                            transmittingContainer =
+                                safeActivity.findViewById(R.id.transmitting_container)
+                        }
+
+                        if (enableGuide) {
+                            if (frontCamera) {
+                                if (!this.isActiveLiveEnabled) {
+                                    faceContainer ?: run {
+                                        faceContainer = safeActivity.findViewById(R.id.face_container)
+                                    }
+                                    faceBackground ?: run {
+                                        faceBackground = safeActivity.findViewById(R.id.face_background)
+                                    }
+
+                                    faceContainer?.visibility = View.VISIBLE
+                                    faceBackground?.visibility = View.VISIBLE
                                 }
-                                if (faceBackground == null) {
-                                    faceBackground =
-                                        requireActivity().findViewById(R.id.face_background)
-                                    faceBackground!!.visibility = View.VISIBLE
-                                } else {
-                                    faceBackground!!.visibility = View.VISIBLE
+                            } else {
+                                cardContainer ?: run {
+                                    cardContainer = safeActivity.findViewById(R.id.card_container)
                                 }
-                              }
+                                cardBackground ?: run {
+                                    cardBackground = safeActivity.findViewById(R.id.card_background)
+                                }
 
-                        } else {
-                            if (cardContainer == null) {
-                                cardContainer =
-                                    requireActivity().findViewById(R.id.card_container)
-                                cardContainer!!.visibility = View.VISIBLE
-                            } else {
-                                cardContainer!!.visibility = View.VISIBLE
+                                cardContainer?.visibility = View.VISIBLE
+                                cardBackground?.visibility = View.VISIBLE
                             }
-                            if (cardBackground == null) {
-                                cardBackground =
-                                    requireActivity().findViewById(R.id.card_background)
-                                cardBackground!!.visibility = View.VISIBLE
-                            } else {
-                                cardBackground!!.visibility = View.VISIBLE
-                            }
-
-
                         }
                     }
 
-                }
+                    if (!isCameraActive || !isAdded || view == null) return@Analyzer
 
+                    results = if (frontCamera) {
+                        detector?.recognizeImage(ImageUtils.mirrorBitmap(scaleImage)) ?: emptyList()
+                    } else {
+                        detector?.recognizeImage(scaleImage) ?: emptyList()
+                    }
 
-                results = if (frontCamera) {
-                    detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
+                    listRectF.clear()
 
-                } else {
-                    detector!!.recognizeImage(scaleImage)
+                    results.forEach { item ->
+                        val confidence = (item.confidence * 100).toInt()
+                        val className = capitalizeFirstLetter(item.title)
+                        listRectF.add(RectFInfo(item.location, confidence.toString(), className))
+                    }
 
-                }
-                listRectF.clear()
-                results.forEach { item ->
-                    val confidence = (item.confidence * 100).toInt()
-                    val className = capitalizeFirstLetter(item.title);
-                    listRectF.add(RectFInfo(item.location, confidence.toString(), className))
-                }
-                val listScaleRectF = scaleAndDrawLocation(
-                    listRectF,
-                    image.width,
-                    image.height,
-                    previewView.width,
-                    previewView.height,
-                    enableDetect
-                );
+                    if (previewView.width == 0 || previewView.height == 0) return@Analyzer
 
+                    val listScaleRectF = scaleAndDrawLocation(
+                        listRectF,
+                        image.width,
+                        image.height,
+                        previewView.width,
+                        previewView.height,
+                        enableDetect
+                    )
 
-                processImage(
-                    scaleImage!!,
-                    bitmap,
-                    results,
-                    listScaleRectF,
-                    previewView.width,
-                    previewView.height,
-                )
+                    processImage(
+                        scaleImage,
+                        bitmap,
+                        results,
+                        listScaleRectF,
+                        previewView.width,
+                        previewView.height
+                    )
 
-
-
-            }  finally {
+                } catch (_: Exception) {
+                    // ignore frame
+                } finally {
                     image.close()
                 }
             }
