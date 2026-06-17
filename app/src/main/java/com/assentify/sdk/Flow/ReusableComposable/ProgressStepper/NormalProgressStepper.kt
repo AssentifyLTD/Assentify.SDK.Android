@@ -143,7 +143,7 @@ fun NormalProgressStepper(
 
         }
         Text(
-            text = "Step ${activeIndex + 1} out of ${steps.size} stpes",
+            text = "Step ${activeIndex + 1} out of ${steps.size} steps",
             fontFamily = InterFont,
             fontWeight = FontWeight.Normal,
             color =   BaseTheme.BaseTextColor,
