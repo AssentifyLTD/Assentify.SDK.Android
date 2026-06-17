@@ -43,120 +43,117 @@ fun OnFlipCardScreen(
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
 
-    val iconSvg= remember {
+    val iconSvg = remember {
         loadSvgFromAssets(context, "ic_flip_card.svg")
     }
+
     BaseBackgroundContainer(
         modifier = Modifier.fillMaxSize()
     ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding() // safe top
-            .padding(horizontal = 32.dp, vertical = 24.dp), // general page padding
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(150.dp))
-        // TOP + MIDDLE
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        // Box lets the Button be positioned independently of the Column's content,
+        // so it's a fixed bottom bar that is always present and always clickable —
+        // regardless of how tall the content above it ends up being.
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // small breathing space instead of 150.dp
-
-
-            // MIDDLE
-            Text(
-                text = "Capture Back of ID",
-                color =   BaseTheme.BaseTextColor,
-                fontSize = 20.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 28.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(32.dp))
-
-            iconSvg?.let {
-                Icon(
-                    painter = it,
-                    contentDescription = "ic_flip_card",
-                    modifier = Modifier.size(150.dp),
-                    tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
-                )
-            }
-
-            Spacer(Modifier.height(25.dp))
-
-            Text(
-                text = "Please flip the card provided to take the back of the card",
-                color =  BaseTheme.BaseTextColor,
-                fontSize = 20.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 28.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (expectedImageUrl.isNotEmpty()) {
-                Spacer(Modifier.height(30.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    SecureImage(imageUrl = expectedImageUrl)
-                }
-
-                Spacer(Modifier.height(10.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding() // safe top
+                    .padding(horizontal = 32.dp, vertical = 24.dp) // general page padding
+                    .padding(bottom = 88.dp), // reserve room so content doesn't render under the button bar
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(150.dp))
 
                 Text(
-                    text = "Expected Card Type",
-                    color =   BaseTheme.BaseTextColor,
-                    fontSize = 10.sp,
+                    text = "Capture Back of ID",
+                    color = BaseTheme.BaseTextColor,
+                    fontSize = 20.sp,
                     fontFamily = InterFont,
-                    fontWeight = FontWeight.Thin,
-                      lineHeight = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 28.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(Modifier.height(30.dp))
+                Spacer(Modifier.height(32.dp))
+
+                iconSvg?.let {
+                    Icon(
+                        painter = it,
+                        contentDescription = "ic_flip_card",
+                        modifier = Modifier.size(150.dp),
+                        tint = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+                    )
+                }
+
+                Spacer(Modifier.height(25.dp))
+
+                Text(
+                    text = "Please flip the card provided to take the back of the card",
+                    color = BaseTheme.BaseTextColor,
+                    fontSize = 20.sp,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 28.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (expectedImageUrl.isNotEmpty()) {
+                    Spacer(Modifier.height(30.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        SecureImage(imageUrl = expectedImageUrl)
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Text(
+                        text = "Expected Card Type",
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 10.sp,
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Thin,
+                        lineHeight = 17.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.height(30.dp))
+                }
             }
 
-            // push content up, leave space for bottom button
-            Spacer(modifier = Modifier.weight(1f))
+            // BOTTOM BAR — positioned by the Box, not by the Column's leftover space.
+            // Always rendered at the bottom of the screen, always clickable.
+            Button(
+                onClick = onNext,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp)
+                    .background(
+                        brush = BaseTheme.BaseClickColor!!.toBrush(),
+                        shape = RoundedCornerShape(28.dp)
+                    )
+            ) {
+                Text(
+                    "Next",
+                    fontFamily = InterFont,
+                    color = BaseTheme.BaseSecondaryTextColor,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(vertical = 7.dp)
+                )
+            }
         }
-
-        // BOTTOM
-        Button(
-            onClick = onNext,
-
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            shape = RoundedCornerShape(28.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .navigationBarsPadding()
-                .padding(bottom = 16.dp).background(
-                    brush = BaseTheme.BaseClickColor!!.toBrush(),
-                    shape = RoundedCornerShape(28.dp))
-        ) {
-            Text(
-                "Next",
-                fontFamily = InterFont,
-                color = BaseTheme.BaseSecondaryTextColor,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.padding(vertical = 7.dp)
-            )
-        }
-    }}
-
-
+    }
 }

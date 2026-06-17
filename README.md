@@ -38,6 +38,8 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.26***
+1. *Enhanced Flow Design*
 
 ***1.0.0-Beta.25***
 1. *Optimized Camera Preview*
