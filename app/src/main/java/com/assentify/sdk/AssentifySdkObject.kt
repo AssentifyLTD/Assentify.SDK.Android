@@ -158,8 +158,9 @@ object ApiKeyObject {
 object AssistedDataEntryPagesObject {
     private var assistedDataEntryModel: AssistedDataEntryModel? = null
 
-    fun setAssistedDataEntryModelObject(model: AssistedDataEntryModel?) {
+    fun setAssistedDataEntryModelObject(model: AssistedDataEntryModel?, stepId: Int) {
         assistedDataEntryModel = model
+        AssistedDataEntryPagesJsonObject.set(model, stepId = stepId)
     }
 
     fun getAssistedDataEntryModelObject(): AssistedDataEntryModel? = assistedDataEntryModel
@@ -168,6 +169,45 @@ object AssistedDataEntryPagesObject {
         assistedDataEntryModel = null
     }
 
+}
+
+object AssistedDataEntryPagesJsonObject {
+
+    fun set(model: AssistedDataEntryModel?, stepId: Int) {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        if (model == null) {
+            prefs.edit().remove("AssistedDataEntryPagesObject_${InteractionObject.getInteractionObject()}_$stepId").apply()
+            return
+        }
+
+        val json = Gson().toJson(model)
+        prefs.edit().putString("AssistedDataEntryPagesObject_${InteractionObject.getInteractionObject()}_$stepId", json).apply()
+    }
+
+    fun get(stepId: Int): AssistedDataEntryModel? {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val json = prefs.getString("AssistedDataEntryPagesObject_${InteractionObject.getInteractionObject()}_$stepId", null) ?: return null
+
+        return try {
+            Gson().fromJson(json, AssistedDataEntryModel::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun clear() {
+        val prefs = ContextObject.getContext()
+            .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val prefix = "AssistedDataEntryPagesObject_${InteractionObject.getInteractionObject()}_"
+        prefs.edit().apply {
+            prefs.all.keys.filter { it.startsWith(prefix) }.forEach { remove(it) }
+        }.apply()
+    }
 }
 
 
