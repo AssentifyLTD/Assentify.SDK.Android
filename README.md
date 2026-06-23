@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.27***
+1. *"Assisted Data Entry Step" Improvements*
+
 ***1.0.0-Beta.26***
 1. *Enhanced Flow Design*
 
