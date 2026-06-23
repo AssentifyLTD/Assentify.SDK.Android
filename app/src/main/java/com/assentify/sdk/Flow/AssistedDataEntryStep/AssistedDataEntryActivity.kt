@@ -16,6 +16,7 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
+import com.assentify.sdk.AssistedDataEntryPagesJsonObject
 import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
@@ -140,10 +141,18 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
 
     override fun onAssistedDataEntrySuccess(assistedDataEntryModel: AssistedDataEntryModel) {
         runOnUiThread {
-            assistedDataModel.value = assistedDataEntryModel;
-            AssistedDataEntryPagesObject.clear();
-            AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataEntryModel);
-            eventTypes.value = EventTypes.onComplete
+            if(AssistedDataEntryPagesJsonObject.get(FlowController.getCurrentStep()!!.stepDefinition!!.stepId)==null){
+                assistedDataModel.value = assistedDataEntryModel;
+                AssistedDataEntryPagesObject.clear();
+                AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataModel.value,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                eventTypes.value = EventTypes.onComplete
+            }else{
+                assistedDataModel.value = AssistedDataEntryPagesJsonObject.get(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                AssistedDataEntryPagesObject.clear();
+                AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataModel.value,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                eventTypes.value = EventTypes.onComplete
+            }
+
         }
     }
 

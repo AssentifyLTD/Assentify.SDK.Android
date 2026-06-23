@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -260,7 +261,10 @@ fun AssistedDataEntryScreen(
                         .fillMaxWidth()
                         .padding(vertical = 25.dp, horizontal = 40.dp)
                         .background(
-                            brush = BaseTheme.BaseClickColor!!.toBrush(),
+                            brush = if (enabled)
+                                BaseTheme.BaseClickColor!!.toBrush()
+                            else
+                                SolidColor(BaseTheme.FieldColor),
                             shape = RoundedCornerShape(28.dp)
                         ),
                     isActive = enabled,

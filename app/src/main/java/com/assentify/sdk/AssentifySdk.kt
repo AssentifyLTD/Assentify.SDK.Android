@@ -684,6 +684,7 @@ class AssentifySdk(
         )
         CreateUserDocumentObject.clear()
         SignatureResponseObject.clear()
+        AssistedDataEntryPagesJsonObject.clear()
         HasSubmittedObject.clear();
         LocalStepsObject.setLocalSteps(
             emptyList<LocalStepModel>().toMutableList()

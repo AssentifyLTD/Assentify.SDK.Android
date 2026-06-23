@@ -216,7 +216,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 clickColor = BackgroundStyle.Solid("#ffc400"),*/
 
                 /**Theme 2**/
-             /* logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
+             /*
+                logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
                 textColor = "#000000",
                 accentColor = "#833F89",
                 secondaryTextColor = "#000000",
@@ -226,7 +227,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     colorsHex = listOf("#833F89", "#C82B47"),
                     angleDegrees = 90f,
                     holdUntil = 0.4f
-                ),*/
+                ),
+                */
 
 
                 language = config.language,

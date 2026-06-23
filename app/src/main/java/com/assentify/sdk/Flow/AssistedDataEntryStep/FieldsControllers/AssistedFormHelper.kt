@@ -140,7 +140,7 @@ object AssistedFormHelper {
         /** **/
 
         field.value = value
-        AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model)
+        AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
     }
 
     fun changeValueSecureDropdownWithDataSource(
@@ -185,7 +185,7 @@ object AssistedFormHelper {
             dataSourceAttribute.forEach { item ->
                 field.dataSourceValues!!.put(outputKeys.entries.first { it.key == item.id.toString() }.value,item.value)
             }
-            AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model)
+            AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
         }
 
     }
@@ -202,7 +202,7 @@ object AssistedFormHelper {
         field!!.defaultCountryCode = defaultDial
 
 
-        AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model)
+        AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
     }
 
     fun validateField(key: String, page: Int): String? {
@@ -270,7 +270,7 @@ object AssistedFormHelper {
 
         field!!.isLocalOtpValid = value
 
-        AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model)
+        AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
     }
 
     fun validatePage(
