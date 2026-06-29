@@ -71,6 +71,7 @@ class AssentifySdk(
     private val assentifySdkCallback: AssentifySdkCallback,
     private var performActiveLivenessFace: Boolean? = null,
     private var context: Context,
+    private var processJsonConfigFile: String = "",
 ) {
 
     private var isKeyValid: Boolean = false;
@@ -98,8 +99,13 @@ class AssentifySdk(
     }
     private fun loadLocalFile() {
         timeStarted = getCurrentDateTime();
-        configFileManager = ConfigFileManager(context, "${configFileName}.json")
-        configFileManager.initFromAssetsIfNeeded();
+        val fileName = if (processJsonConfigFile.isEmpty()) {
+            "${configFileName}.json"
+        } else {
+            "AssentifySdk${configFileName}.json"
+        }
+        configFileManager = ConfigFileManager(context, fileName)
+        configFileManager.initFromAssetsIfNeeded(processJsonConfigFile = processJsonConfigFile);
         configModel = configFileManager.readEngagement();
         tenantThemeModel = configFileManager.readTheme();
         initContentHash = configFileManager.readContentHash();

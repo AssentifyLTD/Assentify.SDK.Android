@@ -52,7 +52,7 @@ fun SecureTextField(
             if(value.isEmpty()){
                 val dataList = listOf(
                     LanguageTransformationModel(
-                        language = field.targetOutputLanguage!!,
+                        language = "en",
                         languageTransformationEnum = field.languageTransformation!!,
                         value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: "",
                         key = field.inputKey!!,
@@ -60,7 +60,7 @@ fun SecureTextField(
                     )
                 )
                 AssistedFormHelper.valueTransformation(
-                    field.targetOutputLanguage,
+                    "en",
                     TransformationModel(LanguageTransformationModels = dataList)
                 ) { data ->
                     if (data != null) {
