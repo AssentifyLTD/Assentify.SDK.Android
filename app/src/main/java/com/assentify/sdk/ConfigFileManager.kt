@@ -1,5 +1,5 @@
+
 import android.content.Context
-import android.util.Log
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
@@ -34,11 +34,16 @@ class ConfigFileManager(
             }
         }
     }
-    fun initFromAssetsIfNeeded() {
-        if (!file.exists()) {
-            val json = readFromAssets()
-            file.writeText(json)
+    fun initFromAssetsIfNeeded(processJsonConfigFile: String = "") {
+        if (file.exists()) return
+
+        val json = if (processJsonConfigFile.isEmpty()) {
+            readFromAssets()
+        } else {
+            File(processJsonConfigFile).readText()
         }
+
+        file.writeText(json)
     }
 
 

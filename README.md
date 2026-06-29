@@ -38,6 +38,9 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.28***
+1. *Support for initializing the SDK using a file path*
+
 ***1.0.0-Beta.27***
 1. *"Assisted Data Entry Step" Improvements*
 

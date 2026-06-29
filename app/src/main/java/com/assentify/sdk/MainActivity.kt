@@ -3,6 +3,7 @@ package com.assentify.sdk
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -27,6 +28,9 @@ import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 data class StartConfig(
     val apiKey: String,
@@ -35,6 +39,27 @@ data class StartConfig(
     val enableNfc: Boolean,
     val enableQr: Boolean
 )
+
+fun copyAssetToInternalStorage(context: Context, assetFileName: String): String? {
+    val outFile = File(context.filesDir, assetFileName)
+
+    // Avoid re-copying if it already exists
+    if (outFile.exists()) {
+        return outFile.absolutePath
+    }
+
+    return try {
+        context.assets.open(assetFileName).use { inputStream ->
+            FileOutputStream(outFile).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
+        outFile.absolutePath
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
+    }
+}
 
 class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     private lateinit var assentifySdk: AssentifySdk
@@ -53,13 +78,17 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         if (ContextCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED
         ) {
 
         } else {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.CAMERA),
+                arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO),
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
@@ -69,6 +98,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
         etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+
+
 
 
   /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
@@ -143,6 +174,15 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 ).show()
                 return@setOnClickListener
             } else {
+                /** File SDK **/
+                val path = copyAssetToInternalStorage(applicationContext, "vardFile.json")
+                if (path != null) {
+                    Log.d("FilePath", "File stored at: $path")
+                } else {
+                    Log.e("FilePath", "Failed to copy asset")
+                }
+
+
                 /** INIT SDK **/
                 val environmentalConditions = EnvironmentalConditions(
                     config.enableDetect,
@@ -155,8 +195,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    configFileName =   "configFile1",
-                    environmentalConditions,
+                    configFileName =  "configFile1",
+                   // processJsonConfigFile = path!!,
+                    environmentalConditions = environmentalConditions,
                     assentifySdkCallback = this,
                     performActiveLivenessFace = false,
                     context = this,
@@ -244,7 +285,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
 
-            assentifySdk.clearFlow(this@MainActivity,)
+            //assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,
