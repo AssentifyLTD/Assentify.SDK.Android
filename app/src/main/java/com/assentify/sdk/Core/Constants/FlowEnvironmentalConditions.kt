@@ -91,6 +91,13 @@ enum class StepperType(val type : String) {
     PercentageBased("PercentageBased")
 }
 
+
+object UiLanguage {
+    const val English = "English"
+    const val Arabic = "Arabic"
+
+}
+
 public class FlowEnvironmentalConditions(
     var logoUrl: String = "",
     var svgBackgroundImageUrl: String = "",
@@ -108,7 +115,8 @@ public class FlowEnvironmentalConditions(
     var rangeEnd : Int = 50, // Next
     var stepperTitle : String = "Identification",
 
-    val language: String = Language.NON,
+    val extractedDataLanguage: String = Language.NON,
+    val uiLanguage: String = UiLanguage.English,
     val enableNfc: Boolean = false,
     val enableQr: Boolean = false,
     val showCountDown: Boolean = true,
@@ -120,5 +128,7 @@ public class FlowEnvironmentalConditions(
     }
 
 }
+
+
 
 

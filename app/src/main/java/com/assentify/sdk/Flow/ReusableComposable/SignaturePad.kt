@@ -40,6 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import java.io.ByteArrayOutputStream
 
@@ -55,6 +56,7 @@ fun SignaturePad(
 ) {
 
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
     val context = LocalContext.current
     val density = LocalDensity.current
 
@@ -205,7 +207,7 @@ fun SignaturePad(
             ) {
                 if (!isExpanding) {
                     Text(
-                        text = "Confirm",
+                        text = s.confirmSignature,
                         color =  BaseTheme.BaseTextColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -216,7 +218,7 @@ fun SignaturePad(
                 // Step 2: Centered "Confirmed" text (visible during expansion)
                 if (isExpanding) {
                     Text(
-                        text = "Confirmed",
+                        text = s.confirmedSignature,
                         color = BaseTheme.BaseTextColor.copy(
                             alpha = confirmedTextAlpha
                         ),

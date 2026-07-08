@@ -32,6 +32,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -42,6 +43,7 @@ fun OnNormalCompleteScreen(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
+    val s = flowStrings()
 
     val iconSvg = remember {
         loadSvgFromAssets(context, "ic_complete.svg")
@@ -90,7 +92,7 @@ fun OnNormalCompleteScreen(
             Spacer(Modifier.height(25.dp))
 
             Text(
-                text = "ID Processed Successfully",
+                text = s.idProcessedOk,
                 color = BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
                 fontFamily = InterFont,
@@ -120,7 +122,7 @@ fun OnNormalCompleteScreen(
                 )
         ) {
             Text(
-                "Next",
+                s.next,
                 fontFamily = InterFont,
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontWeight = FontWeight.Normal,

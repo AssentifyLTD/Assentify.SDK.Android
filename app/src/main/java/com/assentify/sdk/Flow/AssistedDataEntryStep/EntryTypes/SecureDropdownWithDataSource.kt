@@ -45,6 +45,7 @@ import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.FilterMana
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.Flow.Models.DataSourceAttribute
 import com.assentify.sdk.Flow.Models.DataSourceData
 import com.assentify.sdk.Flow.Models.DataSourceResponse
@@ -66,6 +67,7 @@ fun SecureDropdownWithDataSource(
     loadingMap: MutableMap<String, Boolean>,
     filterMap: MutableMap<String, Map<String, String>?>,
 ) {
+    val s = flowStrings()
     val configModelObject = ConfigModelObject.getConfigModelObject()
     val currentKey = field.inputKey ?: ""
 
@@ -355,7 +357,7 @@ fun SecureDropdownWithDataSource(
                         },
                         placeholder = {
                             Text(
-                                text = "Search...",
+                                text = s.searchPlaceholder,
                                 color = BaseTheme.BaseTextColor.copy(alpha = 0.6f)
                             )
                         },
@@ -386,7 +388,7 @@ fun SecureDropdownWithDataSource(
                         if (filteredItems.isEmpty()) {
                             item {
                                 Text(
-                                    text = "No results found",
+                                    text = s.noResultsFound,
                                     color = BaseTheme.BaseTextColor.copy(alpha = 0.7f),
                                     modifier = Modifier.padding(12.dp)
                                 )

@@ -40,6 +40,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -51,17 +52,14 @@ fun FaceResultScreen(
     onIDChange: () -> Unit = {},
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
+    val s = flowStrings()
 
     val match = faceModel.faceExtractedModel?.percentageMatch ?: 0
     val baseImage = faceModel.faceExtractedModel?.baseImageFace.orEmpty()
     val secondImage = faceModel.faceExtractedModel?.secondImageFace.orEmpty()
 
-    val title =
-        if (match > 50) "Verification Successful" else "Verification UnSuccessful"
-    val subTitle =
-        if (match > 50) "We have been able to make sure its you!"
-        else "Your face did not match with the provided document. Provide another document or confirm."
+    val title = if (match > 50) s.verificationSuccess else s.verificationFail
+    val subTitle = if (match > 50) s.verificationSuccessMsg else s.verificationFailMsg
 
     val borderColor = when {
         match!! > 50 -> BaseTheme.BaseGreenColor
@@ -182,7 +180,7 @@ fun FaceResultScreen(
                             shape = RoundedCornerShape(28.dp)
                         )
                 ) {
-                    Text("Next",
+                    Text(s.next,
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Normal,
                         color =  BaseTheme.BaseSecondaryTextColor,
@@ -206,7 +204,7 @@ fun FaceResultScreen(
                                     shape = RoundedCornerShape(28.dp)
                                 ) // consistent height
                         ) {
-                            Text("Retry",
+                            Text(s.retry,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 color =  BaseTheme.BaseSecondaryTextColor,
@@ -224,7 +222,7 @@ fun FaceResultScreen(
                                 .height(52.dp)
                                 .border(1.dp, Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)), corner)
                         ) {
-                            Text("Confirm & Proceed",
+                            Text(s.confirmProceed,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
@@ -247,7 +245,7 @@ fun FaceResultScreen(
                                     shape = RoundedCornerShape(28.dp)
                                 )
                         ) {
-                            Text("Provide Supporting ID to match with",
+                            Text(s.provideSupportingId,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Bold,
                                 color =  BaseTheme.BaseSecondaryTextColor,
@@ -267,7 +265,7 @@ fun FaceResultScreen(
                                 .height(52.dp)
                                 .border(1.dp, BaseTheme.BaseRedColor, corner)
                         ) {
-                            Text("Override & Proceed",
+                            Text(s.overrideProceed,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 color =  BaseTheme.BaseRedColor,
@@ -294,6 +292,7 @@ fun MatchProgress(
     val pct = (percentage ?: 0).coerceIn(0, 100)
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
     val trackColor =   BaseTheme.BaseTextColor
 
     val progressColor = when {
@@ -345,7 +344,7 @@ fun MatchProgress(
                 fontWeight = FontWeight.Normal
             )
             Text(
-                text = "Match",
+                text = s.matchLabel,
                 color = progressColor,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,

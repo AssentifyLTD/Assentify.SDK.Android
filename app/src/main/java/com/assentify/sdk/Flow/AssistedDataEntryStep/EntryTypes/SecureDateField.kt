@@ -37,6 +37,7 @@ import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.Core.Constants.firstColor
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import java.time.Instant
 import java.time.LocalDate
@@ -97,6 +98,7 @@ fun SecureDateField(
         maxDateStr: String? = null,
         onDismiss: () -> Unit
     ) {
+        val s = flowStrings()
         fun colorFromHex(hex: String): androidx.compose.ui.graphics.Color =
             androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(hex))
 
@@ -194,11 +196,11 @@ fun SecureDateField(
                         onPicked(utcMillisToDateString(millis, dateFormat))
                         onDismiss()
                     }
-                ) { androidx.compose.material3.Text("OK", color = click) }
+                ) { androidx.compose.material3.Text(s.okButton, color = click) }
             },
             dismissButton = {
                 androidx.compose.material3.TextButton(onClick = onDismiss) {
-                    androidx.compose.material3.Text("CANCEL", color = click)
+                    androidx.compose.material3.Text(s.cancelButton, color = click)
                 }
             }
         ) {

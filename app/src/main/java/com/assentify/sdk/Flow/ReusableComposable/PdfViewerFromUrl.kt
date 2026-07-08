@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.flowStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -99,10 +100,10 @@ fun openPdfWithSystemViewer(context: Context, pdfFile: File) {
         context.startActivity(Intent.createChooser(intent, "Open PDF with…"))
 
     } catch (e: ActivityNotFoundException) {
-        Toast.makeText(context, "No PDF viewer app found", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, flowStrings().noPdfViewerFound, Toast.LENGTH_SHORT).show()
     } catch (e: Exception) {
         Log.e(TAG, "Failed to open PDF with system viewer", e)
-        Toast.makeText(context, "Failed to open PDF", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, flowStrings().failedToOpenPdf, Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -116,6 +117,7 @@ fun PdfViewerFromUrl(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val s = flowStrings()
 
     val iconFullscreen = remember("ic_fullscreen.svg") {
         loadSvgFromAssets(context, "ic_fullscreen.svg")
@@ -169,7 +171,7 @@ fun PdfViewerFromUrl(
 
             error != null -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Failed to load PDF", color = BaseTheme.BaseRedColor)
+                    Text(s.failedToLoadPdf, color = BaseTheme.BaseRedColor)
                 }
             }
 

@@ -40,6 +40,7 @@ import com.assentify.sdk.Flow.IDStep.getIDStepFromConfigFile
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -51,7 +52,7 @@ fun HowToCaptureQrScreen(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
-
+    val s = flowStrings()
 
     val iDCustomization = getIDStepFromConfigFile(
         ConfigModelObject.getConfigModelObject()!!,
@@ -111,7 +112,7 @@ fun HowToCaptureQrScreen(
                 Spacer(Modifier.height(30.dp))
 
                 Text(
-                    "Capture QR Code",
+                    s.captureQr,
                     color =   BaseTheme.BaseTextColor,
                     fontSize = 25.sp,
                     fontFamily = InterFont,
@@ -139,7 +140,7 @@ fun HowToCaptureQrScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    "Watch How Easy It Is\nTo Capture Your ID Qr Code",
+                    s.watchCaptureQr,
                     color =   BaseTheme.BaseTextColor,
                     fontSize = 25.sp,
                     fontFamily = InterFont,
@@ -152,7 +153,7 @@ fun HowToCaptureQrScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    "Just make sure to be in a well lit area with no direct light reflecting on the ID .",
+                    s.qrLightingTip,
                     color =   BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,
@@ -169,7 +170,7 @@ fun HowToCaptureQrScreen(
             // BOTTOM – pinned
             BaseClick(
                 isNormalClick = iDCustomization!!.isNormalClick!!,
-                label = "Lets Start",
+                label = s.letsStart,
                 icon = Icons.Outlined.PhotoCamera,
                 modifier = Modifier
                     .fillMaxWidth()
