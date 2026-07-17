@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -62,7 +60,6 @@ fun OnFlipCardScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding() // safe top
-                    .verticalScroll(rememberScrollState()) // lets content scroll instead of clipping on small screens
                     .padding(horizontal = 32.dp, vertical = 24.dp) // general page padding
                     .padding(bottom = 88.dp), // reserve room so content doesn't render under the button bar
                 horizontalAlignment = Alignment.CenterHorizontally
