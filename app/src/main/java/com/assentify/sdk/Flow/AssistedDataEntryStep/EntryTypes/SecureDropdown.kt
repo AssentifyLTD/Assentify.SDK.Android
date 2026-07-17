@@ -95,8 +95,16 @@ fun SecureDropdown(
     val isReadOnly = (field.readOnly == true) || getIsLocked()
 
     val err by remember(field.inputKey, page, selected) {
-        mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
+        mutableStateOf(
+            if (selected.isNotEmpty()) {
+                ""
+            } else {
+                AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+            }
+        )
     }
+
+
 
     val filteredOptions = remember(searchQuery, options, userStartedTyping) {
         if (!userStartedTyping) {
