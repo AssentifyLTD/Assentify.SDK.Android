@@ -235,14 +235,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 blockLoaderCustomProperties = customProperties,
                 showCountDown = false,
 
-                stepperType = StepperType.Normal,
+                stepperType = StepperType.PercentageBased,
                 rangeStart = 30,
                 rangeEnd = 90
                 );
 
 
 
-            //assentifySdk.clearFlow(this@MainActivity,)
+            assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,
