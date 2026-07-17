@@ -23,6 +23,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -106,6 +107,22 @@ fun AssistedDataEntryPager(
             val pageModel =  assistedDataEntryPages.value[page]
 
             val listState = remember(page) { LazyListState() } // ✅ one state per page
+
+            val reachedEnd by remember(page) {
+                derivedStateOf {
+                    val layoutInfo = listState.layoutInfo
+                    val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()
+                    lastVisible != null &&
+                            lastVisible.index == layoutInfo.totalItemsCount - 1 &&
+                            (lastVisible.offset + lastVisible.size) <= layoutInfo.viewportEndOffset
+                }
+            }
+
+            LaunchedEffect(page, reachedEnd) {
+                if (reachedEnd) {
+                    onFieldChanged()
+                }
+            }
 
             LazyColumnWithScrollbar(
                 state = listState,

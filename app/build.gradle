@@ -140,6 +140,7 @@ dependencies {
     // Qr
     implementation 'com.google.mlkit:barcode-scanning:17.3.0'
 
+
     // Logging
     implementation "com.bugsnag:bugsnag-android:6.19.0"
     implementation "com.bugsnag:bugsnag-android-performance:2.1.1"
