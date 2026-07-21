@@ -64,7 +64,9 @@ object AssistedFormHelper {
         val field = pages[page].dataEntryPageElements
             .firstOrNull { it.inputKey == key }
 
-        if (field!!.value.isNullOrEmpty()) {
+        if(field == null) return  "";
+
+        if (field.value.isNullOrEmpty()) {
             if (field.inputPropertyIdentifierList!!.isEmpty()) {
                 return "";
             } else {
@@ -211,7 +213,9 @@ object AssistedFormHelper {
         val field = pages[page].dataEntryPageElements
             .firstOrNull { it.inputKey == key }
 
-        val fieldValue = field!!.value ?: ""
+        if(field == null) return  "";
+
+        val fieldValue = field.value ?: ""
 
         val fieldType = InputTypes.fromString(field.inputType)
 

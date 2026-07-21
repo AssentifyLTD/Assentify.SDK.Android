@@ -185,7 +185,7 @@ fun AssistedDataEntryPager(
                 val currentTick = rebuildTick
                 items(
                     count = pageModel.dataEntryPageElements.size,
-                    key = { index -> pageModel.dataEntryPageElements[index].inputKey ?: index }
+                    key = { index -> "${pageModel.dataEntryPageElements[index].inputKey ?: "no_key"}_$index" }
 
                 ) { i ->
                     Box(modifier = Modifier.padding(end = 10.dp)) {
