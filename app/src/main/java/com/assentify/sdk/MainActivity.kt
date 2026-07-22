@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
 
 
-        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+        etApiKey.setText("wzSw2ebGUF1H3mMt7CmjKz8ob5TuEV4UdvKhOUMKy2XcsVnIeKYmqdG5TdgFnaLn3JUXPdS5pUIo3gt2rAhCQ")
 
 
   /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    configFileName =   "configFile1",
+                    configFileName =   "pixelConfig",
                     environmentalConditions,
                     assentifySdkCallback = this,
                     performActiveLivenessFace = false,

@@ -53,6 +53,7 @@ fun SecureDropdown(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var userStartedTyping by rememberSaveable { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
+    val isMandatory = field.mandatory  ?: false
 
     LaunchedEffect(field.inputKey, field.languageTransformation) {
         if (field.languageTransformation == 0) {
@@ -96,10 +97,10 @@ fun SecureDropdown(
 
     val err by remember(field.inputKey, page, selected) {
         mutableStateOf(
-            if (selected.isNotEmpty()) {
-                ""
-            } else {
-                AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+            when {
+                selected.isNotEmpty() -> ""
+                isMandatory -> "This field is required"
+                else -> ""
             }
         )
     }

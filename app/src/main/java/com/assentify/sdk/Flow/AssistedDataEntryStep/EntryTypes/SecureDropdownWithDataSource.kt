@@ -68,6 +68,7 @@ fun SecureDropdownWithDataSource(
 ) {
     val configModelObject = ConfigModelObject.getConfigModelObject()
     val currentKey = field.inputKey ?: ""
+    val isMandatory = field.mandatory  ?: false
 
     var dataSourceData by remember(currentKey) {
         mutableStateOf<DataSourceData?>(loadedMap[currentKey])
@@ -242,10 +243,10 @@ fun SecureDropdownWithDataSource(
 
     val err by remember(field.inputKey, page, selected) {
         mutableStateOf(
-            if (selected.isNotEmpty()) {
-                ""
-            } else {
-                AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+            when {
+                selected.isNotEmpty() -> ""
+                isMandatory -> "This field is required"
+                else -> ""
             }
         )
     }
