@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,8 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.viewinterop.AndroidView
 import com.assentify.sdk.Core.Constants.BackgroundType
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.caverock.androidsvg.SVG
@@ -30,25 +34,28 @@ fun BaseBackgroundContainer(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit
 ) {
-    when (BaseTheme.BaseBackgroundType) {
+    val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
+        LayoutDirection.Rtl else LayoutDirection.Ltr
 
-        BackgroundType.Color -> {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .background(BaseTheme.BackgroundColor!!.toBrush())
-            ) {
-                content()
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+        when (BaseTheme.BaseBackgroundType) {
+
+            BackgroundType.Color -> {
+                Box(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .background(BaseTheme.BackgroundColor!!.toBrush())
+                ) {
+                    content()
+                }
             }
+
+            BackgroundType.Image -> {
+                SvgUrlBackground(url = BaseTheme.BaseBackgroundUrl, modifier = modifier) { content() }
+            }
+
+            else -> {}
         }
-
-        BackgroundType.Image -> {
-
-            SvgUrlBackground(url = BaseTheme.BaseBackgroundUrl, modifier = modifier) { content() }
-
-        }
-
-        else -> {}
     }
 }
 

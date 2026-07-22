@@ -43,6 +43,7 @@ import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 @Composable
@@ -55,6 +56,7 @@ fun SecurePhoneInput(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
     val pillColor = BaseTheme.FieldColor
     val isReadOnly = false
 
@@ -245,7 +247,7 @@ fun SecurePhoneInput(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Choose code",
+                        text = s.chooseCode,
                         color = BaseTheme.BaseTextColor,
                         fontSize = 16.sp,
                         fontFamily = InterFont,
@@ -262,7 +264,7 @@ fun SecurePhoneInput(
                         },
                         placeholder = {
                             Text(
-                                text = "Search...",
+                                text = s.searchPlaceholder,
                                 color = BaseTheme.BaseTextColor.copy(alpha = 0.6f)
                             )
                         },
@@ -293,7 +295,7 @@ fun SecurePhoneInput(
                         if (filteredOptions.isEmpty()) {
                             item {
                                 Text(
-                                    text = "No results found",
+                                    text = s.noResultsFound,
                                     color = BaseTheme.BaseTextColor.copy(alpha = 0.7f),
                                     modifier = Modifier.padding(12.dp)
                                 )

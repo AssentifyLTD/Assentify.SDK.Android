@@ -39,6 +39,7 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.SelectedTemplatesObject
 
@@ -52,12 +53,10 @@ fun HowToCaptureScreen(
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
     val selectedTemplate = remember { SelectedTemplatesObject.getSelectedTemplatesObject() }
+    val s = flowStrings()
 
-
-
-    val title = if (selectedTemplate.id == -1) "Present Your Passport" else "Present Your ID";
-    val subTitle =
-        if (selectedTemplate.id == -1) "Watch How Easy It Is To Capture Your Passport" else "Watch How Easy It Is To Capture Your ID";
+    val title = if (selectedTemplate.id == -1) s.presentPassport else s.presentId
+    val subTitle = if (selectedTemplate.id == -1) s.watchCapturePassport else s.watchCaptureId
     val assetVideoFileName =
         if (selectedTemplate.id == -1) "passport-video.mp4"
         else "id-video.mp4";
@@ -163,7 +162,7 @@ fun HowToCaptureScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    "Just make sure to be in a well lit area with no direct light reflecting on the ID or Passport presented.",
+                    s.lightingTip,
                     color =   BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,
@@ -179,7 +178,7 @@ fun HowToCaptureScreen(
 
             BaseClick(
                 isNormalClick = iDCustomization!!.isNormalClick!!,
-                label = "Lets Start",
+                label = s.letsStart,
                 icon = Icons.Outlined.PhotoCamera,
                 modifier = Modifier
                     .fillMaxWidth()

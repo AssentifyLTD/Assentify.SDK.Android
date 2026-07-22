@@ -32,6 +32,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -42,6 +43,7 @@ fun OnFlipCardScreen(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
+    val s = flowStrings()
 
     val iconSvg = remember {
         loadSvgFromAssets(context, "ic_flip_card.svg")
@@ -67,7 +69,7 @@ fun OnFlipCardScreen(
                 Spacer(Modifier.height(150.dp))
 
                 Text(
-                    text = "Capture Back of ID",
+                    text = s.captureBackId,
                     color = BaseTheme.BaseTextColor,
                     fontSize = 20.sp,
                     fontFamily = InterFont,
@@ -91,7 +93,7 @@ fun OnFlipCardScreen(
                 Spacer(Modifier.height(25.dp))
 
                 Text(
-                    text = "Please flip the card provided to take the back of the card",
+                    text = s.flipCardMsg,
                     color = BaseTheme.BaseTextColor,
                     fontSize = 20.sp,
                     fontFamily = InterFont,
@@ -115,7 +117,7 @@ fun OnFlipCardScreen(
                     Spacer(Modifier.height(10.dp))
 
                     Text(
-                        text = "Expected Card Type",
+                        text = s.expectedCardType,
                         color = BaseTheme.BaseTextColor,
                         fontSize = 10.sp,
                         fontFamily = InterFont,
@@ -147,7 +149,7 @@ fun OnFlipCardScreen(
                     )
             ) {
                 Text(
-                    "Next",
+                    s.next,
                     fontFamily = InterFont,
                     color = BaseTheme.BaseSecondaryTextColor,
                     fontWeight = FontWeight.Normal,

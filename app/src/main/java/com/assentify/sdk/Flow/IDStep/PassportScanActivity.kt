@@ -78,10 +78,12 @@ import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.ScanPassport.ScanPassportManual
 import com.assentify.sdk.ScanPassport.ScanPassportResult
+import com.assentify.sdk.Flow.flowStrings
 
 
 class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
+    private val cs by lazy { flowStrings() }
     private var start = mutableStateOf(false)
     private var feedbackText = mutableStateOf("")
     private var uploadingProgress = mutableStateOf(0)
@@ -305,30 +307,30 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             if (start.value == false) {
                 if (zoom != ZoomType.SENDING && zoom != ZoomType.NO_DETECT) {
                     if (zoom == ZoomType.ZOOM_IN) {
-                        feedbackText.value = "Move Passport Closer"
+                        feedbackText.value = cs.movePassportCloser
                     }
                     if (zoom == ZoomType.ZOOM_OUT) {
-                        feedbackText.value = "Move Passport Further"
+                        feedbackText.value = cs.movePassportFurther
                     }
                 } else if (motion != MotionType.SENDING && motion != MotionType.NO_DETECT) {
-                    feedbackText.value = "Please Hold Your Hand"
+                    feedbackText.value = cs.holdYourHand
 
                 } else if (brightnessEvents != BrightnessEvents.Good) {
                     if (brightnessEvents == BrightnessEvents.TooDark) {
-                        feedbackText.value = "Please increase the lighting"
+                        feedbackText.value = cs.increaseLighting
                     }
                     if (brightnessEvents == BrightnessEvents.TooBright) {
-                        feedbackText.value = "Please reduce the lighting"
+                        feedbackText.value = cs.reduceLighting
                     }
 
                 } else {
                     if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good) {
-                        feedbackText.value = "Hold Steady"
+                        feedbackText.value = cs.holdSteady
                     }
                     if (motion == MotionType.NO_DETECT && zoom == ZoomType.NO_DETECT) {
-                        feedbackText.value = "Please present passport"
+                        feedbackText.value = cs.presentPassport
                     }else if(!isCentered){
-                        feedbackText.value = "Please center your card"
+                        feedbackText.value = cs.centerCard
                     }
                 }
             } else {
@@ -433,7 +435,7 @@ fun PassportScanScreen(
 
                 val result = assentifySdk.startScanPassport(
                     activity,
-                    flowEnv.language,
+                    flowEnv.extractedDataLanguage,
                     stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                 )
 

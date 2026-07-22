@@ -273,7 +273,7 @@ fun QrScanScreen(
                 val result = assentifySdk.startScanQr(
                     activity,
                     templatesByCountry = templatesByCountry,
-                    flowEnv.language,
+                    flowEnv.extractedDataLanguage,
                     stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                 )
 

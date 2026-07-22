@@ -34,12 +34,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Core.Constants.toBrush
@@ -108,6 +111,7 @@ private fun SliderClick(
     val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     val height = 54.dp
     val corner = 100.dp
@@ -135,19 +139,12 @@ private fun SliderClick(
 
     fun settle() {
         if (rawOffset >= threshold) {
-
-            // move to end first
             rawOffset = maxOffset
-
-            // trigger action
             onNext()
-
-            // reset slider back to beginning
             scope.launch {
                 delay(150)
                 rawOffset = 0f
             }
-
         } else {
             rawOffset = 0f
         }
@@ -172,23 +169,15 @@ private fun SliderClick(
                 trackWidthPx = it.size.width.toFloat()
             }
             .pointerInput(isActive) {
-
                 if (!isActive) return@pointerInput
 
                 detectHorizontalDragGestures(
-
                     onHorizontalDrag = { _, dragAmount ->
-                        rawOffset = (rawOffset + dragAmount)
-                            .coerceIn(0f, maxOffset)
+                        val d = if (isRtl) -dragAmount else dragAmount
+                        rawOffset = (rawOffset + d).coerceIn(0f, maxOffset)
                     },
-
-                    onDragEnd = {
-                        settle()
-                    },
-
-                    onDragCancel = {
-                        settle()
-                    }
+                    onDragEnd = { settle() },
+                    onDragCancel = { settle() }
                 )
             },
         contentAlignment = Alignment.Center
@@ -207,7 +196,7 @@ private fun SliderClick(
             fontWeight = FontWeight.Bold
         )
 
-        // ──────────────── Right arrows ────────────────
+        // ──────────────── Arrows hint (trailing side) ────────────────
 
         Row(
             modifier = Modifier
@@ -215,13 +204,13 @@ private fun SliderClick(
                 .padding(end = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             arrowsIcon?.let {
-
                 Image(
                     painter = it,
                     contentDescription = "arrowsIcon",
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier
+                        .size(20.dp)
+                        .scale(scaleX = if (isRtl) -1f else 1f, scaleY = 1f),
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(
                         BaseTheme.BaseTextColor.copy(
@@ -239,7 +228,7 @@ private fun SliderClick(
                 .align(Alignment.CenterStart)
                 .offset {
                     IntOffset(
-                        animatedOffset.roundToInt(),
+                        if (isRtl) -animatedOffset.roundToInt() else animatedOffset.roundToInt(),
                         0
                     )
                 }
@@ -252,7 +241,6 @@ private fun SliderClick(
                 ),
             contentAlignment = Alignment.Center
         ) {
-
             Icon(
                 imageVector = icon,
                 contentDescription = null,

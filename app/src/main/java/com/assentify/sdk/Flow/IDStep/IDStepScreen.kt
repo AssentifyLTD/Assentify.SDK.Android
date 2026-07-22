@@ -73,6 +73,7 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.Customization
@@ -99,7 +100,7 @@ fun IDStepScreen(
         FlowController.identificationDocumentStepHasIDCard(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
 
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
-
+    val s = flowStrings()
 
     var countries = remember(hasID) {
         if (hasID) {
@@ -113,7 +114,7 @@ fun IDStepScreen(
     if (hasPassport) {
         countries = countries + TemplatesByCountry(
             id = -1,
-            name = "Rest of the world",
+            name = s.restOfWorld,
             sourceCountryCode = "",
             flag = " ",
             templates = emptyList()
@@ -247,7 +248,7 @@ fun IDStepScreen(
 
 
                     Text(
-                        "Choose your country of residence",
+                        s.chooseCountry,
                         color = BaseTheme.BaseTextColor,
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Bold,
@@ -270,7 +271,7 @@ fun IDStepScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        "Select type of document",
+                        s.selectDocument,
                         color = BaseTheme.BaseTextColor,
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Bold,
@@ -318,7 +319,7 @@ fun IDStepScreen(
                     Spacer(Modifier.height(5.dp))
                 }
                 Text(
-                    "Only the presented IDs are supported and accepted by ${ConfigModelObject.getConfigModelObject()!!.flowName}. Make sure to provide one of them.",
+                    s.idDisclaimer(ConfigModelObject.getConfigModelObject()!!.flowName),
                     color = BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,
@@ -353,7 +354,7 @@ fun IDStepScreen(
                         )
                 ) {
                     Text(
-                        "Next",
+                        s.next,
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Normal,
                         modifier = Modifier.padding(vertical = 7.dp),
@@ -378,6 +379,7 @@ fun CountryDropdownStyled(
     var expanded by remember { mutableStateOf(false) }
 
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
+    val s = flowStrings()
 
     val pillColor = BaseTheme.FieldColor
     val textColor = BaseTheme.BaseTextColor
@@ -389,7 +391,7 @@ fun CountryDropdownStyled(
         TextField(
             readOnly = true,
             singleLine = true,
-            value = selectedCountry?.name ?: "Select country",
+            value = selectedCountry?.name ?: s.selectCountryPlaceholder,
             onValueChange = { },
             textStyle = MaterialTheme.typography.bodyLarge.copy(
                 color = textColor,
@@ -475,6 +477,7 @@ fun DocumentPicker(
     onDocumentSelected: (Templates) -> Unit,
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
+    val s = flowStrings()
 
     fun isSelectedPassport(): Boolean = selectedTemplate?.id == -1
     fun isSelectedIDs(): Boolean = selectedTemplate != null && selectedTemplate.id != -1
@@ -485,7 +488,7 @@ fun DocumentPicker(
     // ✅ Bottom sheet for templates list
     if (showIdsSheet) {
         TemplatesBottomSheet(
-            title = "Supported IDs",
+            title = s.supportedIds,
             templates = country.templates,
             onDismiss = { showIdsSheet = false },
 
@@ -558,7 +561,7 @@ fun DocumentPicker(
                         }
                         Spacer(Modifier.width(40.dp))
                         Text(
-                            text = "Passport",
+                            text = s.passport,
                             color = if (isSelectedPassport())
                                 BaseTheme.BaseSecondaryTextColor
                             else
@@ -637,7 +640,7 @@ fun DocumentPicker(
 
                             Column(horizontalAlignment = Alignment.Start) {
                                 Text(
-                                    text = "Supported IDs",
+                                    text = s.supportedIds,
                                     color = if (isSelectedIDs())
                                         BaseTheme.BaseSecondaryTextColor
                                     else
@@ -649,7 +652,7 @@ fun DocumentPicker(
 
                                 // ✅ View more => open list
                                 Text(
-                                    text = "View more",
+                                    text = s.viewMore,
                                     color = if (isSelectedIDs())
                                         BaseTheme.BaseSecondaryTextColor
                                     else

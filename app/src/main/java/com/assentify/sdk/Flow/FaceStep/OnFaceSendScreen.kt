@@ -28,6 +28,7 @@ import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -37,6 +38,7 @@ fun OnFaceSendScreen(
 ) {
     val context = LocalContext.current
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
 
     val iconUploading = remember {
         loadSvgFromAssets(context, "ic_uploading_face.svg")
@@ -95,7 +97,7 @@ fun OnFaceSendScreen(
 
         if(process == 100 || process == 99){
             Text(
-                text = "Processing Face please wait",
+                text = s.processingFace,
                 color =   BaseTheme.BaseTextColor,
                 fontSize = 18.sp,
                 fontFamily = InterFont,
@@ -106,7 +108,7 @@ fun OnFaceSendScreen(
             )
         }else{
             Text(
-                text = "Uploading Face please wait",
+                text = s.uploadingFace,
                 color =   BaseTheme.BaseTextColor,
                 fontSize = 18.sp,
                 fontFamily = InterFont,

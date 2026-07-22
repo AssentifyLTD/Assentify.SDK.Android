@@ -32,6 +32,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -42,6 +43,7 @@ fun OnPassportExpired(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
+    val s = flowStrings()
 
     val iconSvg= remember {
         loadSvgFromAssets(context, "ic_error.svg")
@@ -89,7 +91,7 @@ fun OnPassportExpired(
             Spacer(Modifier.height(25.dp))
 
             Text(
-                text = "Expired Passport Detected!",
+                text = s.passportExpiredTitle,
                 color =  BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
                 fontFamily = InterFont,
@@ -102,7 +104,7 @@ fun OnPassportExpired(
             Spacer(Modifier.height(15.dp))
 
             Text(
-                text = "Your passport appears to be expired. Please use a valid, non-expired passport to complete the verification process.",
+                text = s.passportExpiredMsg,
                 color =   BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
                 fontFamily = InterFont,
@@ -132,7 +134,7 @@ fun OnPassportExpired(
                 )
         ) {
             Text(
-                "Retry",
+                s.retry,
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,

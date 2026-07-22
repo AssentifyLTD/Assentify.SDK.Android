@@ -81,10 +81,12 @@ import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
 import com.assentify.sdk.ScanIDCard.ScanIDCardResult
 import com.assentify.sdk.SelectedTemplatesObject
+import com.assentify.sdk.Flow.flowStrings
 
 
 class IDCardScanActivity : FragmentActivity(), IDCardCallback {
 
+    private val cs by lazy { flowStrings() }
     private var start = mutableStateOf(false)
     private var isLastPageValue = mutableStateOf(false)
     private var isFrontPageValue = mutableStateOf(false)
@@ -312,30 +314,30 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             if (start.value == false) {
                 if (zoom != ZoomType.SENDING && zoom != ZoomType.NO_DETECT) {
                     if (zoom == ZoomType.ZOOM_IN) {
-                        feedbackText.value = "Move ID Closer"
+                        feedbackText.value = cs.moveIdCloser
                     }
                     if (zoom == ZoomType.ZOOM_OUT) {
-                        feedbackText.value = "Move ID Further"
+                        feedbackText.value = cs.moveIdFurther
                     }
                 } else if (motion != MotionType.SENDING && motion != MotionType.NO_DETECT) {
-                    feedbackText.value = "Please Hold Your Hand"
+                    feedbackText.value = cs.holdYourHand
 
                 } else if (brightnessEvents != BrightnessEvents.Good) {
                     if (brightnessEvents == BrightnessEvents.TooDark) {
-                        feedbackText.value = "Please increase the lighting"
+                        feedbackText.value = cs.increaseLighting
                     }
                     if (brightnessEvents == BrightnessEvents.TooBright) {
-                        feedbackText.value = "Please reduce the lighting"
+                        feedbackText.value = cs.reduceLighting
                     }
 
                 } else {
                     if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good &&  isCentered) {
-                        feedbackText.value = "Hold Steady"
+                        feedbackText.value = cs.holdSteady
                     }
                     if (motion == MotionType.NO_DETECT && zoom == ZoomType.NO_DETECT) {
-                        feedbackText.value = "Please present ID"
+                        feedbackText.value = cs.presentId
                     }else if(!isCentered){
-                        feedbackText.value = "Please center your card"
+                        feedbackText.value = cs.centerCard
                     }
                 }
             } else {
@@ -492,7 +494,7 @@ fun IDCardScanScreen(
                 val result = assentifySdk.startScanIDCard(
                     activity,
                     templatesByCountry = templatesByCountry,
-                    flowEnv.language,
+                    flowEnv.extractedDataLanguage,
                     stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                 )
 

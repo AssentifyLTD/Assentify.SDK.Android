@@ -32,6 +32,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -43,6 +44,7 @@ fun OnFaceErrorScreen(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
+    val s = flowStrings()
 
     val iconSvg = remember {
         loadSvgFromAssets(context, "ic_error.svg")
@@ -111,11 +113,7 @@ fun OnFaceErrorScreen(
                 Spacer(Modifier.height(25.dp))
 
                 Text(
-                    text = if (isLiveError) {
-                        "We couldn't verify a live face. Please try again."
-                    } else {
-                        "Let's try again"
-                    },
+                    text = if (isLiveError) s.faceErrorLiveTitle else s.faceErrorGeneralTitle,
                     color = BaseTheme.BaseTextColor,
                     fontSize = 20.sp,
                     fontFamily = InterFont,
@@ -128,11 +126,7 @@ fun OnFaceErrorScreen(
                 Spacer(Modifier.height(15.dp))
 
                 Text(
-                    text = if (isLiveError) {
-                        "We could not verify a live face. Please ensure you are in a well-lit area, and avoid using photos or videos"
-                    } else {
-                        "Please make sure your face is well lit, look directly at the camera, and avoid using photos or videos"
-                    },
+                    text = if (isLiveError) s.faceErrorLiveMsg else s.faceErrorGeneralMsg,
                     color = BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,
@@ -162,7 +156,7 @@ fun OnFaceErrorScreen(
                     )
             ) {
                 Text(
-                    "Retry",
+                    s.retry,
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Normal,
                     color = BaseTheme.BaseSecondaryTextColor,

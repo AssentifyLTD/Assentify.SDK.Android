@@ -86,6 +86,7 @@ import com.assentify.sdk.CreateUserDocumentObject
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.ContextAwareStepEventTypes
@@ -288,7 +289,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
         selectedTemplates.add(
             SelectedTemplatesTokens(
                 templateId = templateId,
-                templateName = "Agreement",
+                templateName = flowStrings().agreementTitle,
                 documentTokens = documentTokens
             )
         )
@@ -466,6 +467,7 @@ fun MultipleFilesContextAwareStepScreen(
     documentWithTokensObject: MutableList<DocumentWithTokensModel?>,
     documentWithTokensAndSinged: MutableList<DocumentWithTokensAndSinged?>,
 ) {
+    val s = flowStrings()
     var checked by remember { mutableStateOf(initChecked) }
     var selectedTemplate by remember { mutableStateOf<SelectedTemplatesTokens?>(null) }
 
@@ -685,7 +687,7 @@ fun MultipleFilesContextAwareStepScreen(
                                 )
 
                                 Text(
-                                    text = "I agree to the terms and conditions",
+                                    text = s.iAgreeTerms,
                                     color = BaseTheme.BaseTextColor,
                                     fontSize = 12.sp,
                                     lineHeight = 18.sp,
@@ -726,9 +728,9 @@ fun MultipleFilesContextAwareStepScreen(
 
                                 Text(
                                     text = if (approvedDocuments.size != selectedTemplates.size)
-                                        "Please review and approve the below files"
+                                        s.reviewApproveFiles
                                     else
-                                        "Thank you for approving",
+                                        s.thankYouForApproving,
                                     fontFamily = InterFont,
                                     fontWeight = FontWeight.Bold,
                                     color = BaseTheme.BaseTextColor,
@@ -778,7 +780,7 @@ fun MultipleFilesContextAwareStepScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "Files Reviewed and Approved",
+                                            text = s.filesReviewedApproved,
                                             color = BaseTheme.BaseTextColor,
                                             fontFamily = InterFont,
                                             fontWeight = FontWeight.SemiBold,
@@ -881,7 +883,7 @@ fun MultipleFilesContextAwareStepScreen(
                         if (enableOtp && !isOtpValidated) {
                             if (otpInputType == OtpChannelEnum.EMAIL.value) {
                                 SigningEmailWithOtp(
-                                    title = "Email to Receive a Verification Code",
+                                    title = s.emailVerificationTitle,
                                     contextAwareSigningModel = contextAwareSigningObject!!,
                                     onValueChange = {
                                         otpValue = it
@@ -896,7 +898,7 @@ fun MultipleFilesContextAwareStepScreen(
                                 )
                             } else {
                                 SigningPhoneWithOtp(
-                                    title = "Phone Number",
+                                    title = s.phoneNumberLabel,
                                     contextAwareSigningModel = contextAwareSigningObject!!,
                                     onValueChange = {
                                         otpValue = it
@@ -913,6 +915,7 @@ fun MultipleFilesContextAwareStepScreen(
                         } else {
                             if (enableDigitalSignature) {
                                 SignaturePad(
+                                    title = s.signatureTitle,
                                     isLoading = clickLoading,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -1010,7 +1013,7 @@ fun MultipleFilesContextAwareStepScreen(
 
                     BaseClick(
                         isNormalClick = contextAwareSigningObject!!.data.isNormalClick!!,
-                        label = "Next",
+                        label = s.next,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 25.dp, horizontal = 25.dp)
