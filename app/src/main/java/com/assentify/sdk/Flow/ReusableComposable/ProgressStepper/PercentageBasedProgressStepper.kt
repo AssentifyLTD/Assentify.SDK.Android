@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,8 +33,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,14 +44,39 @@ import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.LocalStepsObject
+import kotlin.math.max
 
 
+/**
+ * FIX SUMMARY
+ * -----------
+ * The original implementation used fixed dp values for `nodeSize` and
+ * `connectorLength`. On narrower screens (in dp, which depends on both
+ * physical width AND density) the fixed total width of:
+ *
+ *      sideWidth(back) + sideWidth(%) + N*nodeSize + (N-1)*connectorLength
+ *
+ * could exceed the available screen width. Compose's Row does NOT shrink
+ * children to fit automatically, so the row silently overflowed and got
+ * clipped by its parent — visually this showed up as the LAST node being
+ * cut off / looking smaller, since layout is centered and the trailing
+ * edge is what gets clipped first.
+ *
+ * THE FIX: wrap the stepper in BoxWithConstraints so we know the actual
+ * available width on THIS device, then derive nodeSize/connectorLength
+ * from that width (clamped between sensible min/max values) instead of
+ * using hardcoded constants. This guarantees the whole row always fits,
+ * with consistent proportions, on any screen size.
+ */
 @Composable
 fun PercentageBasedProgressStepper(
     modifier: Modifier = Modifier,
-    nodeSize: Dp = 57.dp,
-    connectorLength: Dp = 40.dp,
+    maxNodeSize: Dp = 57.dp,
+    minNodeSize: Dp = 40.dp,
+    maxConnectorLength: Dp = 40.dp,
+    minConnectorLength: Dp = 12.dp,
     connectorThickness: Dp = 3.dp,
+    backToNodeSpacing: Dp = 12.dp,
     onBack: () -> Unit,
 ) {
     // ── Colors ────────────────────────────────────────────────────────────────
@@ -105,114 +131,171 @@ fun PercentageBasedProgressStepper(
     val sideWidth      = 52.dp
     val density        = LocalDensity.current
 
-    var activeNodeCenterX by remember { mutableStateOf(0f) }
-    var rowWidthPx        by remember { mutableStateOf(0f) }
+    // We measure the active node's position relative to the FULL stepper
+    // row (back button + spacing + nodes + % badge), not just the nodes
+    // sub-box, using LayoutCoordinates.localPositionOf. This keeps the
+    // caret correctly centered under the active node even when the two
+    // sides of the row are asymmetric (e.g. backToNodeSpacing only on
+    // the left) — a plain "center of the nodes box" calculation breaks
+    // as soon as the row isn't perfectly symmetric.
+    var stepperRowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    var activeNodeCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     // ── UI ────────────────────────────────────────────────────────────────────
     Column(
         modifier            = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier          = Modifier.fillMaxWidth()
-        ) {
+        // BoxWithConstraints exposes the ACTUAL available width on this
+        // device (maxWidth), which we use to size nodes/connectors so
+        // the whole row always fits, regardless of screen size/density.
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val totalWidthDp = maxWidth
+            val availableForStepper =
+                (totalWidthDp - sideWidth * 2 - backToNodeSpacing).coerceAtLeast(0.dp)
 
-            // ── Back button ───────────────────────────────────────────────────
-            Box(
-                modifier         = Modifier.width(sideWidth),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    onClick  = { onBack() },
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(BaseTheme.FieldColor.copy(alpha = 0.5f))
-                ) {
-                    Icon(
-                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint               = BaseTheme.BaseTextColor,
-                        modifier           = Modifier.size(20.dp)
-                    )
+            // Solve for nodeSize + connectorLength that fit:
+            //   n * nodeSize + (n - 1) * connectorLength <= availableForStepper
+            // Start from the ideal (max) sizes, then shrink connectors first,
+            // and only shrink nodes if that's still not enough.
+            val n = safeNodeCount
+            val idealTotal = maxNodeSize * n + maxConnectorLength * max(n - 1, 0)
+
+            val (nodeSize, connectorLength) = if (idealTotal <= availableForStepper || n <= 1) {
+                maxNodeSize to maxConnectorLength
+            } else {
+                // Try shrinking connectors down to their minimum first.
+                val totalWithMinConnectors =
+                    maxNodeSize * n + minConnectorLength * max(n - 1, 0)
+
+                if (totalWithMinConnectors <= availableForStepper) {
+                    // Distribute the slack between min and max connector length.
+                    val extraSpace = availableForStepper - (maxNodeSize * n)
+                    val perConnector = (extraSpace / max(n - 1, 1))
+                        .coerceIn(minConnectorLength, maxConnectorLength)
+                    maxNodeSize to perConnector
+                } else {
+                    // Still doesn't fit — shrink nodes too, connectors at minimum.
+                    val remainingForNodes =
+                        (availableForStepper - minConnectorLength * max(n - 1, 0))
+                    val perNode = (remainingForNodes / n)
+                        .coerceIn(minNodeSize, maxNodeSize)
+                    perNode to minConnectorLength
                 }
             }
 
-            // ── Nodes + connectors ────────────────────────────────────────────
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .onGloballyPositioned { rowWidthPx = it.size.width.toFloat() },
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier          = Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { stepperRowCoords = it }
             ) {
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier              = Modifier.fillMaxWidth()
+
+                // ── Back button ───────────────────────────────────────────────
+                Box(
+                    modifier         = Modifier.width(sideWidth),
+                    contentAlignment = Alignment.Center
                 ) {
-                    nodes.forEachIndexed { i, node ->
+                    IconButton(
+                        onClick  = { onBack() },
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(BaseTheme.FieldColor.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint               = BaseTheme.BaseTextColor,
+                            modifier           = Modifier.size(20.dp)
+                        )
+                    }
+                }
 
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = if (node.state == StepVisualState.Active) {
-                                Modifier.onGloballyPositioned { coords ->
-                                    activeNodeCenterX =
-                                        coords.positionInParent().x + coords.size.width / 2f
-                                }
-                            } else Modifier
-                        ) {
-                            StepNode(
-                                number        = i + 1,
-                                state         = node.state,
-                                fillFraction  = node.fillFraction,
-                                size          = nodeSize,
-                                activeColor   = activeColor,
-                                doneColor     = doneColor,
-                                upcomingColor = upcomingColor,
-                            )
-                        }
+                Spacer(Modifier.width(backToNodeSpacing))
 
-                        if (i < nodes.lastIndex) {
+                // ── Nodes + connectors ────────────────────────────────────────
+                Box(
+                    modifier         = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier              = Modifier.fillMaxWidth()
+                    ) {
+                        nodes.forEachIndexed { i, node ->
+
                             Box(
-                                modifier         = Modifier.height(nodeSize),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
+                                modifier = if (node.state == StepVisualState.Active) {
+                                    Modifier.onGloballyPositioned { coords ->
+                                        activeNodeCoords = coords
+                                    }
+                                } else Modifier
                             ) {
-                                StepConnector(
-                                    modifier      = Modifier
-                                        .width(connectorLength)
-                                        .height(connectorThickness),
-                                    done          = connectorsDone[i],
+                                StepNode(
+                                    number        = i + 1,
+                                    state         = node.state,
+                                    fillFraction  = node.fillFraction,
+                                    size          = nodeSize,
                                     activeColor   = activeColor,
+                                    doneColor     = doneColor,
                                     upcomingColor = upcomingColor,
                                 )
+                            }
+
+                            if (i < nodes.lastIndex) {
+                                Box(
+                                    modifier         = Modifier.height(nodeSize),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    StepConnector(
+                                        modifier      = Modifier
+                                            .width(connectorLength)
+                                            .height(connectorThickness),
+                                        done          = connectorsDone[i],
+                                        activeColor   = activeColor,
+                                        upcomingColor = upcomingColor,
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // ── % badge ───────────────────────────────────────────────────────
-            Box(
-                modifier         = Modifier.width(sideWidth),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text       = "${currentPct.toInt()}%",
-                    fontFamily = InterFont,
-                    fontWeight = FontWeight.Bold,
-                    color      = activeColor,
-                    fontSize   = 13.sp,
-                )
+                // ── % badge ───────────────────────────────────────────────────
+                Box(
+                    modifier         = Modifier.width(sideWidth),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text       = "${currentPct.toInt()}%",
+                        fontFamily = InterFont,
+                        fontWeight = FontWeight.Bold,
+                        color      = activeColor,
+                        fontSize   = 13.sp,
+                    )
+                }
             }
         }
 
         // ── Caret + title aligned under active node ───────────────────────────
         val activeIndex = nodes.indexOfFirst { it.state == StepVisualState.Active }
-        if (activeIndex != -1 && rowWidthPx > 0f) {
+        val rowCoords    = stepperRowCoords
+        val nodeCoords   = activeNodeCoords
+        if (activeIndex != -1 && rowCoords != null && nodeCoords != null) {
+            // Position of the active node's center, expressed in the full
+            // row's own coordinate space — correct even if the row's two
+            // sides (back button vs. % badge, plus any spacing) aren't
+            // the same width.
+            val nodeCenterInRow = rowCoords.localPositionOf(
+                nodeCoords,
+                Offset(nodeCoords.size.width / 2f, 0f)
+            ).x
+            val rowWidthPx = rowCoords.size.width.toFloat()
             val offsetDp = with(density) {
-                val boxCenterPx = rowWidthPx / 2f
-                (activeNodeCenterX - boxCenterPx).toDp()
+                (nodeCenterInRow - rowWidthPx / 2f).toDp()
             }
 
             Spacer(Modifier.height(5.dp))
