@@ -11,6 +11,7 @@ android {
     android.ndkVersion "27.0.12077973"
     defaultConfig {
 
+
         minSdkVersion 24
         targetSdkVersion 34
         versionCode 1
