@@ -122,9 +122,11 @@ object AssistedFormHelper {
                 if (key == value && list.isNotEmpty()) {
                     val pageList =
                         model.assistedDataEntryPages[page].dataEntryPageElements.toMutableList()
+                    var insertIndex = pageList.indexOf(field) + 1
                     list.forEach { element ->
                         if (!pageList.contains(element)) {
-                            pageList.add(element)
+                            pageList.add(insertIndex, element)
+                            insertIndex++
                         }
                     }
                     model.assistedDataEntryPages[page].dataEntryPageElements = pageList
@@ -162,9 +164,11 @@ object AssistedFormHelper {
                 if (dataSourceAttribute.isNotEmpty() && key == dataSourceAttribute.first{i->i.mappedKey =="Display Value"}.value && list.isNotEmpty()) {
                     val pageList =
                         model.assistedDataEntryPages[page].dataEntryPageElements.toMutableList()
+                    var insertIndex = pageList.indexOf(field) + 1
                     list.forEach { element ->
                         if (!pageList.contains(element)) {
-                            pageList.add(element)
+                            pageList.add(insertIndex, element)
+                            insertIndex++
                         }
                     }
                     model.assistedDataEntryPages[page].dataEntryPageElements = pageList

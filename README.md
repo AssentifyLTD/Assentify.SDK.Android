@@ -38,6 +38,10 @@ dependencies {
 ```
 
 ## Versions
+
+***1.0.0-Beta.32***
+1. *"Assisted Data Entry Step" Improvements*
+
 ***1.0.0-Beta.31***
 1. *"Assisted Data Entry Step" Improvements*
 
