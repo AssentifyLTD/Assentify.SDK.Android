@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
+import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
@@ -16,7 +17,7 @@ import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.Models.LocalStepModel
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -75,7 +76,7 @@ object BaseTheme {
 
     val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
 
-    val BaseUiLanguage: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().uiLanguage
+    val BaseUiLanguage: String get() = AssentifySdkObject.getAssentifySdkObject().environmentalConditions.flowUiLanguage;
 
 
 }
@@ -247,7 +248,35 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
         )
     }
 
-    return tempList.filter { it.show }
+    val refreshedList = refreshStepTranslations(tempList)
+    LocalStepsObject.setLocalSteps(refreshedList)
+
+    return refreshedList.filter { it.show }
+}
+
+/**
+ * Cached steps have name/description baked in at build time. If the UI language changes
+ * after the cache was written, re-derive them from the current [flowStrings] instead of
+ * showing the stale translation that was persisted.
+ */
+private fun refreshStepTranslations(steps: MutableList<LocalStepModel>): MutableList<LocalStepModel> {
+    val cs = flowStrings()
+    var displayCounter = 1
+
+    return steps.map { step ->
+        val meta = step.stepDefinition?.stepDefinition?.let { getStepMeta(it) }
+        if (meta != null) {
+            val refreshed = step.copy(
+                name = cs.stepNameFormat(displayCounter, meta.name),
+                description = meta.description,
+                iconAssetPath = meta.icon
+            )
+            displayCounter++
+            refreshed
+        } else {
+            step
+        }
+    }.toMutableList()
 }
 
 data class StepMeta(

@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -36,9 +36,11 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
@@ -46,28 +48,6 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.LocalStepsObject
 import kotlin.math.max
 
-
-/**
- * FIX SUMMARY
- * -----------
- * The original implementation used fixed dp values for `nodeSize` and
- * `connectorLength`. On narrower screens (in dp, which depends on both
- * physical width AND density) the fixed total width of:
- *
- *      sideWidth(back) + sideWidth(%) + N*nodeSize + (N-1)*connectorLength
- *
- * could exceed the available screen width. Compose's Row does NOT shrink
- * children to fit automatically, so the row silently overflowed and got
- * clipped by its parent — visually this showed up as the LAST node being
- * cut off / looking smaller, since layout is centered and the trailing
- * edge is what gets clipped first.
- *
- * THE FIX: wrap the stepper in BoxWithConstraints so we know the actual
- * available width on THIS device, then derive nodeSize/connectorLength
- * from that width (clamped between sensible min/max values) instead of
- * using hardcoded constants. This guarantees the whole row always fits,
- * with consistent proportions, on any screen size.
- */
 @Composable
 fun PercentageBasedProgressStepper(
     modifier: Modifier = Modifier,
@@ -77,186 +57,306 @@ fun PercentageBasedProgressStepper(
     minConnectorLength: Dp = 12.dp,
     connectorThickness: Dp = 3.dp,
     backToNodeSpacing: Dp = 12.dp,
+    titleWidth: Dp = 180.dp,
     onBack: () -> Unit,
 ) {
-    // ── Colors ────────────────────────────────────────────────────────────────
-    val activeColor   = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
-    val doneColor     = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
-    val upcomingColor = BaseTheme.FieldColor
-
-    // ── Steps ─────────────────────────────────────────────────────────────────
-    val steps      = remember { LocalStepsObject.getLocalSteps().filter { it.show } }
-    val totalSteps = steps.size
-    val doneCount  = steps.count { it.isDone }
-
-    // ── Range math ────────────────────────────────────────────────────────────
-    val rangeStart = BaseTheme.RangeStart.toFloat()
-    val rangeEnd   = BaseTheme.RangeEnd.toFloat()
-    val rangeWidth = (rangeEnd - rangeStart).coerceAtLeast(0f)
-    val pctPerStep = if (totalSteps > 0) rangeWidth / totalSteps else 0f
-    val currentPct = rangeStart + (doneCount * pctPerStep)
-
-    // ── Node positions ────────────────────────────────────────────────────────
-    val safeNodeCount = BaseTheme.NodeCount.coerceAtLeast(2)
-    val nodePcts: List<Float> = (0 until safeNodeCount).map { i ->
-        rangeStart + (i.toFloat() / (safeNodeCount - 1)) * rangeWidth
-    }
-
-    // ── Node states ───────────────────────────────────────────────────────────
-    val firstUpcomingIndex = nodePcts.indexOfFirst { it > currentPct }
-        .takeIf { it != -1 } ?: safeNodeCount
-
-    data class NodeInfo(
-        val pct: Float,
-        val state: StepVisualState,
-        val fillFraction: Float,
+    val activeColor = Color(
+        android.graphics.Color.parseColor(
+            BaseTheme.BaseAccentColor
+        )
     )
 
-    val nodes: List<NodeInfo> = nodePcts.mapIndexed { i, pct ->
-        val state = when {
-            i < firstUpcomingIndex  -> StepVisualState.Done
-            i == firstUpcomingIndex -> StepVisualState.Active
-            else                    -> StepVisualState.Upcoming
-        }
-        val fillFraction = if (state == StepVisualState.Active) {
-            val slotStart = if (i == 0) rangeStart else nodePcts[i - 1]
-            val slotWidth = pct - slotStart
-            if (slotWidth > 0f) ((currentPct - slotStart) / slotWidth).coerceIn(0f, 1f)
-            else 0f
-        } else 0f
-        NodeInfo(pct = pct, state = state, fillFraction = fillFraction)
+    val doneColor = Color(
+        android.graphics.Color.parseColor(
+            BaseTheme.BaseAccentColor
+        )
+    )
+
+    val upcomingColor = BaseTheme.FieldColor
+
+    val steps = remember {
+        LocalStepsObject
+            .getLocalSteps()
+            .filter { it.show }
     }
 
-    val connectorsDone = nodes.dropLast(1).map { it.state == StepVisualState.Done }
-    val sideWidth      = 52.dp
-    val density        = LocalDensity.current
+    val totalSteps = steps.size
+    val doneCount = steps.count { it.isDone }
 
-    // We measure the active node's position relative to the FULL stepper
-    // row (back button + spacing + nodes + % badge), not just the nodes
-    // sub-box, using LayoutCoordinates.localPositionOf. This keeps the
-    // caret correctly centered under the active node even when the two
-    // sides of the row are asymmetric (e.g. backToNodeSpacing only on
-    // the left) — a plain "center of the nodes box" calculation breaks
-    // as soon as the row isn't perfectly symmetric.
-    var stepperRowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    var activeNodeCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    val rangeStart = BaseTheme.RangeStart.toFloat()
+    val rangeEnd = BaseTheme.RangeEnd.toFloat()
+    val rangeWidth = (rangeEnd - rangeStart).coerceAtLeast(0f)
 
-    // ── UI ────────────────────────────────────────────────────────────────────
+    val percentagePerStep = if (totalSteps > 0) {
+        rangeWidth / totalSteps
+    } else {
+        0f
+    }
+
+    val currentPercentage =
+        rangeStart + (doneCount * percentagePerStep)
+
+    val safeNodeCount = BaseTheme.NodeCount.coerceAtLeast(2)
+
+    val nodePercentages = remember(
+        safeNodeCount,
+        rangeStart,
+        rangeWidth
+    ) {
+        (0 until safeNodeCount).map { index ->
+            rangeStart +
+                    (index.toFloat() / (safeNodeCount - 1)) *
+                    rangeWidth
+        }
+    }
+
+    val firstUpcomingIndex = nodePercentages
+        .indexOfFirst { percentage ->
+            percentage > currentPercentage
+        }
+        .takeIf { it != -1 }
+        ?: safeNodeCount
+
+    val nodes = nodePercentages.mapIndexed { index, percentage ->
+        val state = when {
+            index < firstUpcomingIndex -> {
+                StepVisualState.Done
+            }
+
+            index == firstUpcomingIndex -> {
+                StepVisualState.Active
+            }
+
+            else -> {
+                StepVisualState.Upcoming
+            }
+        }
+
+        val fillFraction =
+            if (state == StepVisualState.Active) {
+                val slotStart = if (index == 0) {
+                    rangeStart
+                } else {
+                    nodePercentages[index - 1]
+                }
+
+                val slotWidth = percentage - slotStart
+
+                if (slotWidth > 0f) {
+                    (
+                            (currentPercentage - slotStart) /
+                                    slotWidth
+                            ).coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
+            } else {
+                0f
+            }
+
+        NodeInfo(
+            percentage = percentage,
+            state = state,
+            fillFraction = fillFraction
+        )
+    }
+
+    val completedConnectors = nodes
+        .dropLast(1)
+        .map { node ->
+            node.state == StepVisualState.Done
+        }
+
+    val sideWidth = 52.dp
+    val density = LocalDensity.current
+
+    var stepperRowCoordinates by remember {
+        mutableStateOf<LayoutCoordinates?>(null)
+    }
+
+    var activeNodeCoordinates by remember {
+        mutableStateOf<LayoutCoordinates?>(null)
+    }
+
     Column(
-        modifier            = modifier,
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // BoxWithConstraints exposes the ACTUAL available width on this
-        // device (maxWidth), which we use to size nodes/connectors so
-        // the whole row always fits, regardless of screen size/density.
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val totalWidthDp = maxWidth
-            val availableForStepper =
-                (totalWidthDp - sideWidth * 2 - backToNodeSpacing).coerceAtLeast(0.dp)
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val totalWidth = maxWidth
 
-            // Solve for nodeSize + connectorLength that fit:
-            //   n * nodeSize + (n - 1) * connectorLength <= availableForStepper
-            // Start from the ideal (max) sizes, then shrink connectors first,
-            // and only shrink nodes if that's still not enough.
-            val n = safeNodeCount
-            val idealTotal = maxNodeSize * n + maxConnectorLength * max(n - 1, 0)
+            val availableStepperWidth = (
+                    totalWidth -
+                            sideWidth * 2 -
+                            backToNodeSpacing
+                    ).coerceAtLeast(0.dp)
 
-            val (nodeSize, connectorLength) = if (idealTotal <= availableForStepper || n <= 1) {
-                maxNodeSize to maxConnectorLength
-            } else {
-                // Try shrinking connectors down to their minimum first.
-                val totalWithMinConnectors =
-                    maxNodeSize * n + minConnectorLength * max(n - 1, 0)
+            val nodeCount = safeNodeCount
 
-                if (totalWithMinConnectors <= availableForStepper) {
-                    // Distribute the slack between min and max connector length.
-                    val extraSpace = availableForStepper - (maxNodeSize * n)
-                    val perConnector = (extraSpace / max(n - 1, 1))
-                        .coerceIn(minConnectorLength, maxConnectorLength)
-                    maxNodeSize to perConnector
+            val idealTotalWidth =
+                maxNodeSize * nodeCount +
+                        maxConnectorLength *
+                        max(nodeCount - 1, 0)
+
+            val nodeAndConnectorSize =
+                if (
+                    idealTotalWidth <= availableStepperWidth ||
+                    nodeCount <= 1
+                ) {
+                    maxNodeSize to maxConnectorLength
                 } else {
-                    // Still doesn't fit — shrink nodes too, connectors at minimum.
-                    val remainingForNodes =
-                        (availableForStepper - minConnectorLength * max(n - 1, 0))
-                    val perNode = (remainingForNodes / n)
-                        .coerceIn(minNodeSize, maxNodeSize)
-                    perNode to minConnectorLength
+                    val totalWithMinimumConnectors =
+                        maxNodeSize * nodeCount +
+                                minConnectorLength *
+                                max(nodeCount - 1, 0)
+
+                    if (
+                        totalWithMinimumConnectors <=
+                        availableStepperWidth
+                    ) {
+                        val extraSpace =
+                            availableStepperWidth -
+                                    (maxNodeSize * nodeCount)
+
+                        val calculatedConnectorLength =
+                            (
+                                    extraSpace /
+                                            max(nodeCount - 1, 1)
+                                    ).coerceIn(
+                                    minConnectorLength,
+                                    maxConnectorLength
+                                )
+
+                        maxNodeSize to calculatedConnectorLength
+                    } else {
+                        val remainingWidthForNodes =
+                            availableStepperWidth -
+                                    minConnectorLength *
+                                    max(nodeCount - 1, 0)
+
+                        val calculatedNodeSize =
+                            (
+                                    remainingWidthForNodes /
+                                            nodeCount
+                                    ).coerceIn(
+                                    minNodeSize,
+                                    maxNodeSize
+                                )
+
+                        calculatedNodeSize to minConnectorLength
+                    }
                 }
-            }
+
+            val nodeSize = nodeAndConnectorSize.first
+            val connectorLength = nodeAndConnectorSize.second
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier          = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .onGloballyPositioned { stepperRowCoords = it }
+                    .onGloballyPositioned { coordinates ->
+                        stepperRowCoordinates = coordinates
+                    }
             ) {
-
-                // ── Back button ───────────────────────────────────────────────
                 Box(
-                    modifier         = Modifier.width(sideWidth),
+                    modifier = Modifier.width(sideWidth),
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        onClick  = { onBack() },
+                        onClick = onBack,
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .background(BaseTheme.FieldColor.copy(alpha = 0.5f))
+                            .background(
+                                BaseTheme.FieldColor.copy(
+                                    alpha = 0.5f
+                                )
+                            )
                     ) {
                         Icon(
-                            imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector =
+                                Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint               = BaseTheme.BaseTextColor,
-                            modifier           = Modifier.size(20.dp)
+                            tint = BaseTheme.BaseTextColor,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
 
-                Spacer(Modifier.width(backToNodeSpacing))
+                Spacer(
+                    modifier = Modifier.width(
+                        backToNodeSpacing
+                    )
+                )
 
-                // ── Nodes + connectors ────────────────────────────────────────
                 Box(
-                    modifier         = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier              = Modifier.fillMaxWidth()
+                        verticalAlignment =
+                            Alignment.CenterVertically,
+                        horizontalArrangement =
+                            Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        nodes.forEachIndexed { i, node ->
-
+                        nodes.forEachIndexed { index, node ->
                             Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = if (node.state == StepVisualState.Active) {
-                                    Modifier.onGloballyPositioned { coords ->
-                                        activeNodeCoords = coords
+                                contentAlignment =
+                                    Alignment.Center,
+                                modifier =
+                                    if (
+                                        node.state ==
+                                        StepVisualState.Active
+                                    ) {
+                                        Modifier.onGloballyPositioned {
+                                                coordinates ->
+                                            activeNodeCoordinates =
+                                                coordinates
+                                        }
+                                    } else {
+                                        Modifier
                                     }
-                                } else Modifier
                             ) {
                                 StepNode(
-                                    number        = i + 1,
-                                    state         = node.state,
-                                    fillFraction  = node.fillFraction,
-                                    size          = nodeSize,
-                                    activeColor   = activeColor,
-                                    doneColor     = doneColor,
-                                    upcomingColor = upcomingColor,
+                                    number = index + 1,
+                                    state = node.state,
+                                    fillFraction =
+                                        node.fillFraction,
+                                    size = nodeSize,
+                                    activeColor = activeColor,
+                                    doneColor = doneColor,
+                                    upcomingColor =
+                                        upcomingColor
                                 )
                             }
 
-                            if (i < nodes.lastIndex) {
+                            if (index < nodes.lastIndex) {
                                 Box(
-                                    modifier         = Modifier.height(nodeSize),
-                                    contentAlignment = Alignment.Center
+                                    modifier = Modifier.height(
+                                        nodeSize
+                                    ),
+                                    contentAlignment =
+                                        Alignment.Center
                                 ) {
                                     StepConnector(
-                                        modifier      = Modifier
-                                            .width(connectorLength)
-                                            .height(connectorThickness),
-                                        done          = connectorsDone[i],
-                                        activeColor   = activeColor,
-                                        upcomingColor = upcomingColor,
+                                        modifier = Modifier
+                                            .width(
+                                                connectorLength
+                                            )
+                                            .height(
+                                                connectorThickness
+                                            ),
+                                        done =
+                                            completedConnectors[
+                                                index
+                                            ],
+                                        activeColor =
+                                            activeColor,
+                                        upcomingColor =
+                                            upcomingColor
                                     )
                                 }
                             }
@@ -264,62 +364,98 @@ fun PercentageBasedProgressStepper(
                     }
                 }
 
-                // ── % badge ───────────────────────────────────────────────────
                 Box(
-                    modifier         = Modifier.width(sideWidth),
+                    modifier = Modifier.width(sideWidth),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text       = "${currentPct.toInt()}%",
+                        text =
+                            "${currentPercentage.toInt()}%",
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Bold,
-                        color      = activeColor,
-                        fontSize   = 13.sp,
+                        color = activeColor,
+                        fontSize = 13.sp
                     )
                 }
             }
         }
 
-        // ── Caret + title aligned under active node ───────────────────────────
-        val activeIndex = nodes.indexOfFirst { it.state == StepVisualState.Active }
-        val rowCoords    = stepperRowCoords
-        val nodeCoords   = activeNodeCoords
-        if (activeIndex != -1 && rowCoords != null && nodeCoords != null) {
-            // Position of the active node's center, expressed in the full
-            // row's own coordinate space — correct even if the row's two
-            // sides (back button vs. % badge, plus any spacing) aren't
-            // the same width.
-            val nodeCenterInRow = rowCoords.localPositionOf(
-                nodeCoords,
-                Offset(nodeCoords.size.width / 2f, 0f)
-            ).x
-            val rowWidthPx = rowCoords.size.width.toFloat()
-            val offsetDp = with(density) {
-                (nodeCenterInRow - rowWidthPx / 2f).toDp()
+        val activeNodeIndex = nodes.indexOfFirst { node ->
+            node.state == StepVisualState.Active
+        }
+
+        val rowCoordinates = stepperRowCoordinates
+        val nodeCoordinates = activeNodeCoordinates
+
+        if (
+            activeNodeIndex != -1 &&
+            rowCoordinates != null &&
+            nodeCoordinates != null
+        ) {
+            val nodeCenterInsideRow =
+                rowCoordinates.localPositionOf(
+                    sourceCoordinates = nodeCoordinates,
+                    relativeToSource = Offset(
+                        x = nodeCoordinates.size.width / 2f,
+                        y = 0f
+                    )
+                ).x
+
+            val rowWidthInPixels =
+                rowCoordinates.size.width.toFloat()
+
+            val physicalOffset = with(density) {
+                (
+                        nodeCenterInsideRow -
+                                rowWidthInPixels / 2f
+                        ).toDp()
             }
 
-            Spacer(Modifier.height(5.dp))
+            Spacer(
+                modifier = Modifier.height(5.dp)
+            )
 
+            /*
+             * absoluteOffset is required because physicalOffset is calculated
+             * using physical screen coordinates.
+             *
+             * Modifier.offset would automatically mirror the value in RTL.
+             */
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier            = Modifier.offset(x = offsetDp)
+                horizontalAlignment =
+                    Alignment.CenterHorizontally,
+                modifier = Modifier.absoluteOffset(
+                    x = physicalOffset
+                )
             ) {
-                Caret(visible = true, activeColor = activeColor)
-                Spacer(Modifier.height(6.dp))
+                Caret(
+                    visible = true,
+                    activeColor = activeColor
+                )
+
+                Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
+
                 Text(
-                    text       = BaseTheme.StepperTitle,
+                    text = BaseTheme.StepperTitle,
+                    modifier = Modifier.width(titleWidth),
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Bold,
-                    color      = upcomingColor,
-                    fontSize   = 13.sp,
-                    textAlign  = TextAlign.Center,
+                    color = upcomingColor,
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center
                 )
             }
         }
     }
 }
 
-// ── Step node ─────────────────────────────────────────────────────────────────
+private data class NodeInfo(
+    val percentage: Float,
+    val state: StepVisualState,
+    val fillFraction: Float
+)
 
 @Composable
 private fun StepNode(
@@ -329,38 +465,54 @@ private fun StepNode(
     size: Dp,
     activeColor: Color,
     doneColor: Color,
-    upcomingColor: Color,
+    upcomingColor: Color
 ) {
+    /*
+     * This detects the current Compose direction:
+     *
+     * English = LTR
+     * Arabic = RTL
+     */
+    val layoutDirection = LocalLayoutDirection.current
+    val isRtl = layoutDirection == LayoutDirection.Rtl
+
     Box(
         contentAlignment = Alignment.Center,
-        modifier         = Modifier.size(size)
+        modifier = Modifier.size(size)
     ) {
-        Canvas(modifier = Modifier.matchParentSize()) {
+        Canvas(
+            modifier = Modifier.matchParentSize()
+        ) {
             drawNode(
-                state         = state,
-                fillFraction  = fillFraction,
-                activeColor   = activeColor,
-                doneColor     = doneColor,
+                state = state,
+                fillFraction = fillFraction,
+                activeColor = activeColor,
+                doneColor = doneColor,
                 upcomingColor = upcomingColor,
+                isRtl = isRtl
             )
         }
 
         val textColor = when (state) {
-            StepVisualState.Done     -> BaseTheme.BaseSecondaryTextColor
-            StepVisualState.Active   -> BaseTheme.BaseTextColor
-            StepVisualState.Upcoming -> BaseTheme.BaseTextColor
+            StepVisualState.Done -> {
+                BaseTheme.BaseSecondaryTextColor
+            }
+
+            StepVisualState.Active,
+            StepVisualState.Upcoming -> {
+                BaseTheme.BaseTextColor
+            }
         }
+
         Text(
-            text       = "$number",
+            text = number.toString(),
             fontFamily = InterFont,
             fontWeight = FontWeight.Medium,
-            color      = textColor,
-            fontSize   = 17.sp,
+            color = textColor,
+            fontSize = 17.sp
         )
     }
 }
-
-// ── Canvas drawing ────────────────────────────────────────────────────────────
 
 private fun DrawScope.drawNode(
     state: StepVisualState,
@@ -368,74 +520,170 @@ private fun DrawScope.drawNode(
     activeColor: Color,
     doneColor: Color,
     upcomingColor: Color,
+    isRtl: Boolean
 ) {
-    val r  = size.minDimension / 2f
-    val cx = size.width / 2f
-    val cy = size.height / 2f
+    val radius = size.minDimension / 2f
+    val centerX = size.width / 2f
+    val centerY = size.height / 2f
 
     when (state) {
         StepVisualState.Done -> {
-            drawCircle(color = doneColor, radius = r, center = Offset(cx, cy))
+            drawCircle(
+                color = doneColor,
+                radius = radius,
+                center = Offset(
+                    x = centerX,
+                    y = centerY
+                )
+            )
         }
+
         StepVisualState.Active -> {
-            drawCircle(color = upcomingColor, radius = r, center = Offset(cx, cy))
-            val minFraction       = 0.15f
-            val effectiveFraction = minFraction + fillFraction * (1f - minFraction)
-            val fillWidth         = r * 2 * effectiveFraction
-            if (effectiveFraction > 0f) {
+            /*
+             * Draw the upcoming/background color first.
+             */
+            drawCircle(
+                color = upcomingColor,
+                radius = radius,
+                center = Offset(
+                    x = centerX,
+                    y = centerY
+                )
+            )
+
+            val minimumFillFraction = 0.15f
+
+            val effectiveFillFraction =
+                minimumFillFraction +
+                        fillFraction *
+                        (1f - minimumFillFraction)
+
+            val fillWidth =
+                radius * 2f * effectiveFillFraction
+
+            if (effectiveFillFraction > 0f) {
+                val circleLeft = centerX - radius
+                val circleRight = centerX + radius
+
+                val clipLeft: Float
+                val clipRight: Float
+
+                if (isRtl) {
+                    /*
+                     * Arabic:
+                     * Start filling from the right side and move left.
+                     */
+                    clipLeft = circleRight - fillWidth
+                    clipRight = circleRight
+                } else {
+                    /*
+                     * English:
+                     * Start filling from the left side and move right.
+                     */
+                    clipLeft = circleLeft
+                    clipRight = circleLeft + fillWidth
+                }
+
                 clipRect(
-                    left   = cx - r,
-                    top    = cy - r,
-                    right  = cx - r + fillWidth,
-                    bottom = cy + r,
+                    left = clipLeft,
+                    top = centerY - radius,
+                    right = clipRight,
+                    bottom = centerY + radius
                 ) {
-                    drawCircle(color = activeColor, radius = r, center = Offset(cx, cy))
+                    drawCircle(
+                        color = activeColor,
+                        radius = radius,
+                        center = Offset(
+                            x = centerX,
+                            y = centerY
+                        )
+                    )
                 }
             }
         }
+
         StepVisualState.Upcoming -> {
-            drawCircle(color = upcomingColor, radius = r, center = Offset(cx, cy))
+            drawCircle(
+                color = upcomingColor,
+                radius = radius,
+                center = Offset(
+                    x = centerX,
+                    y = centerY
+                )
+            )
         }
     }
 }
-
-// ── Connector ─────────────────────────────────────────────────────────────────
 
 @Composable
 private fun StepConnector(
     modifier: Modifier,
     done: Boolean,
     activeColor: Color,
-    upcomingColor: Color,
+    upcomingColor: Color
 ) {
-    val color = if (done) activeColor else upcomingColor
-    Canvas(modifier) {
-        val y = size.height / 2f
+    val connectorColor = if (done) {
+        activeColor
+    } else {
+        upcomingColor
+    }
+
+    Canvas(modifier = modifier) {
+        val centerY = size.height / 2f
+
         drawLine(
-            color       = color,
-            start       = Offset(0f, y),
-            end         = Offset(size.width, y),
+            color = connectorColor,
+            start = Offset(
+                x = 0f,
+                y = centerY
+            ),
+            end = Offset(
+                x = size.width,
+                y = centerY
+            ),
             strokeWidth = size.height,
-            cap         = StrokeCap.Round,
+            cap = StrokeCap.Round
         )
     }
 }
 
-// ── Caret ─────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun Caret(
     visible: Boolean,
-    activeColor: Color,
+    activeColor: Color
 ) {
-    Canvas(modifier = Modifier.size(width = 10.dp, height = 6.dp)) {
-        if (!visible) return@Canvas
+    Canvas(
+        modifier = Modifier.size(
+            width = 10.dp,
+            height = 6.dp
+        )
+    ) {
+        if (!visible) {
+            return@Canvas
+        }
+
         val path = Path().apply {
-            moveTo(0f, 0f)
-            lineTo(size.width, 0f)
-            lineTo(size.width / 2f, size.height)
+            moveTo(
+                x = 0f,
+                y = 0f
+            )
+
+            lineTo(
+                x = size.width,
+                y = 0f
+            )
+
+            lineTo(
+                x = size.width / 2f,
+                y = size.height
+            )
+
             close()
         }
-        drawPath(path = path, color = activeColor)
+
+        drawPath(
+            path = path,
+            color = activeColor
+        )
     }
 }

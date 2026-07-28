@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

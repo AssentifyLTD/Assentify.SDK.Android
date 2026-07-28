@@ -227,10 +227,9 @@ private fun SliderClick(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .offset {
-                    IntOffset(
-                        if (isRtl) -animatedOffset.roundToInt() else animatedOffset.roundToInt(),
-                        0
-                    )
+                    // Modifier.offset is already RTL-aware (mirrors positive x toward
+                    // the end/left in RTL), so no manual isRtl negation is needed here.
+                    IntOffset(animatedOffset.roundToInt(), 0)
                 }
                 .padding(start = 5.dp)
                 .size(with(density) { knobSizePx.toDp() })

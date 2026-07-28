@@ -56,6 +56,7 @@ interface RemoteGatewayService {
     fun initializeCheck(
         @Path("contentHash") pathContentHash: String,
         @Query("contentHash") queryContentHash: String,
+        @Query("language") language: String,
         @Header("x-tenant-identifier") tenantIdentifier: String,
         @Header("x-block-identifier") blockIdentifier: String,
         @Header("x-instance-id") instanceId: String,

@@ -43,7 +43,7 @@ import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 @Composable

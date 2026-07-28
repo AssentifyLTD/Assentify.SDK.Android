@@ -93,8 +93,8 @@ enum class StepperType(val type : String) {
 
 
 object UiLanguage {
-    const val English = "English"
-    const val Arabic = "Arabic"
+    const val English = "en"
+    const val Arabic = "ar"
 
 }
 
@@ -116,7 +116,6 @@ public class FlowEnvironmentalConditions(
     var stepperTitle : String = "Identification",
 
     val extractedDataLanguage: String = Language.NON,
-    val uiLanguage: String = UiLanguage.English,
     val enableNfc: Boolean = false,
     val enableQr: Boolean = false,
     val showCountDown: Boolean = true,

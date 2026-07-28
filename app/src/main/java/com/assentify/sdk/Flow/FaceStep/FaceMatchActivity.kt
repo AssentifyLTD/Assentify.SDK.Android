@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,8 +41,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -55,6 +58,7 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.StepperType
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -72,7 +76,7 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 
 
 class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
@@ -379,6 +383,10 @@ fun FaceMatchScanScreen(
     var faceMatch by remember { mutableStateOf<FaceMatch?>(null) }
     var faceMatchManual by remember { mutableStateOf<FaceMatchManual?>(null) }
 
+    val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
+        LayoutDirection.Rtl else LayoutDirection.Ltr
+
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         if (eventTypes != EventTypes.none) {
@@ -602,6 +610,7 @@ fun FaceMatchScanScreen(
             }
         }
 
+    }
     }
 }
 

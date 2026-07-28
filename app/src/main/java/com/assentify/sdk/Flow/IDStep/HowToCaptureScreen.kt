@@ -39,7 +39,7 @@ import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.SelectedTemplatesObject
 

@@ -47,7 +47,7 @@ import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.OtpHelper
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 

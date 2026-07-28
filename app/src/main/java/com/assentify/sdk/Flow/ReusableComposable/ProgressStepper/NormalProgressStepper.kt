@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.Models.LocalStepModel
-import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
 

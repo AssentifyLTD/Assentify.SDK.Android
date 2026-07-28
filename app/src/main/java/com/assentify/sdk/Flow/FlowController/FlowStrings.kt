@@ -1,4 +1,4 @@
-package com.assentify.sdk.Flow
+package com.assentify.sdk.Flow.FlowController
 
 import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
@@ -7,6 +7,7 @@ data class FlowStrings(
     // Common
     val next: String,
     val retry: String,
+    val skip: String,
     val letsStart: String,
     val accept: String,
     val decline: String,
@@ -109,6 +110,10 @@ data class FlowStrings(
     val reviewApproveFiles: String,
     val thankYouForApproving: String,
     val agreementTitle: String,
+    val validateOtpFirst: String,
+    val acceptTermsAndSign: String,
+    val acceptTermsOnly: String,
+    val approve: String,
 
     // Camera feedback – shared
     val holdSteady: String,
@@ -163,6 +168,10 @@ data class FlowStrings(
     val invalidOtp: String,
     val invalidEmail: String,
     val invalidPhone: String,
+    val fieldRequired: String,
+    val minLengthError: (min: Int) -> String,
+    val maxLengthError: (max: Int) -> String,
+    val invalidValue: String,
 
     // Stepper
     val stepperProgress: (current: Int, total: Int) -> String,
@@ -209,6 +218,7 @@ data class FlowStrings(
 private val englishStrings = FlowStrings(
     next = "Next",
     retry = "Retry",
+    skip = "Skip",
     letsStart = "Lets Start",
     accept = "Accept",
     decline = "Decline",
@@ -301,6 +311,10 @@ private val englishStrings = FlowStrings(
     reviewApproveFiles = "Please review and approve the below files",
     thankYouForApproving = "Thank you for approving",
     agreementTitle = "Agreement",
+    validateOtpFirst = "Validate OTP First",
+    acceptTermsAndSign = "Accept Terms & Sign",
+    acceptTermsOnly = "Accept Terms",
+    approve = "Approve",
 
     holdSteady = "Hold Steady",
     holdYourHand = "Please Hold Your Hand",
@@ -346,6 +360,10 @@ private val englishStrings = FlowStrings(
     invalidOtp = "Invalid OTP. Please try again.",
     invalidEmail = "Please enter a valid email address",
     invalidPhone = "Please enter a valid phone number",
+    fieldRequired = "This field is required",
+    minLengthError = { min -> "Minimum $min characters required" },
+    maxLengthError = { max -> "Maximum $max characters allowed" },
+    invalidValue = "Please enter a valid value",
     stepperProgress = { current, total -> "Step $current out of $total steps" },
     searchPlaceholder = "Search...",
     noResultsFound = "No results found",
@@ -381,6 +399,7 @@ private val englishStrings = FlowStrings(
 private val arabicStrings = FlowStrings(
     next = "التالي",
     retry = "إعادة المحاولة",
+    skip = "تخطي",
     letsStart = "لنبدأ",
     accept = "قبول",
     decline = "رفض",
@@ -473,6 +492,10 @@ private val arabicStrings = FlowStrings(
     reviewApproveFiles = "يرجى مراجعة الملفات أدناه والموافقة عليها",
     thankYouForApproving = "شكراً لك على الموافقة",
     agreementTitle = "اتفاقية",
+    validateOtpFirst = "يرجى التحقق من الرمز أولاً",
+    acceptTermsAndSign = "الموافقة على الشروط والتوقيع",
+    acceptTermsOnly = "الموافقة على الشروط",
+    approve = "موافقة",
 
     holdSteady = "أبقِ ثابتاً",
     holdYourHand = "يرجى تثبيت يدك",
@@ -518,6 +541,10 @@ private val arabicStrings = FlowStrings(
     invalidOtp = "الرمز غير صحيح. يرجى المحاولة مجدداً.",
     invalidEmail = "يرجى إدخال بريد إلكتروني صحيح",
     invalidPhone = "يرجى إدخال رقم هاتف صحيح",
+    fieldRequired = "هذا الحقل مطلوب",
+    minLengthError = { min -> "الحد الأدنى $min حرف مطلوب" },
+    maxLengthError = { max -> "الحد الأقصى $max حرف مسموح به" },
+    invalidValue = "يرجى إدخال قيمة صحيحة",
     stepperProgress = { current, total -> "الخطوة $current من $total" },
     searchPlaceholder = "بحث...",
     noResultsFound = "لا توجد نتائج",

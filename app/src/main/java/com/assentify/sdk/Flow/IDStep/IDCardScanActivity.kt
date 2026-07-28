@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,8 +42,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -53,6 +56,7 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.StepperType
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -69,6 +73,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnWrongTemplateScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
@@ -81,7 +86,6 @@ import com.assentify.sdk.ScanIDCard.ScanIDCard
 import com.assentify.sdk.ScanIDCard.ScanIDCardManual
 import com.assentify.sdk.ScanIDCard.ScanIDCardResult
 import com.assentify.sdk.SelectedTemplatesObject
-import com.assentify.sdk.Flow.flowStrings
 
 
 class IDCardScanActivity : FragmentActivity(), IDCardCallback {
@@ -144,14 +148,18 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                             eventTypes.value = EventTypes.none;
                         },
                         onNext = { hasQr ->
-                            if (flowEnv.enableQr && hasQr) {
+                            HowToCaptureQrActivity.start(
+                                context = this,
+                            );
+
+                       /*     if (flowEnv.enableQr && hasQr) {
                                 HowToCaptureQrActivity.start(
                                     context = this,
                                 );
                             } else {
                                 FlowController.makeCurrentStepDone(extractedInformation.value!!,timeStarted);
                                 FlowController.naveToNextStep(context = this)
-                            }
+                            }*/
                         },
                         feedbackText = feedbackText.value,
                         imageUrl = imageUrl.value,
@@ -394,6 +402,10 @@ fun IDCardScanScreen(
     var scanID by remember { mutableStateOf<ScanIDCard?>(null) }
     var scanIDManual by remember { mutableStateOf<ScanIDCardManual?>(null) }
 
+    val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
+        LayoutDirection.Rtl else LayoutDirection.Ltr
+
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         if (eventTypes != EventTypes.none) {
@@ -647,6 +659,7 @@ fun IDCardScanScreen(
             }
         }
 
+    }
     }
 }
 

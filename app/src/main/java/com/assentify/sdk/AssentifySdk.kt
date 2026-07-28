@@ -67,7 +67,7 @@ import retrofit2.Response
 class AssentifySdk(
     private var apiKey: String? = null,
     private var configFileName: String? = null,
-    private val environmentalConditions: EnvironmentalConditions,
+    public var environmentalConditions: EnvironmentalConditions,
     private val assentifySdkCallback: AssentifySdkCallback,
     private var performActiveLivenessFace: Boolean? = null,
     private var context: Context,
@@ -97,6 +97,7 @@ class AssentifySdk(
         }
 
     }
+
     private fun loadLocalFile() {
         timeStarted = getCurrentDateTime();
         val fileName = if (processJsonConfigFile.isEmpty()) {
@@ -118,6 +119,7 @@ class AssentifySdk(
         val call = remoteService.initializeCheck(
             configModel!!.instanceHash,
             ContentHashObject.getValue(configModel!!.instanceHash, context) ?: initContentHash!!,
+            environmentalConditions.flowUiLanguage,
             configModel!!.tenantIdentifier,
             configModel!!.blockIdentifier,
             configModel!!.instanceId,
@@ -138,7 +140,7 @@ class AssentifySdk(
 
                     /**Has Change**/
                     val json = JSONObject(bodyString)
-                     /** If there is hasChanges param this means there ara no changes **/
+                    /** If there is hasChanges param this means there ara no changes **/
                     if (json.has("hasChanges")) {
                         val hasChanges = json.optBoolean("hasChanges", true)
                         val flowInstanceId = json.optString("flowInstanceId", "")
@@ -146,8 +148,12 @@ class AssentifySdk(
                         val contentHash = json.optString("contentHash", "")
                         configModel!!.flowInstanceId = flowInstanceId;
                         configModel!!.instanceId = instanceId;
-                        ContentHashObject.clear(configModel!!.instanceHash,context);
-                        ContentHashObject.setValue(contentHash,configModel!!.instanceHash,context);
+                        ContentHashObject.clear(configModel!!.instanceHash, context);
+                        ContentHashObject.setValue(
+                            contentHash,
+                            configModel!!.instanceHash,
+                            context
+                        );
                         if (!hasChanges) {
                             assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
                             return
@@ -155,21 +161,28 @@ class AssentifySdk(
                     }
 
                     /**Has File**/
-                    ContentHashObject.clear(configModel!!.instanceHash,context);
+                    ContentHashObject.clear(configModel!!.instanceHash, context);
                     clearFlow(context)
                     configFileManager.clear()
                     configFileManager.write(bodyString!!)
                     configModel = configFileManager.readEngagement()
                     tenantThemeModel = configFileManager.readTheme()
                     getTemplatesByCountry(configFileManager.readTemplates());
-                    ContentHashObject.setValue(configFileManager.readContentHash(),configModel!!.instanceHash,context);
+                    ContentHashObject.setValue(
+                        configFileManager.readContentHash(),
+                        configModel!!.instanceHash,
+                        context
+                    );
                     assentifySdkCallback!!.onAssentifySdkInitSuccess(configModel!!);
 
                 } catch (e: Exception) {
                     isKeyValid = false;
-                    assentifySdkCallback.onAssentifySdkInitError(e.message ?: "Unknown initialize error")
+                    assentifySdkCallback.onAssentifySdkInitError(
+                        e.message ?: "Unknown initialize error"
+                    )
                 }
             }
+
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 isKeyValid = false;
                 assentifySdkCallback.onAssentifySdkInitError(t.message ?: "Network error")
@@ -486,8 +499,8 @@ class AssentifySdk(
         }
     }
 
-    private fun getTemplatesByCountry(data:List<Templates>?) {
-        val remoteResult: List<Templates>? =data
+    private fun getTemplatesByCountry(data: List<Templates>?) {
+        val remoteResult: List<Templates>? = data
         val filteredList = filterBySourceCountryCode(remoteResult)
         val templatesByCountry = ArrayList<TemplatesByCountry>()
         filteredList?.forEach { data ->

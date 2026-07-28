@@ -86,7 +86,7 @@ import com.assentify.sdk.CreateUserDocumentObject
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.ContextAwareStepEventTypes
@@ -982,9 +982,9 @@ fun MultipleFilesContextAwareStepScreen(
                         ) {
                             Text(
                                 text = if (enableOtp && !isOtpValidated) {
-                                    "Validate OTP First"
+                                    s.validateOtpFirst
                                 } else {
-                                    if (enableDigitalSignature) "Accept Terms & Sign" else "Accept Terms"
+                                    if (enableDigitalSignature) s.acceptTermsAndSign else s.acceptTermsOnly
                                 },
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
@@ -1164,7 +1164,7 @@ fun DocumentPage(
                     )
             ) {
                 Text(
-                    "Approve",
+                    flowStrings().approve,
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Normal,
                     color = BaseTheme.BaseSecondaryTextColor,
@@ -1191,7 +1191,7 @@ fun DocumentPage(
             )
     ) {
         Text(
-            "Cancel",
+            flowStrings().cancelButton,
             fontFamily = InterFont,
             color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
             fontWeight = FontWeight.Normal,
@@ -1240,7 +1240,7 @@ fun DocumentPageFromUrl(
             )
     ) {
         Text(
-            "Cancel",
+            flowStrings().cancelButton,
             fontFamily = InterFont,
             fontWeight = FontWeight.Normal,
             modifier = Modifier.padding(vertical = 7.dp)

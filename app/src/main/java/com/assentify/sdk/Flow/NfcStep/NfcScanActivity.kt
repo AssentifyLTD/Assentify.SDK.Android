@@ -59,10 +59,10 @@ import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
-import com.assentify.sdk.Flow.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.OnCompleteScreenData
@@ -453,7 +453,7 @@ fun NfcScanScreen(
                             )
                     ) {
                         Text(
-                            "Skip",
+                            text = s.skip,
                             color = BaseTheme.BaseSecondaryTextColor,
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Normal,

@@ -1,7 +1,10 @@
 package com.assentify.sdk.Flow.ReusableComposable
 
-
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.util.Base64
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -11,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,8 +44,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
-import com.assentify.sdk.Flow.flowStrings
-import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import java.io.ByteArrayOutputStream
 
 @Composable
@@ -49,72 +52,102 @@ fun SignaturePad(
     modifier: Modifier = Modifier,
     title: String = "Signature",
     isLoading: Boolean = false,
-    penColorInt: Int = android.graphics.Color.WHITE, // still white on screen
+    penColorInt: Int = android.graphics.Color.WHITE,
     minStrokeWidth: Float = 3f,
     maxStrokeWidth: Float = 6f,
     onConfirmBase64: (String) -> Unit,
 ) {
-
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val s = flowStrings()
+    val strings = flowStrings()
     val context = LocalContext.current
     val density = LocalDensity.current
 
-    // native SignaturePad instance
     val signaturePad = remember {
-        com.github.gcacace.signaturepad.views.SignaturePad(context, null).apply {
+        com.github.gcacace.signaturepad.views.SignaturePad(
+            context,
+            null
+        ).apply {
             setMinWidth(minStrokeWidth)
             setMaxWidth(maxStrokeWidth)
-            setPenColor(penColorInt) // white pen on screen
+            setPenColor(penColorInt)
             setVelocityFilterWeight(0.9f)
         }
     }
 
-    var hasSignature by remember { mutableStateOf(false) }
-    var isExpanding by remember { mutableStateOf(false) }
-    var containerWidthPx by remember { mutableStateOf(0) }
-
-    // observe pad state
-    DisposableEffect(signaturePad) {
-        signaturePad.setOnSignedListener(object :
-            com.github.gcacace.signaturepad.views.SignaturePad.OnSignedListener {
-            override fun onStartSigning() {}
-            override fun onSigned() { hasSignature = true }
-            override fun onClear() { hasSignature = false }
-        })
-        onDispose { signaturePad.setOnSignedListener(null) }
+    var hasSignature by remember {
+        mutableStateOf(false)
     }
 
-    val containerWidthDp = with(density) { containerWidthPx.toDp() }
-    val pillInitialWidth = 54.dp
+    var isExpanding by remember {
+        mutableStateOf(false)
+    }
 
-    // Animate width fill
+    var containerWidthPx by remember {
+        mutableStateOf(0)
+    }
+
+    DisposableEffect(signaturePad) {
+        signaturePad.setOnSignedListener(
+            object :
+                com.github.gcacace.signaturepad.views.SignaturePad.OnSignedListener {
+
+                override fun onStartSigning() = Unit
+
+                override fun onSigned() {
+                    hasSignature = true
+                }
+
+                override fun onClear() {
+                    hasSignature = false
+                }
+            }
+        )
+
+        onDispose {
+            signaturePad.setOnSignedListener(null)
+        }
+    }
+
+    val containerWidthDp = with(density) {
+        containerWidthPx.toDp()
+    }
+
+    val confirmInitialWidth = 62.dp
+
     val animatedWidth by animateDpAsState(
-        targetValue = if (isExpanding) containerWidthDp else pillInitialWidth,
-        animationSpec = tween(durationMillis = 600, easing = LinearOutSlowInEasing),
+        targetValue = if (isExpanding && containerWidthPx > 0) {
+            containerWidthDp
+        } else {
+            confirmInitialWidth
+        },
+        animationSpec = tween(
+            durationMillis = 600,
+            easing = LinearOutSlowInEasing
+        ),
         label = "confirmWidth"
     )
 
-    // Animate text alpha transitions
-    val confirmTextAlpha by animateFloatAsState(
-        targetValue = if (isExpanding) 0f else 1f,
-        animationSpec = tween(300),
-        label = "confirmAlpha"
-    )
     val confirmedTextAlpha by animateFloatAsState(
-        targetValue = if (isExpanding) 1f else 0f,
-        animationSpec = tween(500, delayMillis = 300),
-        label = "confirmedAlpha"
+        targetValue = if (isExpanding) {
+            1f
+        } else {
+            0f
+        },
+        animationSpec = tween(
+            durationMillis = 400,
+            delayMillis = 250
+        ),
+        label = "confirmedTextAlpha"
     )
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(BaseTheme.BaseClickColor!!.toBrush())
-            .onSizeChanged { containerWidthPx = it.width }
+            .onSizeChanged {
+                containerWidthPx = it.width
+            }
     ) {
-
-        if(isLoading){
+        if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .size(40.dp)
@@ -122,84 +155,85 @@ fun SignaturePad(
                 color = BaseTheme.BaseTextColor,
                 strokeWidth = 4.dp
             )
-        }else{
+        } else {
             Column(
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = pillInitialWidth + 8.dp)
+                    .padding(
+                        start = confirmInitialWidth + 8.dp
+                    )
             ) {
                 Text(
                     text = title,
-                    color =   BaseTheme.BaseTextColor,
+                    color = BaseTheme.BaseTextColor,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(start = 14.dp, top = 12.dp, bottom = 6.dp)
+                    modifier = Modifier.padding(
+                        start = 14.dp,
+                        top = 12.dp,
+                        bottom = 6.dp
+                    )
                 )
 
                 AndroidView(
-                    factory = { signaturePad },
+                    factory = {
+                        signaturePad
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .padding(start = 12.dp, end = 6.dp, bottom = 12.dp)
+                        .padding(
+                            start = 12.dp,
+                            end = 6.dp,
+                            bottom = 12.dp
+                        )
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color.Transparent)
                 )
             }
 
-            // Expanding confirm overlay
             Box(
                 modifier = Modifier
                     .zIndex(2f)
-                    .align(Alignment.CenterEnd)
-                    .height(220.dp)
+                    .align(Alignment.CenterStart)
+                    .fillMaxHeight()
                     .width(animatedWidth)
                     .clip(
                         RoundedCornerShape(
-                            topStart = if (animatedWidth < containerWidthDp) 20.dp else 18.dp,
-                            bottomStart = if (animatedWidth < containerWidthDp) 20.dp else 18.dp,
-                            topEnd = 20.dp,
-                            bottomEnd = 20.dp
+                            topStart = 0.dp,
+                            bottomStart = 0.dp,
+                            topEnd = if (isExpanding) {
+                                0.dp
+                            } else {
+                                20.dp
+                            },
+                            bottomEnd = if (isExpanding) {
+                                0.dp
+                            } else {
+                                20.dp
+                            }
                         )
                     )
-                    .background(if (hasSignature) Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)) else BaseTheme.FieldColor)
+                    .background(
+                        if (hasSignature) {
+                            Color(
+                                android.graphics.Color.parseColor(
+                                    BaseTheme.BaseAccentColor
+                                )
+                            )
+                        } else {
+                            BaseTheme.FieldColor
+                        }
+                    )
                     .clickable(
                         enabled = hasSignature && !isExpanding,
                         onClick = {
-                            val whiteBitmap = signaturePad.transparentSignatureBitmap
-
-                            // 🔹 Convert white strokes → black
-                            val blackBitmap = Bitmap.createBitmap(
-                                whiteBitmap.width,
-                                whiteBitmap.height,
-                                Bitmap.Config.ARGB_8888
+                            val base64 = createBlackSignatureBase64(
+                                signatureBitmap =
+                                    signaturePad.transparentSignatureBitmap
                             )
-                            val canvas = android.graphics.Canvas(blackBitmap)
-                            canvas.drawColor(android.graphics.Color.WHITE) // white background
 
-                            val paint = android.graphics.Paint().apply {
-                                colorFilter = android.graphics.ColorMatrixColorFilter(
-                                    android.graphics.ColorMatrix().apply {
-                                        // invert white to black
-                                        set(
-                                            floatArrayOf(
-                                                -1f,  0f,  0f,  0f, 255f, // R
-                                                0f, -1f,  0f,  0f, 255f, // G
-                                                0f,  0f, -1f,  0f, 255f, // B
-                                                0f,  0f,  0f,  1f,   0f  // A
-                                            )
-                                        )
-                                    }
-                                )
-                            }
-                            canvas.drawBitmap(whiteBitmap, 0f, 0f, paint)
-
-                            // 🔹 Encode black version to Base64
-                            val baos = ByteArrayOutputStream()
-                            blackBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
-                            val b64 = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
-                            onConfirmBase64(b64)
-
+                            onConfirmBase64(base64)
                             isExpanding = true
                         }
                     ),
@@ -207,38 +241,79 @@ fun SignaturePad(
             ) {
                 if (!isExpanding) {
                     Text(
-                        text = s.confirmSignature,
-                        color =  BaseTheme.BaseTextColor,
+                        text = strings.confirmSignature,
+                        color = BaseTheme.BaseTextColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.rotate(90f)
                     )
-                }
-
-                // Step 2: Centered "Confirmed" text (visible during expansion)
-                if (isExpanding) {
+                } else {
                     Text(
-                        text = s.confirmedSignature,
+                        text = strings.confirmedSignature,
                         color = BaseTheme.BaseTextColor.copy(
                             alpha = confirmedTextAlpha
                         ),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(bottom = 4.dp)
+                        modifier = Modifier.align(
+                            Alignment.Center
+                        )
                     )
                 }
             }
         }
-        // Drawing area
-
     }
 }
 
+private fun createBlackSignatureBase64(
+    signatureBitmap: Bitmap
+): String {
+    val outputBitmap = Bitmap.createBitmap(
+        signatureBitmap.width,
+        signatureBitmap.height,
+        Bitmap.Config.ARGB_8888
+    )
 
+    val canvas = Canvas(outputBitmap)
 
+    canvas.drawColor(
+        android.graphics.Color.WHITE
+    )
 
+    val paint = Paint(
+        Paint.ANTI_ALIAS_FLAG
+    ).apply {
+        colorFilter = ColorMatrixColorFilter(
+            ColorMatrix().apply {
+                set(
+                    floatArrayOf(
+                        -1f, 0f, 0f, 0f, 255f,
+                        0f, -1f, 0f, 0f, 255f,
+                        0f, 0f, -1f, 0f, 255f,
+                        0f, 0f, 0f, 1f, 0f
+                    )
+                )
+            }
+        )
+    }
 
+    canvas.drawBitmap(
+        signatureBitmap,
+        0f,
+        0f,
+        paint
+    )
 
+    return ByteArrayOutputStream().use { outputStream ->
+        outputBitmap.compress(
+            Bitmap.CompressFormat.PNG,
+            100,
+            outputStream
+        )
 
+        Base64.encodeToString(
+            outputStream.toByteArray(),
+            Base64.NO_WRAP
+        )
+    }
+}

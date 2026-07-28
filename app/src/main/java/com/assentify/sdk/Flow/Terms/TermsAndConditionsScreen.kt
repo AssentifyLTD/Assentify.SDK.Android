@@ -48,7 +48,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.TermsAndConditionsEventT
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromUrl
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
-import com.assentify.sdk.Flow.flowStrings
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
 
