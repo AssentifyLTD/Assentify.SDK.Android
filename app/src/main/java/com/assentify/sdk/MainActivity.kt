@@ -193,7 +193,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     activeLivenessCheckCount = 3,
                     faceLivenessRetryCount = 2,
                     minRam = 1,
-                    flowUiLanguage = UiLanguage.Arabic
+                    flowUiLanguage = UiLanguage.English
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                backgroundType = BackgroundType.Image,
+               /* backgroundType = BackgroundType.Image,
                 logoUrl = "https://image2url.com/r2/default/images/1774601396029-0d566673-586b-4d36-9f30-19704f88dba6.png",
                 svgBackgroundImageUrl = "https://image2url.com/r2/default/images/1774603740489-37851385-2e31-402a-9ef2-aa9468e747b4.svg",
                 textColor = "#FFFFFF",
@@ -240,7 +240,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
                 backgroundCardColor = "#2C2C2E",
                 backgroundColor = BackgroundStyle.Solid("#2C2C2E"),
-                clickColor = BackgroundStyle.Solid("#E6BF00"),
+                clickColor = BackgroundStyle.Solid("#E6BF00"),*/
 
 
 
@@ -259,7 +259,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 clickColor = BackgroundStyle.Solid("#ffc400"),*/
 
                 /**Theme 2**/
-             /*
+                backgroundType = BackgroundType.Color,
                 logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
                 textColor = "#000000",
                 accentColor = "#833F89",
@@ -271,7 +271,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     angleDegrees = 90f,
                     holdUntil = 0.4f
                 ),
-                */
 
 
                 extractedDataLanguage = config.language,
