@@ -193,7 +193,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     activeLivenessCheckCount = 3,
                     faceLivenessRetryCount = 2,
                     minRam = 1,
-                    flowUiLanguage = UiLanguage.English
+                    flowUiLanguage = UiLanguage.Arabic
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
@@ -288,7 +288,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
 
-           assentifySdk.clearFlow(this@MainActivity,)
+          // assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,
