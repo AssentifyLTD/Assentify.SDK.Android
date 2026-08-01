@@ -9,6 +9,7 @@ data class FlowStrings(
     val retry: String,
     val skip: String,
     val letsStart: String,
+    val takePhoto: String,
     val accept: String,
     val decline: String,
 
@@ -220,6 +221,7 @@ private val englishStrings = FlowStrings(
     retry = "Retry",
     skip = "Skip",
     letsStart = "Lets Start",
+    takePhoto = "Take Photo",
     accept = "Accept",
     decline = "Decline",
 
@@ -401,6 +403,7 @@ private val arabicStrings = FlowStrings(
     retry = "إعادة المحاولة",
     skip = "تخطي",
     letsStart = "لنبدأ",
+    takePhoto = "التقط صوره",
     accept = "قبول",
     decline = "رفض",
 

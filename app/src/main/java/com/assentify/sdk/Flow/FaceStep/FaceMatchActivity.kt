@@ -70,13 +70,13 @@ import com.assentify.sdk.FaceMatch.FaceResponseModel
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
-import com.assentify.sdk.Flow.FlowController.flowStrings
 
 
 class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
@@ -578,7 +578,7 @@ fun FaceMatchScanScreen(
                             )
                     ) {
                         Text(
-                            "Take Photo",
+                            flowStrings().takePhoto,
                             fontFamily = InterFont,
                             color = BaseTheme.BaseSecondaryTextColor,
                             fontWeight = FontWeight.Normal,

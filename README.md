@@ -39,6 +39,10 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.33***
+1. *Added full RTL (Right-to-Left) and LTR (Left-to-Right) , Arabic and English layout support.*
+2. *Enhanced the slider click animation*
+
 ***1.0.0-Beta.32***
 1. *"Assisted Data Entry Step" Improvements*
 

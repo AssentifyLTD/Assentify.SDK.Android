@@ -59,6 +59,7 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
@@ -404,7 +405,7 @@ fun QrScanScreen(
                         )
                 ) {
                     Text(
-                        "Take Photo",
+                        flowStrings().takePhoto,
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Normal,
                         color = BaseTheme.BaseSecondaryTextColor,
