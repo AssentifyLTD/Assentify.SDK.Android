@@ -23,7 +23,10 @@ class EnvironmentalConditions(
 
     var minRam : Int = 8,
     var minCPUCores : Int = 6,
-) {
+
+    val flowUiLanguage: String = UiLanguage.English,
+
+    ) {
 
     var enableGuide: Boolean = true;
 

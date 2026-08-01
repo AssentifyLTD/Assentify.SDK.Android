@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,8 +42,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -53,12 +56,14 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.StepperType
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.NfcStep.NfcScanActivity
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
@@ -82,6 +87,7 @@ import com.assentify.sdk.ScanPassport.ScanPassportResult
 
 class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
+    private val cs by lazy { flowStrings() }
     private var start = mutableStateOf(false)
     private var feedbackText = mutableStateOf("")
     private var uploadingProgress = mutableStateOf(0)
@@ -305,30 +311,30 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             if (start.value == false) {
                 if (zoom != ZoomType.SENDING && zoom != ZoomType.NO_DETECT) {
                     if (zoom == ZoomType.ZOOM_IN) {
-                        feedbackText.value = "Move Passport Closer"
+                        feedbackText.value = cs.movePassportCloser
                     }
                     if (zoom == ZoomType.ZOOM_OUT) {
-                        feedbackText.value = "Move Passport Further"
+                        feedbackText.value = cs.movePassportFurther
                     }
                 } else if (motion != MotionType.SENDING && motion != MotionType.NO_DETECT) {
-                    feedbackText.value = "Please Hold Your Hand"
+                    feedbackText.value = cs.holdYourHand
 
                 } else if (brightnessEvents != BrightnessEvents.Good) {
                     if (brightnessEvents == BrightnessEvents.TooDark) {
-                        feedbackText.value = "Please increase the lighting"
+                        feedbackText.value = cs.increaseLighting
                     }
                     if (brightnessEvents == BrightnessEvents.TooBright) {
-                        feedbackText.value = "Please reduce the lighting"
+                        feedbackText.value = cs.reduceLighting
                     }
 
                 } else {
                     if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good) {
-                        feedbackText.value = "Hold Steady"
+                        feedbackText.value = cs.holdSteady
                     }
                     if (motion == MotionType.NO_DETECT && zoom == ZoomType.NO_DETECT) {
-                        feedbackText.value = "Please present passport"
+                        feedbackText.value = cs.presentPassport
                     }else if(!isCentered){
-                        feedbackText.value = "Please center your card"
+                        feedbackText.value = cs.centerCard
                     }
                 }
             } else {
@@ -361,6 +367,10 @@ fun PassportScanScreen(
     var scanPassport by remember { mutableStateOf<ScanPassport?>(null) }
     var scanPassportManual by remember { mutableStateOf<ScanPassportManual?>(null) }
 
+    val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
+        LayoutDirection.Rtl else LayoutDirection.Ltr
+
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         if (eventTypes != EventTypes.none) {
@@ -433,7 +443,7 @@ fun PassportScanScreen(
 
                 val result = assentifySdk.startScanPassport(
                     activity,
-                    flowEnv.language,
+                    flowEnv.extractedDataLanguage,
                     stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                 )
 
@@ -560,7 +570,7 @@ fun PassportScanScreen(
 
                 ) {
                     Text(
-                        "Take Photo",
+                        flowStrings().takePhoto,
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Normal,
                         color =  BaseTheme.BaseSecondaryTextColor,
@@ -590,6 +600,7 @@ fun PassportScanScreen(
             }
         }
 
+    }
     }
 }
 

@@ -42,6 +42,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.OnCompleteScreenData
@@ -53,6 +54,7 @@ fun OnCompleteScreen(
 ) {
     val extractedMap = OnCompleteScreenData.getData()
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
 
     // ---------- helpers ----------
     fun Any?.asCleanString(): String? {
@@ -65,27 +67,27 @@ fun OnCompleteScreen(
 
 
     // ✅ allowed keys by "contains" (ignore UUID prefixes)
-    val allowedKeyParts = remember {
+    val allowedKeyParts = remember(s.fieldFirstName) {
         linkedMapOf(
-            "OnBoardMe_IdentificationDocumentCapture_name" to "First Name",
-            "OnBoardMe_IdentificationDocumentCapture_surname" to "Last Name",
-            "OnBoardMe_IdentificationDocumentCapture_ID_FathersName" to "Father Name",
-            "OnBoardMe_IdentificationDocumentCapture_ID_MothersName" to "Mother Name",
-            "OnBoardMe_IdentificationDocumentCapture_Birth_Date" to "Birth Date",
-            "OnBoardMe_IdentificationDocumentCapture_Expiry_Date" to "Expiry Date",
-            "OnBoardMe_IdentificationDocumentCapture_Country" to "Country",
-            "OnBoardMe_IdentificationDocumentCapture_Nationality" to "Nationality",
-            "OnBoardMe_IdentificationDocumentCapture_Document_Number" to "Document Number",
-            "OnBoardMe_IdentificationDocumentCapture_IDType" to "ID Type",
-            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfBirth" to "Place of Birth",
-            "OnBoardMe_IdentificationDocumentCapture_Document_Type" to "Document Type",
-            "OnBoardMe_IdentificationDocumentCapture_ID_CivilRegisterNumber" to "Civil Register Number",
-            "OnBoardMe_IdentificationDocumentCapture_ID_DateOfIssuance" to "Date of Issuance",
-            "OnBoardMe_IdentificationDocumentCapture_Sex" to "Gender",
-            "OnBoardMe_IdentificationDocumentCapture_ID_MaritalStatus" to "Marital Status",
-            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfResidence" to "Place of Residence",
-            "OnBoardMe_IdentificationDocumentCapture_ID_Province" to "Province",
-            "OnBoardMe_IdentificationDocumentCapture_ID_Governorate" to "Governorate"
+            "OnBoardMe_IdentificationDocumentCapture_name" to s.fieldFirstName,
+            "OnBoardMe_IdentificationDocumentCapture_surname" to s.fieldLastName,
+            "OnBoardMe_IdentificationDocumentCapture_ID_FathersName" to s.fieldFatherName,
+            "OnBoardMe_IdentificationDocumentCapture_ID_MothersName" to s.fieldMotherName,
+            "OnBoardMe_IdentificationDocumentCapture_Birth_Date" to s.fieldBirthDate,
+            "OnBoardMe_IdentificationDocumentCapture_Expiry_Date" to s.fieldExpiryDate,
+            "OnBoardMe_IdentificationDocumentCapture_Country" to s.fieldCountry,
+            "OnBoardMe_IdentificationDocumentCapture_Nationality" to s.fieldNationality,
+            "OnBoardMe_IdentificationDocumentCapture_Document_Number" to s.fieldDocNumber,
+            "OnBoardMe_IdentificationDocumentCapture_IDType" to s.fieldIdType,
+            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfBirth" to s.fieldPlaceOfBirth,
+            "OnBoardMe_IdentificationDocumentCapture_Document_Type" to s.fieldDocType,
+            "OnBoardMe_IdentificationDocumentCapture_ID_CivilRegisterNumber" to s.fieldCivilRegister,
+            "OnBoardMe_IdentificationDocumentCapture_ID_DateOfIssuance" to s.fieldDateOfIssuance,
+            "OnBoardMe_IdentificationDocumentCapture_Sex" to s.fieldGender,
+            "OnBoardMe_IdentificationDocumentCapture_ID_MaritalStatus" to s.fieldMaritalStatus,
+            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfResidence" to s.fieldPlaceOfResidence,
+            "OnBoardMe_IdentificationDocumentCapture_ID_Province" to s.fieldProvince,
+            "OnBoardMe_IdentificationDocumentCapture_ID_Governorate" to s.fieldGovernorate
         )
     }
 
@@ -247,7 +249,7 @@ fun OnCompleteScreen(
                 ),
         ) {
             Text(
-                "Next",
+                s.next,
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,

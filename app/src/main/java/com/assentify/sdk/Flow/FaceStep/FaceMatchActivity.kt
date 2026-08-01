@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,8 +41,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -55,6 +58,7 @@ import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.FaceEvents
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.StepperType
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -66,6 +70,7 @@ import com.assentify.sdk.FaceMatch.FaceResponseModel
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -76,6 +81,7 @@ import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
 
 class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
+    private val cs by lazy { flowStrings() }
     private var start = mutableStateOf(false)
     private var feedbackText = mutableStateOf("")
     private var uploadingProgress = mutableStateOf(0)
@@ -168,7 +174,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     override fun onCollectingManualImages() {
         runOnUiThread {
-            feedbackText.value = "Hold Steady"
+            feedbackText.value = cs.holdSteady
         }
     }
 
@@ -267,17 +273,13 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             currentActiveLiveEvents.value = activeLiveEvents;
             if (activeLiveEvents != ActiveLiveEvents.Good) {
                 when (activeLiveEvents) {
-                    ActiveLiveEvents.YawLeft -> feedbackText.value = "Please move your face left"
-                    ActiveLiveEvents.YawRight -> feedbackText.value = "Please move your face right"
-                    ActiveLiveEvents.PitchUp -> feedbackText.value = "Please move your face up"
-                    ActiveLiveEvents.PitchDown -> feedbackText.value = "Please move your face down"
-                    ActiveLiveEvents.WinkLeft -> feedbackText.value =
-                        "Please wink with your left eye"
-
-                    ActiveLiveEvents.WinkRight -> feedbackText.value =
-                        "Please wink with your right eye"
-
-                    ActiveLiveEvents.BLINK -> feedbackText.value = "Please blink your eyes"
+                    ActiveLiveEvents.YawLeft -> feedbackText.value = cs.moveFaceLeft
+                    ActiveLiveEvents.YawRight -> feedbackText.value = cs.moveFaceRight
+                    ActiveLiveEvents.PitchUp -> feedbackText.value = cs.moveFaceUp
+                    ActiveLiveEvents.PitchDown -> feedbackText.value = cs.moveFaceDown
+                    ActiveLiveEvents.WinkLeft -> feedbackText.value = cs.winkLeftEye
+                    ActiveLiveEvents.WinkRight -> feedbackText.value = cs.winkRightEye
+                    ActiveLiveEvents.BLINK -> feedbackText.value = cs.blinkEyes
                     ActiveLiveEvents.Good -> feedbackText.value = ""
                 }
             }
@@ -296,52 +298,51 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
         runOnUiThread {
             if (start.value == false && currentActiveLiveEvents.value == ActiveLiveEvents.Good) {
                 if (detectedFaces > 1) {
-                    feedbackText.value =
-                        "We detected more than one face.Please keep just your face in view."
+                    feedbackText.value = cs.multipleFacesDetected
                 } else if (zoomType != ZoomType.SENDING && zoomType != ZoomType.NO_DETECT) {
                     if (zoomType == ZoomType.ZOOM_IN) {
-                        feedbackText.value = "Please Move Closer"
+                        feedbackText.value = cs.moveFaceCloser
                     }
                     if (zoomType == ZoomType.ZOOM_OUT) {
-                        feedbackText.value = "Please Move Further"
+                        feedbackText.value = cs.moveFaceFurther
                     }
                 } else if (motion != MotionType.SENDING && motion != MotionType.NO_DETECT) {
-                    feedbackText.value = "Please Hold Your Hand"
+                    feedbackText.value = cs.holdYourHand
 
                 } else if (brightnessEvents != BrightnessEvents.Good) {
                     if (brightnessEvents == BrightnessEvents.TooDark) {
-                        feedbackText.value = "Please increase the lighting"
+                        feedbackText.value = cs.increaseLighting
                     }
                     if (brightnessEvents == BrightnessEvents.TooBright) {
-                        feedbackText.value = "Please reduce the lighting"
+                        feedbackText.value = cs.reduceLighting
                     }
                 } else if (faceEvents != FaceEvents.Good && faceEvents != FaceEvents.NO_DETECT) {
                     if (faceEvents == FaceEvents.RollLeft) {
-                        feedbackText.value = "Please tilt your head to the right"
+                        feedbackText.value = cs.tiltHeadRight
                     }
                     if (faceEvents == FaceEvents.RollRight) {
-                        feedbackText.value = "Please tilt your head to the left"
+                        feedbackText.value = cs.tiltHeadLeft
                     }
                     if (faceEvents == FaceEvents.YawLeft) {
-                        feedbackText.value = "Please turn your head to the right"
+                        feedbackText.value = cs.turnHeadRight
                     }
                     if (faceEvents == FaceEvents.YawRight) {
-                        feedbackText.value = "Please turn your head to the left"
+                        feedbackText.value = cs.turnHeadLeft
                     }
                     if (faceEvents == FaceEvents.PitchUp) {
-                        feedbackText.value = "Please lower your head"
+                        feedbackText.value = cs.lowerHead
                     }
                     if (faceEvents == FaceEvents.PitchDown) {
-                        feedbackText.value = "Please raise your head"
+                        feedbackText.value = cs.raiseHead
                     }
                 } else {
                     if (motion == MotionType.SENDING && zoomType == ZoomType.SENDING && brightnessEvents == BrightnessEvents.Good && faceEvents == FaceEvents.Good) {
-                        feedbackText.value = "Hold Steady"
+                        feedbackText.value = cs.holdSteady
                     }
                     if (motion == MotionType.NO_DETECT && zoomType == ZoomType.NO_DETECT && faceEvents == FaceEvents.NO_DETECT) {
-                        feedbackText.value = "Please face within circle"
+                        feedbackText.value = cs.faceWithinCircle
                     }else if(!isCentered){
-                        feedbackText.value = "Please center your face"
+                        feedbackText.value = cs.centerFace
                     }
                 }
             } else {
@@ -382,6 +383,10 @@ fun FaceMatchScanScreen(
     var faceMatch by remember { mutableStateOf<FaceMatch?>(null) }
     var faceMatchManual by remember { mutableStateOf<FaceMatchManual?>(null) }
 
+    val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
+        LayoutDirection.Rtl else LayoutDirection.Ltr
+
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         if (eventTypes != EventTypes.none) {
@@ -573,7 +578,7 @@ fun FaceMatchScanScreen(
                             )
                     ) {
                         Text(
-                            "Take Photo",
+                            flowStrings().takePhoto,
                             fontFamily = InterFont,
                             color = BaseTheme.BaseSecondaryTextColor,
                             fontWeight = FontWeight.Normal,
@@ -605,6 +610,7 @@ fun FaceMatchScanScreen(
             }
         }
 
+    }
     }
 }
 

@@ -3,6 +3,7 @@ package com.assentify.sdk
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -24,9 +25,13 @@ import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
 import com.assentify.sdk.Core.Constants.StepperType
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 data class StartConfig(
     val apiKey: String,
@@ -35,6 +40,27 @@ data class StartConfig(
     val enableNfc: Boolean,
     val enableQr: Boolean
 )
+
+fun copyAssetToInternalStorage(context: Context, assetFileName: String): String? {
+    val outFile = File(context.filesDir, assetFileName)
+
+    // Avoid re-copying if it already exists
+    if (outFile.exists()) {
+        return outFile.absolutePath
+    }
+
+    return try {
+        context.assets.open(assetFileName).use { inputStream ->
+            FileOutputStream(outFile).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
+        outFile.absolutePath
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
+    }
+}
 
 class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
     private lateinit var assentifySdk: AssentifySdk
@@ -53,13 +79,17 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         if (ContextCompat.checkSelfPermission(
                 applicationContext,
                 Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED
         ) {
 
         } else {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.CAMERA),
+                arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO),
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
@@ -68,7 +98,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
 
 
-        etApiKey.setText("wzSw2ebGUF1H3mMt7CmjKz8ob5TuEV4UdvKhOUMKy2XcsVnIeKYmqdG5TdgFnaLn3JUXPdS5pUIo3gt2rAhCQ")
+        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+
+
 
 
   /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
@@ -143,6 +175,15 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 ).show()
                 return@setOnClickListener
             } else {
+                /** File SDK **/
+                val path = copyAssetToInternalStorage(applicationContext, "vardFile.json")
+                if (path != null) {
+                    Log.d("FilePath", "File stored at: $path")
+                } else {
+                    Log.e("FilePath", "Failed to copy asset")
+                }
+
+
                 /** INIT SDK **/
                 val environmentalConditions = EnvironmentalConditions(
                     config.enableDetect,
@@ -151,12 +192,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     activeLiveType = ActiveLiveType.Actions,
                     activeLivenessCheckCount = 3,
                     faceLivenessRetryCount = 2,
-                    minRam = 1
+                    minRam = 1,
+                    flowUiLanguage = UiLanguage.English
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    configFileName =   "pixelConfig",
-                    environmentalConditions,
+                    configFileName =  "configFile1",
+                   // processJsonConfigFile = path!!,
+                    environmentalConditions = environmentalConditions,
                     assentifySdkCallback = this,
                     performActiveLivenessFace = false,
                     context = this,
@@ -182,7 +225,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
-            customProperties.put("phoneNumber", "+963931646973")
+            customProperties.put("phoneNumber", "tariq.alskran@gmail.com")
             customProperties.put("email", "tariq.alskran@gmail.com")
             customProperties.put("city", "ANSAR")
 
@@ -216,7 +259,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 clickColor = BackgroundStyle.Solid("#ffc400"),*/
 
                 /**Theme 2**/
-             /* logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
+           /*     backgroundType = BackgroundType.Color,
+                logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
                 textColor = "#000000",
                 accentColor = "#833F89",
                 secondaryTextColor = "#000000",
@@ -229,7 +273,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 ),*/
 
 
-                language = config.language,
+                extractedDataLanguage = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
@@ -237,12 +281,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
                 stepperType = StepperType.PercentageBased,
                 rangeStart = 30,
-                rangeEnd = 90
+                rangeEnd = 90,
+                //stepperTitle = "تعريف"
                 );
 
 
 
-            assentifySdk.clearFlow(this@MainActivity,)
+          // assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,

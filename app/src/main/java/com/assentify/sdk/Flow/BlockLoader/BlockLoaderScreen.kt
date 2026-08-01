@@ -40,6 +40,7 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.HasSubmittedObject
 
@@ -53,6 +54,7 @@ fun BlockLoaderScreen(
 ) {
     val ctx = LocalContext.current
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
 
 
     MaterialTheme(colorScheme = darkColorScheme()) {
@@ -110,8 +112,7 @@ fun BlockLoaderScreen(
                     if(!HasSubmittedObject.get()){
                         // header
                         Text(
-                            text = "Complete Your\nOnboarding in ${steps.size} " +
-                                    if (steps.size == 1) "Step" else "Steps",
+                            text = s.onboardingTitle(steps.size),
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Bold,
                             color = BaseTheme.BaseTextColor,
@@ -123,7 +124,7 @@ fun BlockLoaderScreen(
                                 .padding(top = 25.dp, start = 25.dp, end = 20.dp)
                         )
                         Text(
-                            text = "It will include capturing your ID and your face — it's fast, easy, and secure.",
+                            text = s.onboardingSubtitle,
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Normal,
                             color = BaseTheme.BaseTextColor,
@@ -136,7 +137,7 @@ fun BlockLoaderScreen(
                         )
                     }else{
                         Text(
-                            text = "Thank you!",
+                            text = s.thankYou,
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Bold,
                             color = BaseTheme.BaseTextColor,
@@ -148,7 +149,7 @@ fun BlockLoaderScreen(
                                 .padding(top = 25.dp, start = 25.dp, end = 20.dp)
                         )
                         Text(
-                            text = "Completed ${steps.size} ${if (steps.size == 1) "Step" else "Steps"} Successfully",
+                            text = s.completedSteps(steps.size),
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Normal,
                             color = BaseTheme.BaseTextColor,
@@ -194,7 +195,7 @@ fun BlockLoaderScreen(
                             )
                     ) {
                         Text(
-                            "Next",
+                            s.next,
                             fontFamily = InterFont,
                             color = BaseTheme.BaseSecondaryTextColor,
                             fontWeight = FontWeight.Normal,

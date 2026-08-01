@@ -37,6 +37,7 @@ import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.ResendOtpControl
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.OtpHelper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
@@ -49,6 +50,7 @@ fun SigningPhoneWithOtp(
     onValid: (VerifyOtpRequestOtpModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val s = flowStrings()
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
     var phone by remember {
@@ -90,7 +92,7 @@ fun SigningPhoneWithOtp(
                 isOtpStep = true
                 otp = ""
             } else {
-                requestError = "Failed to send OTP. Please try again."
+                requestError = s.failedToSendOtp
             }
         }
     }
@@ -139,7 +141,7 @@ fun SigningPhoneWithOtp(
                                     }
                                 } else {
                                     Text(
-                                        "Send OTP",
+                                        s.sendOtp,
                                         color = BaseTheme.BaseTextColor,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -201,7 +203,7 @@ fun SigningPhoneWithOtp(
                                     onValid(verifyOtpRequestOtpModel)
                                 } else {
                                     isVerified = false
-                                    requestError = "Invalid OTP. Please try again."
+                                    requestError = s.invalidOtp
                                 }
                             }
                         }
@@ -209,7 +211,7 @@ fun SigningPhoneWithOtp(
                 },
                 singleLine = true,
                 placeholder = {
-                    Text("OTP (${otpSize ?: 8})", color = BaseTheme.BaseTextColor)
+                    Text(s.otpLabel(otpSize ?: 8), color = BaseTheme.BaseTextColor)
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when (otpFormat) {
@@ -245,14 +247,14 @@ fun SigningPhoneWithOtp(
             ) {
                 if (isVerified) {
                     Text(
-                        "Verified successfully",
+                        s.verifiedSuccessfully,
                         color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                         fontSize = 12.sp
                     )
                 } else {
                     if (verifying) {
                         Text(
-                            "Otp verifying ...",
+                            s.otpVerifying,
                             color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                             fontSize = 12.sp
                         )
@@ -267,7 +269,7 @@ fun SigningPhoneWithOtp(
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Text(
-                                    "Sending OTP...",
+                                    s.sendingOtp,
                                     color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold

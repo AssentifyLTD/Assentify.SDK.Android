@@ -50,6 +50,7 @@ import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import kotlinx.coroutines.launch
 
@@ -65,9 +66,7 @@ fun AssistedDataEntryScreen(
 ) {
 
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
-
-
+    val s = flowStrings()
 
 
 
@@ -214,7 +213,7 @@ fun AssistedDataEntryScreen(
 
                     EventTypes.onError -> {
                         Text(
-                            text = "Something went wrong",
+                            text = s.somethingWentWrong,
                             color = BaseTheme.BaseRedColor,
                             fontSize = 14.sp,
                             lineHeight = 18.sp,

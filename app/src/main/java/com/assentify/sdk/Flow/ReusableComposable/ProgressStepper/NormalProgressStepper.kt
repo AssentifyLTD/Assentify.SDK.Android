@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
@@ -57,6 +58,7 @@ fun NormalProgressStepper(
         steps.indexOfFirst { !it.isDone }.takeIf { it != -1 } ?: steps.lastIndex.coerceAtLeast(0)
 
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
+    val s = flowStrings()
     val activeColor = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
     val doneColor = BaseTheme.BaseGreenColor
     val upcomingColor =   BaseTheme.BaseTextColor
@@ -143,7 +145,7 @@ fun NormalProgressStepper(
 
         }
         Text(
-            text = "Step ${activeIndex + 1} out of ${steps.size} steps",
+            text = s.stepperProgress(activeIndex + 1, steps.size),
             fontFamily = InterFont,
             fontWeight = FontWeight.Normal,
             color =   BaseTheme.BaseTextColor,

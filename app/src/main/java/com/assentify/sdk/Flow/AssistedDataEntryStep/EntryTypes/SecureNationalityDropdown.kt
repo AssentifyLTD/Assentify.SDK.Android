@@ -40,6 +40,7 @@ import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
@@ -54,6 +55,7 @@ fun SecureNationalityDropdown(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
 
     /** Default Value **/
     var defaultRaw by rememberSaveable { mutableStateOf("") }
@@ -232,7 +234,7 @@ fun SecureNationalityDropdown(
                         },
                         placeholder = {
                             Text(
-                                text = "Search...",
+                                text = s.searchPlaceholder,
                                 color = BaseTheme.BaseTextColor.copy(alpha = 0.6f)
                             )
                         },
@@ -263,7 +265,7 @@ fun SecureNationalityDropdown(
                         if (filteredOptions.isEmpty()) {
                             item {
                                 Text(
-                                    text = "No results found",
+                                    text = s.noResultsFound,
                                     color = BaseTheme.BaseTextColor.copy(alpha = 0.7f),
                                     modifier = Modifier.padding(12.dp)
                                 )

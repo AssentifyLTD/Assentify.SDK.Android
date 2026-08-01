@@ -32,6 +32,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -42,6 +43,7 @@ fun OnErrorScreen(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
+    val s = flowStrings()
 
     val iconSvg= remember {
         loadSvgFromAssets(context, "ic_error.svg")
@@ -89,7 +91,7 @@ fun OnErrorScreen(
             Spacer(Modifier.height(25.dp))
 
             Text(
-                text = "Oops unable to Process ID Provided",
+                text = s.idErrorTitle,
                 color =  BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
                 fontFamily = InterFont,
@@ -102,7 +104,7 @@ fun OnErrorScreen(
             Spacer(Modifier.height(15.dp))
 
             Text(
-                text = "Make sure presented ID is clear and does not have any light reflections on it. Try presenting the ID vertically if your camera resolution is low to ease the extraction process.",
+                text = s.idErrorMsg,
                 color =   BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
                 fontFamily = InterFont,
@@ -132,7 +134,7 @@ fun OnErrorScreen(
                 )
         ) {
             Text(
-                "Retry",
+                s.retry,
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,

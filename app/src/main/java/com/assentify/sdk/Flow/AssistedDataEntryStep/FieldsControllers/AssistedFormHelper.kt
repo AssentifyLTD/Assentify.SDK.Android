@@ -1,6 +1,8 @@
 
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
+import com.assentify.sdk.Core.Constants.UiLanguage
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.Models.DataSourceAttribute
 import com.assentify.sdk.Flow.Models.DataSourceData
@@ -225,7 +227,7 @@ object AssistedFormHelper {
 
         /** Mandatory **/
         if (field.mandatory == true && fieldValue.isEmpty())
-            return "This field is required"
+            return if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
 
         if (fieldValue.isEmpty()) {
             return null
@@ -233,10 +235,10 @@ object AssistedFormHelper {
 
         /**  MaxLength - MinLength **/
         field.minLength?.let { min ->
-            if (fieldValue.length < min) return "Minimum $min characters required"
+            if (fieldValue.length < min) return if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Minimum $min characters required" else "الحد الأدنى المطلوب هو $min حرف"
         }
         field.maxLength?.let { max ->
-            if (fieldValue.length > max) return "Maximum $max characters allowed"
+            if (fieldValue.length > max) return  if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Maximum $max characters allowed" else "الحد الأقصى المسموح به هو $max حرف"
         }
 
         /**  Email Regex **/
@@ -247,7 +249,7 @@ object AssistedFormHelper {
             )
             if (!emailRegex.matches(fieldValue)) {
                 return field.regexErrorMessage.takeUnless { it.isNullOrEmpty() }
-                    ?: "Please enter a valid email address"
+                    ?: if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Please enter a valid email address" else "يرجى إدخال عنوان بريد إلكتروني صالح"
 
             }
         }
@@ -261,7 +263,7 @@ object AssistedFormHelper {
             val finalValue = fieldValue;
             if (!emailRegex.matches(finalValue)) {
                 return field.regexErrorMessage.takeUnless { it.isNullOrEmpty() }
-                    ?: "Please enter a valid value"
+                    ?: if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Please enter a valid value" else "الرجاء إدخال قيمة صحيحة"
 
             }
         }

@@ -48,6 +48,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.TermsAndConditionsEventT
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromUrl
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
 
@@ -63,8 +64,7 @@ fun TermsAndConditionsScreen(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
-
-
+    val s = flowStrings()
 
     BaseBackgroundContainer(
         modifier = modifier
@@ -294,7 +294,7 @@ fun TermsAndConditionsScreen(
                                 )
                         ) {
                             Text(
-                                "Decline",
+                                s.decline,
                                 fontFamily = InterFont,
                                 color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                 fontWeight = FontWeight.Normal,
@@ -327,7 +327,7 @@ fun TermsAndConditionsScreen(
                 }else{
                     BaseClick(
                         isNormalClick = false,
-                        label = "Accept",
+                        label = s.accept,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 25.dp, horizontal = 25.dp)
