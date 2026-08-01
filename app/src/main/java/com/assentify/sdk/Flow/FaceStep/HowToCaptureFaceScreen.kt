@@ -47,6 +47,7 @@ import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.Customization
@@ -66,8 +67,7 @@ fun HowToCaptureFaceScreen(
     );
 
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
-
-
+    val s = flowStrings()
 
     var base64Image by remember { mutableStateOf<String?>(null) }
 
@@ -163,7 +163,7 @@ fun HowToCaptureFaceScreen(
                     )
                 }else{
                     Text(
-                        "Face Match",
+                        s.faceMatch,
                         color = BaseTheme.BaseTextColor,
                         fontSize = 25.sp,
                         fontFamily = InterFont,
@@ -194,7 +194,7 @@ fun HowToCaptureFaceScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    "Watch How Easy It Is\nTo Take A Selfie",
+                    s.watchCaptureFace,
                     color = BaseTheme.BaseTextColor,
                     fontSize = 25.sp,
                     fontFamily = InterFont,
@@ -207,7 +207,7 @@ fun HowToCaptureFaceScreen(
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-                    "The selfie includes liveness capture to ensure you're real, follow the on screen instructions.",
+                    s.faceCaptureTip,
                     color = BaseTheme.BaseTextColor,
                     fontSize = 12.sp,
                     fontFamily = InterFont,
@@ -235,7 +235,7 @@ fun HowToCaptureFaceScreen(
             } else {
                 BaseClick(
                     isNormalClick = faceCustomization!!.isNormalClick!!,
-                    label = "Lets Start",
+                    label = s.letsStart,
                     icon = Icons.Outlined.PhotoCamera,
                     modifier = Modifier
                         .fillMaxWidth()

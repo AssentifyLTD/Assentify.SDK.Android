@@ -112,7 +112,7 @@ object FlowController {
                                 val meta = getStepMeta(def) ?: return@forEach
                                 newItems.add(
                                     LocalStepModel(
-                                        name = "Step ${displayCounter}: ${meta.name}",
+                                        name = flowStrings().stepNameFormat(displayCounter, meta.name),
                                         description = meta.description,
                                         iconAssetPath = meta.icon,
                                         isDone = false,
@@ -132,7 +132,7 @@ object FlowController {
                         steps.forEach {
                             if(it.show){
                                 val meta = getStepMeta(it.stepDefinition!!.stepDefinition) ?: return@forEach
-                                it.name  = "Step ${newCounter}: ${meta.name}";
+                                it.name  = flowStrings().stepNameFormat(newCounter, meta.name);
                                 newCounter ++;
                             }
                         }
@@ -159,7 +159,7 @@ object FlowController {
                                 val meta = getStepMeta(def) ?: return@forEach
                                 newItems.add(
                                     LocalStepModel(
-                                        name = "Step ${displayCounter}: ${meta.name}",
+                                        name = flowStrings().stepNameFormat(displayCounter, meta.name),
                                         description = meta.description,
                                         iconAssetPath = meta.icon,
                                         isDone = false,
@@ -183,7 +183,7 @@ object FlowController {
                         steps.forEach {
                             if(it.show){
                                 val meta = getStepMeta(it.stepDefinition!!.stepDefinition) ?: return@forEach
-                                it.name  = "Step ${newCounter}: ${meta.name}";
+                                it.name  = flowStrings().stepNameFormat(newCounter, meta.name);
                                 newCounter ++;
                             }
                         }
@@ -519,7 +519,7 @@ object FlowController {
             InstanceHash = configModel.instanceHash,
             TenantIdentifier = configModel.tenantIdentifier,
             IsSuccessful = true,
-            Language = flowEnvironmentalConditions.language,
+            Language = flowEnvironmentalConditions.extractedDataLanguage,
             TimeStarted = timeStarted,
             TimeEnded = getCurrentDateTimeForTracking(),
             UserAgent = userAgent,
@@ -585,7 +585,7 @@ object FlowController {
             DeviceName = deviceName,
             UserAgent = userAgent,
             Timestamp = getCurrentDateTimeForTracking(),
-            Language = flowEnvironmentalConditions.language,
+            Language = flowEnvironmentalConditions.extractedDataLanguage,
             Status = status,
             InputData = prepareTrackProgressInputData(currentStep, inputData),
             Response = response

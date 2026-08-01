@@ -35,8 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 
@@ -49,6 +51,7 @@ fun SecureDropdown(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val s = flowStrings()
     var selected by rememberSaveable { mutableStateOf("") }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var userStartedTyping by rememberSaveable { mutableStateOf(false) }
@@ -99,7 +102,7 @@ fun SecureDropdown(
         mutableStateOf(
             when {
                 selected.isNotEmpty() -> ""
-                isMandatory -> "This field is required"
+                isMandatory -> if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
                 else -> ""
             }
         )
@@ -214,7 +217,7 @@ fun SecureDropdown(
                         },
                         placeholder = {
                             Text(
-                                text = "Search...",
+                                text = s.searchPlaceholder,
                                 color = BaseTheme.BaseTextColor.copy(alpha = 0.6f)
                             )
                         },
@@ -245,7 +248,7 @@ fun SecureDropdown(
                         if (filteredOptions.isEmpty()) {
                             item {
                                 Text(
-                                    text = "No results found",
+                                    text = s.noResultsFound,
                                     color = BaseTheme.BaseTextColor.copy(alpha = 0.7f),
                                     modifier = Modifier.padding(12.dp)
                                 )

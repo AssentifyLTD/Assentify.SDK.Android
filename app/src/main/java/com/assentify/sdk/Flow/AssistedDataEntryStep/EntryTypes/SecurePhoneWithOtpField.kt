@@ -47,6 +47,7 @@ import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.OtpHelper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
 
@@ -60,6 +61,7 @@ fun SecurePhoneWithOtpField(
     onValid: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val s = flowStrings()
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
     val defaultCountry = remember(options) {
@@ -132,7 +134,7 @@ fun SecurePhoneWithOtpField(
     val errToShow by remember(localNumber, phoneIsValid) {
         derivedStateOf {
             if (localNumber.isNotBlank() && !phoneIsValid) {
-                "Please enter a valid phone number"
+                s.invalidPhone
             } else {
                 ""
             }
@@ -163,7 +165,7 @@ fun SecurePhoneWithOtpField(
     if (!field.isHidden!!) {
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
-                text = if (!isOtpStep || isVerified) title else "Enter OTP",
+                text = if (!isOtpStep || isVerified) title else s.enterOtp,
                 color = BaseTheme.BaseTextColor,
                 fontSize = 14.sp,
                 fontFamily = InterFont,
@@ -254,7 +256,7 @@ fun SecurePhoneWithOtpField(
                                         enabled = phoneIsValid
                                     ) {
                                         Text(
-                                            "Send OTP",
+                                            s.sendOtp,
                                             color = BaseTheme.BaseTextColor,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.SemiBold
@@ -314,7 +316,7 @@ fun SecurePhoneWithOtpField(
                     },
                     singleLine = true,
                     placeholder = {
-                        Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor)
+                        Text(s.otpLabel(otpSize), color = BaseTheme.BaseTextColor)
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = when (otpFormat) {
@@ -346,7 +348,7 @@ fun SecurePhoneWithOtpField(
 
                 if (isVerified) {
                     Text(
-                        "Verified successfully",
+                        s.verifiedSuccessfully,
                         color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                         fontSize = 12.sp
                     )
@@ -379,7 +381,7 @@ fun SecurePhoneWithOtpField(
             if (verifying) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Otp verifying ...",
+                    s.otpVerifying,
                     color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                     fontSize = 12.sp
                 )
@@ -417,7 +419,7 @@ fun SecurePhoneWithOtpField(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Choose code",
+                        text = s.chooseCode,
                         color = BaseTheme.BaseTextColor,
                         fontSize = 16.sp,
                         fontFamily = InterFont,
@@ -434,7 +436,7 @@ fun SecurePhoneWithOtpField(
                         },
                         placeholder = {
                             Text(
-                                text = "Search...",
+                                text = s.searchPlaceholder,
                                 color = BaseTheme.BaseTextColor.copy(alpha = 0.6f)
                             )
                         },
@@ -465,7 +467,7 @@ fun SecurePhoneWithOtpField(
                         if (filteredCountries.isEmpty()) {
                             item {
                                 Text(
-                                    text = "No results found",
+                                    text = s.noResultsFound,
                                     color = BaseTheme.BaseTextColor.copy(alpha = 0.7f),
                                     modifier = Modifier.padding(12.dp)
                                 )

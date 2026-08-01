@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
+import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
@@ -16,6 +17,7 @@ import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.Models.LocalStepModel
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -74,6 +76,9 @@ object BaseTheme {
 
     val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
 
+    val BaseUiLanguage: String get() = AssentifySdkObject.getAssentifySdkObject().environmentalConditions.flowUiLanguage;
+
+
 }
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {
@@ -86,7 +91,6 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
             FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions();
 
         val configModel = ConfigModelObject.getConfigModelObject()
-
 
         setContent {
             BlockLoaderScreen(
@@ -184,6 +188,7 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
             )
         )
         var displayCounter = 1
+        val cs = flowStrings()
 
         configModel.stepMap.forEach { step ->
             val def = step.stepDefinition
@@ -196,7 +201,7 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                 val meta = getStepMeta(def) ?: return@forEach
                 tempList.add(
                     LocalStepModel(
-                        name = "Step ${displayCounter}: ${meta.name}",
+                        name = cs.stepNameFormat(displayCounter, meta.name),
                         description = meta.description,
                         iconAssetPath = meta.icon,
                         isDone = false,
@@ -243,7 +248,35 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
         )
     }
 
-    return tempList.filter { it.show }
+    val refreshedList = refreshStepTranslations(tempList)
+    LocalStepsObject.setLocalSteps(refreshedList)
+
+    return refreshedList.filter { it.show }
+}
+
+/**
+ * Cached steps have name/description baked in at build time. If the UI language changes
+ * after the cache was written, re-derive them from the current [flowStrings] instead of
+ * showing the stale translation that was persisted.
+ */
+private fun refreshStepTranslations(steps: MutableList<LocalStepModel>): MutableList<LocalStepModel> {
+    val cs = flowStrings()
+    var displayCounter = 1
+
+    return steps.map { step ->
+        val meta = step.stepDefinition?.stepDefinition?.let { getStepMeta(it) }
+        if (meta != null) {
+            val refreshed = step.copy(
+                name = cs.stepNameFormat(displayCounter, meta.name),
+                description = meta.description,
+                iconAssetPath = meta.icon
+            )
+            displayCounter++
+            refreshed
+        } else {
+            step
+        }
+    }.toMutableList()
 }
 
 data class StepMeta(
@@ -252,36 +285,39 @@ data class StepMeta(
     val icon: String
 )
 
-fun getStepMeta(stepDefinition: String): StepMeta? = when (stepDefinition) {
-    StepsNames.TermsConditions -> StepMeta(
-        name = "Terms & Conditions",
-        description = "Read and accept the Terms & Conditions.",
-        icon = "ic_terms_step.svg"
-    )
+fun getStepMeta(stepDefinition: String): StepMeta? {
+    val s = flowStrings()
+    return when (stepDefinition) {
+        StepsNames.TermsConditions -> StepMeta(
+            name = s.stepTermsName,
+            description = s.stepTermsDesc,
+            icon = "ic_terms_step.svg"
+        )
 
-    StepsNames.IdentificationDocumentCapture -> StepMeta(
-        name = "Scan Your ID",
-        description = "Take a photo of your national ID or passport to verify your identity.",
-        icon = "ic_id_step.svg"
-    )
+        StepsNames.IdentificationDocumentCapture -> StepMeta(
+            name = s.stepIdName,
+            description = s.stepIdDesc,
+            icon = "ic_id_step.svg"
+        )
 
-    StepsNames.FaceImageAcquisition -> StepMeta(
-        name = "Take Selfie",
-        description = "Use your camera to securely confirm your identity with a quick selfie scan.",
-        icon = "ic_face_step.svg"
-    )
+        StepsNames.FaceImageAcquisition -> StepMeta(
+            name = s.stepFaceName,
+            description = s.stepFaceDesc,
+            icon = "ic_face_step.svg"
+        )
 
-    StepsNames.AssistedDataEntry -> StepMeta(
-        name = "Information Capture",
-        description = "Provide basic personal details like name, address, and employment info.",
-        icon = "ic_data_entry_step.svg"
-    )
+        StepsNames.AssistedDataEntry -> StepMeta(
+            name = s.stepDataEntryName,
+            description = s.stepDataEntryDesc,
+            icon = "ic_data_entry_step.svg"
+        )
 
-    StepsNames.ContextAwareSigning -> StepMeta(
-        name = "eKYC Signing",
-        description = "Provide a digital signature to complete onboarding.",
-        icon = "ic_signing_step.svg"
-    )
+        StepsNames.ContextAwareSigning -> StepMeta(
+            name = s.stepSigningName,
+            description = s.stepSigningDesc,
+            icon = "ic_signing_step.svg"
+        )
 
-    else -> null
+        else -> null
+    }
 }

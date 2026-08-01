@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
@@ -46,10 +47,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -59,6 +62,7 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.SubmitDataTypes
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
@@ -72,9 +76,7 @@ fun SubmitStepScreen(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
-
-
-
+    val s = flowStrings()
 
     var resetTick by remember { mutableStateOf(0) }
 
@@ -155,8 +157,8 @@ fun SubmitStepScreen(
                             MiddleContent(
                                 phoneIcon = phoneIcon,
                                 flowEnv = flowEnv,
-                                title = "Ready to Submit?",
-                                message = "Swipe the button below to confirm your submission.",
+                                title = s.readyToSubmit,
+                                message = s.swipeToConfirm,
                                 messageColor =   BaseTheme.BaseTextColor
                             )
                         }
@@ -166,7 +168,7 @@ fun SubmitStepScreen(
                                 phoneIcon = phoneIcon,
                                 flowEnv = flowEnv,
                                 title = null,
-                                message = "We couldn't complete your submission. Check your connection and retry.",
+                                message = s.submissionError,
                                 messageColor = BaseTheme.BaseRedColor
                             )
                         }
@@ -178,7 +180,7 @@ fun SubmitStepScreen(
                 // =========================
                 when {submitDataTypes != SubmitDataTypes.onError -> {
                         SwipeToSubmit(
-                            text = "Swipe to Submit",
+                            text = s.swipeToSubmit,
                             resetKey = resetTick,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -282,7 +284,7 @@ fun SwipeToSubmit(
 ) {
 
     val context = LocalContext.current
-
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     val density = LocalDensity.current
     var trackWidthPx by remember { mutableStateOf(0f) }
@@ -358,7 +360,8 @@ fun SwipeToSubmit(
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
                         onHorizontalDrag = { _, dragAmount ->
-                            rawOffset = (rawOffset + dragAmount).coerceIn(0f, maxOffset)
+                            val d = if (isRtl) -dragAmount else dragAmount
+                            rawOffset = (rawOffset + d).coerceIn(0f, maxOffset)
                         },
                         onDragEnd = { settle() },
                         onDragCancel = { settle() }
@@ -376,7 +379,7 @@ fun SwipeToSubmit(
                     Image(
                         painter = it,
                         contentDescription = "arrowsIcon",
-                        modifier = Modifier.size(30.dp),
+                        modifier = Modifier.size(30.dp).scale(scaleX = if (isRtl) -1f else 1f, scaleY = 1f),
                         contentScale = ContentScale.Fit,
                         colorFilter = ColorFilter.tint(
                             Color(

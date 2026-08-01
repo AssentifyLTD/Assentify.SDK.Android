@@ -33,6 +33,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -44,6 +45,7 @@ fun OnWrongTemplateScreen(
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val context = LocalContext.current
+    val s = flowStrings()
 
     val iconSvg= remember {
         loadSvgFromAssets(context, "ic_wrong_template.svg")
@@ -91,7 +93,7 @@ fun OnWrongTemplateScreen(
             Spacer(Modifier.height(25.dp))
 
             Text(
-                text = "Unsupported ID Provided \n Wrong Template",
+                text = s.wrongTemplateTitle,
                 color =   BaseTheme.BaseTextColor,
                 fontSize = 20.sp,
                 fontFamily = InterFont,
@@ -104,7 +106,7 @@ fun OnWrongTemplateScreen(
             Spacer(Modifier.height(15.dp))
 
             Text(
-                text = "Make sure its one of the above IDs presented and allowed by ${ConfigModelObject.getConfigModelObject()!!.flowName} to verify your identity.",
+                text = s.wrongTemplateMsg(ConfigModelObject.getConfigModelObject()!!.flowName),
                 color =   BaseTheme.BaseTextColor,
                 fontSize = 10.sp,
                 fontFamily = InterFont,
@@ -129,7 +131,7 @@ fun OnWrongTemplateScreen(
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-                    text = "Expected Card Type",
+                    text = s.expectedCardType,
                     color =   BaseTheme.BaseTextColor,
                     fontSize = 10.sp,
                     fontFamily = InterFont,
@@ -162,7 +164,7 @@ fun OnWrongTemplateScreen(
                 )
         ) {
             Text(
-                "Retry",
+                s.retry,
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,

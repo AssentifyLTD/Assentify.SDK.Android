@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +42,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
@@ -50,11 +53,13 @@ import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.IDQrKeys
 import com.assentify.sdk.Core.Constants.StepperType
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnErrorScreen
@@ -220,6 +225,10 @@ fun QrScanScreen(
     var scanQr by remember { mutableStateOf<ScanQr?>(null) }
     var scanQrManual by remember { mutableStateOf<ScanQrManual?>(null) }
 
+    val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
+        LayoutDirection.Rtl else LayoutDirection.Ltr
+
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         if (eventTypes != EventTypes.none) {
@@ -273,7 +282,7 @@ fun QrScanScreen(
                 val result = assentifySdk.startScanQr(
                     activity,
                     templatesByCountry = templatesByCountry,
-                    flowEnv.language,
+                    flowEnv.extractedDataLanguage,
                     stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                 )
 
@@ -396,7 +405,7 @@ fun QrScanScreen(
                         )
                 ) {
                     Text(
-                        "Take Photo",
+                        flowStrings().takePhoto,
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Normal,
                         color = BaseTheme.BaseSecondaryTextColor,
@@ -406,6 +415,7 @@ fun QrScanScreen(
             }
         }
 
+    }
     }
 }
 

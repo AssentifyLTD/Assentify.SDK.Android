@@ -33,6 +33,7 @@ import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.OtpHelper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
@@ -48,6 +49,7 @@ fun SecureEmailWithOtpField(
     modifier: Modifier = Modifier
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
 
@@ -65,7 +67,7 @@ fun SecureEmailWithOtpField(
     val errToShow by remember {
         derivedStateOf {
             if (email.isNotBlank() && !emailLooksValid(email)) {
-                "Please enter a valid email address"
+                s.invalidEmail
             } else ""
         }
     }
@@ -74,7 +76,7 @@ fun SecureEmailWithOtpField(
     if (!field.isHidden!!){
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = if (!isOtpStep || isVerified) title else "Enter OTP",
+            text = if (!isOtpStep || isVerified) title else s.enterOtp,
             color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
             fontFamily = InterFont,
@@ -127,7 +129,7 @@ fun SecureEmailWithOtpField(
                                 enabled = emailLooksValid(email)
                             ) {
                                 Text(
-                                    "Send OTP",
+                                    s.sendOtp,
                                     color = BaseTheme.BaseTextColor,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold
@@ -188,7 +190,7 @@ fun SecureEmailWithOtpField(
 
                 },
                 singleLine = true,
-                placeholder = { Text("OTP ($otpSize)", color = BaseTheme.BaseTextColor) },
+                placeholder = { Text(s.otpLabel(otpSize ?: 8), color = BaseTheme.BaseTextColor) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when (otpType) {
                         1 -> KeyboardType.Number
@@ -226,7 +228,7 @@ fun SecureEmailWithOtpField(
                 ) {
                     if(isVerified){
                         Text(
-                            "Verified successfully",
+                            s.verifiedSuccessfully,
                             color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                             fontSize = 12.sp
                         )
@@ -270,7 +272,7 @@ fun SecureEmailWithOtpField(
         if(verifying){
             Spacer(Modifier.height(4.dp))
             Text(
-                "Otp verifying ...",
+                s.otpVerifying,
                 color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                 fontSize = 12.sp
             )
@@ -321,6 +323,7 @@ fun ResendOtpControl(
     modifier: Modifier = Modifier,
 ) {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+    val s = flowStrings()
 
     val totalMs = (expiryMinutes * 60_000).toLong().coerceAtLeast(1_000L)
     var remainingMs by remember(expiryMinutes) { mutableStateOf(totalMs) }
@@ -354,7 +357,7 @@ fun ResendOtpControl(
         modifier = modifier
     ) {
         Text(
-            text = if (canResend) "Resend OTP" else "Resend in $countdownLabel",
+            text = if (canResend) s.resendOtp else s.resendIn(countdownLabel),
             color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
         )
     }

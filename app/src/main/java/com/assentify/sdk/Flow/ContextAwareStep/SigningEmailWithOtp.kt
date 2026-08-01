@@ -38,6 +38,7 @@ import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.ResendOtpControl
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.OtpHelper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.RemoteClient.Models.ContextAwareSigningModel
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.VerifyOtpRequestOtpModel
@@ -50,6 +51,7 @@ fun SigningEmailWithOtp(
     onValid: (VerifyOtpRequestOtpModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val s = flowStrings()
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
     var email by remember { mutableStateOf(getValueByKey(contextAwareSigningModel.data.otpTargets.first())) }
@@ -67,7 +69,7 @@ fun SigningEmailWithOtp(
     val errToShow by remember(email) {
         derivedStateOf {
             when {
-                email.isNotBlank() && !emailLooksValid(email) -> "Please enter a valid email address"
+                email.isNotBlank() && !emailLooksValid(email) -> s.invalidEmail
                 else -> ""
             }
         }
@@ -97,7 +99,7 @@ fun SigningEmailWithOtp(
                 isOtpStep = true
                 otp = ""
             } else {
-                requestError = "Failed to send OTP. Please try again."
+                requestError = s.failedToSendOtp
             }
         }
     }
@@ -145,7 +147,7 @@ fun SigningEmailWithOtp(
                                     }
                                 } else {
                                     Text(
-                                        "Send OTP",
+                                        s.sendOtp,
                                         color = BaseTheme.BaseTextColor,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -205,7 +207,7 @@ fun SigningEmailWithOtp(
                                     onValid(verifyOtpRequestOtpModel)
                                 } else {
                                     isVerified = false
-                                    requestError = "Invalid OTP. Please try again."
+                                    requestError = s.invalidOtp
                                 }
                             }
                         }
@@ -213,7 +215,7 @@ fun SigningEmailWithOtp(
                 },
                 singleLine = true,
                 placeholder = {
-                    Text("OTP (${otpSize ?: 8})", color = BaseTheme.BaseTextColor)
+                    Text(s.otpLabel(otpSize ?: 8), color = BaseTheme.BaseTextColor)
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when (otpFormat) {
@@ -249,14 +251,14 @@ fun SigningEmailWithOtp(
             ) {
                 if (isVerified) {
                     Text(
-                        "Verified successfully",
+                        s.verifiedSuccessfully,
                         color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                         fontSize = 12.sp
                     )
                 } else {
                     if (verifying) {
                         Text(
-                            "Otp verifying ...",
+                            s.otpVerifying,
                             color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                             fontSize = 12.sp
                         )
@@ -274,7 +276,7 @@ fun SigningEmailWithOtp(
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Text(
-                                    "Sending OTP...",
+                                    s.sendingOtp,
                                     color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold

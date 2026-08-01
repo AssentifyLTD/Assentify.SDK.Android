@@ -62,6 +62,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.OnCompleteScreenData
@@ -76,7 +77,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private lateinit var passportResponseModel: PassportResponseModel
     private var eventTypes = mutableStateOf<String>(EventTypes.none)
     private var imageUrl = mutableStateOf<String>("")
-    private var feedbackText = mutableStateOf("Position the passport on the bottom of the phone where the NFC chip reader is and ensure that you have the passport close enough for detection and reading.")
+    private var feedbackText = mutableStateOf("")
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
 
     private var timeStarted = getCurrentDateTimeForTracking()
@@ -89,13 +90,15 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
         val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
+        val nfcStrings = flowStrings()
+        feedbackText.value = nfcStrings.nfcInitialFeedback
        passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()!!
 
 
 
         scanNfc = assentifySdk.startScanNfc(
             this,
-            languageCode = flowEnv.language,
+            languageCode = flowEnv.extractedDataLanguage,
             context = this
         )
 
@@ -107,7 +110,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                 startActivity(intent)
             }
         } else {
-            feedbackText.value = "NFC Not supported on this device."
+            feedbackText.value = nfcStrings.nfcNotSupported
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -139,7 +142,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                             }
                         },
                         onRetry = {
-                            feedbackText.value = "Position the passport on the bottom of the phone where the NFC chip reader is and ensure that you have the passport close enough for detection and reading.";
+                            feedbackText.value = flowStrings().nfcInitialFeedback;
                             eventTypes.value = EventTypes.none;
                             imageUrl.value = ""
                         },
@@ -187,7 +190,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     /**  Events **/
     override fun onStartNfcScan() {
         runOnUiThread {
-            feedbackText.value = "Nfc reading..."
+            feedbackText.value = flowStrings().nfcReading
             eventTypes.value = EventTypes.onSend
         }
     }
@@ -209,7 +212,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
     override fun onErrorNfcScan(dataModel: PassportResponseModel, message: String) {
         runOnUiThread {
-            feedbackText.value = "Connection lost. Keep the phone still on the passport and try again."
+            feedbackText.value = flowStrings().nfcConnectionLost
             eventTypes.value = EventTypes.onError
         }
     }
@@ -231,6 +234,7 @@ fun NfcScanScreen(
 ) {
 
     val context = LocalContext.current
+    val s = flowStrings()
 
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
@@ -330,7 +334,7 @@ fun NfcScanScreen(
                     .padding(top = 150.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
             ) {
                 Text(
-                    text = "NFC Based Capture",
+                    text = s.nfcCapture,
                     color =   BaseTheme.BaseTextColor,
                     fontSize = 24.sp,
                     fontFamily = InterFont,
@@ -377,7 +381,7 @@ fun NfcScanScreen(
                         )
                     }else{
                         Text(
-                            "NFC DETECTED",
+                            s.nfcDetected,
                             color =   BaseTheme.BaseTextColor,
                             fontSize = 22.sp,
                             fontFamily = InterFont,
@@ -428,7 +432,7 @@ fun NfcScanScreen(
                                 .height(54.dp)
                         ) {
                             Text(
-                                text = "Retry",
+                                text = s.retry,
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 color = BaseTheme.BaseSecondaryTextColor,
@@ -449,7 +453,7 @@ fun NfcScanScreen(
                             )
                     ) {
                         Text(
-                            "Skip",
+                            text = s.skip,
                             color = BaseTheme.BaseSecondaryTextColor,
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Normal,
