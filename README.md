@@ -39,6 +39,12 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.36***
+1. *Android Target Sdk Version 36 Support.*
+
+***1.0.0-Beta.35***
+1. *Android Target Sdk Version 36 Support.*
+
 ***1.0.0-Beta.34***
 1. *Android Target Sdk Version 36 Support.*
 
