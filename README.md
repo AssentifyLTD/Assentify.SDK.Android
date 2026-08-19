@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.34***
+1. *Android Target Sdk Version 36 Support.*
+
 ***1.0.0-Beta.33***
 1. *Added full RTL (Right-to-Left) and LTR (Left-to-Right) , Arabic and English layout support.*
 2. *Enhanced the slider click animation*
