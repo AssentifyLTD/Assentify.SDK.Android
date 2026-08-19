@@ -13,7 +13,7 @@ android {
      applicationId "com.assentify.sdk"
 
         minSdkVersion 24
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
@@ -26,14 +26,14 @@ android {
 
 
 
-/*    signingConfigs {
+    signingConfigs {
         create("release") {
             keyAlias = "release-key"
             keyPassword = "00000000"
             storeFile = file("release-key.jks")
             storePassword = "00000000"
         }
-    }*/
+    }
 
 
     buildTypes {
@@ -41,7 +41,7 @@ android {
            // minifyEnabled true
            // shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-           // signingConfig = signingConfigs.getByName("release")
+           signingConfig = signingConfigs.getByName("release")
         }
     }
 

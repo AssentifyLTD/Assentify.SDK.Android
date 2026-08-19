@@ -40,9 +40,9 @@ import androidx.compose.ui.unit.sp
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.OnCompleteScreenData
@@ -238,8 +238,13 @@ fun OnCompleteScreen(
         Button(
             onClick = onNext,
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 0.dp,
+                pressedElevation = 0.dp,
+                disabledElevation = 0.dp
+            ),
             shape = RoundedCornerShape(28.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 5.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
@@ -253,9 +258,9 @@ fun OnCompleteScreen(
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,
-                modifier = Modifier.padding(vertical = 7.dp)
             )
         }
+
     }}
 }
 

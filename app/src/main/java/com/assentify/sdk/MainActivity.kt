@@ -98,14 +98,11 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
 
 
-        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+       etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
 
 
 
 
-  /*    etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        etInteractionHash.setText("E4BDD59C3B69A3F89AE8C756FCD67EBC72A45F405B256B3C3BDD643BE282B195")
-        etTenantIdentifier.setText("2937c91f-c905-434b-d13d-08dcc04755ec")*/
 
 
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
@@ -193,11 +190,11 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     activeLivenessCheckCount = 3,
                     faceLivenessRetryCount = 2,
                     minRam = 1,
-                    flowUiLanguage = UiLanguage.English
+                    flowUiLanguage = UiLanguage.Arabic
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    configFileName =  "configFile1",
+                    configFileName =  "Mint",
                    // processJsonConfigFile = path!!,
                     environmentalConditions = environmentalConditions,
                     assentifySdkCallback = this,
@@ -225,14 +222,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         runOnUiThread {
             /** INIT FLOW **/
             val customProperties: MutableMap<String, String> = mutableMapOf()
-            customProperties.put("phoneNumber", "tariq.alskran@gmail.com")
+            customProperties.put("PhoneNumber", "+96176733111")
             customProperties.put("email", "tariq.alskran@gmail.com")
             customProperties.put("city", "ANSAR")
 
 
             val flowEnvironmentalConditions = FlowEnvironmentalConditions(
-                backgroundType = BackgroundType.Image,
-                logoUrl = "https://image2url.com/r2/default/images/1774601396029-0d566673-586b-4d36-9f30-19704f88dba6.png",
+                backgroundType = BackgroundType.Color,
+               /* logoUrl = "https://image2url.com/r2/default/images/1774601396029-0d566673-586b-4d36-9f30-19704f88dba6.png",
                 svgBackgroundImageUrl = "https://image2url.com/r2/default/images/1774603740489-37851385-2e31-402a-9ef2-aa9468e747b4.svg",
                 textColor = "#FFFFFF",
                 secondaryTextColor = "#000000",
@@ -240,7 +237,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
                 backgroundCardColor = "#2C2C2E",
                 backgroundColor = BackgroundStyle.Solid("#2C2C2E"),
-                clickColor = BackgroundStyle.Solid("#E6BF00"),
+                clickColor = BackgroundStyle.Solid("#E6BF00"),*/
 
 
 
@@ -259,7 +256,6 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 clickColor = BackgroundStyle.Solid("#ffc400"),*/
 
                 /**Theme 2**/
-           /*     backgroundType = BackgroundType.Color,
                 logoUrl = "https://i.postimg.cc/3xY0ybsp/icon-1-(1).png",
                 textColor = "#000000",
                 accentColor = "#833F89",
@@ -270,7 +266,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     colorsHex = listOf("#833F89", "#C82B47"),
                     angleDegrees = 90f,
                     holdUntil = 0.4f
-                ),*/
+                ),
 
 
                 extractedDataLanguage = config.language,
@@ -287,7 +283,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
 
-          // assentifySdk.clearFlow(this@MainActivity,)
+           assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,
