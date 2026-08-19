@@ -1159,7 +1159,6 @@ fun DocumentPage(
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
                     .padding(horizontal = 25.dp)
                     .background(
                         brush = BaseTheme.BaseClickColor!!.toBrush(),
@@ -1185,7 +1184,6 @@ fun DocumentPage(
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
             .padding(horizontal = 25.dp)
             .border(
                 1.dp,

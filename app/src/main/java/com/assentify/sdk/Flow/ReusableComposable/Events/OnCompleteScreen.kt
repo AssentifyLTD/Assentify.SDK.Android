@@ -238,8 +238,13 @@ fun OnCompleteScreen(
         Button(
             onClick = onNext,
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 0.dp,
+                pressedElevation = 0.dp,
+                disabledElevation = 0.dp
+            ),
             shape = RoundedCornerShape(28.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 7.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
@@ -253,9 +258,9 @@ fun OnCompleteScreen(
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Normal,
-              //  modifier = Modifier.padding(vertical = 7.dp)
             )
         }
+
     }}
 }
 
