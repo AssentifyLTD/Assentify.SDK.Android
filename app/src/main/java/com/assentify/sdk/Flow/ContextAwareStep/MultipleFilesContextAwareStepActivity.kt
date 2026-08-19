@@ -1118,7 +1118,7 @@ fun DocumentPage(
     val pdfHeight = if (isApproved) {
         LocalConfiguration.current.screenHeightDp.dp - 280.dp
     } else {
-        LocalConfiguration.current.screenHeightDp.dp - 340.dp
+        LocalConfiguration.current.screenHeightDp.dp - 380.dp
     }
 
     if (isLoading) {

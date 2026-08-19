@@ -244,7 +244,7 @@ fun OnCompleteScreen(
                 disabledElevation = 0.dp
             ),
             shape = RoundedCornerShape(28.dp),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 7.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 5.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
