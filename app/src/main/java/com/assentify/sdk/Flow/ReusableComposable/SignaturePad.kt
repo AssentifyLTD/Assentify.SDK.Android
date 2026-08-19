@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,11 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.flowStrings
@@ -55,210 +59,223 @@ fun SignaturePad(
     penColorInt: Int = android.graphics.Color.WHITE,
     minStrokeWidth: Float = 3f,
     maxStrokeWidth: Float = 6f,
+    // Pass this explicitly if your app manages language state itself
+    // (e.g. a saved user preference) rather than relying on the system locale.
     onConfirmBase64: (String) -> Unit,
 ) {
     val strings = flowStrings()
     val context = LocalContext.current
     val density = LocalDensity.current
 
-    val signaturePad = remember {
-        com.github.gcacace.signaturepad.views.SignaturePad(
-            context,
-            null
-        ).apply {
-            setMinWidth(minStrokeWidth)
-            setMaxWidth(maxStrokeWidth)
-            setPenColor(penColorInt)
-            setVelocityFilterWeight(0.9f)
-        }
-    }
+    val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic) LayoutDirection.Ltr else LayoutDirection.Rtl
 
-    var hasSignature by remember {
-        mutableStateOf(false)
-    }
+    // Everything below reads Start/End (alignment, padding, corner radii),
+    // so forcing the direction here is enough to flip the whole layout.
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
 
-    var isExpanding by remember {
-        mutableStateOf(false)
-    }
-
-    var containerWidthPx by remember {
-        mutableStateOf(0)
-    }
-
-    DisposableEffect(signaturePad) {
-        signaturePad.setOnSignedListener(
-            object :
-                com.github.gcacace.signaturepad.views.SignaturePad.OnSignedListener {
-
-                override fun onStartSigning() = Unit
-
-                override fun onSigned() {
-                    hasSignature = true
-                }
-
-                override fun onClear() {
-                    hasSignature = false
-                }
+        val signaturePad = remember {
+            com.github.gcacace.signaturepad.views.SignaturePad(
+                context,
+                null
+            ).apply {
+                setMinWidth(minStrokeWidth)
+                setMaxWidth(maxStrokeWidth)
+                setPenColor(penColorInt)
+                setVelocityFilterWeight(0.9f)
             }
+        }
+
+        var hasSignature by remember {
+            mutableStateOf(false)
+        }
+
+        var isExpanding by remember {
+            mutableStateOf(false)
+        }
+
+        var containerWidthPx by remember {
+            mutableStateOf(0)
+        }
+
+        DisposableEffect(signaturePad) {
+            signaturePad.setOnSignedListener(
+                object :
+                    com.github.gcacace.signaturepad.views.SignaturePad.OnSignedListener {
+
+                    override fun onStartSigning() = Unit
+
+                    override fun onSigned() {
+                        hasSignature = true
+                    }
+
+                    override fun onClear() {
+                        hasSignature = false
+                    }
+                }
+            )
+
+            onDispose {
+                signaturePad.setOnSignedListener(null)
+            }
+        }
+
+        val containerWidthDp = with(density) {
+            containerWidthPx.toDp()
+        }
+
+        val confirmInitialWidth = 62.dp
+
+        val animatedWidth by animateDpAsState(
+            targetValue = if (isExpanding && containerWidthPx > 0) {
+                containerWidthDp
+            } else {
+                confirmInitialWidth
+            },
+            animationSpec = tween(
+                durationMillis = 600,
+                easing = LinearOutSlowInEasing
+            ),
+            label = "confirmWidth"
         )
 
-        onDispose {
-            signaturePad.setOnSignedListener(null)
-        }
-    }
+        val confirmedTextAlpha by animateFloatAsState(
+            targetValue = if (isExpanding) {
+                1f
+            } else {
+                0f
+            },
+            animationSpec = tween(
+                durationMillis = 400,
+                delayMillis = 250
+            ),
+            label = "confirmedTextAlpha"
+        )
 
-    val containerWidthDp = with(density) {
-        containerWidthPx.toDp()
-    }
-
-    val confirmInitialWidth = 62.dp
-
-    val animatedWidth by animateDpAsState(
-        targetValue = if (isExpanding && containerWidthPx > 0) {
-            containerWidthDp
-        } else {
-            confirmInitialWidth
-        },
-        animationSpec = tween(
-            durationMillis = 600,
-            easing = LinearOutSlowInEasing
-        ),
-        label = "confirmWidth"
-    )
-
-    val confirmedTextAlpha by animateFloatAsState(
-        targetValue = if (isExpanding) {
-            1f
-        } else {
-            0f
-        },
-        animationSpec = tween(
-            durationMillis = 400,
-            delayMillis = 250
-        ),
-        label = "confirmedTextAlpha"
-    )
-
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(BaseTheme.BaseClickColor!!.toBrush())
-            .onSizeChanged {
-                containerWidthPx = it.width
-            }
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .size(40.dp)
-                    .align(Alignment.Center),
-                color = BaseTheme.BaseTextColor,
-                strokeWidth = 4.dp
-            )
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = confirmInitialWidth + 8.dp
-                    )
-            ) {
-                Text(
-                    text = title,
+        Box(
+            modifier = modifier
+                .clip(RoundedCornerShape(18.dp))
+                .background(BaseTheme.BaseClickColor!!.toBrush())
+                .onSizeChanged {
+                    containerWidthPx = it.width
+                }
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .align(Alignment.Center),
                     color = BaseTheme.BaseTextColor,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(
-                        start = 14.dp,
-                        top = 12.dp,
-                        bottom = 6.dp
-                    )
+                    strokeWidth = 4.dp
                 )
-
-                AndroidView(
-                    factory = {
-                        signaturePad
-                    },
+            } else {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
                         .padding(
-                            start = 12.dp,
-                            end = 6.dp,
-                            bottom = 12.dp
+                            // "start" now resolves to the correct visual side
+                            // (left for LTR/English, right for RTL/Arabic)
+                            start = confirmInitialWidth + 8.dp
                         )
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color.Transparent)
-                )
-            }
+                ) {
+                    Text(
+                        text = title,
+                        color = BaseTheme.BaseTextColor,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(
+                            start = 14.dp,
+                            top = 12.dp,
+                            bottom = 6.dp
+                        )
+                    )
 
-            Box(
-                modifier = Modifier
-                    .zIndex(2f)
-                    .align(Alignment.CenterStart)
-                    .fillMaxHeight()
-                    .width(animatedWidth)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 0.dp,
-                            bottomStart = 0.dp,
-                            topEnd = if (isExpanding) {
-                                0.dp
+                    AndroidView(
+                        factory = {
+                            signaturePad
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(
+                                start = 12.dp,
+                                end = 6.dp,
+                                bottom = 12.dp
+                            )
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color.Transparent)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .zIndex(2f)
+                        .align(Alignment.CenterStart) // start = left in LTR, right in RTL
+                        .fillMaxHeight()
+                        .width(animatedWidth)
+                        .clip(
+                            RoundedCornerShape(
+                                topStart = 0.dp,
+                                bottomStart = 0.dp,
+                                topEnd = if (isExpanding) {
+                                    0.dp
+                                } else {
+                                    20.dp
+                                },
+                                bottomEnd = if (isExpanding) {
+                                    0.dp
+                                } else {
+                                    20.dp
+                                }
+                            )
+                        )
+                        .background(
+                            if (hasSignature) {
+                                Color(
+                                    android.graphics.Color.parseColor(
+                                        BaseTheme.BaseAccentColor
+                                    )
+                                )
                             } else {
-                                20.dp
-                            },
-                            bottomEnd = if (isExpanding) {
-                                0.dp
-                            } else {
-                                20.dp
+                                BaseTheme.FieldColor
                             }
                         )
-                    )
-                    .background(
-                        if (hasSignature) {
-                            Color(
-                                android.graphics.Color.parseColor(
-                                    BaseTheme.BaseAccentColor
+                        .clickable(
+                            enabled = hasSignature && !isExpanding,
+                            onClick = {
+                                val base64 = createBlackSignatureBase64(
+                                    signatureBitmap =
+                                        signaturePad.transparentSignatureBitmap
                                 )
-                            )
-                        } else {
-                            BaseTheme.FieldColor
-                        }
-                    )
-                    .clickable(
-                        enabled = hasSignature && !isExpanding,
-                        onClick = {
-                            val base64 = createBlackSignatureBase64(
-                                signatureBitmap =
-                                    signaturePad.transparentSignatureBitmap
-                            )
 
-                            onConfirmBase64(base64)
-                            isExpanding = true
-                        }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!isExpanding) {
-                    Text(
-                        text = strings.confirmSignature,
-                        color = BaseTheme.BaseTextColor,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.rotate(90f)
-                    )
-                } else {
-                    Text(
-                        text = strings.confirmedSignature,
-                        color = BaseTheme.BaseTextColor.copy(
-                            alpha = confirmedTextAlpha
+                                onConfirmBase64(base64)
+                                isExpanding = true
+                            }
                         ),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.align(
-                            Alignment.Center
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!isExpanding) {
+                        Text(
+                            text = strings.confirmSignature,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.rotate(
+                                if (BaseTheme.BaseUiLanguage == UiLanguage.English) -90f else 90f
+                            )
                         )
-                    )
+                    } else {
+                        Text(
+                            text = strings.confirmedSignature,
+                            color = BaseTheme.BaseTextColor.copy(
+                                alpha = confirmedTextAlpha
+                            ),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.align(
+                                Alignment.Center
+                            )
+                        )
+                    }
                 }
             }
         }

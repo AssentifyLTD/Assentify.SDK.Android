@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -46,11 +47,11 @@ import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import kotlinx.coroutines.launch
 
@@ -258,6 +259,7 @@ fun AssistedDataEntryScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(vertical = 25.dp, horizontal = 40.dp)
                         .background(
                             brush = if (enabled)
@@ -270,6 +272,7 @@ fun AssistedDataEntryScreen(
                     sliderModifier =  Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(vertical = 25.dp, horizontal = 40.dp),
                     onNext = {
                         scope.launch {

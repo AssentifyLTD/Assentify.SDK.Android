@@ -51,6 +51,8 @@ import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 
 @Composable
@@ -81,6 +83,7 @@ fun TermsAndConditionsScreen(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .statusBarsPadding()
             ) {
 
                 if (BaseTheme.StepperType == StepperType.Normal) {
@@ -264,6 +267,7 @@ fun TermsAndConditionsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp),
                         horizontalArrangement = Arrangement.spacedBy(
                             15.dp,
@@ -330,6 +334,7 @@ fun TermsAndConditionsScreen(
                         label = s.accept,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp)
                             .background(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
@@ -337,6 +342,7 @@ fun TermsAndConditionsScreen(
                             ),
                         sliderModifier =  Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp),
                         onNext = { onAccept(true) }
 

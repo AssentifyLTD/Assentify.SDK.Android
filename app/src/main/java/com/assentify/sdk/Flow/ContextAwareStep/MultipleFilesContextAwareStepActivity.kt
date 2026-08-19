@@ -971,6 +971,7 @@ fun MultipleFilesContextAwareStepScreen(
                             shape = RoundedCornerShape(28.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .navigationBarsPadding()
                                 .padding(vertical = 25.dp, horizontal = 25.dp)
                                 .background(
                                     brush = if (canSign)
@@ -1016,6 +1017,7 @@ fun MultipleFilesContextAwareStepScreen(
                         label = s.next,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp)
                             .background(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
@@ -1023,6 +1025,7 @@ fun MultipleFilesContextAwareStepScreen(
                             ),
                         sliderModifier =  Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp),
                         onNext = {
                             onNext()}
@@ -1115,7 +1118,7 @@ fun DocumentPage(
     val pdfHeight = if (isApproved) {
         LocalConfiguration.current.screenHeightDp.dp - 280.dp
     } else {
-        LocalConfiguration.current.screenHeightDp.dp - 340.dp
+        LocalConfiguration.current.screenHeightDp.dp - 380.dp
     }
 
     if (isLoading) {
@@ -1156,7 +1159,6 @@ fun DocumentPage(
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
                     .padding(horizontal = 25.dp)
                     .background(
                         brush = BaseTheme.BaseClickColor!!.toBrush(),
@@ -1182,7 +1184,6 @@ fun DocumentPage(
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
             .padding(horizontal = 25.dp)
             .border(
                 1.dp,

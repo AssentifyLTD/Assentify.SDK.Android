@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -548,9 +549,9 @@ fun FaceMatchScanScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .statusBarsPadding()
+                            .navigationBarsPadding()
                             .align(Alignment.BottomCenter)
-                            .padding(start = 12.dp, end = 30.dp, bottom = 100.dp)
+                            .padding(start = 12.dp, end = 30.dp, bottom = 25.dp)
                     ) {
                         Text(
                             feedbackText,
@@ -571,6 +572,7 @@ fun FaceMatchScanScreen(
                         shape = RoundedCornerShape(28.dp),
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp)
                             .fillMaxWidth().background(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
@@ -591,9 +593,9 @@ fun FaceMatchScanScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .statusBarsPadding()
+                        .navigationBarsPadding()
                         .align(Alignment.BottomCenter)
-                        .padding(start = 12.dp, end = 30.dp, bottom = 100.dp)
+                        .padding(start = 12.dp, end = 30.dp, bottom = 25.dp)
                 ) {
                     Text(
                         feedbackText,
