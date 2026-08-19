@@ -6,7 +6,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'kotlin-parcelize'
 
 android {
-    //namespace "com.assentify.sdk"
+    namespace "com.assentify.sdk"
     compileSdkVersion 36
     android.ndkVersion "27.0.12077973"
     defaultConfig {
