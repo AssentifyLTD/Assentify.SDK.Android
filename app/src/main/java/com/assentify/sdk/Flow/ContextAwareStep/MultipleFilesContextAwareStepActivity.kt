@@ -971,6 +971,7 @@ fun MultipleFilesContextAwareStepScreen(
                             shape = RoundedCornerShape(28.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .navigationBarsPadding()
                                 .padding(vertical = 25.dp, horizontal = 25.dp)
                                 .background(
                                     brush = if (canSign)
@@ -1016,6 +1017,7 @@ fun MultipleFilesContextAwareStepScreen(
                         label = s.next,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp)
                             .background(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
@@ -1023,6 +1025,7 @@ fun MultipleFilesContextAwareStepScreen(
                             ),
                         sliderModifier =  Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(vertical = 25.dp, horizontal = 25.dp),
                         onNext = {
                             onNext()}
