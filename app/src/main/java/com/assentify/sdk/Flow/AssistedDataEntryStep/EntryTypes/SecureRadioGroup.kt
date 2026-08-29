@@ -30,11 +30,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
+import com.assentify.sdk.Core.Constants.ValidationStyle
 
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
@@ -72,7 +76,14 @@ fun SecureRadioGroup(
     if (!field.isHidden!!){
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = title,
+            text = buildAnnotatedString {
+                append(title)
+                if (BaseTheme.BaseValidationStyle == ValidationStyle.Asterisk && field.mandatory == true) {
+                    withStyle(SpanStyle(color = Color.Red)) {
+                        append(" *")
+                    }
+                }
+            },
             color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
             fontFamily = InterFont,

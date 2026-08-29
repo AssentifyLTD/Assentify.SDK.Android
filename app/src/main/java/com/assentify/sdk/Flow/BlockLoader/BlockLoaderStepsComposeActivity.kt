@@ -16,8 +16,8 @@ import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.FlowController.FlowController
-import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.FlowController.flowStrings
+import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -74,9 +74,26 @@ object BaseTheme {
     val RangeEnd: Int get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().rangeEnd
     val StepperTitle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitle
 
+    val StepperTitleColor: Color
+        get() {
+            val colorString = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitleColor
+            return if (colorString.isEmpty()) {
+                Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor))
+            } else {
+                Color(android.graphics.Color.parseColor(colorString))
+            }
+        }
+
     val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
 
     val BaseUiLanguage: String get() = AssentifySdkObject.getAssentifySdkObject().environmentalConditions.flowUiLanguage;
+    val BaseValidationStyle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().validationStyle;
+
+
+    val BaseHowToCapturePassportVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCapturePassportVideo;
+    val BaseHowToCaptureIDVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCaptureIDVideo;
+    val BaseHowToCaptureFaceVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCaptureFaceVideo;
+
 
 
 }
@@ -99,7 +116,7 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
                 onStepClick = { /* navigate if needed */ },
                 onNext = {
                     /** Track Progress **/
-                    if(firstInit){
+                    if (firstInit) {
                         val steps = LocalStepsObject.getLocalSteps();
                         val currentStep =
                             steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
@@ -216,24 +233,24 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                 displayCounter++
             }
 
-             val isSplit = (def == StepsNames.Split)
-             if(isSplit){
-                 tempList.add(
-                     LocalStepModel(
-                         name = "",
-                         description = "",
-                         iconAssetPath = "",
-                         show = false,
-                         isDone = false,
-                         stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id },
-                         submitRequestModel = SubmitRequestModel(
-                             stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id }.stepDefinition,
-                             stepId = configModel.stepDefinitions.first { it.stepId == step.id }.stepId,
-                             extractedInformation = emptyMap()
-                         )
-                     )
-                 )
-             }
+            val isSplit = (def == StepsNames.Split)
+            if (isSplit) {
+                tempList.add(
+                    LocalStepModel(
+                        name = "",
+                        description = "",
+                        iconAssetPath = "",
+                        show = false,
+                        isDone = false,
+                        stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id },
+                        submitRequestModel = SubmitRequestModel(
+                            stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id }.stepDefinition,
+                            stepId = configModel.stepDefinitions.first { it.stepId == step.id }.stepId,
+                            extractedInformation = emptyMap()
+                        )
+                    )
+                )
+            }
         }
         LocalStepsObject.setLocalSteps(tempList)
 

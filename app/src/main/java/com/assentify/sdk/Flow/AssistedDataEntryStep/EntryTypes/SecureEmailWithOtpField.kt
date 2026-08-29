@@ -1,6 +1,7 @@
 package com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes
 
 
+import AssistedFormHelper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,12 +25,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Core.Constants.ValidationStyle
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.OtpHelper
@@ -53,8 +58,8 @@ fun SecureEmailWithOtpField(
     val configModelObject = ConfigModelObject.getConfigModelObject()
 
 
-    var email by remember(field.inputKey) { mutableStateOf("") }
-    var isVerified by remember() { mutableStateOf(false) }
+    var email by remember(field.inputKey) { mutableStateOf(AssistedFormHelper.getOtpFieldValue(field.inputKey!!,page)!!) }
+    var isVerified by remember() { mutableStateOf(AssistedFormHelper.getIfLocalOtpValid(field.inputKey!!,page)) }
     var verifying by remember() { mutableStateOf(false) }
 
     val otpSize = field.otpSize
@@ -62,7 +67,7 @@ fun SecureEmailWithOtpField(
     var otp by remember(field.inputKey) { mutableStateOf("") }
 
     // which step are we on?
-    var isOtpStep by remember(field.inputKey) { mutableStateOf(false) }
+    var isOtpStep by remember(field.inputKey)  { mutableStateOf(AssistedFormHelper.getIfLocalOtpValid(field.inputKey!!,page)) }
 
     val errToShow by remember {
         derivedStateOf {
@@ -76,7 +81,14 @@ fun SecureEmailWithOtpField(
     if (!field.isHidden!!){
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = if (!isOtpStep || isVerified) title else s.enterOtp,
+            text = buildAnnotatedString {
+                append(if (!isOtpStep || isVerified) title else s.enterOtp)
+                if (BaseTheme.BaseValidationStyle == ValidationStyle.Asterisk) {
+                    withStyle(SpanStyle(color = Color.Red)) {
+                        append(" *")
+                    }
+                }
+            },
             color =   BaseTheme.BaseTextColor,
             fontSize = 14.sp,
             fontFamily = InterFont,

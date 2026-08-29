@@ -442,7 +442,7 @@ fun PercentageBasedProgressStepper(
                     modifier = Modifier.width(titleWidth),
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Bold,
-                    color = upcomingColor,
+                    color = BaseTheme.StepperTitleColor,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center
                 )
