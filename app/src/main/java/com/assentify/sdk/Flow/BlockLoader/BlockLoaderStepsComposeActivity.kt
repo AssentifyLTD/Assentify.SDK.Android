@@ -16,8 +16,8 @@ import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.FlowController.FlowController
-import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.FlowController.flowStrings
+import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.LocalStepsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -77,6 +77,8 @@ object BaseTheme {
     val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
 
     val BaseUiLanguage: String get() = AssentifySdkObject.getAssentifySdkObject().environmentalConditions.flowUiLanguage;
+
+    val LocalMrzScan: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().localMrzScan;
 
 
 }

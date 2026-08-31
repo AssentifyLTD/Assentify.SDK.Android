@@ -110,3 +110,16 @@ fun getCurrentDateTime(): String {
 fun getCurrentDateTimeForTracking(): String {
     return java.time.OffsetDateTime.now().toString()
 }
+
+
+object MrzKeys {
+     const val KEY_FIRST_NAME = "OnBoardMe_IdentificationDocumentCapture_name"
+     const val KEY_LAST_NAME = "OnBoardMe_IdentificationDocumentCapture_surname"
+     const val KEY_DOCUMENT_TYPE = "OnBoardMe_IdentificationDocumentCapture_Document_Type"
+     const val KEY_BIRTH_DATE = "OnBoardMe_IdentificationDocumentCapture_Birth_Date"
+     const val KEY_DOCUMENT_NUMBER = "OnBoardMe_IdentificationDocumentCapture_Document_Number"
+     const val KEY_SEX = "OnBoardMe_IdentificationDocumentCapture_Sex"
+     const val KEY_EXPIRY_DATE = "OnBoardMe_IdentificationDocumentCapture_Expiry_Date"
+     const val KEY_COUNTRY = "OnBoardMe_IdentificationDocumentCapture_Country"
+     const val KEY_NATIONALITY = "OnBoardMe_IdentificationDocumentCapture_Nationality"
+}

@@ -47,6 +47,7 @@ import com.assentify.sdk.ScanOther.ScanOther
 import com.assentify.sdk.ScanOther.ScanOtherCallback
 import com.assentify.sdk.ScanOther.ScanOtherManual
 import com.assentify.sdk.ScanOther.ScanOtherResult
+import com.assentify.sdk.ScanPassport.LocalScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassport
 import com.assentify.sdk.ScanPassport.ScanPassportCallback
 import com.assentify.sdk.ScanPassport.ScanPassportManual
@@ -218,6 +219,27 @@ class AssentifySdk(
                 return ScanPassportResult.Auto(scanPassport)
             }
 
+
+        } else {
+            throw Exception("Invalid Keys")
+        }
+    }
+
+    fun startLocalScanPassport(
+        scanPassportCallback: ScanPassportCallback,
+        language: String = Language.NON,
+        stepId: Int? = null,
+    ): LocalScanPassport {
+        if (isKeyValid) {
+                val localScanPassport = LocalScanPassport(
+                    configModel,
+                    environmentalConditions,
+                    apiKey,
+                    language,
+                    stepId
+                )
+             localScanPassport.setScanPassportCallback(scanPassportCallback)
+             return localScanPassport
 
         } else {
             throw Exception("Invalid Keys")
