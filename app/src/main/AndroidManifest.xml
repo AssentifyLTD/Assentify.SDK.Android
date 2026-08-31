@@ -49,6 +49,9 @@
             android:name=".Flow.IDStep.PassportScanActivity"
             android:taskAffinity="com.assentify.sdk.affinity" />
         <activity
+            android:name=".Flow.IDStep.LocalPassportScanActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
             android:name=".Flow.IDStep.IDCardScanActivity"
             android:taskAffinity="com.assentify.sdk.affinity" />
         <activity

@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     activeLivenessCheckCount = 3,
                     faceLivenessRetryCount = 2,
                     minRam = 1,
-                    flowUiLanguage = UiLanguage.Arabic
+                    flowUiLanguage = UiLanguage.English
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
@@ -269,7 +269,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 ),
 
 
-                extractedDataLanguage = config.language,
+               extractedDataLanguage = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
@@ -279,6 +279,9 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 rangeStart = 30,
                 rangeEnd = 90,
                 //stepperTitle = "تعريف"
+
+
+                localMrzScan = true
                 );
 
 

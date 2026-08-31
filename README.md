@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.38***
+1. *Support Local Passport Scan*
+
 ***1.0.0-Beta.37***
 1. *Android Target Sdk Version 36 Support.*
 

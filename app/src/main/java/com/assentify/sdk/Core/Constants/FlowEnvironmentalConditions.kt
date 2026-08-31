@@ -120,7 +120,10 @@ public class FlowEnvironmentalConditions(
     val enableQr: Boolean = false,
     val showCountDown: Boolean = true,
     val blockLoaderCustomProperties: Map<String, Any> = emptyMap(),
-) {
+
+    val localMrzScan: Boolean = false,
+
+    ) {
 
     init {
         require(backgroundType != null) { "appLogo is required" }

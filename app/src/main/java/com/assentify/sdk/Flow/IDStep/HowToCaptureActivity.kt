@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.SelectedTemplatesObject
 
@@ -31,7 +32,12 @@ class HowToCaptureActivity : ComponentActivity() {
                         onBack = { onBackPressedDispatcher.onBackPressed() },
                         onNext = {
                             if (selectedTemplate.id == -1) {
-                                PassportScanActivity.start(context = this)
+                                if(BaseTheme.LocalMrzScan){
+                                    LocalPassportScanActivity.start(context = this)
+                                }else{
+                                    PassportScanActivity.start(context = this)
+
+                                }
                             } else {
                                 IDCardScanActivity.start(context = this)
                             }
