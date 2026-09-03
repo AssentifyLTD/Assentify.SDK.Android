@@ -236,6 +236,26 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                      )
                  )
              }
+            val isDataRelay = (def == StepsNames.DataRelay)
+            if(isDataRelay){
+                tempList.add(
+                    LocalStepModel(
+                        name = "",
+                        description = "",
+                        iconAssetPath = "",
+                        show = false,
+                        isDone = false,
+                        stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id },
+                        submitRequestModel = SubmitRequestModel(
+                            stepDefinition = configModel.stepDefinitions.first { it.stepId == step.id }.stepDefinition,
+                            stepId = configModel.stepDefinitions.first { it.stepId == step.id }.stepId,
+                            extractedInformation = emptyMap()
+                        )
+                    )
+                )
+            }
+
+
         }
         LocalStepsObject.setLocalSteps(tempList)
 

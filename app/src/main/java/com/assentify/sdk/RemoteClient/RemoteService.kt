@@ -157,6 +157,16 @@ interface RemoteGatewayService {
         @Body body: TrackProgressRequest
     ): Call<ResponseBody>
 
+    @POST("v1/Manager/GetStepCachedContent/{id}")
+    @Headers("Content-Type: application/json")
+    fun getStepCachedContent(
+        @Path("id") id: String,
+        @Header("X-Block-Identifier") blockIdentifier: String,
+        @Header("X-Flow-Identifier") flowIdentifier: String,
+        @Header("X-Tenant-Identifier") tenantIdentifier: String,
+        @Body body: Map<String, String>
+    ): Call<Map<String, Any>>
+
 }
 
 interface RemoteBlobStorageService {

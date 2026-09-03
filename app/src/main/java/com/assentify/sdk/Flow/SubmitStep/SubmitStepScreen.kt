@@ -74,6 +74,8 @@ fun SubmitStepScreen(
     onBack: () -> Unit,
     onSubmit: () -> Unit,
     submitDataTypes: String,
+    submitTitle: String,
+    submitMessage: String,
     modifier: Modifier = Modifier
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
@@ -158,8 +160,8 @@ fun SubmitStepScreen(
                             MiddleContent(
                                 phoneIcon = phoneIcon,
                                 flowEnv = flowEnv,
-                                title = s.readyToSubmit,
-                                message = s.swipeToConfirm,
+                                title = submitTitle,
+                                message = submitMessage,
                                 messageColor =   BaseTheme.BaseTextColor
                             )
                         }

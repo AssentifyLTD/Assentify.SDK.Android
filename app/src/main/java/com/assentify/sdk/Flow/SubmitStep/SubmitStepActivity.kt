@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.ConfigModelObject
-import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Flow.FlowController.FlowController
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.ReusableComposable.Events.SubmitDataTypes
 import com.assentify.sdk.FlowCallbackObject
@@ -30,9 +30,11 @@ import kotlinx.coroutines.launch
 
 class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
 
+    val s = flowStrings()
 
-    private var submitDataTypes =
-        mutableStateOf<String>(SubmitDataTypes.none)
+    private var submitDataTypes = mutableStateOf<String>(SubmitDataTypes.none)
+    private var submitTitle= mutableStateOf<String>(s.readyToSubmit)
+    private var submitMessage = mutableStateOf<String>(s.swipeToConfirm)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +44,16 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
         /** Track Progress **/
         val initSteps = ConfigModelObject.getConfigModelObject()!!.stepDefinitions
         val valuesWrapUp: MutableMap<String, String> = mutableMapOf()
+        val stepId = if (FlowController.wrapUpStepID != -1) {
+            FlowController.wrapUpStepID
+        } else {
+            ConfigModelObject.getConfigModelObject()!!.stepMap.last().id
+        }
+
         initSteps.forEach { item ->
-            if (item.stepDefinition == StepsNames.WrapUp) {
+            if (item.stepId == stepId) {
+                submitTitle.value = item.customization.header.toString()
+                submitMessage.value = item.customization.summaryMessage.toString()
                 item.outputProperties.forEach { property ->
                     if (property.key.contains(WrapUpKeys.TimeEnded)) {
                         valuesWrapUp.put(property.key, getCurrentDateTime())
@@ -86,6 +96,8 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
                 ) {
                     SubmitStepScreen(
                         submitDataTypes = submitDataTypes.value,
+                        submitTitle = submitTitle.value,
+                        submitMessage = submitMessage.value,
                         onBack = {
                                 FlowController.backClick(this@SubmitStepActivity);
                         },

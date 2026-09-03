@@ -58,6 +58,8 @@ object StepsNames {
     const val ContextAwareSigning = "ContextAwareSigning"
 
     const val Split  = "Split"
+
+    const val DataRelay  = "DataRelay"
 }
 
 class WrapUpKeys{
