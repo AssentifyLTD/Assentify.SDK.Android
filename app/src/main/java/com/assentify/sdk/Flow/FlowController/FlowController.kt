@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.util.Base64
 import android.view.WindowManager
@@ -91,9 +91,14 @@ object FlowController {
             val dialogWidth = displayMetrics.widthPixels - (horizontalMarginPx * 2)
             dialog.window?.setLayout(dialogWidth, WindowManager.LayoutParams.WRAP_CONTENT)
 
-            dialog.window?.setBackgroundDrawable(
-                ColorDrawable(BaseTheme.FieldColor.toArgb())
-            )
+            val cornerRadiusPx = 24f // adjust to taste
+            val background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = cornerRadiusPx
+                setColor(BaseTheme.FieldColor.toArgb())
+            }
+
+            dialog.window?.setBackgroundDrawable(background)
 
             dialog.findViewById<TextView>(android.R.id.message)
                 ?.setTextColor(BaseTheme.BaseTextColor.toArgb())
