@@ -214,7 +214,11 @@ data class FlowStrings(
     val fieldPlaceOfResidence: String,
     val fieldProvince: String,
     val fieldGovernorate: String,
-)
+
+    val dataRelayDialogTitle: String,
+    val dataRelayDialogMessage: String,
+
+    )
 
 private val englishStrings = FlowStrings(
     next = "Next",
@@ -396,6 +400,8 @@ private val englishStrings = FlowStrings(
     fieldPlaceOfResidence = "Place of Residence",
     fieldProvince = "Province",
     fieldGovernorate = "Governorate",
+    dataRelayDialogTitle = "Processing ...",
+    dataRelayDialogMessage = "We're validating your data. This won't take long.",
 )
 
 private val arabicStrings = FlowStrings(
@@ -578,6 +584,8 @@ private val arabicStrings = FlowStrings(
     fieldPlaceOfResidence = "مكان الإقامة",
     fieldProvince = "المحافظة",
     fieldGovernorate = "المحافظة/الولاية",
+    dataRelayDialogTitle = "جارٍ المعالجة",
+    dataRelayDialogMessage = "نقوم بالتحقق من بياناتك. لن يستغرق الأمر وقتاً طويلاً.",
 )
 
 fun flowStrings(): FlowStrings =

@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.39***
+1. *Data Relay Step*
+
 ***1.0.0-Beta.38***
 1. *Support Local Passport Scan*
 
