@@ -124,7 +124,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                                                 value.removePrefix("+961")
                                                         }
                                                         if (property.key.endsWith("Code")) {
-                                                            extractedInformation[property.key] = element.defaultCountryCode!!
+                                                            extractedInformation[property.key] = "+961"
                                                         }
                                                         if (property.key.endsWith("Iso2")) {
                                                             extractedInformation[property.key] = country.code2
@@ -273,7 +273,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                         }
                                         if (property.key.endsWith("Code")) {
                                             extractedInformation[property.key] =
-                                                element.defaultCountryCode!!
+                                                "+961"
                                         }
                                         if (property.key.endsWith("Iso2")) {
                                             extractedInformation[property.key] = country.code2
