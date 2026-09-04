@@ -20,6 +20,7 @@ import com.assentify.sdk.AssistedDataEntryPagesJsonObject
 import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
+import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.allCountries
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 
@@ -87,11 +88,57 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                     val fieldType = InputTypes.fromString(element.inputType)
                                     /** Normal Key **/
                                     if (!key.isNullOrBlank() && !value.isNullOrBlank()) {
-                                        if (fieldType == InputTypes.PhoneNumber) {
-                                            extractedInformation[key] =
-                                                element.defaultCountryCode + value
-                                        } else {
-                                            extractedInformation[key] = value
+                                        when (fieldType) {
+                                            InputTypes.PhoneNumber -> {
+                                                extractedInformation[key] = element.defaultCountryCode + value
+                                                val currentStep = FlowController.getCurrentStep()
+                                                currentStep!!.stepDefinition!!.outputProperties.forEach { property ->
+                                                    if (property.key != key && property.key.startsWith(key.substringBefore("_"))) {
+                                                        val country =
+                                                            allCountries.first { it.dialCode == element.defaultCountryCode }
+                                                        if (property.key.endsWith("Number")) {
+                                                            extractedInformation[property.key] = value
+                                                        }
+                                                        if (property.key.endsWith("Code")) {
+                                                            extractedInformation[property.key] = element.defaultCountryCode!!
+                                                        }
+                                                        if (property.key.endsWith("Iso2")) {
+                                                            extractedInformation[property.key] = country.code2
+                                                        }
+                                                        if (property.key.endsWith("Iso3")) {
+                                                            extractedInformation[property.key] = country.code3
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                            InputTypes.PhoneNumberWithOTP -> {
+                                                extractedInformation[key] = value
+                                                val currentStep = FlowController.getCurrentStep()
+                                                currentStep!!.stepDefinition!!.outputProperties.forEach { property ->
+                                                    if (property.key != key && property.key.startsWith(key.substringBefore("_"))) {
+                                                        val country =
+                                                            allCountries.first { it.dialCode == "+961" }
+                                                        if (property.key.endsWith("Number")) {
+                                                            extractedInformation[property.key] =
+                                                                value.removePrefix("+961")
+                                                        }
+                                                        if (property.key.endsWith("Code")) {
+                                                            extractedInformation[property.key] = "+961"
+                                                        }
+                                                        if (property.key.endsWith("Iso2")) {
+                                                            extractedInformation[property.key] = country.code2
+                                                        }
+                                                        if (property.key.endsWith("Iso3")) {
+                                                            extractedInformation[property.key] = country.code3
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                            else -> {
+                                                extractedInformation[key] = value
+                                            }
                                         }
 
                                     }
@@ -177,11 +224,71 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                     val fieldType = InputTypes.fromString(element.inputType)
                     /** Normal Key **/
                     if (!key.isNullOrBlank() && !value.isNullOrBlank()) {
-                        if (fieldType == InputTypes.PhoneNumber) {
-                            extractedInformation[key] =
-                                element.defaultCountryCode + value
-                        } else {
-                            extractedInformation[key] = value
+                        when (fieldType) {
+                            InputTypes.PhoneNumber -> {
+                                extractedInformation[key] = element.defaultCountryCode + value
+                                val currentStep = FlowController.getCurrentStep()
+                                currentStep!!.stepDefinition!!.outputProperties.forEach { property ->
+                                    if (property.key != key && property.key.startsWith(
+                                            key.substringBefore(
+                                                "_"
+                                            )
+                                        )
+                                    ) {
+                                        val country =
+                                            allCountries.first { it.dialCode == element.defaultCountryCode }
+                                        if (property.key.endsWith("Number")) {
+                                            extractedInformation[property.key] = value
+                                        }
+                                        if (property.key.endsWith("Code")) {
+                                            extractedInformation[property.key] =
+                                                element.defaultCountryCode!!
+                                        }
+                                        if (property.key.endsWith("Iso2")) {
+                                            extractedInformation[property.key] = country.code2
+                                        }
+                                        if (property.key.endsWith("Iso3")) {
+                                            extractedInformation[property.key] = country.code3
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            InputTypes.PhoneNumberWithOTP -> {
+                                extractedInformation[key] = value
+                                val currentStep = FlowController.getCurrentStep()
+                                currentStep!!.stepDefinition!!.outputProperties.forEach { property ->
+                                    if (property.key != key && property.key.startsWith(
+                                            key.substringBefore(
+                                                "_"
+                                            )
+                                        )
+                                    ) {
+                                        val country =
+                                            allCountries.first { it.dialCode == "+961" }
+                                        if (property.key.endsWith("Number")) {
+                                            extractedInformation[property.key] =
+                                                value.removePrefix("+961")
+                                        }
+                                        if (property.key.endsWith("Code")) {
+                                            extractedInformation[property.key] =
+                                                "+961"
+                                        }
+                                        if (property.key.endsWith("Iso2")) {
+                                            extractedInformation[property.key] = country.code2
+                                        }
+                                        if (property.key.endsWith("Iso3")) {
+                                            extractedInformation[property.key] = country.code3
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            else -> {
+                                extractedInformation[key] = value
+                            }
                         }
 
                     }
