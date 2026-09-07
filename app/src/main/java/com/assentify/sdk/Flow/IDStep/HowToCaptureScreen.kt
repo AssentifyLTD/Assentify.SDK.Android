@@ -36,10 +36,11 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
-import com.assentify.sdk.Flow.FlowController.flowStrings
+import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromUrl
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.SelectedTemplatesObject
 
@@ -57,9 +58,15 @@ fun HowToCaptureScreen(
 
     val title = if (selectedTemplate.id == -1) s.presentPassport else s.presentId
     val subTitle = if (selectedTemplate.id == -1) s.watchCapturePassport else s.watchCaptureId
-    val assetVideoFileName =
-        if (selectedTemplate.id == -1) "passport-video.mp4"
-        else "id-video.mp4";
+    val themeVideoOverride = if (selectedTemplate.id == -1) {
+        BaseTheme.BaseHowToCapturePassportVideo
+    } else {
+        BaseTheme.BaseHowToCaptureIDVideo
+    }
+
+    val isCustomVideoUrl = themeVideoOverride.isNotEmpty()
+
+    val assetVideoFileName = if (selectedTemplate.id == -1) "passport-video.mp4" else "id-video.mp4"
 
 
 
@@ -139,10 +146,17 @@ fun HowToCaptureScreen(
                         .weight(1f)
                         .padding(start = 10.dp, end = 10.dp)
                 ) {
-                    VideoPlayerFromAssets(
-                        assetFileName = assetVideoFileName,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    if (isCustomVideoUrl) {
+                        VideoPlayerFromUrl(
+                            videoUrl = themeVideoOverride,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        VideoPlayerFromAssets(
+                            assetFileName = assetVideoFileName,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(20.dp))

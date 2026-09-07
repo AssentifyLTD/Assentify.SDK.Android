@@ -90,6 +90,18 @@ fun AssistedDataEntryScreen(
         }
     }
 
+    val handleBack: () -> Unit = {
+        if (eventTypes == EventTypes.onComplete && pagerState.currentPage > 0) {
+            scope.launch {
+                currentPage--
+                changeTick++
+                pagerState.animateScrollToPage(pagerState.currentPage - 1)
+            }
+        } else {
+            onBack()
+        }
+    }
+
 
 
     BaseBackgroundContainer(
@@ -119,7 +131,7 @@ fun AssistedDataEntryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = {
-                    onBack()
+                    handleBack()
                 }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -150,7 +162,7 @@ fun AssistedDataEntryScreen(
             Spacer(Modifier.height(10.dp))
 
             ProgressStepper(
-                onBack = { onBack() },
+                onBack = { handleBack() },
                 normalModifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 6.dp, vertical = 6.dp),

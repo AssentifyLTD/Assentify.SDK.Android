@@ -98,6 +98,12 @@ object UiLanguage {
 
 }
 
+object ValidationStyle {
+    const val Message = "Message"
+    const val Asterisk = "Asterisk"
+
+}
+
 public class FlowEnvironmentalConditions(
     var logoUrl: String = "",
     var svgBackgroundImageUrl: String = "",
@@ -114,12 +120,20 @@ public class FlowEnvironmentalConditions(
     var rangeStart: Int = 25,// Next
     var rangeEnd : Int = 50, // Next
     var stepperTitle : String = "Identification",
+    var stepperTitleColor: String = "",
 
     val extractedDataLanguage: String = Language.NON,
+    val validationStyle: String = ValidationStyle.Message,
     val enableNfc: Boolean = false,
     val enableQr: Boolean = false,
     val showCountDown: Boolean = true,
     val blockLoaderCustomProperties: Map<String, Any> = emptyMap(),
+
+
+
+    var howToCapturePassportVideo: String = "",
+    var howToCaptureIDVideo: String = "",
+    var howToCaptureFaceVideo: String = "",
 
     val localMrzScan: Boolean = false,
 

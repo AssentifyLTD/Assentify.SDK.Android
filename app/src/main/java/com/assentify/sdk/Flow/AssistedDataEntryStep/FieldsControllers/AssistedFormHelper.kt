@@ -2,6 +2,7 @@
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.Core.Constants.UiLanguage
+import com.assentify.sdk.Core.Constants.ValidationStyle
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.Models.DataSourceAttribute
@@ -227,7 +228,10 @@ object AssistedFormHelper {
 
         /** Mandatory **/
         if (field.mandatory == true && fieldValue.isEmpty())
-            return if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+            return if (BaseTheme.BaseValidationStyle == ValidationStyle.Message) {
+                if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+            } else ""
+
 
         if (fieldValue.isEmpty()) {
             return null
@@ -281,6 +285,25 @@ object AssistedFormHelper {
         field!!.isLocalOtpValid = value
 
         AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
+    }
+
+    fun getIfLocalOtpValid(key: String , page: Int): Boolean  {
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
+
+        return  field!!.isLocalOtpValid
+    }
+
+    fun getOtpFieldValue(key: String , page: Int): String  {
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
+
+        val value = field!!.value ?: ""
+        return if (value.startsWith("+961")) value.substring(4) else value
     }
 
     fun validatePage(

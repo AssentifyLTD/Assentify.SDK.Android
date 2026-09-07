@@ -74,9 +74,26 @@ object BaseTheme {
     val RangeEnd: Int get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().rangeEnd
     val StepperTitle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitle
 
+    val StepperTitleColor: Color
+        get() {
+            val colorString = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitleColor
+            return if (colorString.isEmpty()) {
+                Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor))
+            } else {
+                Color(android.graphics.Color.parseColor(colorString))
+            }
+        }
+
     val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
 
     val BaseUiLanguage: String get() = AssentifySdkObject.getAssentifySdkObject().environmentalConditions.flowUiLanguage;
+    val BaseValidationStyle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().validationStyle;
+
+
+    val BaseHowToCapturePassportVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCapturePassportVideo;
+    val BaseHowToCaptureIDVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCaptureIDVideo;
+    val BaseHowToCaptureFaceVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCaptureFaceVideo;
+
 
     val LocalMrzScan: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().localMrzScan;
 
@@ -101,7 +118,7 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
                 onStepClick = { /* navigate if needed */ },
                 onNext = {
                     /** Track Progress **/
-                    if(firstInit){
+                    if (firstInit) {
                         val steps = LocalStepsObject.getLocalSteps();
                         val currentStep =
                             steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
