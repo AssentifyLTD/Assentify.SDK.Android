@@ -257,7 +257,7 @@ fun OnCompleteScreen(
                 s.next,
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
-                fontWeight = FontWeight.Normal,
+                fontWeight = BaseTheme.BaseClickFontWeight,
             )
         }
 

@@ -67,6 +67,7 @@ import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.SubmitDataTypes
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.HasSubmittedObject
 import kotlin.math.roundToInt
 
 @Composable
@@ -181,7 +182,8 @@ fun SubmitStepScreen(
                 // =========================
                 // BOTTOM (fixed)
                 // =========================
-                when {submitDataTypes != SubmitDataTypes.onError -> {
+                if(!HasSubmittedObject.get()){
+                    when {submitDataTypes != SubmitDataTypes.onError -> {
                         SwipeToSubmit(
                             text = s.swipeToSubmit,
                             resetKey = resetTick,
@@ -194,7 +196,9 @@ fun SubmitStepScreen(
                         )
                     }
 
+                    }
                 }
+
             }
 
         }

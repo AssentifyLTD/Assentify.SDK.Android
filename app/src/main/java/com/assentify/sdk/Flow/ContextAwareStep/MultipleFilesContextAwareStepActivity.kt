@@ -988,7 +988,7 @@ fun MultipleFilesContextAwareStepScreen(
                                     if (enableDigitalSignature) s.acceptTermsAndSign else s.acceptTermsOnly
                                 },
                                 fontFamily = InterFont,
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 color = BaseTheme.BaseSecondaryTextColor,
                                 modifier = Modifier.padding(vertical = 7.dp)
                             )
@@ -1168,7 +1168,7 @@ fun DocumentPage(
                 Text(
                     flowStrings().approve,
                     fontFamily = InterFont,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = BaseTheme.BaseClickFontWeight,
                     color = BaseTheme.BaseSecondaryTextColor,
                     modifier = Modifier.padding(vertical = 7.dp)
                 )
@@ -1195,7 +1195,7 @@ fun DocumentPage(
             flowStrings().cancelButton,
             fontFamily = InterFont,
             color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-            fontWeight = FontWeight.Normal,
+            fontWeight = BaseTheme.BaseClickFontWeight,
             modifier = Modifier.padding(vertical = 7.dp)
         )
     }
@@ -1243,7 +1243,7 @@ fun DocumentPageFromUrl(
         Text(
             flowStrings().cancelButton,
             fontFamily = InterFont,
-            fontWeight = FontWeight.Normal,
+            fontWeight = BaseTheme.BaseClickFontWeight,
             modifier = Modifier.padding(vertical = 7.dp)
         )
     }

@@ -149,18 +149,14 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                             eventTypes.value = EventTypes.none;
                         },
                         onNext = { hasQr ->
-                            HowToCaptureQrActivity.start(
-                                context = this,
-                            );
-
-                       /*     if (flowEnv.enableQr && hasQr) {
+                            if (flowEnv.enableQr && hasQr) {
                                 HowToCaptureQrActivity.start(
                                     context = this,
                                 );
                             } else {
                                 FlowController.makeCurrentStepDone(extractedInformation.value!!,timeStarted);
                                 FlowController.naveToNextStep(context = this)
-                            }*/
+                            }
                         },
                         feedbackText = feedbackText.value,
                         imageUrl = imageUrl.value,
@@ -632,7 +628,7 @@ fun IDCardScanScreen(
                     Text(
                         flowStrings().takePhoto,
                         fontFamily = InterFont,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = BaseTheme.BaseClickFontWeight,
                         color = BaseTheme.BaseSecondaryTextColor,
                         modifier = Modifier.padding(vertical = 7.dp)
                     )

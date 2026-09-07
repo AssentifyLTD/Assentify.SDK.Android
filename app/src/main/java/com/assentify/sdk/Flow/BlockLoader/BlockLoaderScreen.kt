@@ -38,9 +38,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.HasSubmittedObject
 
@@ -198,7 +198,7 @@ fun BlockLoaderScreen(
                             s.next,
                             fontFamily = InterFont,
                             color = BaseTheme.BaseSecondaryTextColor,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = BaseTheme.BaseClickFontWeight,
                             modifier = Modifier.padding(vertical = 7.dp)
                         )
                     }

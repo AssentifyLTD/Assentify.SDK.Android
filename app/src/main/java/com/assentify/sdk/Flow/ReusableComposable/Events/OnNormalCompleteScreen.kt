@@ -125,7 +125,7 @@ fun OnNormalCompleteScreen(
                 s.next,
                 fontFamily = InterFont,
                 color = BaseTheme.BaseSecondaryTextColor,
-                fontWeight = FontWeight.Normal,
+                fontWeight = BaseTheme.BaseClickFontWeight,
                 modifier = Modifier.padding(vertical = 7.dp)
             )
         }

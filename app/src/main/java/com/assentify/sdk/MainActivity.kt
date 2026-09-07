@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import com.assentify.sdk.Core.Constants.ActiveLiveType
 import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
+import com.assentify.sdk.Core.Constants.ClickFontWeight
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.Language
@@ -279,19 +280,26 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 stepperType = StepperType.PercentageBased,
                 rangeStart = 30,
                 rangeEnd = 90,
-                validationStyle = ValidationStyle.Asterisk,
                 //stepperTitle = "تعريف",
-               //stepperTitleColor = "#FFCC00",
 
-                // https://lorem.video/720p
-                howToCapturePassportVideo = "",
+                validationStyle = ValidationStyle.Asterisk,
+                //stepperTitleColor = "#FFCC00",
+                howToCapturePassportVideo = "",// https://lorem.video/720p
                 howToCaptureIDVideo = "",
                 howToCaptureFaceVideo = "",
-                );
+                clickFontWeight = ClickFontWeight.Bold,
+                hideBlockLoader = true,
+                hideWrapUp = true,
+                localMrzScan = true
 
 
 
-            assentifySdk.clearFlow(this@MainActivity,)
+
+            );
+
+
+
+           assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,

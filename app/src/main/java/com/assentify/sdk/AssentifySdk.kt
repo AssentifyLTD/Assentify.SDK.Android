@@ -711,6 +711,7 @@ class AssentifySdk(
             /****/
 
             val intent = Intent(activityContext, BlockLoaderStepsComposeActivity::class.java)
+            intent.putExtra("isBack", false)
             activityContext.startActivity(intent)
         }
 

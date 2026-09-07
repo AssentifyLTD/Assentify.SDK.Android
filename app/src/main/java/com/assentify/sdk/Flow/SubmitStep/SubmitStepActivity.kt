@@ -16,6 +16,7 @@ import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
+import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.Models.LocalStepModel
@@ -33,7 +34,7 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
     val s = flowStrings()
 
     private var submitDataTypes = mutableStateOf<String>(SubmitDataTypes.none)
-    private var submitTitle= mutableStateOf<String>(s.readyToSubmit)
+    private var submitTitle = mutableStateOf<String>(s.readyToSubmit)
     private var submitMessage = mutableStateOf<String>(s.swipeToConfirm)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,32 +85,43 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                    FlowController.backClick(this@SubmitStepActivity);
+                FlowController.backClick(this@SubmitStepActivity);
             }
         })
 
-        setContent {
-            MaterialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    SubmitStepScreen(
-                        submitDataTypes = submitDataTypes.value,
-                        submitTitle = submitTitle.value,
-                        submitMessage = submitMessage.value,
-                        onBack = {
+        if (BaseTheme.hideWrapUp) {
+            if(!HasSubmittedObject.get()) {
+                assentifySdk.startSubmitData(this, FlowController.getSubmitList())
+            }
+            HasSubmittedObject.set(true);
+            FlowCallbackObject.getFlowCallbackObject()
+                .onFlowCompleted(FlowController.getFlowCompletedList())
+            finishAffinity();
+        } else {
+            setContent {
+                MaterialTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        SubmitStepScreen(
+                            submitDataTypes = submitDataTypes.value,
+                            submitTitle = submitTitle.value,
+                            submitMessage = submitMessage.value,
+                            onBack = {
                                 FlowController.backClick(this@SubmitStepActivity);
-                        },
-                        onSubmit = {
+                            },
+                            onSubmit = {
                                 assentifySdk.startSubmitData(this, FlowController.getSubmitList())
                                 submitDataTypes.value = SubmitDataTypes.onSend
-                        },
+                            },
 
-                        )
+                            )
+                    }
                 }
             }
         }
+
     }
 
     companion object {
@@ -121,20 +133,24 @@ class SubmitStepActivity : ComponentActivity(), SubmitDataCallback {
     }
 
     override fun onSubmitError(message: String) {
-        lifecycleScope.launch(Dispatchers.Main) {
-            submitDataTypes.value = SubmitDataTypes.onError
-            delay(3000)
-            submitDataTypes.value = SubmitDataTypes.none
+        if (!BaseTheme.hideWrapUp) {
+            lifecycleScope.launch(Dispatchers.Main) {
+                submitDataTypes.value = SubmitDataTypes.onError
+                delay(3000)
+                submitDataTypes.value = SubmitDataTypes.none
+            }
         }
+
     }
 
     override fun onSubmitSuccess(message: String) {
-        runOnUiThread {
-            HasSubmittedObject.set(true);
-            FlowCallbackObject.getFlowCallbackObject()
-                .onFlowCompleted(FlowController.getFlowCompletedList())
-            finishAffinity();
+        if (!BaseTheme.hideWrapUp) {
+            runOnUiThread {
+                HasSubmittedObject.set(true);
+                FlowCallbackObject.getFlowCallbackObject()
+                    .onFlowCompleted(FlowController.getFlowCompletedList())
+                finishAffinity();
+            }
         }
-
     }
 }

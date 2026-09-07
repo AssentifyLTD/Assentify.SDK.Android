@@ -158,7 +158,7 @@ fun OnFaceErrorScreen(
                 Text(
                     s.retry,
                     fontFamily = InterFont,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = BaseTheme.BaseClickFontWeight,
                     color = BaseTheme.BaseSecondaryTextColor,
                     modifier = Modifier.padding(vertical = 7.dp)
                 )

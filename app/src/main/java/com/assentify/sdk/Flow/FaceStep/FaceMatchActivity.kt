@@ -583,7 +583,7 @@ fun FaceMatchScanScreen(
                             flowStrings().takePhoto,
                             fontFamily = InterFont,
                             color = BaseTheme.BaseSecondaryTextColor,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight =BaseTheme.BaseClickFontWeight,
                             modifier = Modifier.padding(vertical = 7.dp)
                         )
                     }

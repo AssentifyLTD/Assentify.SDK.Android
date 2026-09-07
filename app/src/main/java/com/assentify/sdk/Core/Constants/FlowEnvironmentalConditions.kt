@@ -104,6 +104,15 @@ object ValidationStyle {
 
 }
 
+object ClickFontWeight {
+    const val Normal = "Normal"
+    const val Medium = "Medium"
+    const val Bold = "Bold"
+    const val SemiBold = "SemiBold"
+    const val ExtraBold = "ExtraBold"
+}
+
+
 public class FlowEnvironmentalConditions(
     var logoUrl: String = "",
     var svgBackgroundImageUrl: String = "",
@@ -120,21 +129,23 @@ public class FlowEnvironmentalConditions(
     var rangeStart: Int = 25,// Next
     var rangeEnd : Int = 50, // Next
     var stepperTitle : String = "Identification",
-    var stepperTitleColor: String = "",
 
     val extractedDataLanguage: String = Language.NON,
-    val validationStyle: String = ValidationStyle.Message,
     val enableNfc: Boolean = false,
     val enableQr: Boolean = false,
     val showCountDown: Boolean = true,
     val blockLoaderCustomProperties: Map<String, Any> = emptyMap(),
 
 
-
+    val validationStyle: String = ValidationStyle.Message,
+    var stepperTitleColor: String = "",
     var howToCapturePassportVideo: String = "",
     var howToCaptureIDVideo: String = "",
     var howToCaptureFaceVideo: String = "",
+    val clickFontWeight: String = ClickFontWeight.Normal,
 
+    val hideBlockLoader: Boolean = false,
+    val hideWrapUp: Boolean = false,
     val localMrzScan: Boolean = false,
 
     ) {

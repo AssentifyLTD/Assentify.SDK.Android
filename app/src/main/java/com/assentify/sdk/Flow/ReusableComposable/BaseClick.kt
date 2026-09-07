@@ -42,7 +42,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -96,7 +95,7 @@ private fun NormalClick(
             text = label,
             fontFamily = InterFont,
             color = BaseTheme.BaseSecondaryTextColor,
-            fontWeight = FontWeight.Normal,
+            fontWeight = BaseTheme.BaseClickFontWeight,
             modifier = Modifier.padding(vertical = 7.dp)
         )
     }
@@ -291,7 +290,7 @@ private fun SliderClick(
                 BaseTheme.BaseTextColor.copy(alpha = 0.4f)
             },
             fontSize = 15.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = BaseTheme.BaseClickFontWeight
         )
 
         // Trailing arrows

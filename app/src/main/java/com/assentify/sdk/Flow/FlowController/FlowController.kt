@@ -576,6 +576,7 @@ object FlowController {
     fun backClick(context: Context) {
         val intent = Intent(context, BlockLoaderStepsComposeActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.putExtra("isBack", true)
         context.startActivity(intent)
     }
 
