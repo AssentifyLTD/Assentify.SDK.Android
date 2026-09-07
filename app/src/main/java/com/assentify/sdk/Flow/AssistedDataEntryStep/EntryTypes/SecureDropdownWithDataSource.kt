@@ -35,21 +35,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.assentify.sdk.AssistedDataEntry.Models.DataEntryPageElement
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.UiLanguage
+import com.assentify.sdk.Core.Constants.ValidationStyle
 import com.assentify.sdk.Flow.AssistedDataEntryStep.FieldsControllers.FilterManager
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.Models.DataSourceAttribute
 import com.assentify.sdk.Flow.Models.DataSourceData
 import com.assentify.sdk.Flow.Models.DataSourceResponse
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import kotlinx.coroutines.Dispatchers
@@ -248,7 +252,9 @@ fun SecureDropdownWithDataSource(
         mutableStateOf(
             when {
                 selected.isNotEmpty() -> ""
-                isMandatory -> if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+                isMandatory -> if (BaseTheme.BaseValidationStyle == ValidationStyle.Message) {
+                    if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+                } else ""
                 else -> ""
             }
         )
@@ -262,7 +268,14 @@ fun SecureDropdownWithDataSource(
     if (field.isHidden != true) {
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
-                text = title,
+                text = buildAnnotatedString {
+                    append(title)
+                    if (BaseTheme.BaseValidationStyle == ValidationStyle.Asterisk && field.mandatory == true) {
+                        withStyle(SpanStyle(color = Color.Red)) {
+                            append(" *")
+                        }
+                    }
+                },
                 color = BaseTheme.BaseTextColor,
                 fontSize = 14.sp,
                 fontFamily = InterFont,
@@ -348,7 +361,14 @@ fun SecureDropdownWithDataSource(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = title,
+                        text = buildAnnotatedString {
+                            append(title)
+                            if (BaseTheme.BaseValidationStyle == ValidationStyle.Asterisk && field.mandatory == true) {
+                                withStyle(SpanStyle(color = Color.Red)) {
+                                    append(" *")
+                                }
+                            }
+                        },
                         color = BaseTheme.BaseTextColor,
                         fontSize = 16.sp,
                         fontFamily = InterFont,

@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.41***
+1. *UI Improvements*
+
 ***1.0.0-Beta.40***
 1. *Phone Number Improvements*
 

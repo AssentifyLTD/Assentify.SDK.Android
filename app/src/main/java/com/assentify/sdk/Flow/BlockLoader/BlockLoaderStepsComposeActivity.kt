@@ -5,11 +5,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.ConfigModelObject
 import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.BlockLoaderKeys
+import com.assentify.sdk.Core.Constants.ClickFontWeight
 import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
 import com.assentify.sdk.Core.Constants.StepperType
@@ -74,13 +76,44 @@ object BaseTheme {
     val RangeEnd: Int get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().rangeEnd
     val StepperTitle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitle
 
+    val StepperTitleColor: Color
+        get() {
+            val colorString = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().stepperTitleColor
+            return if (colorString.isEmpty()) {
+                Color(android.graphics.Color.parseColor(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().accentColor))
+            } else {
+                Color(android.graphics.Color.parseColor(colorString))
+            }
+        }
+
     val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
 
     val BaseUiLanguage: String get() = AssentifySdkObject.getAssentifySdkObject().environmentalConditions.flowUiLanguage;
+    val BaseValidationStyle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().validationStyle;
+
+
+    val BaseHowToCapturePassportVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCapturePassportVideo;
+    val BaseHowToCaptureIDVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCaptureIDVideo;
+    val BaseHowToCaptureFaceVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCaptureFaceVideo;
+
+    val BaseClickFontWeight : FontWeight get() = getFontWeight(FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().clickFontWeight);
+    val hideBlockLoader: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().hideBlockLoader;
+    val hideWrapUp: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().hideWrapUp;
 
     val LocalMrzScan: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().localMrzScan;
 
 
+}
+
+fun getFontWeight(weight: String): FontWeight {
+    return when (weight) {
+        ClickFontWeight.Normal -> FontWeight.Normal
+        ClickFontWeight.Medium -> FontWeight.Medium
+        ClickFontWeight.Bold -> FontWeight.Bold
+        ClickFontWeight.SemiBold -> FontWeight.SemiBold
+        ClickFontWeight.ExtraBold -> FontWeight.ExtraBold
+        else -> FontWeight.Normal
+    }
 }
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {
@@ -94,30 +127,57 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
 
         val configModel = ConfigModelObject.getConfigModelObject()
 
-        setContent {
-            BlockLoaderScreen(
-                steps = buildStepsFromConfig(configModel!!),
-                onBack = { onBackPressedDispatcher.onBackPressed() },
-                onStepClick = { /* navigate if needed */ },
-                onNext = {
-                    /** Track Progress **/
-                    if(firstInit){
-                        val steps = LocalStepsObject.getLocalSteps();
-                        val currentStep =
-                            steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
-                        FlowController.trackProgress(
-                            currentStep = currentStep,
-                            response = null,
-                            inputData = currentStep.submitRequestModel!!.extractedInformation,
-                            status = "Completed"
-                        )
-                    }
+        val isBack = intent.getBooleanExtra("isBack", false)
 
-                    /***/
-                    FlowController.naveToNextStep(context = this)
+
+        if(BaseTheme.hideBlockLoader){
+            if(isBack){
+                onBackPressedDispatcher.onBackPressed()
+            }else{
+                buildStepsFromConfig(configModel!!);
+                /** Track Progress **/
+                if (firstInit) {
+                    val steps = LocalStepsObject.getLocalSteps();
+                    val currentStep =
+                        steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
+                    FlowController.trackProgress(
+                        currentStep = currentStep,
+                        response = null,
+                        inputData = currentStep.submitRequestModel!!.extractedInformation,
+                        status = "Completed"
+                    )
                 }
-            )
+                /***/
+                FlowController.naveToNextStep(context = this)
+            }
+
+        }else{
+            setContent {
+                BlockLoaderScreen(
+                    steps = buildStepsFromConfig(configModel!!),
+                    onBack = { onBackPressedDispatcher.onBackPressed() },
+                    onStepClick = { /* navigate if needed */ },
+                    onNext = {
+                        /** Track Progress **/
+                        if (firstInit) {
+                            val steps = LocalStepsObject.getLocalSteps();
+                            val currentStep =
+                                steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
+                            FlowController.trackProgress(
+                                currentStep = currentStep,
+                                response = null,
+                                inputData = currentStep.submitRequestModel!!.extractedInformation,
+                                status = "Completed"
+                            )
+                        }
+
+                        /***/
+                        FlowController.naveToNextStep(context = this)
+                    }
+                )
+            }
         }
+
     }
 
 

@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,17 +44,15 @@ import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.TermsAndConditionsEventTypes
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.PdfViewerFromUrl
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.TermsConditionsModel
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 
 
 @Composable
@@ -301,7 +301,7 @@ fun TermsAndConditionsScreen(
                                 s.decline,
                                 fontFamily = InterFont,
                                 color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 modifier = Modifier.padding(vertical = 7.dp)
                             )
                         }
@@ -323,7 +323,7 @@ fun TermsAndConditionsScreen(
                                 termsConditionsModel!!.data.nextButtonTitle!!,
                                 fontFamily = InterFont,
                                 color = BaseTheme.BaseSecondaryTextColor,
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 modifier = Modifier.padding(vertical = 7.dp)
                             )
                         }

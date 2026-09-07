@@ -140,7 +140,7 @@ fun OnLivenessScreen(
                 s.retry,
                 color = BaseTheme.BaseSecondaryTextColor,
                 fontFamily = InterFont,
-                fontWeight = FontWeight.Normal,
+                fontWeight = BaseTheme.BaseClickFontWeight,
                 modifier = Modifier.padding(vertical = 7.dp)
             )
         }

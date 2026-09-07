@@ -70,10 +70,10 @@ import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.Customization
@@ -356,7 +356,7 @@ fun IDStepScreen(
                     Text(
                         s.next,
                         fontFamily = InterFont,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = BaseTheme.BaseClickFontWeight,
                         modifier = Modifier.padding(vertical = 7.dp),
                         color = BaseTheme.BaseSecondaryTextColor
 

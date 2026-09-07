@@ -12,6 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.AssetDataSource
 import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
@@ -51,6 +52,52 @@ fun VideoPlayerFromAssets(
     }
     exoPlayer.volume = 0f
     DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                player = exoPlayer
+                useController = false
+            }
+        }
+    )
+}
+
+@OptIn(UnstableApi::class)
+@Composable
+fun VideoPlayerFromUrl(
+    videoUrl: String,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+
+    // Keyed on videoUrl so the player is rebuilt if the URL ever changes.
+    val exoPlayer = remember(videoUrl) {
+        val dataSourceFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent("ExoPlayer")
+            .setAllowCrossProtocolRedirects(true)
+
+        val mediaItem = MediaItem.fromUri(Uri.parse(videoUrl))
+
+        // Build MediaSource manually (mirrors the assets version's ProgressiveMediaSource setup)
+        val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(mediaItem)
+
+        ExoPlayer.Builder(context).build().apply {
+            setMediaSource(mediaSource)
+            prepare()
+            playWhenReady = true
+            repeatMode = ExoPlayer.REPEAT_MODE_ALL // Loop video
+        }
+    }
+    exoPlayer.volume = 0f
+
+    DisposableEffect(exoPlayer) {
         onDispose {
             exoPlayer.release()
         }

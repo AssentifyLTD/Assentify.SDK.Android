@@ -434,7 +434,7 @@ fun NfcScanScreen(
                             Text(
                                 text = s.retry,
                                 fontFamily = InterFont,
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 color = BaseTheme.BaseSecondaryTextColor,
                                 modifier = Modifier.padding(vertical = 7.dp)
                             )
@@ -456,7 +456,7 @@ fun NfcScanScreen(
                             text = s.skip,
                             color = BaseTheme.BaseSecondaryTextColor,
                             fontFamily = InterFont,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = BaseTheme.BaseClickFontWeight,
                             modifier = Modifier.padding(vertical = 7.dp)
                         )
                     }

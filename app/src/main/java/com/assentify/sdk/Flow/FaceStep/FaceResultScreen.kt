@@ -182,7 +182,7 @@ fun FaceResultScreen(
                 ) {
                     Text(s.next,
                         fontFamily = InterFont,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = BaseTheme.BaseClickFontWeight,
                         color =  BaseTheme.BaseSecondaryTextColor,
                         modifier = Modifier.padding(vertical = 7.dp))
                 }
@@ -206,7 +206,7 @@ fun FaceResultScreen(
                         ) {
                             Text(s.retry,
                                 fontFamily = InterFont,
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 color =  BaseTheme.BaseSecondaryTextColor,
                                 modifier = Modifier.padding(vertical = 7.dp))
                         }
@@ -224,7 +224,7 @@ fun FaceResultScreen(
                         ) {
                             Text(s.confirmProceed,
                                 fontFamily = InterFont,
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
                                 modifier = Modifier.padding(vertical = 7.dp))
                         }
@@ -247,7 +247,7 @@ fun FaceResultScreen(
                         ) {
                             Text(s.provideSupportingId,
                                 fontFamily = InterFont,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 color =  BaseTheme.BaseSecondaryTextColor,
                                 modifier = Modifier.padding(vertical = 7.dp))
                         }
@@ -267,7 +267,7 @@ fun FaceResultScreen(
                         ) {
                             Text(s.overrideProceed,
                                 fontFamily = InterFont,
-                                fontWeight = FontWeight.Normal,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
                                 color =  BaseTheme.BaseRedColor,
                                 modifier = Modifier.padding(vertical = 7.dp))
                         }

@@ -2,6 +2,7 @@
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.Core.Constants.UiLanguage
+import com.assentify.sdk.Core.Constants.ValidationStyle
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.Models.DataSourceAttribute
@@ -227,7 +228,10 @@ object AssistedFormHelper {
 
         /** Mandatory **/
         if (field.mandatory == true && fieldValue.isEmpty())
-            return if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+            return if (BaseTheme.BaseValidationStyle == ValidationStyle.Message) {
+                if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+            } else ""
+
 
         if (fieldValue.isEmpty()) {
             return null
@@ -283,6 +287,84 @@ object AssistedFormHelper {
         AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
     }
 
+    fun getIfLocalOtpValid(key: String , page: Int): Boolean  {
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
+
+        return  field!!.isLocalOtpValid
+    }
+
+    fun getOtpFieldValue(key: String , page: Int): String  {
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
+
+        val value = field!!.value ?: ""
+        return if (value.startsWith("+961")) value.substring(4) else value
+    }
+
+    fun validateFieldForPage(key: String, page: Int): String? {
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
+
+        if(field == null) return  "";
+
+        val fieldValue = field.value ?: ""
+
+        val fieldType = InputTypes.fromString(field.inputType)
+
+        /** Mandatory **/
+        if (field.mandatory == true && fieldValue.isEmpty())
+            return if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+
+
+
+        if (fieldValue.isEmpty()) {
+            return null
+        }
+
+        /**  MaxLength - MinLength **/
+        field.minLength?.let { min ->
+            if (fieldValue.length < min) return if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Minimum $min characters required" else "الحد الأدنى المطلوب هو $min حرف"
+        }
+        field.maxLength?.let { max ->
+            if (fieldValue.length > max) return  if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Maximum $max characters allowed" else "الحد الأقصى المسموح به هو $max حرف"
+        }
+
+        /**  Email Regex **/
+        if (fieldType == InputTypes.Email && fieldValue.isNotBlank()) {
+            val emailRegex = Regex(
+                "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$",
+                RegexOption.IGNORE_CASE
+            )
+            if (!emailRegex.matches(fieldValue)) {
+                return field.regexErrorMessage.takeUnless { it.isNullOrEmpty() }
+                    ?: if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Please enter a valid email address" else "يرجى إدخال عنوان بريد إلكتروني صالح"
+
+            }
+        }
+
+        /**  Regex **/
+        if (field.applyRegex!!) {
+            val emailRegex = Regex(
+                field.regexDescriptor!!,
+                RegexOption.IGNORE_CASE
+            )
+            val finalValue = fieldValue;
+            if (!emailRegex.matches(finalValue)) {
+                return field.regexErrorMessage.takeUnless { it.isNullOrEmpty() }
+                    ?: if (BaseTheme.BaseUiLanguage == UiLanguage.English) "Please enter a valid value" else "الرجاء إدخال قيمة صحيحة"
+
+            }
+        }
+
+        return null;
+    }
     fun validatePage(
         page: Int
     ): Boolean {
@@ -290,7 +372,7 @@ object AssistedFormHelper {
         val pages = model!!.assistedDataEntryPages
         val fields = pages[page].dataEntryPageElements
         for (f in fields) {
-            val err = validateField(f.inputKey!!, page)
+            val err = validateFieldForPage(f.inputKey!!, page)
             if (!err.isNullOrEmpty()) return false
         }
          for (f in fields) {

@@ -43,11 +43,12 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromAssets
-import com.assentify.sdk.Flow.FlowController.flowStrings
+import com.assentify.sdk.Flow.ReusableComposable.VideoPlayerFromUrl
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.Customization
@@ -77,6 +78,12 @@ fun HowToCaptureFaceScreen(
     LaunchedEffect(docUrl) {
         base64Image = FlowController.downloadImageAsBase64(docUrl)
     }
+
+    val themeVideoOverride =  BaseTheme.BaseHowToCaptureFaceVideo
+
+    val isCustomVideoUrl = themeVideoOverride.isNotEmpty()
+
+    val assetVideoFileName =  "face-video.mp4"
 
 
     BaseBackgroundContainer(
@@ -184,11 +191,18 @@ fun HowToCaptureFaceScreen(
                         .weight(1f)
                         .padding(start = 10.dp, end = 10.dp)
                 ) {
-                    VideoPlayerFromAssets(
-                        assetFileName = "face-video.mp4",
-                        modifier = Modifier
-                            .fillMaxSize()
-                    )
+
+                    if (isCustomVideoUrl) {
+                        VideoPlayerFromUrl(
+                            videoUrl = themeVideoOverride,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        VideoPlayerFromAssets(
+                            assetFileName = assetVideoFileName,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(20.dp))

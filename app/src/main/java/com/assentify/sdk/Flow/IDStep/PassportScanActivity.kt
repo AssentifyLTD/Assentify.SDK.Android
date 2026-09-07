@@ -573,7 +573,7 @@ fun PassportScanScreen(
                     Text(
                         flowStrings().takePhoto,
                         fontFamily = InterFont,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = BaseTheme.BaseClickFontWeight,
                         color =  BaseTheme.BaseSecondaryTextColor,
                         modifier = Modifier.padding(vertical = 7.dp)
                     )
