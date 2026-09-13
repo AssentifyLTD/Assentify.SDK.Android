@@ -228,7 +228,7 @@ object AssistedFormHelper {
 
         /** Mandatory **/
         if (field.mandatory == true && fieldValue.isEmpty())
-            return if (BaseTheme.BaseValidationStyle == ValidationStyle.Message) {
+            return if (BaseTheme.BaseValidationStyle == ValidationStyle.Message ||   BaseTheme.BaseShowMessage.value) {
                 if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
             } else ""
 

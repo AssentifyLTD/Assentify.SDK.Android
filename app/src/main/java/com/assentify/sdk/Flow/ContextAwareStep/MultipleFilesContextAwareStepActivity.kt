@@ -66,8 +66,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -298,11 +300,11 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
             contextAwareStepEventTypes.value = ContextAwareStepEventTypes.onTokensComplete
         }
 
-        CreateUserDocumentObject
+      /*  CreateUserDocumentObject
             .get(
                 stepId = FlowController.getCurrentStep()?.stepDefinition?.stepId ?: return,
             )
-            ?.let { buildOnCreateUserDocumentInstance(it) }
+            ?.let { buildOnCreateUserDocumentInstance(it) }*/
     }
 
 
@@ -376,6 +378,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
             }
         }
     }
+
     override fun onCreateUserDocumentInstance(userDocumentResponseModel: CreateUserDocumentResponseModel) {
         CreateUserDocumentObject.set(userDocumentResponseModel,FlowController.getCurrentStep()?.stepDefinition?.stepId!! );
         documentWithTokensObject.add(
@@ -508,6 +511,9 @@ fun MultipleFilesContextAwareStepScreen(
                 selectedTemplate == null &&
                 eventTypes != ContextAwareStepEventTypes.onSignature
 
+    val density = LocalDensity.current
+    var headerHeightDp by remember { mutableStateOf(0.dp) }
+
     BaseBackgroundContainer(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -525,6 +531,9 @@ fun MultipleFilesContextAwareStepScreen(
                     )
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
+                .onGloballyPositioned { coordinates ->
+                    headerHeightDp = with(density) { coordinates.size.height.toDp() }
+                }
         ) {
             if(BaseTheme.StepperType == StepperType.Normal){
             Row(
@@ -574,13 +583,13 @@ fun MultipleFilesContextAwareStepScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 180.dp)
+                .padding(top = headerHeightDp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 10.dp)
+                    .padding(top = 20.dp, bottom = 10.dp )
                     .verticalScroll(rememberScrollState())
             ) {
                 val screenHeight = LocalConfiguration.current.screenHeightDp.dp

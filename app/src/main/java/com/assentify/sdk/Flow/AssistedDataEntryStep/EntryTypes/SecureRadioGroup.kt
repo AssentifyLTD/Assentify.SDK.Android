@@ -66,7 +66,7 @@ fun SecureRadioGroup(
     var selected by rememberSaveable(field.inputKey, page) { mutableStateOf(defaultValue) }
     LaunchedEffect(defaultValue) { selected = defaultValue }
 
-    val err by remember(field.inputKey, page, selected) {
+    val err by remember(field.inputKey, page, selected,BaseTheme.BaseShowMessage.value) {
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 

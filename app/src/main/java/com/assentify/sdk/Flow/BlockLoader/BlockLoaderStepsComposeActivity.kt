@@ -4,6 +4,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.assentify.sdk.AssentifySdkObject
@@ -89,7 +91,14 @@ object BaseTheme {
     val ShowCountDown: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().showCountDown
 
     val BaseUiLanguage: String get() = AssentifySdkObject.getAssentifySdkObject().environmentalConditions.flowUiLanguage;
+
     val BaseValidationStyle: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().validationStyle;
+
+    val BaseShowMessage = mutableStateOf(
+        false
+    )
+
+
 
 
     val BaseHowToCapturePassportVideo: String get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().howToCapturePassportVideo;
@@ -117,29 +126,39 @@ fun getFontWeight(weight: String): FontWeight {
 }
 
 class BlockLoaderStepsComposeActivity : ComponentActivity() {
-    lateinit var flowEnvironmentalConditions: FlowEnvironmentalConditions;
-    var firstInit = LocalStepsObject.getLocalSteps().isEmpty();
+    lateinit var flowEnvironmentalConditions: FlowEnvironmentalConditions
+    var firstInit = LocalStepsObject.getLocalSteps().isEmpty()
+
+    // NEW: observable holder for the steps list
+    private val stepsState = mutableStateOf<List<LocalStepModel>>(emptyList())
+
+    override fun onRestart() {
+        super.onRestart()
+        val configModel = ConfigModelObject.getConfigModelObject()
+        stepsState.value = buildStepsFromConfig(configModel!!)
+        val hasHiddenSteps = LocalStepsObject.getLocalSteps().filter { it.stepDefinition!!.stepDefinition == StepsNames.Split || it.stepDefinition.stepDefinition == StepsNames.DataRelay   }
+        if (BaseTheme.hideBlockLoader && hasHiddenSteps.isEmpty()) {
+            onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        flowEnvironmentalConditions =
-            FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions();
-
+        flowEnvironmentalConditions = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
         val configModel = ConfigModelObject.getConfigModelObject()
 
         val isBack = intent.getBooleanExtra("isBack", false)
+        val hasHiddenSteps = intent.getBooleanExtra("hasHiddenSteps", false)
 
-
-        if(BaseTheme.hideBlockLoader){
-            if(isBack){
+        if (BaseTheme.hideBlockLoader && !hasHiddenSteps) {
+            if (isBack) {
                 onBackPressedDispatcher.onBackPressed()
-            }else{
-                buildStepsFromConfig(configModel!!);
-                /** Track Progress **/
+            } else {
+                stepsState.value = buildStepsFromConfig(configModel!!)
                 if (firstInit) {
-                    val steps = LocalStepsObject.getLocalSteps();
-                    val currentStep =
-                        steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
+                    val steps = LocalStepsObject.getLocalSteps()
+                    val currentStep = steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!
                     FlowController.trackProgress(
                         currentStep = currentStep,
                         response = null,
@@ -147,22 +166,22 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
                         status = "Completed"
                     )
                 }
-                /***/
-                FlowController.naveToNextStep(context = this)
+                FlowController.naveToNextStep(context = this, true)
             }
+        } else {
+            stepsState.value = buildStepsFromConfig(configModel!!)
 
-        }else{
             setContent {
+                val steps by stepsState
+
                 BlockLoaderScreen(
-                    steps = buildStepsFromConfig(configModel!!),
+                    steps = steps,
                     onBack = { onBackPressedDispatcher.onBackPressed() },
                     onStepClick = { /* navigate if needed */ },
                     onNext = {
-                        /** Track Progress **/
                         if (firstInit) {
-                            val steps = LocalStepsObject.getLocalSteps();
-                            val currentStep =
-                                steps.find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!;
+                            val currentStep = LocalStepsObject.getLocalSteps()
+                                .find { it.stepDefinition!!.stepDefinition == StepsNames.BlockLoader }!!
                             FlowController.trackProgress(
                                 currentStep = currentStep,
                                 response = null,
@@ -170,17 +189,12 @@ class BlockLoaderStepsComposeActivity : ComponentActivity() {
                                 status = "Completed"
                             )
                         }
-
-                        /***/
-                        FlowController.naveToNextStep(context = this)
+                        FlowController.naveToNextStep(context = this, true)
                     }
                 )
             }
         }
-
     }
-
-
 }
 
 

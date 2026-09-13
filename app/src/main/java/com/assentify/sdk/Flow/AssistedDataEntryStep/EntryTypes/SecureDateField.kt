@@ -43,10 +43,12 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 private fun dateStringToUtcMillis(dateStr: String, pattern: String): Long? = try {
@@ -64,6 +66,24 @@ private fun utcMillisToDateString(utcMillis: Long, pattern: String): String {
     return date.format(fmt)
 }
 
+private val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+private fun formatDateIfPossible(rawValue: String): String {
+    if (rawValue.isBlank()) return rawValue
+
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+        inputFormat.isLenient = false
+        val parsedDate = inputFormat.parse(rawValue)
+        if (parsedDate != null) {
+            outputFormat.format(parsedDate)
+        } else {
+            rawValue
+        }
+    } catch (e: Exception) {
+        rawValue
+    }
+}
 @Composable
 fun SecureDateField(
     title: String,
@@ -76,16 +96,15 @@ fun SecureDateField(
     var show by remember { mutableStateOf(false) }
 
     val defaultValue = remember(field.inputKey) {
-        AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+        formatDateIfPossible(AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: "") ?: ""
     }
-
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val ctx = LocalContext.current
 
     var value by rememberSaveable(field.inputKey) { mutableStateOf(defaultValue) }
 
     // Validation state
-    var err by remember(field.inputKey, page, value) {
+    var err by remember(field.inputKey, page, value,BaseTheme.BaseShowMessage.value) {
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 

@@ -252,7 +252,7 @@ fun SecureDropdownWithDataSource(
         mutableStateOf(
             when {
                 selected.isNotEmpty() -> ""
-                isMandatory -> if (BaseTheme.BaseValidationStyle == ValidationStyle.Message) {
+                isMandatory -> if (BaseTheme.BaseValidationStyle == ValidationStyle.Message ||   BaseTheme.BaseShowMessage.value) {
                     if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
                 } else ""
                 else -> ""

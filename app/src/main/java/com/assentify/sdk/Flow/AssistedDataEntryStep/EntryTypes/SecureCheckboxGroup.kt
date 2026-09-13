@@ -79,7 +79,7 @@ fun SecureCheckboxGroup(
         selected = defaultValue.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
     }
 
-    val err by remember(field.inputKey, page, selected) {
+    val err by remember(field.inputKey, page, selected,BaseTheme.BaseShowMessage.value) {
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 
