@@ -43,10 +43,10 @@ fun StepCard(
 ) {
 
 
-    val backgroundColor = if (step.isDone)  selectedColor else unselectedColor
-    val circleColor = if (step.isDone) Color.White else selectedColor
-    val iconColor = if (step.isDone) selectedColor else  Color.White
-    val textColor = if (step.isDone)  BaseTheme.BaseSecondaryTextColor else  BaseTheme.BaseTextColor
+    val backgroundColor = if (step.submitRequestModel!!.extractedInformation.isNotEmpty())  selectedColor else unselectedColor
+    val circleColor = if (step.submitRequestModel!!.extractedInformation.isNotEmpty()) Color.White else selectedColor
+    val iconColor = if (step.submitRequestModel!!.extractedInformation.isNotEmpty()) selectedColor else  Color.White
+    val textColor = if (step.submitRequestModel!!.extractedInformation.isNotEmpty())  BaseTheme.BaseSecondaryTextColor else  BaseTheme.BaseTextColor
 
     val context = LocalContext.current
 

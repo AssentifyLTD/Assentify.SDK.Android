@@ -1,5 +1,6 @@
 package com.assentify.sdk.Flow.FlowController
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -62,14 +63,24 @@ object FlowController {
 
      var wrapUpStepID: Int = -1;
 
-    fun naveToNextStep(context: Context) {
+
+    fun naveToNextStep(context: Context,isFirst: Boolean = false) {
         wrapUpStepID = -1;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            checkDataRelayStepAndMoveNext(context)
+            if(isFirst){
+                val hasHiddenSteps = LocalStepsObject.getLocalSteps().filter { it.stepDefinition!!.stepDefinition == StepsNames.Split || it.stepDefinition.stepDefinition == StepsNames.DataRelay   }
+                if(hasHiddenSteps.isNotEmpty()){
+                    checkDataRelayStepAndMoveNext(context,false)
+                }else{
+                    moveNext(context,true)
+                }
+            }else{
+                checkDataRelayStepAndMoveNext(context,false)
+            }
         };
     }
 
-    fun checkDataRelayStepAndMoveNext(context: Context) {
+    fun checkDataRelayStepAndMoveNext(context: Context,isFirst: Boolean = false) {
         val timeStarted = getCurrentDateTimeForTracking()
 
         val currentStep = getCurrentStep();
@@ -129,12 +140,12 @@ object FlowController {
                             .mapValues { it.value.toString() }
                         makeCurrentStepDone(resultMap, timeStarted)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            chekSplitStepAndMoveNext(context)
+                            chekSplitStepAndMoveNext(context,isFirst)
                         };
                     } else {
                         makeCurrentStepDone(emptyMap(), timeStarted)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            chekSplitStepAndMoveNext(context)
+                            chekSplitStepAndMoveNext(context,isFirst)
                         };
                     }
 
@@ -145,20 +156,20 @@ object FlowController {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         dialog.dismiss()
                         makeCurrentStepDone(emptyMap(), timeStarted)
-                        chekSplitStepAndMoveNext(context)
+                        chekSplitStepAndMoveNext(context,isFirst)
                     };
                 }
             })
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                chekSplitStepAndMoveNext(context)
+                chekSplitStepAndMoveNext(context,isFirst)
             };
         }
 
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun chekSplitStepAndMoveNext(context: Context) {
+    fun chekSplitStepAndMoveNext(context: Context,isFirst: Boolean = false) {
         val timeStarted = getCurrentDateTimeForTracking()
 
         val currentStep = getCurrentStep();
@@ -238,7 +249,7 @@ object FlowController {
                             }
                         }
                         LocalStepsObject.setLocalSteps(steps)
-                        moveNext(context)
+                        moveNext(context,isFirst)
 
                     }
 
@@ -294,21 +305,21 @@ object FlowController {
                             }
                         }
                         LocalStepsObject.setLocalSteps(steps)
-                        moveNext(context)
+                        moveNext(context,isFirst)
                     }
                 }
             }
 
 
         } else {
-            moveNext(context)
+            moveNext(context,isFirst)
         }
 
 
     }
 
-    fun moveNext(context: Context) {
-        val currentStep = getCurrentStep();
+    fun moveNext(context: Context,isFirst: Boolean = false) {
+        val currentStep = if (isFirst) getCurrentStepByExtractedInformation() else getCurrentStep()
         if (currentStep == null) {
             SubmitStepActivity.start(context = context)
         } else {
@@ -340,6 +351,17 @@ object FlowController {
     fun getCurrentStep(): LocalStepModel? {
         val steps = LocalStepsObject.getLocalSteps()
         return steps.firstOrNull { !it.isDone }
+    }
+
+    fun getCurrentStepByExtractedInformation(): LocalStepModel? {
+        val steps = LocalStepsObject.getLocalSteps()
+
+        steps.takeWhile { it.submitRequestModel?.extractedInformation?.isNotEmpty() == true }
+            .forEach { it.isDone = true }
+
+        LocalStepsObject.setLocalSteps(steps)
+
+        return steps.firstOrNull { it.submitRequestModel!!.extractedInformation.isEmpty() }
     }
 
     fun makeCurrentStepDone(extractedInformation: Map<String, String>, timeStarted: String) {
@@ -574,10 +596,29 @@ object FlowController {
     }
 
     fun backClick(context: Context) {
-        val intent = Intent(context, BlockLoaderStepsComposeActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        intent.putExtra("isBack", true)
-        context.startActivity(intent)
+        val hasHiddenSteps = LocalStepsObject.getLocalSteps().filter { it.stepDefinition!!.stepDefinition == StepsNames.Split || it.stepDefinition.stepDefinition == StepsNames.DataRelay   }
+      if(hasHiddenSteps.isEmpty()){
+          val steps = LocalStepsObject.getLocalSteps()
+          val prvStep =
+              steps.last { it.isDone }
+          if(prvStep.stepDefinition!!.stepDefinition == StepsNames.BlockLoader){
+              val intent = Intent(context, BlockLoaderStepsComposeActivity::class.java)
+              intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+              intent.putExtra("isBack", true)
+              intent.putExtra("hasHiddenSteps", false)
+              context.startActivity(intent)
+          }else{
+              prvStep.isDone = false
+              LocalStepsObject.setLocalSteps(steps)
+              (context as? Activity)?.finish()
+          }
+      }else{
+          val intent = Intent(context, BlockLoaderStepsComposeActivity::class.java)
+          intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+          intent.putExtra("isBack", true)
+          intent.putExtra("hasHiddenSteps", true)
+          context.startActivity(intent)
+      }
     }
 
 

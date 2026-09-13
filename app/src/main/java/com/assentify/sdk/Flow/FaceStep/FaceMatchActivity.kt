@@ -113,7 +113,8 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     FaceMatchScanScreen(
-                        activity = this@FaceMatchActivity, onBack = {
+                        activity = this@FaceMatchActivity,
+                        onBack = {
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onRetry = {
@@ -127,8 +128,8 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onIDChange = {
-                            FlowController.faceIDChange();
-                            FlowController.backClick(context = this)
+                         //  FlowController.faceIDChange();
+                         //  FlowController.backClick(context = this)
                         },
                         onNext = {
                             val outputProps: MutableMap<String, String> =

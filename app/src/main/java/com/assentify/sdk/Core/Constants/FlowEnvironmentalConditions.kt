@@ -101,7 +101,6 @@ object UiLanguage {
 object ValidationStyle {
     const val Message = "Message"
     const val Asterisk = "Asterisk"
-
 }
 
 object ClickFontWeight {
@@ -137,7 +136,7 @@ public class FlowEnvironmentalConditions(
     val blockLoaderCustomProperties: Map<String, Any> = emptyMap(),
 
 
-    val validationStyle: String = ValidationStyle.Message,
+    var validationStyle: String = ValidationStyle.Message,
     var stepperTitleColor: String = "",
     var howToCapturePassportVideo: String = "",
     var howToCaptureIDVideo: String = "",

@@ -38,9 +38,9 @@ import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.FaceMatch.FaceResponseModel
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.SecureImage
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
 
@@ -233,7 +233,7 @@ fun FaceResultScreen(
                     else -> {
                         val corner = RoundedCornerShape(999.dp)
 
-                        Button(
+                       /* Button(
                             onClick = onIDChange,
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = corner,
@@ -252,7 +252,7 @@ fun FaceResultScreen(
                                 modifier = Modifier.padding(vertical = 7.dp))
                         }
 
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(12.dp))*/
 
                         Button(
                             onClick = onNext,

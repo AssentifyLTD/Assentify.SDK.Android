@@ -120,7 +120,7 @@ fun SecureNationalityDropdown(
 
     val isReadOnly = (field.readOnly == true) || getIsLocked()
 
-    val err by remember(field.inputKey, page, selectedCode) {
+    val err by remember(field.inputKey, page, selectedCode,BaseTheme.BaseShowMessage.value) {
         mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
     }
 

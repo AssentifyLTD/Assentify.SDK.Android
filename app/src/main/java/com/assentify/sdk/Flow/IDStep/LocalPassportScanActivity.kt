@@ -95,11 +95,11 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
         super.onCreate(savedInstanceState)
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+       /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 FlowController.backClick(this@LocalPassportScanActivity);
             }
-        })
+        })*/
 
         setContent {
             MaterialTheme {

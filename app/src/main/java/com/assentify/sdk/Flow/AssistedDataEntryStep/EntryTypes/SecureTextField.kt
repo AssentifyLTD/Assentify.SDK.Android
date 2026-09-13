@@ -86,7 +86,7 @@ fun SecureTextField(
 
 
 
-    val err by remember(field.inputKey, page, value) {
+    val err by remember(field.inputKey, page, value,BaseTheme.BaseShowMessage.value) {
         mutableStateOf(
             AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
         )

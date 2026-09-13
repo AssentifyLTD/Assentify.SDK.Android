@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -108,11 +107,11 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+       /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 FlowController.backClick(this@IDCardScanActivity);
             }
-        })
+        })*/
 
         /** Track Progress **/
         val  currentStep = FlowController.getCurrentStep()
@@ -239,7 +238,11 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     ) {
         runOnUiThread {
             val currentMap = extractedInformation.value?.toMutableMap() ?: mutableMapOf()
-            currentMap.putAll(dataModel.iDExtractedModel!!.transformedProperties!!)
+            currentMap.putAll(
+                dataModel.iDExtractedModel!!.transformedProperties!!.filterKeys {
+                    it.isNotEmpty() && it !in currentMap
+                }
+            )
             extractedInformation.value = currentMap
             OnCompleteScreenData.clear();
             OnCompleteScreenData.setData(extractedInformation.value);

@@ -46,13 +46,45 @@ import com.assentify.sdk.Flow.ReusableComposable.SecureImage
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.OnCompleteScreenData
+import java.text.SimpleDateFormat
+import java.util.Locale
+
+
+private val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+private fun formatDateIfPossible(rawValue: String): String {
+    if (rawValue.isBlank()) return rawValue
+
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+        inputFormat.isLenient = false
+        val parsedDate = inputFormat.parse(rawValue)
+        if (parsedDate != null) {
+            outputFormat.format(parsedDate)
+        } else {
+            rawValue
+        }
+    } catch (e: Exception) {
+        rawValue
+    }
+}
 
 @Composable
 fun OnCompleteScreen(
     imageUrl: String,
     onNext: () -> Unit = {},
 ) {
-    val extractedMap = OnCompleteScreenData.getData()
+    val extractedMap = mutableMapOf<String, String>()
+    val onCompleteScreenData =  OnCompleteScreenData.getData();
+    onCompleteScreenData!!.forEach {
+        if(it.key.contains("Date")){
+            extractedMap[it.key] =   formatDateIfPossible(it.value)
+        }else{
+            extractedMap[it.key] =  it.value
+
+        }
+    }
+
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val s = flowStrings()
 

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,14 +32,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -57,12 +60,12 @@ import com.assentify.sdk.Core.FileUtils.loadSvgFromAssets
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
+import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
-import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.NfcPassportResponseModelObject
 import com.assentify.sdk.OnCompleteScreenData
@@ -113,11 +116,11 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
             feedbackText.value = nfcStrings.nfcNotSupported
         }
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+       /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 FlowController.backClick(this@NfcScanActivity);
             }
-        })
+        })*/
 
         setContent {
             MaterialTheme {
@@ -245,6 +248,9 @@ fun NfcScanScreen(
         loadSvgFromAssets(context, "ic_nfc.svg")
     }
 
+    val density = LocalDensity.current
+    var headerHeightDp by remember { mutableStateOf(0.dp) }
+
     BaseBackgroundContainer(modifier = Modifier
         .fillMaxSize()
     ) {
@@ -278,6 +284,9 @@ fun NfcScanScreen(
                     )
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
+                .onGloballyPositioned { coordinates ->
+                    headerHeightDp = with(density) { coordinates.size.height.toDp() }
+                }
         ) {
             if(BaseTheme.StepperType == StepperType.Normal){
             Row(
@@ -331,7 +340,7 @@ fun NfcScanScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 150.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
+                    .padding(top = headerHeightDp, start = 16.dp, end = 16.dp, bottom = 20.dp)
             ) {
                 Text(
                     text = s.nfcCapture,

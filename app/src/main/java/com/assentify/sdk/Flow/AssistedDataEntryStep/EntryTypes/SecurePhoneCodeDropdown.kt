@@ -109,7 +109,7 @@ fun SecurePhoneInput(
         }
     }
 
-    var err by remember(field.inputKey, page) { mutableStateOf("") }
+    var err by remember(field.inputKey, page,BaseTheme.BaseShowMessage.value) { mutableStateOf("") }
 
     LaunchedEffect(selectedIso2, selectedDial, localNumber, phoneRegex) {
         val full = if (selectedDial.isBlank()) {

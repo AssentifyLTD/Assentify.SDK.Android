@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -115,11 +114,11 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
         /***/
 
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+      /*  onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 FlowController.backClick(this@PassportScanActivity);
             }
-        })
+        })*/
 
         setContent {
             MaterialTheme {

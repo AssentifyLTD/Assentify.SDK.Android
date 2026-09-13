@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -34,8 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,6 +47,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.Core.Constants.StepperType
+import com.assentify.sdk.Core.Constants.ValidationStyle
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.InterFont
@@ -102,7 +106,8 @@ fun AssistedDataEntryScreen(
         }
     }
 
-
+    val density = LocalDensity.current
+    var headerHeightDp by remember { mutableStateOf(0.dp) }
 
     BaseBackgroundContainer(
         modifier = Modifier
@@ -124,6 +129,9 @@ fun AssistedDataEntryScreen(
                     )
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
+                .onGloballyPositioned { coordinates ->
+                    headerHeightDp = with(density) { coordinates.size.height.toDp() }
+                }
         ) {
             if(BaseTheme.StepperType == StepperType.Normal){
             Row(
@@ -172,10 +180,11 @@ fun AssistedDataEntryScreen(
 
         }
 
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 100.dp, bottom = 0.dp)
+                .padding(top = headerHeightDp, bottom = 0.dp)
         ) {
 
             Column(
@@ -280,7 +289,7 @@ fun AssistedDataEntryScreen(
                                 SolidColor(BaseTheme.FieldColor),
                             shape = RoundedCornerShape(28.dp)
                         ),
-                    isActive = enabled,
+                    isActive = true,
                     sliderModifier =  Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
@@ -288,12 +297,17 @@ fun AssistedDataEntryScreen(
                         .padding(vertical = 25.dp, horizontal = 40.dp),
                     onNext = {
                         scope.launch {
+                            if(!enabled && BaseTheme.BaseValidationStyle == ValidationStyle.Asterisk){
+                                BaseTheme.BaseShowMessage.value = true
+                            }
                             if (enabled && pagerState.currentPage < lastIndex) {
+                                BaseTheme.BaseShowMessage.value = false
                                 currentPage++;
                                 changeTick++
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             } else {
                                 if(enabled){
+                                    BaseTheme.BaseShowMessage.value = false
                                     onNext()
                                 }
                             }
