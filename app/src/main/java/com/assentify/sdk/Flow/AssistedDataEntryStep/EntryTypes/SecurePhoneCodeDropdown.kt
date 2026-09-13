@@ -111,7 +111,7 @@ fun SecurePhoneInput(
 
     var err by remember(field.inputKey, page,BaseTheme.BaseShowMessage.value) { mutableStateOf("") }
 
-    LaunchedEffect(selectedIso2, selectedDial, localNumber, phoneRegex) {
+    LaunchedEffect(selectedIso2, selectedDial, localNumber, phoneRegex,BaseTheme.BaseShowMessage.value) {
         val full = if (selectedDial.isBlank()) {
             localNumber.filter(Char::isDigit)
         } else {
