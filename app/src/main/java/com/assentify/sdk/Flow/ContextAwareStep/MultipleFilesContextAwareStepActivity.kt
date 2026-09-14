@@ -164,7 +164,7 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
     private lateinit var localContext: Context
 
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
-
+     private var isNavigating = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -212,8 +212,12 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
                                         documentWithTokensAndSinged.firstOrNull()?.signatureResponseModel?.signedDocumentUri ?: ""
                                 }
                             }
-                            FlowController.makeCurrentStepDone(extractedInformation, timeStarted)
-                            FlowController.naveToNextStep(context = this)
+                            if (!isNavigating) {
+                                isNavigating = true
+
+                                FlowController.makeCurrentStepDone(extractedInformation, timeStarted)
+                                FlowController.naveToNextStep(this)
+                            }
                         },
                         onSign = { signature, approvedDocuments ,verifyOtpRequestOtpModel ->
                             clickLoading.value = true
@@ -583,7 +587,7 @@ fun MultipleFilesContextAwareStepScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = headerHeightDp)
+                .padding(top = headerHeightDp + 30.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

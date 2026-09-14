@@ -184,7 +184,7 @@ fun AssistedDataEntryScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = headerHeightDp, bottom = 0.dp)
+                .padding(top = headerHeightDp + 20.dp, bottom = 0.dp)
         ) {
 
             Column(

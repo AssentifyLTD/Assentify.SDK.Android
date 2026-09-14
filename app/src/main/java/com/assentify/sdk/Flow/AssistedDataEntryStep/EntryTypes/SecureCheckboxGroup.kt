@@ -80,7 +80,9 @@ fun SecureCheckboxGroup(
     }
 
     val err by remember(field.inputKey, page, selected,BaseTheme.BaseShowMessage.value) {
-        mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
+        mutableStateOf(try{
+            AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+        } catch (e: IndexOutOfBoundsException) { "" } ?: "")
     }
 
     val containerColor = BaseTheme.FieldColor

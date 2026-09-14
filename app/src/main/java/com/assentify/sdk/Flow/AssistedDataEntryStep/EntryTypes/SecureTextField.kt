@@ -88,7 +88,9 @@ fun SecureTextField(
 
     val err by remember(field.inputKey, page, value,BaseTheme.BaseShowMessage.value) {
         mutableStateOf(
-            AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+            try{
+               AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+              } catch (e: IndexOutOfBoundsException) { "" }
         )
     }
 

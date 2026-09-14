@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -89,7 +88,7 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
 
     private var timeStarted = getCurrentDateTimeForTracking()
-
+     private var isNavigating = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,11 +121,18 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
                             if (flowEnv.enableNfc) {
                                 NfcScanActivity.start(context = this)
                             } else {
-                                FlowController.makeCurrentStepDone(
-                                    dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,
-                                    timeStarted
-                                );
-                                FlowController.naveToNextStep(this)
+
+                                if (!isNavigating) {
+                                    isNavigating = true
+
+                                    FlowController.makeCurrentStepDone(
+                                        dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,
+                                        timeStarted
+                                    );
+                                    FlowController.naveToNextStep(this)
+                                }
+
+
                             }
                         },
                         feedbackText = feedbackText.value,

@@ -39,6 +39,11 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.44***
+1. *Fix Date Format*
+2. *"Assisted Data Entry Step" Improvements*
+3. *Back Click Logic Improvements*
+
 ***1.0.0-Beta.43***
 1. *Fix Date Format*
 2. *"Assisted Data Entry Step" Improvements*

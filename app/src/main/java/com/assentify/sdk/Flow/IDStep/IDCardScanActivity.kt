@@ -104,6 +104,8 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     private var timeStarted = getCurrentDateTimeForTracking()
 
+     private var isNavigating = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -153,8 +155,13 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                                     context = this,
                                 );
                             } else {
-                                FlowController.makeCurrentStepDone(extractedInformation.value!!,timeStarted);
-                                FlowController.naveToNextStep(context = this)
+
+
+                                if (!isNavigating) {
+                                    isNavigating = true
+                                    FlowController.makeCurrentStepDone(extractedInformation.value!!,timeStarted);
+                                    FlowController.naveToNextStep(context = this)
+                                }
                             }
                         },
                         feedbackText = feedbackText.value,
