@@ -33,6 +33,8 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
 
     private var timeStarted = getCurrentDateTimeForTracking()
 
+    private var isNavigating = false
+
     private var assistedDataModel = mutableStateOf<AssistedDataEntryModel?>(null)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,8 +165,13 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                                 }
                             }
                             status.value = "Completed"
-                            FlowController.makeCurrentStepDone(extractedInformation,timeStarted);
-                            FlowController.naveToNextStep(context = this)
+
+                            if (!isNavigating) {
+                                isNavigating = true
+
+                                FlowController.makeCurrentStepDone(extractedInformation, timeStarted)
+                                FlowController.naveToNextStep(this)
+                            }
                         },
                     )
                 }

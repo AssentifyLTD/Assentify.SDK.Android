@@ -86,7 +86,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private var timeStarted = getCurrentDateTimeForTracking()
 
     private var isComplete = mutableStateOf<Boolean>(false)
-
+     private var isNavigating = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -136,13 +136,19 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                             eventTypes.value = EventTypes.onComplete
                         },
                         onNext = {
-                            if(isComplete.value){
-                                FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
-                                FlowController.naveToNextStep(this)
-                            }else{
-                                FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!,timeStarted);
-                                FlowController.naveToNextStep(this)
+
+                            if (!isNavigating) {
+                                isNavigating = true
+                                if(isComplete.value){
+                                    FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                    FlowController.naveToNextStep(this)
+                                }else{
+                                    FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                    FlowController.naveToNextStep(this)
+                                }
                             }
+
+
                         },
                         onRetry = {
                             feedbackText.value = flowStrings().nfcInitialFeedback;
@@ -340,7 +346,7 @@ fun NfcScanScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = headerHeightDp, start = 16.dp, end = 16.dp, bottom = 20.dp)
+                    .padding(top = headerHeightDp + 40.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
             ) {
                 Text(
                     text = s.nfcCapture,

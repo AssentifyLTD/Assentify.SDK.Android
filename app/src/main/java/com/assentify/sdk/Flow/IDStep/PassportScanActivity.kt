@@ -97,7 +97,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
     private var timeStarted = getCurrentDateTimeForTracking()
 
-
+     private var isNavigating = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,8 +141,14 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                             if (flowEnv.enableNfc) {
                                 NfcScanActivity.start(context = this)
                             } else {
-                                FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
-                                FlowController.naveToNextStep(this)
+                                if (!isNavigating) {
+                                    isNavigating = true
+
+                                    FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                    FlowController.naveToNextStep(this)
+                                }
+
+
                             }
                         },
                         feedbackText = feedbackText.value,

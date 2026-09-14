@@ -105,7 +105,9 @@ fun SecureDateField(
 
     // Validation state
     var err by remember(field.inputKey, page, value,BaseTheme.BaseShowMessage.value) {
-        mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
+        mutableStateOf(try{
+            AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+        } catch (e: IndexOutOfBoundsException) { "" } ?: "")
     }
 
 

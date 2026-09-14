@@ -87,6 +87,8 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
 
     private var timeStarted = getCurrentDateTimeForTracking()
 
+     private var isNavigating = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -114,8 +116,14 @@ class QrScanActivity : FragmentActivity(), ScanQrCallback {
                             eventTypes.value = EventTypes.none;
                         },
                         onNext = {
-                            FlowController.makeCurrentStepDone(dataIDModel.value!!.iDExtractedModel!!.transformedProperties!!,timeStarted);
-                            FlowController.naveToNextStep(context = this)
+
+                            if (!isNavigating) {
+                                isNavigating = true
+                                FlowController.makeCurrentStepDone(dataIDModel.value!!.iDExtractedModel!!.transformedProperties!!,timeStarted);
+                                FlowController.naveToNextStep(context = this)
+                            }
+
+
                         },
                         progress = uploadingProgress.value,
                         eventTypes = eventTypes.value,

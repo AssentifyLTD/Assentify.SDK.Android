@@ -93,7 +93,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     private var timeStarted = getCurrentDateTimeForTracking()
 
-
+     private var isNavigating = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         /** Track Progress **/
@@ -150,8 +150,13 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                                     outputProps[isSkippedStatusKey] = "true";
                                 }
                             }
-                            FlowController.makeCurrentStepDone(outputProps,timeStarted);
-                            FlowController.naveToNextStep(context = this)
+
+                            if (!isNavigating) {
+                                isNavigating = true
+                                FlowController.makeCurrentStepDone(outputProps,timeStarted);
+                                FlowController.naveToNextStep(context = this)
+
+                            }
                         },
                         feedbackText = feedbackText.value,
                         imageUrl = imageUrl.value,

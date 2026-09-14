@@ -121,7 +121,9 @@ fun SecureNationalityDropdown(
     val isReadOnly = (field.readOnly == true) || getIsLocked()
 
     val err by remember(field.inputKey, page, selectedCode,BaseTheme.BaseShowMessage.value) {
-        mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
+        mutableStateOf(try{
+            AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+        } catch (e: IndexOutOfBoundsException) { "" } ?: "")
     }
 
     val pillColor = BaseTheme.FieldColor

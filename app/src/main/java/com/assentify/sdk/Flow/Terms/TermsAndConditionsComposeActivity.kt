@@ -22,7 +22,7 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
     private var termsConditionsModel = mutableStateOf<TermsConditionsModel?>(null)
 
     private var timeStarted = getCurrentDateTimeForTracking()
-
+     private var isNavigating = false
     private var termsAndConditionsEventTypes = mutableStateOf<String>(TermsAndConditionsEventTypes.onSend)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,8 +71,13 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
                             val extractedInformation: Map<String, String> = mapOf(
                                 confirmationKey to value.toString()
                             )
-                            FlowController.makeCurrentStepDone(extractedInformation, timeStarted );
-                            FlowController.naveToNextStep(this)
+
+                            if (!isNavigating) {
+                                isNavigating = true
+                                FlowController.makeCurrentStepDone(extractedInformation, timeStarted );
+                                FlowController.naveToNextStep(this)
+                            }
+
                         },
                         onDecline = {
                             onBackPressedDispatcher.onBackPressed()

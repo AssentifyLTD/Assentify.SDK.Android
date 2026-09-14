@@ -248,7 +248,7 @@ fun SecureDropdownWithDataSource(
 
     val isReadOnly = field.readOnly == true || getIsLocked()
 
-    val err by remember(field.inputKey, page, selected) {
+    val err by remember(field.inputKey, page, selected, BaseTheme.BaseShowMessage.value) {
         mutableStateOf(
             when {
                 selected.isNotEmpty() -> ""

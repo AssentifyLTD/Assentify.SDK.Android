@@ -120,7 +120,11 @@ fun SecurePhoneInput(
 
         onValueChange(selectedDial, localNumber)
 
-        val helperError = AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+        val helperError = try {
+            AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+        } catch (e: Exception) {
+            ""
+        }
         err = helperError
     }
 

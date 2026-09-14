@@ -90,7 +90,9 @@ fun SecureTextArea(
 
 
     val err by remember(field.inputKey, page, value,BaseTheme.BaseShowMessage.value) {
-        mutableStateOf(AssistedFormHelper.validateField(field.inputKey!!, page) ?: "")
+        mutableStateOf(try{
+            AssistedFormHelper.validateField(field.inputKey!!, page) ?: ""
+        } catch (e: IndexOutOfBoundsException) { "" } ?: "")
     }
     if (!field.isHidden!!){
     Column(modifier = modifier.fillMaxWidth()) {
