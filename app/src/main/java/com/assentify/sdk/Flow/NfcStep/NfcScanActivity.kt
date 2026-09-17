@@ -88,6 +88,8 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private var isComplete = mutableStateOf<Boolean>(false)
      private var isNavigating = false
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -174,6 +176,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
     override fun onResume() {
         super.onResume()
+        isNavigating = false
         val adapter = NfcAdapter.getDefaultAdapter(this)
         if (adapter != null) {
             val intent = Intent(applicationContext, this.javaClass)
@@ -371,7 +374,7 @@ fun NfcScanScreen(
                     // Dashed outline behind icon
                     Box(
                         modifier = Modifier
-                            .size(220.dp),
+                            .size(180.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         iconSvg?.let {

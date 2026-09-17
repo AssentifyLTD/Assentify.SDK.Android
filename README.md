@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.45***
+1. *"Assisted Data Entry Step" Improvements*
+
 ***1.0.0-Beta.44***
 1. *Fix Date Format*
 2. *"Assisted Data Entry Step" Improvements*

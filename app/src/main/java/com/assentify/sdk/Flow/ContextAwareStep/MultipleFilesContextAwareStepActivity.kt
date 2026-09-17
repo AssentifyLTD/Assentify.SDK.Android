@@ -165,6 +165,10 @@ class MultipleFilesContextAwareStepActivity : FragmentActivity(), ContextAwareSi
 
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
      private var isNavigating = false
+    override fun onResume() {
+        super.onResume()
+        isNavigating = false
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -1129,9 +1133,9 @@ fun DocumentPage(
     FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
     val pdfHeight = if (isApproved) {
-        LocalConfiguration.current.screenHeightDp.dp - 280.dp
+        LocalConfiguration.current.screenHeightDp.dp - 300.dp
     } else {
-        LocalConfiguration.current.screenHeightDp.dp - 380.dp
+        LocalConfiguration.current.screenHeightDp.dp - 400.dp
     }
 
     if (isLoading) {
@@ -1226,7 +1230,7 @@ fun DocumentPageFromUrl(
         fileName = "SignedDocument.pdf",
         modifier = Modifier
             .fillMaxWidth()
-            .height(LocalConfiguration.current.screenHeightDp.dp - 280.dp)
+            .height(LocalConfiguration.current.screenHeightDp.dp - 320.dp)
             .padding(horizontal = 15.dp)
             .clip(RoundedCornerShape(12.dp))
             .border(1.dp, Color.Gray)
