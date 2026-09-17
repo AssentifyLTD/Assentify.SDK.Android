@@ -99,6 +99,11 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
      private var isNavigating = false
 
+    override fun onResume() {
+        super.onResume()
+        isNavigating = false
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()

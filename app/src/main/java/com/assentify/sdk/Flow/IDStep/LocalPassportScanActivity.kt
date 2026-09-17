@@ -89,6 +89,10 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
     private var timeStarted = getCurrentDateTimeForTracking()
      private var isNavigating = false
+    override fun onResume() {
+        super.onResume()
+        isNavigating = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -35,6 +35,11 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
 
     private var isNavigating = false
 
+    override fun onResume() {
+        super.onResume()
+        isNavigating = false
+    }
+
     private var assistedDataModel = mutableStateOf<AssistedDataEntryModel?>(null)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

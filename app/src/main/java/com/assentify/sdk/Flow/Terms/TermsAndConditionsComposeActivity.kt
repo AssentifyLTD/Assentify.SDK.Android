@@ -23,6 +23,11 @@ class TermsAndConditionsComposeActivity : ComponentActivity() {
 
     private var timeStarted = getCurrentDateTimeForTracking()
      private var isNavigating = false
+    override fun onResume() {
+        super.onResume()
+        isNavigating = false
+    }
+
     private var termsAndConditionsEventTypes = mutableStateOf<String>(TermsAndConditionsEventTypes.onSend)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

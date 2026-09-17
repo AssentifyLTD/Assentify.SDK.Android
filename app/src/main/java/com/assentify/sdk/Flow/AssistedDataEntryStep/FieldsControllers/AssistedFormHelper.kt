@@ -61,6 +61,52 @@ object AssistedFormHelper {
 
             }
     }
+
+    fun checkIfDefaultValueValueChanged(key: String, page: Int): Boolean{
+        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
+        val pages = model!!.assistedDataEntryPages
+        val field = pages[page].dataEntryPageElements
+            .firstOrNull { it.inputKey == key }
+
+        if(field == null) return  false;
+
+        if (field.inputPropertyIdentifierList!!.isEmpty()) {
+            return true;
+        } else {
+            var defaultValue = "";
+            val doneList = FlowController.getAllDoneSteps();
+            doneList.forEach { step ->
+                field.inputPropertyIdentifierList.forEach { keyID ->
+                    for (outputProperty in step.stepDefinition!!.customization.outputProperties) {
+                        if (outputProperty.keyIdentifier == keyID) {
+                            if (defaultValue.isEmpty()) {
+                                if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)){
+                                    defaultValue =
+                                        step.submitRequestModel!!.extractedInformation.getValue(
+                                            outputProperty.key
+                                        )
+                                }
+
+                            } else {
+                                if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)) {
+                                    defaultValue += ",${
+                                        step.submitRequestModel!!.extractedInformation.getValue(
+                                            outputProperty.key
+                                        )
+                                    }"
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+            return defaultValue == field.prvDefaultValue;
+        }
+
+
+    }
+
     fun getDefaultValueValue(key: String, page: Int): String? {
         val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
         val pages = model!!.assistedDataEntryPages
@@ -69,7 +115,7 @@ object AssistedFormHelper {
 
         if(field == null) return  "";
 
-        if (field.value.isNullOrEmpty()) {
+        if (field.value.isNullOrEmpty() || !checkIfDefaultValueValueChanged(key,page)) {
             if (field.inputPropertyIdentifierList!!.isEmpty()) {
                 return "";
             } else {
@@ -102,7 +148,7 @@ object AssistedFormHelper {
                     }
                 }
 
-                changeValue(key, defaultValue, page);
+                changeValue(key, defaultValue, page,defaultValue);
                 return defaultValue;
 
 
@@ -113,7 +159,7 @@ object AssistedFormHelper {
 
     }
 
-    fun changeValue(key: String, value: String, page: Int) {
+    fun changeValue(key: String, value: String, page: Int,prvDefaultValue: String = "") {
         val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
         val pages = model!!.assistedDataEntryPages
         val field = pages[page].dataEntryPageElements
@@ -147,6 +193,9 @@ object AssistedFormHelper {
         /** **/
 
         field.value = value
+        if(prvDefaultValue.isNotEmpty()){
+            field.prvDefaultValue = prvDefaultValue;
+        }
         AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
     }
 

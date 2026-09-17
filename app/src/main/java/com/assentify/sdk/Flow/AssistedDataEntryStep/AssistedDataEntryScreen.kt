@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -107,7 +108,7 @@ fun AssistedDataEntryScreen(
     }
 
     val density = LocalDensity.current
-    var headerHeightDp by remember { mutableStateOf(0.dp) }
+    var headerHeightDp by remember { mutableStateOf<Dp?>(null) }
 
     BaseBackgroundContainer(
         modifier = Modifier
@@ -115,6 +116,7 @@ fun AssistedDataEntryScreen(
     ) {
 
 
+        // same postion on top {1}
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,39 +136,39 @@ fun AssistedDataEntryScreen(
                 }
         ) {
             if(BaseTheme.StepperType == StepperType.Normal){
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    handleBack()
-                }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = BaseTheme.BaseTextColor,
-                        modifier = Modifier.size(30.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = {
+                        handleBack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = BaseTheme.BaseTextColor,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.weight(1f))
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(BaseTheme.BaseLogo)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .align(Alignment.CenterVertically),
+                        contentScale = ContentScale.Fit
                     )
+
+                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.size(48.dp))
                 }
-
-                Spacer(Modifier.weight(1f))
-
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(BaseTheme.BaseLogo)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.CenterVertically),
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(Modifier.weight(1f))
-                Spacer(Modifier.size(48.dp))
             }
-        }
             Spacer(Modifier.height(10.dp))
 
             ProgressStepper(
@@ -181,140 +183,144 @@ fun AssistedDataEntryScreen(
         }
 
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = headerHeightDp + 20.dp, bottom = 0.dp)
-        ) {
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+        headerHeightDp?.let { headerH ->
+
+            Box(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .padding(top = headerH, bottom = 0.dp)
             ) {
-                Spacer(Modifier.height(24.dp))
 
-                when (eventTypes) {
-                    EventTypes.onSend -> {
-                        val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(screenHeight - 200.dp)
-                        ) {
-                            Column(
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                ) {
+                    Spacer(Modifier.height(24.dp))
+
+                    when (eventTypes) {
+                        EventTypes.onSend -> {
+                            val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = 15.dp)
-
+                                    .fillMaxWidth()
+                                    .height((screenHeight - headerH - 20.dp).coerceAtLeast(200.dp))
                             ) {
-                                Text(
-                                    text = defaultTitle,
-                                    fontFamily = InterFont,
-                                    fontWeight = FontWeight.Bold,
-                                    color = BaseTheme.BaseTextColor,
-                                    fontSize = 23.sp,
-                                    lineHeight = 34.sp,
-                                    textAlign = TextAlign.Start,
+                                Column(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 5.dp, start = 20.dp, end = 20.dp)
+                                        .fillMaxSize()
+                                        .padding(top = 15.dp)
+
+                                ) {
+                                    Text(
+                                        text = defaultTitle,
+                                        fontFamily = InterFont,
+                                        fontWeight = FontWeight.Bold,
+                                        color = BaseTheme.BaseTextColor,
+                                        fontSize = 23.sp,
+                                        lineHeight = 34.sp,
+                                        textAlign = TextAlign.Start,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 5.dp, start = 20.dp, end = 20.dp)
+                                    )
+                                }
+                                /// CENTER Loader
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .align(Alignment.Center),
+                                    color = BaseTheme.BaseTextColor,
+                                    strokeWidth = 6.dp
                                 )
                             }
-                            /// CENTER Loader
-                            CircularProgressIndicator(
+                        }
+
+                        EventTypes.onError -> {
+                            Text(
+                                text = s.somethingWentWrong,
+                                color = BaseTheme.BaseRedColor,
+                                fontSize = 14.sp,
+                                lineHeight = 18.sp,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier
-                                    .size(60.dp)
-                                    .align(Alignment.Center),
-                                color = BaseTheme.BaseTextColor,
-                                strokeWidth = 6.dp
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                            )
+                        }
+
+                        EventTypes.onComplete -> {
+
+                            pagerState = rememberPagerState(
+                                pageCount = { assistedDataEntryModel!!.assistedDataEntryPages.size }
+                            )
+
+                            val cfg = LocalConfiguration.current
+                            val screenH = cfg.screenHeightDp.dp
+
+                            val bottomReserve = 20.dp
+                            val pagerHeight = (screenH - headerH - bottomReserve)
+                                .coerceAtLeast(260.dp)
+
+                            AssistedDataEntryPager(
+                                assistedDataEntryModel = assistedDataEntryModel,
+                                modifier = Modifier.height(pagerHeight),
+                                pagerState = pagerState,
+                                onChanged = { changeTick++ }
                             )
                         }
                     }
-
-                    EventTypes.onError -> {
-                        Text(
-                            text = s.somethingWentWrong,
-                            color = BaseTheme.BaseRedColor,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                        )
-                    }
-
-                    EventTypes.onComplete -> {
-
-                        pagerState = rememberPagerState(
-                            pageCount = { assistedDataEntryModel!!.assistedDataEntryPages.size }
-                        )
-
-                        val cfg = LocalConfiguration.current
-                        val screenH = cfg.screenHeightDp.dp
-
-                        val headerReserve = 150.dp
-                        val bottomReserve = 20.dp
-                        val pagerHeight = (screenH - headerReserve - bottomReserve)
-                            .coerceAtLeast(260.dp)
-
-                        AssistedDataEntryPager(
-                            assistedDataEntryModel = assistedDataEntryModel,
-                            modifier = Modifier.height(pagerHeight),
-                            pagerState = pagerState,
-                            onChanged = { changeTick++ }
-                        )
-                    }
                 }
-            }
 
-            if(eventTypes == EventTypes.onComplete){
-                val lastIndex = pagerState.pageCount - 1
-                val isNotLastPage = pagerState.currentPage < lastIndex
+                if(eventTypes == EventTypes.onComplete){
+                    val lastIndex = pagerState.pageCount - 1
+                    val isNotLastPage = pagerState.currentPage < lastIndex
 
-                BaseClick(
-                    isNormalClick = if (isNotLastPage) true else assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].isNormalClick!!,
-                    label = assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].nextButtonTitle,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(vertical = 25.dp, horizontal = 40.dp)
-                        .background(
-                            brush = if (enabled)
-                                BaseTheme.BaseClickColor!!.toBrush()
-                            else
-                                SolidColor(BaseTheme.FieldColor),
-                            shape = RoundedCornerShape(28.dp)
-                        ),
-                    isActive = true,
-                    sliderModifier =  Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(vertical = 25.dp, horizontal = 40.dp),
-                    onNext = {
-                        scope.launch {
-                            if(!enabled && BaseTheme.BaseValidationStyle == ValidationStyle.Asterisk){
-                                BaseTheme.BaseShowMessage.value = true
-                            }
-                            if (enabled && pagerState.currentPage < lastIndex) {
-                                BaseTheme.BaseShowMessage.value = false
-                                currentPage++;
-                                changeTick++
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            } else {
-                                if(enabled){
+                    BaseClick(
+                        isNormalClick = if (isNotLastPage) true else assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].isNormalClick!!,
+                        label = assistedDataEntryModel!!.assistedDataEntryPages[pagerState.currentPage].nextButtonTitle,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(vertical = 25.dp, horizontal = 40.dp)
+                            .background(
+                                brush = if (enabled)
+                                    BaseTheme.BaseClickColor!!.toBrush()
+                                else
+                                    SolidColor(BaseTheme.FieldColor),
+                                shape = RoundedCornerShape(28.dp)
+                            ),
+                        isActive = true,
+                        sliderModifier =  Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(vertical = 25.dp, horizontal = 40.dp),
+                        onNext = {
+                            scope.launch {
+                                if(!enabled && BaseTheme.BaseValidationStyle == ValidationStyle.Asterisk){
+                                    BaseTheme.BaseShowMessage.value = true
+                                }
+                                if (enabled && pagerState.currentPage < lastIndex) {
                                     BaseTheme.BaseShowMessage.value = false
-                                    onNext()
+                                    currentPage++;
+                                    changeTick++
+                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                } else {
+                                    if(enabled){
+                                        BaseTheme.BaseShowMessage.value = false
+                                        onNext()
+                                    }
                                 }
                             }
                         }
-                    }
 
-                )
+                    )
+                }
+
             }
 
         }
