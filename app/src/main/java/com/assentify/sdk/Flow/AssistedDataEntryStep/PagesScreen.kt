@@ -64,11 +64,23 @@ import com.assentify.sdk.Flow.Models.DataSourceData
 import com.assentify.sdk.Flow.ReusableComposable.LogoSvgUrl
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 
+class DataSourceCache {
+    val loadedMap = mutableStateMapOf<String, DataSourceData?>()
+    val loadingMap = mutableStateMapOf<String, Boolean>()
+    val filterMap = mutableStateMapOf<String, Map<String, String>?>()
+
+    fun clear() {
+        loadedMap.clear()
+        loadingMap.clear()
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AssistedDataEntryPager(
     assistedDataEntryModel: AssistedDataEntryModel?,
     pagerState: PagerState,
+    cache: DataSourceCache,
     onChanged: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -76,8 +88,8 @@ fun AssistedDataEntryPager(
 
     val assistedDataEntryPages = remember { mutableStateOf(assistedDataEntryModel!!.assistedDataEntryPages) }
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-    val loadedMap = remember { mutableStateMapOf<String, DataSourceData?>() }
-    val loadingMap = remember { mutableStateMapOf<String, Boolean>() }
+    val loadedMap = cache.loadedMap
+    val loadingMap = cache.loadingMap
     val filterMap = remember { mutableStateMapOf<String, Map<String, String>?>() }
     var rebuildTick by remember { mutableStateOf(0) }
     fun onFieldChanged() {

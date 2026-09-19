@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +59,7 @@ import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -74,6 +76,7 @@ fun AssistedDataEntryScreen(
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val s = flowStrings()
 
+    val cache = remember { DataSourceCache() }
 
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -92,6 +95,13 @@ fun AssistedDataEntryScreen(
             AssistedFormHelper.validatePage(currentPage)
         }else{
             false
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        delay(2000)
+        if(eventTypes == EventTypes.onComplete){
+            changeTick++
         }
     }
 
@@ -268,6 +278,7 @@ fun AssistedDataEntryScreen(
                                 assistedDataEntryModel = assistedDataEntryModel,
                                 modifier = Modifier.height(pagerHeight),
                                 pagerState = pagerState,
+                                cache = cache,
                                 onChanged = { changeTick++ }
                             )
                         }
@@ -312,6 +323,7 @@ fun AssistedDataEntryScreen(
                                 } else {
                                     if(enabled){
                                         BaseTheme.BaseShowMessage.value = false
+                                        cache.clear()
                                         onNext()
                                     }
                                 }

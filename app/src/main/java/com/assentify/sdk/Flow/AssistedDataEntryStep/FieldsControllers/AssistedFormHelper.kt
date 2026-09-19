@@ -1,5 +1,6 @@
 
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
+import com.assentify.sdk.AssistedDataEntryPagesJsonObject
 import com.assentify.sdk.AssistedDataEntryPagesObject
 import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.ValidationStyle
@@ -62,60 +63,67 @@ object AssistedFormHelper {
             }
     }
 
-    fun checkIfDefaultValueValueChanged(key: String, page: Int): Boolean{
-        val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
-        val pages = model!!.assistedDataEntryPages
-        val field = pages[page].dataEntryPageElements
-            .firstOrNull { it.inputKey == key }
+    fun checkIfAnyDefaultValueChanged(): Boolean {
+        val model = AssistedDataEntryPagesJsonObject.get(FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
+            ?: return false
 
-        if(field == null) return  false;
+        val doneList = FlowController.getAllDoneSteps()
 
-        if (field.inputPropertyIdentifierList!!.isEmpty()) {
-            return true;
-        } else {
-            var defaultValue = "";
-            val doneList = FlowController.getAllDoneSteps();
-            doneList.forEach { step ->
-                field.inputPropertyIdentifierList.forEach { keyID ->
-                    for (outputProperty in step.stepDefinition!!.customization.outputProperties) {
-                        if (outputProperty.keyIdentifier == keyID) {
-                            if (defaultValue.isEmpty()) {
-                                if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)){
-                                    defaultValue =
-                                        step.submitRequestModel!!.extractedInformation.getValue(
-                                            outputProperty.key
-                                        )
-                                }
+        for (page in model.assistedDataEntryPages) {
+            for (field in page.dataEntryPageElements) {
 
+                // No identifiers -> skip this field, check the next one
+                val identifiers = field.inputPropertyIdentifierList
+                if (identifiers.isNullOrEmpty()) continue
+
+                var defaultValue = ""
+
+                for (step in doneList) {
+                    val outputProps = step.stepDefinition?.customization?.outputProperties
+                        ?: continue
+                    val extractedInfo = step.submitRequestModel?.extractedInformation
+                        ?: emptyMap()
+
+                    for (keyID in identifiers) {
+                        for (outputProperty in outputProps) {
+                            if (outputProperty.keyIdentifier != keyID) continue
+
+                            val value = extractedInfo[outputProperty.key] ?: continue
+
+                            defaultValue = if (defaultValue.isEmpty()) {
+                                value
                             } else {
-                                if(step.submitRequestModel!!.extractedInformation.containsKey(outputProperty.key)) {
-                                    defaultValue += ",${
-                                        step.submitRequestModel!!.extractedInformation.getValue(
-                                            outputProperty.key
-                                        )
-                                    }"
-                                }
+                                "$defaultValue,$value"
                             }
                         }
                     }
+                }
 
+                // No previous value to compare against -> skip this field
+                val prvDefaultValue = field.prvDefaultValue ?: continue
+
+                if (defaultValue != prvDefaultValue.toString()) {
+                    return true
                 }
             }
-            return defaultValue == field.prvDefaultValue;
         }
 
-
+        return false
     }
 
     fun getDefaultValueValue(key: String, page: Int): String? {
         val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
         val pages = model!!.assistedDataEntryPages
-        val field = pages[page].dataEntryPageElements
-            .firstOrNull { it.inputKey == key }
+        val field = try {
+            pages[page].dataEntryPageElements
+                .firstOrNull { it.inputKey == key }
+        } catch (e: IndexOutOfBoundsException) {
+            return ""
+        }
 
         if(field == null) return  "";
 
-        if (field.value.isNullOrEmpty() || !checkIfDefaultValueValueChanged(key,page)) {
+        if (field.value.isNullOrEmpty()) {
             if (field.inputPropertyIdentifierList!!.isEmpty()) {
                 return "";
             } else {
@@ -193,7 +201,7 @@ object AssistedFormHelper {
         /** **/
 
         field.value = value
-        if(prvDefaultValue.isNotEmpty()){
+        if(prvDefaultValue.isNotEmpty() && field.prvDefaultValue.isNullOrEmpty()){
             field.prvDefaultValue = prvDefaultValue;
         }
         AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)

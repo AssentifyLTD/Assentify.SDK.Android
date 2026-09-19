@@ -513,6 +513,7 @@ private fun findSelectedByDisplayValue(
     return dataSourceData.items.firstOrNull { item ->
         item.dataSourceAttributes
             .firstOrNull { it.mappedKey == "Display Value" }
-            ?.value == value
+            ?.value
+            .equals(value, ignoreCase = true)
     }?.dataSourceAttributes ?: emptyList()
 }

@@ -133,7 +133,8 @@ fun SecureEmailWithOtpField(
                                             isOtpStep = true
                                             otp = ""
                                         } else {
-                                            // show error
+                                            isOtpStep = true
+                                            otp = ""
                                         }
                                     }
 
