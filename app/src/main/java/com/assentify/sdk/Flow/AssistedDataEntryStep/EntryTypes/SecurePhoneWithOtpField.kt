@@ -256,6 +256,9 @@ fun SecurePhoneWithOtpField(
                                                 if (success) {
                                                     isOtpStep = true
                                                     otp = ""
+                                                }else{
+                                                    isOtpStep = true
+                                                    otp = ""
                                                 }
                                             }
                                         },

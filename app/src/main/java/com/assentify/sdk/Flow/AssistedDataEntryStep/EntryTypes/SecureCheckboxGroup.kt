@@ -68,15 +68,23 @@ fun SecureCheckboxGroup(
         isReadOnly =  (field.isLocked == true) && identifiers.isNotEmpty()
         return  isReadOnly;
     }
-    // Parse comma-separated default into a Set
-    var selected by rememberSaveable(field.inputKey, page) {
-        mutableStateOf(
-            defaultValue.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-        )
+
+    fun parseSelected(raw: String, options: List<String>): Set<String> {
+        val lowercasedOptions = options.map { it.lowercase() }.toSet()
+        return raw
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && it.lowercase() in lowercasedOptions }
+            .toSet()
     }
 
-    LaunchedEffect(defaultValue) {
-        selected = defaultValue.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    // Parse comma-separated default into a Set
+    var selected by rememberSaveable(field.inputKey, page) {
+        mutableStateOf(parseSelected(defaultValue, options))
+    }
+
+    LaunchedEffect(defaultValue, options) {
+        selected = parseSelected(defaultValue, options)
     }
 
     val err by remember(field.inputKey, page, selected,BaseTheme.BaseShowMessage.value) {
@@ -115,7 +123,7 @@ fun SecureCheckboxGroup(
                     .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 options.forEach { option ->
-                    val isChecked = selected.contains(option)
+                    val isChecked = selected.any { it.equals(option, ignoreCase = true) }
 
                     Row(
                         verticalAlignment = Alignment.Top,

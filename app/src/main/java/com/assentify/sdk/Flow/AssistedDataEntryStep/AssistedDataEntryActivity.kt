@@ -23,6 +23,7 @@ import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Flow.AssistedDataEntryStep.EntryTypes.allCountries
 import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
+import com.assentify.sdk.RemoteClient.Models.Customization
 
 
 class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback {
@@ -38,16 +39,17 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
     override fun onResume() {
         super.onResume()
         isNavigating = false
-    }
-
-    private var assistedDataModel = mutableStateOf<AssistedDataEntryModel?>(null)
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
         assentifySdk.startAssistedDataEntry(
             this,
             stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
         )
+
+    }
+
+    private var assistedDataModel = mutableStateOf<AssistedDataEntryModel?>(null)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         /** Track Progress **/
         val  currentStep = FlowController.getCurrentStep()
@@ -206,16 +208,42 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                 AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataModel.value,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
                 eventTypes.value = EventTypes.onComplete
             }else{
-                assistedDataModel.value = AssistedDataEntryPagesJsonObject.get(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
-                AssistedDataEntryPagesObject.clear();
-                AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataModel.value,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
-                eventTypes.value = EventTypes.onComplete
+                if(AssistedFormHelper.checkIfAnyDefaultValueChanged()){
+                    assistedDataModel.value = null
+                    AssistedDataEntryPagesObject.clear();
+                    AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(null,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                    AssistedDataEntryPagesJsonObject.set(null,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                    val configModel = ConfigModelObject.getConfigModelObject();
+                    val stepDefinitions = configModel!!.stepDefinitions
+                    stepDefinitions.forEach {
+                        if (it.stepId == FlowController.getCurrentStep()!!.stepDefinition!!.stepId) {
+                            val model: AssistedDataEntryModel = it.customization.toAssistedDataEntryModel()
+                            assistedDataModel.value = model;
+                            AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataModel.value,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                            eventTypes.value = EventTypes.onComplete
+                        }
+                    }
+
+                }else{
+                    assistedDataModel.value = AssistedDataEntryPagesJsonObject.get(FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                    AssistedDataEntryPagesObject.clear();
+                    AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(assistedDataModel.value,FlowController.getCurrentStep()!!.stepDefinition!!.stepId);
+                    eventTypes.value = EventTypes.onComplete
+                }
             }
 
         }
     }
 
-
+    fun Customization.toAssistedDataEntryModel(): AssistedDataEntryModel {
+        return AssistedDataEntryModel(
+            header = this.header!!,
+            subHeader = this.subHeader!!,
+            allowAssistedDataEntry = this.allowAssistedDataEntry!!,
+            assistedDataEntryPages = this.assistedDataEntryPages!!,
+            inputProperties = this.inputProperties!!
+        )
+    }
 
     override fun onStop() {
         callTrackProgress();

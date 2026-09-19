@@ -63,34 +63,38 @@ fun SecureDropdown(
     val isMandatory = field.mandatory ?: false
 
     LaunchedEffect(field.inputKey, field.languageTransformation) {
-        if (field.languageTransformation == 0) {
-            selected = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
-            onValueChange(selected)
-        } else {
-            if (selected.isEmpty()) {
-                val dataList = listOf(
-                    LanguageTransformationModel(
-                        language = field.targetOutputLanguage!!,
-                        languageTransformationEnum = field.languageTransformation!!,
-                        value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
-                            ?: "",
-                        key = field.inputKey!!,
-                        dataType = field.inputType
+        val newValue = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
+        if (options.any { it.equals(newValue, ignoreCase = true) }) {
+            if (field.languageTransformation == 0) {
+                selected = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
+                onValueChange(selected)
+            } else {
+                if (selected.isEmpty()) {
+                    val dataList = listOf(
+                        LanguageTransformationModel(
+                            language = field.targetOutputLanguage!!,
+                            languageTransformationEnum = field.languageTransformation!!,
+                            value = AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
+                                ?: "",
+                            key = field.inputKey!!,
+                            dataType = field.inputType
+                        )
                     )
-                )
 
-                AssistedFormHelper.valueTransformation(
-                    field.targetOutputLanguage,
-                    TransformationModel(LanguageTransformationModels = dataList)
-                ) { data ->
-                    if (data != null) {
-                        selected = data.value
-                        AssistedFormHelper.changeValue(field.inputKey, data.value, page)
-                        onValueChange(selected)
-                    } else {
-                        selected =
-                            AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page) ?: ""
-                        onValueChange(selected)
+                    AssistedFormHelper.valueTransformation(
+                        field.targetOutputLanguage,
+                        TransformationModel(LanguageTransformationModels = dataList)
+                    ) { data ->
+                        if (data != null) {
+                            selected = data.value
+                            AssistedFormHelper.changeValue(field.inputKey, data.value, page)
+                            onValueChange(selected)
+                        } else {
+                            selected =
+                                AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
+                                    ?: ""
+                            onValueChange(selected)
+                        }
                     }
                 }
             }

@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.46***
+1. *"Assisted Data Entry Step" Improvements*
+
 ***1.0.0-Beta.45***
 1. *"Assisted Data Entry Step" Improvements*
 
