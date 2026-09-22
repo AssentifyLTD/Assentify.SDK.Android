@@ -60,6 +60,8 @@ object StepsNames {
     const val Split  = "Split"
 
     const val DataRelay  = "DataRelay"
+
+    const val DocumentCapture  = "DocumentCapture"
 }
 
 class WrapUpKeys{

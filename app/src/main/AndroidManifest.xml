@@ -78,6 +78,9 @@
         <activity
             android:name=".Flow.SubmitStep.SubmitStepActivity"
             android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.DocumentCaptureStep.DocumentCaptureStepActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
 
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
@@ -95,6 +98,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/sdk_file_provider_paths" />
         </provider>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.assentify.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/assentify_file_paths" />
+        </provider>
+
 
     </application>
 

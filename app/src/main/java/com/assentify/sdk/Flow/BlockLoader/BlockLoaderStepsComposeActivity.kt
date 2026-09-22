@@ -272,7 +272,8 @@ private fun buildStepsFromConfig(configModel: ConfigModel): List<LocalStepModel>
                 def == StepsNames.IdentificationDocumentCapture ||
                 def == StepsNames.FaceImageAcquisition
                 || def == StepsNames.AssistedDataEntry ||
-                def == StepsNames.ContextAwareSigning
+                def == StepsNames.ContextAwareSigning ||
+                def == StepsNames.DocumentCapture
             ) {
                 val meta = getStepMeta(def) ?: return@forEach
                 tempList.add(
@@ -412,6 +413,11 @@ fun getStepMeta(stepDefinition: String): StepMeta? {
             name = s.stepSigningName,
             description = s.stepSigningDesc,
             icon = "ic_signing_step.svg"
+        )
+        StepsNames.DocumentCapture -> StepMeta(
+            name = s.stepDocumentCaptureName,
+            description = s.stepDocumentCaptureDesc,
+            icon = "ic_document_capture_step.svg"
         )
 
         else -> null

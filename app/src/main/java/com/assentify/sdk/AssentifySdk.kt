@@ -19,6 +19,8 @@ import com.assentify.sdk.Core.Constants.StepsNames
 import com.assentify.sdk.Core.Constants.WrapUpKeys
 import com.assentify.sdk.Core.Constants.getCurrentDateTime
 import com.assentify.sdk.Core.FileUtils.ImageUtils
+import com.assentify.sdk.DocumentCapture.DocumentCapture
+import com.assentify.sdk.DocumentCapture.DocumentCaptureCallback
 import com.assentify.sdk.FaceMatch.FaceMatch
 import com.assentify.sdk.FaceMatch.FaceMatchCallback
 import com.assentify.sdk.FaceMatch.FaceMatchManual
@@ -416,6 +418,26 @@ class AssentifySdk(
             throw Exception("Invalid Keys")
         }
     }
+
+
+    fun startDocumentCapture(
+        documentCaptureCallback: DocumentCaptureCallback,
+        stepId: Int? = null,
+    ): DocumentCapture {
+        if (isKeyValid) {
+            val documentCapture = DocumentCapture(
+                apiKey!!,
+                configModel!!
+            )
+            documentCapture.setCallback(documentCaptureCallback)
+            documentCapture.setStepId(stepId?.toString())
+            return documentCapture;
+        } else {
+            throw Exception("Invalid Keys")
+        }
+    }
+
+
 
     fun startScanNfc(
         scanNfcCallback: ScanNfcCallback,
