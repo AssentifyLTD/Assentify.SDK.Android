@@ -182,6 +182,31 @@ interface RemoteBlobStorageService {
         @Path(value = "path", encoded = true) filePath: String,
         @Part asset: MultipartBody.Part,
     ): Call<ResponseBody>
+
+
+
+
+    @Multipart
+    @Headers(
+        "accept: application/json, text/plain, */*",
+        "accept-language: en"
+    )
+    @POST("v2/Document/UploadBulk/{containerName}/{filePath}")
+    fun uploadBulk(
+        @Path("containerName") containerName: String,
+        @Path("filePath") filePath: String,
+        @Header("referer") referer: String,
+        @Header("x-block-identifier") xBlockIdentifier: String,
+        @Header("x-tenant-identifier") xTenantIdentifier: String,
+        @Header("x-flow-identifier") xFlowIdentifier: String,
+        @Header("x-flow-instance-id") xFlowInstanceId: String,
+        @Header("x-instance-hash") xInstanceHash: String,
+        @Header("x-instance-id") xInstanceId: String,
+        @Part files: @JvmSuppressWildcards List<MultipartBody.Part>,
+        @Part("additionalValues") additionalValues: @JvmSuppressWildcards List<RequestBody>,
+    ): Call<Map<String, String>>
+
+
 }
 
 interface RemoteWidgetsService {

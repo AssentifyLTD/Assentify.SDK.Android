@@ -50,4 +50,9 @@ object SubmitDataTypes {
 }
 
 
+object DocumentCaptureStepEventTypes {
+    const val onSend = "onSend"
+    const val onError = "onError"
+    const val onComplete = "onComplete"
+}
 

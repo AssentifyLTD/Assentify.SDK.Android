@@ -30,6 +30,8 @@ data class FlowStrings(
     val stepDataEntryDesc: String,
     val stepSigningName: String,
     val stepSigningDesc: String,
+    val stepDocumentCaptureName: String,
+    val stepDocumentCaptureDesc: String,
 
     // ID Step
     val restOfWorld: String,
@@ -217,7 +219,23 @@ data class FlowStrings(
     val dataRelayDialogTitle: String,
     val dataRelayDialogMessage: String,
 
-    )
+    // Document Capture
+    val docTakePicture: String,
+    val docUploadFile: String,
+    val docUploading: String,
+    val docUploaded: String,
+    val docUploadFailed: String,
+    val docRequired: String,
+    val docWaitForUpload: String,
+    val docFixFailed: String,
+    val docReadFailed: String,
+    val docCameraFailed: String,
+    val docMinCount: (min: Int) -> String,
+    val docFormatNotAllowed: (formats: String) -> String,
+    val docFileTooLarge: (maxMb: Int) -> String,
+
+
+)
 
 private val englishStrings = FlowStrings(
     next = "Next",
@@ -400,6 +418,21 @@ private val englishStrings = FlowStrings(
     fieldGovernorate = "Governorate",
     dataRelayDialogTitle = "Processing ...",
     dataRelayDialogMessage = "We're validating your data. This won't take long.",
+    stepDocumentCaptureName = "Document Capture",
+    stepDocumentCaptureDesc = "Capture or upload your important documents to complete verification.",
+    docTakePicture = "Take picture",
+    docUploadFile = "Upload file",
+    docUploading = "Uploading…",
+    docUploaded = "Uploaded",
+    docUploadFailed = "Upload failed. Tap retry or remove.",
+    docRequired = "This document is required.",
+    docWaitForUpload = "Please wait for the upload to finish.",
+    docFixFailed = "Retry or remove the failed upload.",
+    docReadFailed = "Couldn't read this file. Please try another one.",
+    docCameraFailed = "Couldn't open the camera.",
+    docMinCount = { min -> "Please add at least $min." },
+    docFormatNotAllowed = { formats -> "Unsupported file. Allowed: $formats." },
+    docFileTooLarge = { maxMb -> "File is too large. Maximum size is $maxMb MB." },
 )
 
 private val arabicStrings = FlowStrings(
@@ -583,6 +616,21 @@ private val arabicStrings = FlowStrings(
     fieldGovernorate = "المحافظة/الولاية",
     dataRelayDialogTitle = "جارٍ المعالجة",
     dataRelayDialogMessage = "نقوم بالتحقق من بياناتك. لن يستغرق الأمر وقتاً طويلاً.",
+    stepDocumentCaptureName = "التقاط المستندات",
+    stepDocumentCaptureDesc = "قم بالتقاط مستنداتك المهمة أو تحميلها لإكمال عملية التحقق.",
+    docTakePicture = "التقاط صورة",
+    docUploadFile = "رفع ملف",
+    docUploading = "جارٍ الرفع...",
+    docUploaded = "تم الرفع",
+    docUploadFailed = "فشل الرفع. اضغط لإعادة المحاولة أو احذف الملف.",
+    docRequired = "هذا المستند مطلوب.",
+    docWaitForUpload = "يرجى الانتظار حتى يكتمل الرفع.",
+    docFixFailed = "أعد المحاولة أو احذف الملف الذي فشل رفعه.",
+    docReadFailed = "تعذّرت قراءة هذا الملف. يرجى تجربة ملف آخر.",
+    docCameraFailed = "تعذّر فتح الكاميرا.",
+    docMinCount = { min -> "يرجى إضافة $min على الأقل." },
+    docFormatNotAllowed = { formats -> "ملف غير مدعوم. الصيغ المسموحة: $formats." },
+    docFileTooLarge = { maxMb -> "حجم الملف كبير جدًا. الحد الأقصى $maxMb ميغابايت." },
 )
 
 fun flowStrings(): FlowStrings =

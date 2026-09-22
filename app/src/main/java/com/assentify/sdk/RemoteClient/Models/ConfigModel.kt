@@ -2,6 +2,7 @@ package com.assentify.sdk.RemoteClient.Models
 
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryPage
 import com.assentify.sdk.AssistedDataEntry.Models.InputProperty
+import com.assentify.sdk.DocumentCapture.DocumentCaptures
 import com.google.gson.Gson
 
 data class ConfigModel(
@@ -98,6 +99,7 @@ data class Customization(
     val whatsappProvider: Int?,
     val otpFormat: Int?,
     val inputProperties: List<InputProperty>?,
+    val documentCaptures: List<DocumentCaptures>?,
 )
 
 data class Branch(

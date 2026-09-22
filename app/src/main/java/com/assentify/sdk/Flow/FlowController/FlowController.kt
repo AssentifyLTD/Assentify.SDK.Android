@@ -28,6 +28,7 @@ import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.BlockLoader.BlockLoaderStepsComposeActivity
 import com.assentify.sdk.Flow.BlockLoader.getStepMeta
 import com.assentify.sdk.Flow.ContextAwareStep.MultipleFilesContextAwareStepActivity
+import com.assentify.sdk.Flow.DocumentCaptureStep.DocumentCaptureStepActivity
 import com.assentify.sdk.Flow.FaceStep.HowToCaptureFaceActivity
 import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
 import com.assentify.sdk.Flow.Models.FlowCompletedModel
@@ -342,6 +343,9 @@ object FlowController {
 
                 StepsNames.ContextAwareSigning -> {
                     MultipleFilesContextAwareStepActivity.start(context = context)
+                }
+                StepsNames.DocumentCapture -> {
+                    DocumentCaptureStepActivity.start(context = context)
                 }
             }
         }
