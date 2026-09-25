@@ -216,8 +216,9 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
             OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
-            FlowController.setImage(dataModel.passportExtractedModel!!.faces!!.first())
-
+            if(dataModel.passportExtractedModel!!.faces!!.isNotEmpty()){
+                FlowController.setImage(dataModel.passportExtractedModel!!.faces!!.first())
+            }
 
         }
     }
