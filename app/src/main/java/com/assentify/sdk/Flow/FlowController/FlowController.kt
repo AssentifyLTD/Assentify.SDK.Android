@@ -632,7 +632,7 @@ object FlowController {
             val url = URL(imageUrl)
             val connection = url.openConnection() as HttpURLConnection
 
-            connection.setRequestProperty("x-api-key", apiKey)
+            connection.setRequestProperty("X-Api-Key", apiKey)
 
             connection.doInput = true
             connection.connect()

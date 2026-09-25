@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.48***
+1. *"Document Capture Step*
+
 ***1.0.0-Beta.47***
 1. *"Document Capture Step*
 

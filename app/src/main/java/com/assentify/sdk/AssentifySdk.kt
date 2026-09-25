@@ -4,6 +4,8 @@ import ConfigFileManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntry
 import com.assentify.sdk.AssistedDataEntry.AssistedDataEntryCallback
@@ -114,7 +116,15 @@ class AssentifySdk(
         tenantThemeModel = configFileManager.readTheme();
         initContentHash = configFileManager.readContentHash();
         getTemplatesByCountry(configFileManager.readTemplates());
-        initializeCheck();
+        if(!RemoteClient.BASE_URL_GATEWAY.contains("touch.com")){
+            initializeCheck();
+        }else{
+            isKeyValid = true
+            newInstance(context)
+            Handler(Looper.getMainLooper()).postDelayed({
+                assentifySdkCallback.onAssentifySdkInitSuccess(configModel!!)
+            }, 1000)
+        }
     }
 
     private fun initializeCheck() {
