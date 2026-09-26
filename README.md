@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.49***
+1. *Phone Regex Patterns Improvements*
+
 ***1.0.0-Beta.48***
 1. *"Document Capture Step*
 
