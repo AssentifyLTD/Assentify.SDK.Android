@@ -3,6 +3,7 @@ package com.assentify.sdk.RemoteClient.Models
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryPage
 import com.assentify.sdk.AssistedDataEntry.Models.InputProperty
 import com.assentify.sdk.DocumentCapture.DocumentCaptures
+import com.assentify.sdk.Questionnaire.QuestionModel
 import com.google.gson.Gson
 
 data class ConfigModel(
@@ -100,6 +101,7 @@ data class Customization(
     val otpFormat: Int?,
     val inputProperties: List<InputProperty>?,
     val documentCaptures: List<DocumentCaptures>?,
+    val questions: List<QuestionModel>?
 )
 
 data class Branch(

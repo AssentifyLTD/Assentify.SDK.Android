@@ -33,6 +33,7 @@ import com.assentify.sdk.Flow.FaceStep.HowToCaptureFaceActivity
 import com.assentify.sdk.Flow.IDStep.IDStepComposeActivity
 import com.assentify.sdk.Flow.Models.FlowCompletedModel
 import com.assentify.sdk.Flow.Models.LocalStepModel
+import com.assentify.sdk.Flow.QuestionnaireStep.QuestionnaireActivity
 import com.assentify.sdk.Flow.SplitStep.ConditionEvaluator
 import com.assentify.sdk.Flow.SubmitStep.SubmitStepActivity
 import com.assentify.sdk.Flow.Terms.TermsAndConditionsComposeActivity
@@ -346,6 +347,9 @@ object FlowController {
                 }
                 StepsNames.DocumentCapture -> {
                     DocumentCaptureStepActivity.start(context = context)
+                }
+                StepsNames.Questionnaire -> {
+                    QuestionnaireActivity.start(context = context)
                 }
             }
         }

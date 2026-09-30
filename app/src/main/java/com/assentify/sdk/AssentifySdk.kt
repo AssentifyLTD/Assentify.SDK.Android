@@ -34,6 +34,8 @@ import com.assentify.sdk.LanguageTransformation.LanguageTransformation
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
+import com.assentify.sdk.Questionnaire.Questionnaire
+import com.assentify.sdk.Questionnaire.QuestionnaireCallback
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.IdentificationDocumentsDocumentType
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
@@ -442,6 +444,23 @@ class AssentifySdk(
             documentCapture.setCallback(documentCaptureCallback)
             documentCapture.setStepId(stepId?.toString())
             return documentCapture;
+        } else {
+            throw Exception("Invalid Keys")
+        }
+    }
+
+    fun startQuestionnaire(
+        questionnaireCallback: QuestionnaireCallback,
+        stepId: Int? = null,
+    ): Questionnaire {
+        if (isKeyValid) {
+            val questionnaire = Questionnaire(
+                apiKey!!,
+                configModel!!
+            )
+            questionnaire.setCallback(questionnaireCallback)
+            questionnaire.setStepId(stepId?.toString())
+            return questionnaire;
         } else {
             throw Exception("Invalid Keys")
         }
