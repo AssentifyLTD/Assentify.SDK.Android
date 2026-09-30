@@ -62,6 +62,8 @@ object StepsNames {
     const val DataRelay  = "DataRelay"
 
     const val DocumentCapture  = "DocumentCapture"
+
+    const val Questionnaire  = "Questionnaire"
 }
 
 class WrapUpKeys{

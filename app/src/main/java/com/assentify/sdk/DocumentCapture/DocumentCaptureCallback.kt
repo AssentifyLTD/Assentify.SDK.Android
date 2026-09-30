@@ -2,7 +2,7 @@ package com.assentify.sdk.DocumentCapture
 
 
 
-interface DocumentCaptureCallback {
+public interface DocumentCaptureCallback {
     fun onDocumentCaptureCallbackError(message: String)
     fun onDocumentCaptureCallbackSuccess(documentCaptureModel: DocumentCaptureModel)
     fun onUploadDocumentCaptureCallbackSuccess(documentKey: String, itemId: String, data: Map<String, String>)

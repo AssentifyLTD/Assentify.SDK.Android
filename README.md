@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.50***
+1. *Questionnaire Step*
+
 ***1.0.0-Beta.49***
 1. *Phone Regex Patterns Improvements*
 

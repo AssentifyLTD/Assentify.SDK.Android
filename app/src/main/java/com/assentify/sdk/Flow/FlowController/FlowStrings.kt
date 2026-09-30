@@ -33,6 +33,8 @@ data class FlowStrings(
     val stepDocumentCaptureName: String,
     val stepDocumentCaptureDesc: String,
 
+
+
     // ID Step
     val restOfWorld: String,
     val chooseCountry: String,
@@ -234,7 +236,17 @@ data class FlowStrings(
     val docFormatNotAllowed: (formats: String) -> String,
     val docFileTooLarge: (maxMb: Int) -> String,
 
-
+    // Questionnaire
+    val stepQuestionnaireName: String,
+    val stepQuestionnaireDesc: String,
+    val qQuestionOf: (current: Int, total: Int) -> String,
+    val qSelectOne: String,
+    val qSelectMultiple: String,
+    val qAnswerRequired: String,
+    val qPrevious: String,
+    val qFinish: String,
+    val qLoadFailed: String,
+    val qNoQuestions: String,
 )
 
 private val englishStrings = FlowStrings(
@@ -433,7 +445,18 @@ private val englishStrings = FlowStrings(
     docMinCount = { min -> "Please add at least $min." },
     docFormatNotAllowed = { formats -> "Unsupported file. Allowed: $formats." },
     docFileTooLarge = { maxMb -> "File is too large. Maximum size is $maxMb MB." },
-)
+    stepQuestionnaireName = "Questionnaire",
+    stepQuestionnaireDesc = "Answer a few short questions to complete your profile.",
+    qQuestionOf = { current, total -> "Question $current of $total" },
+    qSelectOne = "Select one answer",
+    qSelectMultiple = "Select all that apply",
+    qAnswerRequired = "Please choose an answer to continue.",
+    qPrevious = "Previous",
+    qFinish = "Finish",
+    qLoadFailed = "We couldn't load the questions. Please try again.",
+    qNoQuestions = "There are no questions to answer.",
+
+    )
 
 private val arabicStrings = FlowStrings(
     next = "التالي",
@@ -631,6 +654,16 @@ private val arabicStrings = FlowStrings(
     docMinCount = { min -> "يرجى إضافة $min على الأقل." },
     docFormatNotAllowed = { formats -> "ملف غير مدعوم. الصيغ المسموحة: $formats." },
     docFileTooLarge = { maxMb -> "حجم الملف كبير جدًا. الحد الأقصى $maxMb ميغابايت." },
+    stepQuestionnaireName = "الاستبيان",
+    stepQuestionnaireDesc = "أجب عن بعض الأسئلة القصيرة لإكمال ملفك.",
+    qQuestionOf = { current, total -> "السؤال $current من $total" },
+    qSelectOne = "اختر إجابة واحدة",
+    qSelectMultiple = "اختر كل ما ينطبق",
+    qAnswerRequired = "يرجى اختيار إجابة للمتابعة.",
+    qPrevious = "السابق",
+    qFinish = "إنهاء",
+    qLoadFailed = "تعذّر تحميل الأسئلة. يرجى المحاولة مرة أخرى.",
+    qNoQuestions = "لا توجد أسئلة للإجابة عنها.",
 )
 
 fun flowStrings(): FlowStrings =
