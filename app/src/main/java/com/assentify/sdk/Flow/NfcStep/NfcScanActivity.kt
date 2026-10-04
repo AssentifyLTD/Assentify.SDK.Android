@@ -1,9 +1,11 @@
 package com.assentify.sdk.Flow.NfcStep
 
+import android.app.ActivityOptions
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.nfc.NfcAdapter
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -213,13 +215,33 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         if (adapter != null) {
             Log.d(TAG, "onResume: NfcAdapter found, isEnabled=${adapter.isEnabled}, enabling foreground dispatch")
             try {
-                val intent = Intent(applicationContext, this.javaClass)
-                intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-                val pendingIntent =
-                    PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
+                val intent = Intent(this, NfcScanActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+                // Android 14+: the PendingIntent creator must opt in to background activity launch,
+                // otherwise the NFC service's delivery is blocked.
+                val options: Bundle? = when {
+                    Build.VERSION.SDK_INT >= 36 -> ActivityOptions.makeBasic()
+                        .setPendingIntentCreatorBackgroundActivityStartMode(
+                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE
+                        ).toBundle()
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> ActivityOptions.makeBasic()
+                        .setPendingIntentCreatorBackgroundActivityStartMode(
+                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                        ).toBundle()
+                    else -> null
+                }
+
+                val pendingIntent = PendingIntent.getActivity(
+                    this,
+                    0,
+                    intent,
+                    PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                    options
+                )
                 val filter = arrayOf(arrayOf(ConstantsValues.NfcTechTag))
                 adapter.enableForegroundDispatch(this, pendingIntent, null, filter)
-                Log.d(TAG, "onResume: foreground dispatch enabled for tech=${ConstantsValues.NfcTechTag}")
+                Log.d(TAG, "onResume: foreground dispatch enabled (SDK=${Build.VERSION.SDK_INT}, balOptIn=${options != null})")
             } catch (e: Exception) {
                 Log.e(TAG, "onResume: failed to enable foreground dispatch", e)
             }
