@@ -32,7 +32,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,8 +72,6 @@ import com.assentify.sdk.ScanNFC.ScanNfc
 import com.assentify.sdk.ScanNFC.ScanNfcCallback
 import com.assentify.sdk.ScanPassport.PassportResponseModel
 
-private const val TAG = "NfcScanActivity"
-private const val SCREEN_TAG = "NfcScanScreen"
 
 class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
@@ -91,45 +88,32 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private var isNavigating = false
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate: savedInstanceState=${savedInstanceState != null}, timeStarted=$timeStarted")
 
         val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
         val nfcStrings = flowStrings()
         feedbackText.value = nfcStrings.nfcInitialFeedback
-        Log.d(TAG, "onCreate: extractedDataLanguage=${flowEnv.extractedDataLanguage}")
+        passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()!!
 
-        val storedModel = NfcPassportResponseModelObject.getPassportResponseModelObject()
-        if (storedModel == null) {
-            Log.e(TAG, "onCreate: PassportResponseModel from NfcPassportResponseModelObject is NULL — will crash on !!")
-        } else {
-            Log.d(TAG, "onCreate: PassportResponseModel loaded, hasExtractedModel=${storedModel.passportExtractedModel != null}")
-        }
-        passportResponseModel = storedModel!!
+
 
         scanNfc = assentifySdk.startScanNfc(
             this,
             languageCode = flowEnv.extractedDataLanguage,
             context = this
         )
-        Log.d(TAG, "onCreate: ScanNfc initialized")
 
-        val nfcSupported = scanNfc.isNfcSupported(activity = this)
-        Log.d(TAG, "onCreate: isNfcSupported=$nfcSupported")
-        if (nfcSupported) {
-            val nfcEnabled = scanNfc.isNfcEnabled(activity = this)
-            Log.d(TAG, "onCreate: isNfcEnabled=$nfcEnabled")
-            if (nfcEnabled) {
+        if (scanNfc.isNfcSupported(activity = this)) {
+            if (scanNfc.isNfcEnabled(activity = this)) {
                 //
             } else {
-                Log.w(TAG, "onCreate: NFC disabled, opening NFC settings")
                 val intent = Intent(Settings.ACTION_NFC_SETTINGS)
                 startActivity(intent)
             }
         } else {
-            Log.w(TAG, "onCreate: NFC not supported on this device")
             feedbackText.value = nfcStrings.nfcNotSupported
         }
 
@@ -147,40 +131,27 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                 ) {
                     NfcScanScreen(
                         onBack = {
-                            Log.d(TAG, "onBack clicked")
                             onBackPressedDispatcher.onBackPressed()
                         },
-                        onSkip = {
-                            Log.d(TAG, "onSkip clicked: eventTypes ${eventTypes.value} -> ${EventTypes.onComplete}")
+                        onSkip  = {
                             eventTypes.value = EventTypes.onComplete
                         },
                         onNext = {
-                            Log.d(TAG, "onNext clicked: isNavigating=$isNavigating, isComplete=${isComplete.value}")
 
                             if (!isNavigating) {
                                 isNavigating = true
-                                try {
-                                    if (isComplete.value) {
-                                        Log.d(TAG, "onNext: using NFC scan result (dataIDModel), isNull=${dataIDModel.value == null}")
-                                        FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!, timeStarted);
-                                        FlowController.naveToNextStep(this)
-                                    } else {
-                                        Log.d(TAG, "onNext: NFC skipped, using original passportResponseModel")
-                                        FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!, timeStarted);
-                                        FlowController.naveToNextStep(this)
-                                    }
-                                    Log.d(TAG, "onNext: navigated to next step")
-                                } catch (e: Exception) {
-                                    Log.e(TAG, "onNext: failed to complete step / navigate", e)
-                                    isNavigating = false
-                                    throw e
+                                if(isComplete.value){
+                                    FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                    FlowController.naveToNextStep(this)
+                                }else{
+                                    FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                    FlowController.naveToNextStep(this)
                                 }
-                            } else {
-                                Log.w(TAG, "onNext: ignored, navigation already in progress")
                             }
+
+
                         },
                         onRetry = {
-                            Log.d(TAG, "onRetry clicked: resetting state")
                             feedbackText.value = flowStrings().nfcInitialFeedback;
                             eventTypes.value = EventTypes.none;
                             imageUrl.value = ""
@@ -197,7 +168,6 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     companion object {
 
         fun start(context: Context) {
-            Log.d(TAG, "start: launching NfcScanActivity from ${context.javaClass.simpleName}")
             val intent = Intent(context, NfcScanActivity::class.java)
             context.startActivity(intent)
         }
@@ -207,7 +177,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         super.onResume()
         isNavigating = false
         val adapter = NfcAdapter.getDefaultAdapter(this) ?: run {
-            Log.w(TAG, "onResume: NfcAdapter is null"); return
+            Log.w("NfcScanActivity", "onResume: NfcAdapter is null"); return
         }
         val options = Bundle().apply {
             putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 1000)
@@ -215,7 +185,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         adapter.enableReaderMode(
             this,
             { tag ->
-                Log.d(TAG, "readerMode: tag discovered, techs=${tag.techList.joinToString()}")
+                Log.d("NfcScanActivity", "readerMode: tag discovered, techs=${tag.techList.joinToString()}")
                 // Wrap the tag in an Intent so the existing SDK API keeps working
                 val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
                     .putExtra(NfcAdapter.EXTRA_TAG, tag)
@@ -225,31 +195,22 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
             options
         )
-        Log.d(TAG, "onResume: reader mode enabled")
+        Log.d("NfcScanActivity", "onResume: reader mode enabled")
     }
 
     override fun onPause() {
         super.onPause()
-        NfcAdapter.getDefaultAdapter(this)?.disableReaderMode(this)
-        Log.d(TAG, "onPause: reader mode disabled")
-    }
-
-
-
-    override fun onDestroy() {
-        Log.d(TAG, "onDestroy: isComplete=${isComplete.value}, eventTypes=${eventTypes.value}")
-        super.onDestroy()
+        val adapter = NfcAdapter.getDefaultAdapter(this)
+        adapter?.disableForegroundDispatch(this)
     }
 
     public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d(TAG, "onNewIntent: action=${intent.action}, hasTag=${intent.hasExtra(NfcAdapter.EXTRA_TAG)}")
         scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
     }
 
     /**  Events **/
     override fun onStartNfcScan() {
-        Log.d(TAG, "onStartNfcScan: chip reading started")
         runOnUiThread {
             feedbackText.value = flowStrings().nfcReading
             eventTypes.value = EventTypes.onSend
@@ -257,43 +218,31 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     }
 
     override fun onCompleteNfcScan(dataModel: PassportResponseModel) {
-        val extracted = dataModel.passportExtractedModel
-        Log.d(
-            TAG,
-            "onCompleteNfcScan: success, hasExtractedModel=${extracted != null}, " +
-                    "hasImageUrl=${!extracted?.imageUrl.isNullOrEmpty()}, " +
-                    "facesCount=${extracted?.faces?.size ?: 0}, " +
-                    "propertiesCount=${extracted?.transformedProperties?.size ?: 0}"
-        )
         runOnUiThread {
-            try {
-                isComplete.value = true;
-                dataIDModel.value = dataModel;
-                feedbackText.value = ""
-                OnCompleteScreenData.clear();
-                OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
-                eventTypes.value = EventTypes.onComplete
-                imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
-                if (dataModel.passportExtractedModel!!.faces!!.isNotEmpty()) {
-                    Log.d(TAG, "onCompleteNfcScan: setting face image in FlowController")
-                    FlowController.setImage(dataModel.passportExtractedModel!!.faces!!.first())
-                } else {
-                    Log.w(TAG, "onCompleteNfcScan: no faces returned from chip")
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "onCompleteNfcScan: failed to process result", e)
-                throw e
+            isComplete.value = true;
+            dataIDModel.value = dataModel;
+            feedbackText.value = ""
+            OnCompleteScreenData.clear();
+            OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
+            eventTypes.value = EventTypes.onComplete
+            imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
+            if(dataModel.passportExtractedModel!!.faces!!.isNotEmpty()){
+                FlowController.setImage(dataModel.passportExtractedModel!!.faces!!.first())
             }
+
         }
     }
 
     override fun onErrorNfcScan(dataModel: PassportResponseModel, message: String) {
-        Log.e(TAG, "onErrorNfcScan: message=$message")
         runOnUiThread {
             feedbackText.value = flowStrings().nfcConnectionLost
             eventTypes.value = EventTypes.onError
         }
     }
+
+
+
+
 }
 
 @Composable
@@ -312,15 +261,11 @@ fun NfcScanScreen(
 
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-    // Log only when the event type actually changes, not on every recomposition
-    LaunchedEffect(eventTypes) {
-        Log.d(SCREEN_TAG, "eventTypes changed -> $eventTypes, hasImage=${imageUrl.isNotEmpty()}")
-    }
 
-    val iconSvg = remember {
-        loadSvgFromAssets(context, "ic_nfc.svg").also {
-            if (it == null) Log.w(SCREEN_TAG, "ic_nfc.svg failed to load from assets")
-        }
+
+
+    val iconSvg= remember {
+        loadSvgFromAssets(context, "ic_nfc.svg")
     }
 
     val density = LocalDensity.current
@@ -332,21 +277,18 @@ fun NfcScanScreen(
 
         if (eventTypes == EventTypes.onComplete) {
             val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
-                ?: false;
-            LaunchedEffect(showResultPage) {
-                Log.d(SCREEN_TAG, "Showing complete screen, showResultPage=$showResultPage")
-            }
-            if (showResultPage) {
+                ?: false;  if(showResultPage){
                 OnCompleteScreen(imageUrl, onNext = {
-                    Log.d(SCREEN_TAG, "OnCompleteScreen: next clicked")
                     onNext();
                 })
-            } else {
+            }else{
                 OnNormalCompleteScreen(imageUrl, onNext = {
-                    Log.d(SCREEN_TAG, "OnNormalCompleteScreen: next clicked")
+
                     onNext();
                 })
             }
+
+
         }
         Column(
             modifier = Modifier
@@ -366,7 +308,7 @@ fun NfcScanScreen(
                     headerHeightDp = with(density) { coordinates.size.height.toDp() }
                 }
         ) {
-            if (BaseTheme.StepperType == StepperType.Normal) {
+            if(BaseTheme.StepperType == StepperType.Normal){
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -393,10 +335,7 @@ fun NfcScanScreen(
                         modifier = Modifier
                             .size(40.dp)
                             .align(Alignment.CenterVertically),
-                        contentScale = ContentScale.Fit,
-                        onError = { state ->
-                            Log.w(SCREEN_TAG, "Logo failed to load", state.result.throwable)
-                        }
+                        contentScale = ContentScale.Fit
                     )
 
                     Spacer(Modifier.weight(1f))
@@ -416,7 +355,7 @@ fun NfcScanScreen(
 
         }
 
-        if (eventTypes != EventTypes.onComplete) {
+        if(eventTypes != EventTypes.onComplete){
 
             Box(
                 modifier = Modifier
@@ -425,7 +364,7 @@ fun NfcScanScreen(
             ) {
                 Text(
                     text = s.nfcCapture,
-                    color = BaseTheme.BaseTextColor,
+                    color =   BaseTheme.BaseTextColor,
                     fontSize = 24.sp,
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Bold,
@@ -461,18 +400,18 @@ fun NfcScanScreen(
 
                     Spacer(Modifier.height(24.dp))
 
-                    if (eventTypes == EventTypes.onSend) {
+                    if(eventTypes == EventTypes.onSend){
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .size(60.dp)
                                 .align(Alignment.CenterHorizontally),
-                            color = BaseTheme.BaseTextColor,
+                            color =   BaseTheme.BaseTextColor,
                             strokeWidth = 6.dp
                         )
-                    } else {
+                    }else{
                         Text(
                             s.nfcDetected,
-                            color = BaseTheme.BaseTextColor,
+                            color =   BaseTheme.BaseTextColor,
                             fontSize = 22.sp,
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Bold,
@@ -486,7 +425,7 @@ fun NfcScanScreen(
 
                     Text(
                         text = feedbackText,
-                        color = BaseTheme.BaseTextColor,
+                        color =   BaseTheme.BaseTextColor,
                         fontSize = 10.sp,
                         lineHeight = 15.sp,
                         fontFamily = InterFont,
@@ -552,6 +491,17 @@ fun NfcScanScreen(
                     }
                 }
             }
+
         }
+
+
+
+
+
+
+
+
     }
 }
+
+
