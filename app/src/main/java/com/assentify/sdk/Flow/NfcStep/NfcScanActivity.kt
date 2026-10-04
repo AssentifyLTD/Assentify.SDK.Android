@@ -1,11 +1,8 @@
 package com.assentify.sdk.Flow.NfcStep
 
-import android.app.ActivityOptions
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.nfc.NfcAdapter
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -56,7 +53,6 @@ import androidx.fragment.app.FragmentActivity
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
-import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -209,57 +205,36 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume: resetting isNavigating (was $isNavigating)")
         isNavigating = false
-        val adapter = NfcAdapter.getDefaultAdapter(this)
-        if (adapter != null) {
-            Log.d(TAG, "onResume: NfcAdapter found, isEnabled=${adapter.isEnabled}, enabling foreground dispatch")
-            try {
-                val intent = Intent(this, NfcScanActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-
-                // Android 14+: the PendingIntent creator must opt in to background activity launch,
-                // otherwise the NFC service's delivery is blocked.
-                val options: Bundle? = when {
-                    Build.VERSION.SDK_INT >= 36 -> ActivityOptions.makeBasic()
-                        .setPendingIntentCreatorBackgroundActivityStartMode(
-                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE
-                        ).toBundle()
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> ActivityOptions.makeBasic()
-                        .setPendingIntentCreatorBackgroundActivityStartMode(
-                            ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                        ).toBundle()
-                    else -> null
-                }
-
-                val pendingIntent = PendingIntent.getActivity(
-                    this,
-                    0,
-                    intent,
-                    PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-                    options
-                )
-                val filter = arrayOf(arrayOf(ConstantsValues.NfcTechTag))
-                adapter.enableForegroundDispatch(this, pendingIntent, null, filter)
-                Log.d(TAG, "onResume: foreground dispatch enabled (SDK=${Build.VERSION.SDK_INT}, balOptIn=${options != null})")
-            } catch (e: Exception) {
-                Log.e(TAG, "onResume: failed to enable foreground dispatch", e)
-            }
-        } else {
-            Log.w(TAG, "onResume: NfcAdapter is null (no NFC hardware)")
+        val adapter = NfcAdapter.getDefaultAdapter(this) ?: run {
+            Log.w(TAG, "onResume: NfcAdapter is null"); return
         }
+        val options = Bundle().apply {
+            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 1000)
+        }
+        adapter.enableReaderMode(
+            this,
+            { tag ->
+                Log.d(TAG, "readerMode: tag discovered, techs=${tag.techList.joinToString()}")
+                // Wrap the tag in an Intent so the existing SDK API keeps working
+                val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
+                    .putExtra(NfcAdapter.EXTRA_TAG, tag)
+                scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
+            },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
+                    NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
+            options
+        )
+        Log.d(TAG, "onResume: reader mode enabled")
     }
 
     override fun onPause() {
         super.onPause()
-        Log.d(TAG, "onPause: disabling foreground dispatch")
-        val adapter = NfcAdapter.getDefaultAdapter(this)
-        try {
-            adapter?.disableForegroundDispatch(this)
-        } catch (e: Exception) {
-            Log.e(TAG, "onPause: failed to disable foreground dispatch", e)
-        }
+        NfcAdapter.getDefaultAdapter(this)?.disableReaderMode(this)
+        Log.d(TAG, "onPause: reader mode disabled")
     }
+
+
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy: isComplete=${isComplete.value}, eventTypes=${eventTypes.value}")
