@@ -5,7 +5,6 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -177,7 +176,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         super.onResume()
         isNavigating = false
         val adapter = NfcAdapter.getDefaultAdapter(this) ?: run {
-            Log.w("NfcScanActivity", "onResume: NfcAdapter is null"); return
+             return
         }
         val options = Bundle().apply {
             putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 1000)
@@ -185,7 +184,6 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         adapter.enableReaderMode(
             this,
             { tag ->
-                Log.d("NfcScanActivity", "readerMode: tag discovered, techs=${tag.techList.joinToString()}")
                 // Wrap the tag in an Intent so the existing SDK API keeps working
                 val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
                     .putExtra(NfcAdapter.EXTRA_TAG, tag)
@@ -195,7 +193,6 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
             options
         )
-        Log.d("NfcScanActivity", "onResume: reader mode enabled")
     }
 
     override fun onPause() {
