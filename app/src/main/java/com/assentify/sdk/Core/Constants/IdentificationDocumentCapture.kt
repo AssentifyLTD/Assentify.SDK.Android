@@ -6,6 +6,37 @@ import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 
 
 object IdentificationDocumentCaptureKeys {
+
+    // NFC
+    const val idOtherNames = "Other_Names"
+    const val idPersonalNumber = "Personal_Number"
+    const val idFullDateOfBirth = "Full_Date_Of_Birth"
+    const val idTelephone = "Telephone"
+    const val idTitle = "Title"
+    const val idPersonalSummary = "Personal_Summary"
+    const val idOtherValidTDNumbers = "Other_Valid_TD_Numbers"
+    const val idCustodyInformation = "Custody_Information"
+
+    const val idIssuingAuthority = "Issuing_Authority"
+    const val idDateOfIssue = "Date_Of_Issue"
+    const val idNamesOfOtherPersons = "Names_Of_Other_Persons"
+    const val idEndorsementsAndObservations = "Endorsements_And_Observations"
+    const val idTaxOrExitRequirements = "Tax_Or_Exit_Requirements"
+    const val idDateOfPersonalization = "Date_Of_Personalization"
+    const val idPersonalizationSystemSerialNumber = "Personalization_System_Serial_Number"
+
+
+    const val idFathersNameArabic = "Fathers_Name_Arabic"
+    const val idMothersNameArabic = "Mothers_Name_Arabic"
+    const val idPlaceOfBirthArabic = "Place_Of_Birth_Arabic"
+    const val idNameArabic = "First_Name_Arabic"
+    const val idSurnameArabic = "Last_Name_Arabic"
+    const val idNationalityArabic = "Nationality_Arabic"
+    const val idSexArabic = "Sex_Arabic"
+    const val idRecordId = "Record_Id"
+    const val idDg13Extra = "DG13_Extra"
+    /////
+
     const val name = "OnBoardMe_IdentificationDocumentCapture_name"
     const val surname = "OnBoardMe_IdentificationDocumentCapture_surname"
     const val documentType = "OnBoardMe_IdentificationDocumentCapture_Document_Type"

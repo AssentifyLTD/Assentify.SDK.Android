@@ -1,6 +1,5 @@
 package com.assentify.sdk.Flow.NfcStep
 
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.nfc.NfcAdapter
@@ -52,7 +51,6 @@ import androidx.fragment.app.FragmentActivity
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
-import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.getCurrentDateTimeForTracking
 import com.assentify.sdk.Core.Constants.toBrush
@@ -86,7 +84,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private var timeStarted = getCurrentDateTimeForTracking()
 
     private var isComplete = mutableStateOf<Boolean>(false)
-     private var isNavigating = false
+    private var isNavigating = false
 
 
 
@@ -97,7 +95,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
         val nfcStrings = flowStrings()
         feedbackText.value = nfcStrings.nfcInitialFeedback
-       passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()!!
+        passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()!!
 
 
 
@@ -118,11 +116,11 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
             feedbackText.value = nfcStrings.nfcNotSupported
         }
 
-       /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                FlowController.backClick(this@NfcScanActivity);
-            }
-        })*/
+        /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+             override fun handleOnBackPressed() {
+                 FlowController.backClick(this@NfcScanActivity);
+             }
+         })*/
 
         setContent {
             MaterialTheme {
@@ -131,7 +129,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     NfcScanScreen(
-                         onBack = {
+                        onBack = {
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onSkip  = {
@@ -177,15 +175,24 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     override fun onResume() {
         super.onResume()
         isNavigating = false
-        val adapter = NfcAdapter.getDefaultAdapter(this)
-        if (adapter != null) {
-            val intent = Intent(applicationContext, this.javaClass)
-            intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            val pendingIntent =
-                PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
-            val filter = arrayOf(arrayOf(ConstantsValues.NfcTechTag))
-            adapter.enableForegroundDispatch(this, pendingIntent, null, filter)
+        val adapter = NfcAdapter.getDefaultAdapter(this) ?: run {
+             return
         }
+        val options = Bundle().apply {
+            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 1000)
+        }
+        adapter.enableReaderMode(
+            this,
+            { tag ->
+                // Wrap the tag in an Intent so the existing SDK API keeps working
+                val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
+                    .putExtra(NfcAdapter.EXTRA_TAG, tag)
+                scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
+            },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
+                    NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
+            options
+        )
     }
 
     override fun onPause() {
@@ -196,7 +203,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
     public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-      scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
+        scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
     }
 
     /**  Events **/
@@ -265,21 +272,21 @@ fun NfcScanScreen(
         .fillMaxSize()
     ) {
 
-       if (eventTypes == EventTypes.onComplete) {
-           val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
-               ?: false;  if(showResultPage){
-               OnCompleteScreen(imageUrl, onNext = {
-                   onNext();
-               })
-           }else{
-               OnNormalCompleteScreen(imageUrl, onNext = {
+        if (eventTypes == EventTypes.onComplete) {
+            val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
+                ?: false;  if(showResultPage){
+                OnCompleteScreen(imageUrl, onNext = {
+                    onNext();
+                })
+            }else{
+                OnNormalCompleteScreen(imageUrl, onNext = {
 
-                   onNext();
-               })
-           }
+                    onNext();
+                })
+            }
 
 
-       }
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -299,39 +306,39 @@ fun NfcScanScreen(
                 }
         ) {
             if(BaseTheme.StepperType == StepperType.Normal){
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    onBack()
-                }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = BaseTheme.BaseTextColor,
-                        modifier = Modifier.size(30.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = {
+                        onBack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = BaseTheme.BaseTextColor,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.weight(1f))
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(BaseTheme.BaseLogo)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .align(Alignment.CenterVertically),
+                        contentScale = ContentScale.Fit
                     )
+
+                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.size(48.dp))
                 }
-
-                Spacer(Modifier.weight(1f))
-
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(BaseTheme.BaseLogo)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.CenterVertically),
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(Modifier.weight(1f))
-                Spacer(Modifier.size(48.dp))
             }
-        }
             Spacer(Modifier.height(10.dp))
 
             ProgressStepper(
