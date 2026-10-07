@@ -38,6 +38,8 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.51***
+1. *NFC Scan Improvements*
 
 ***1.0.0-Beta.50***
 1. *Questionnaire Step*

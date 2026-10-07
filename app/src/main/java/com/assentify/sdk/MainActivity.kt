@@ -98,10 +98,10 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
         val etApiKey = findViewById<EditText>(R.id.etApiKey)
 
 
-        //etApiKey.setText("B6keMrSG3J6A0Ty8vtuephAgqCZZM9vbIwEXUk6JU0XoUxs9giUI9INZkoZTG9AxnawmnhOQiGRGLRuMTww")
+       // etApiKey.setText("B6keMrSG3J6A0Ty8vtuephAgqCZZM9vbIwEXUk6JU0XoUxs9giUI9INZkoZTG9AxnawmnhOQiGRGLRuMTww")
 
-     //  etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-     etApiKey.setText("2R9sIKMVdY2UClCzDiMTmBZnO2v5bcfMUQszYgYETPqFTpHKSMYTleSBwZ9HRf5N4tRBq8iRWUNuHvMetHOiQ")
+     etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+   // etApiKey.setText("2R9sIKMVdY2UClCzDiMTmBZnO2v5bcfMUQszYgYETPqFTpHKSMYTleSBwZ9HRf5N4tRBq8iRWUNuHvMetHOiQ")
 
 
 
@@ -182,14 +182,14 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                     Log.e("FilePath", "Failed to copy asset")
                 }
 
-               /* RemoteClient.configure(
+            /*    RemoteClient.configure(
                     widgetsSocketUrl = "https://ocr-cognitive.touch.com.lb/orchestrator/",
                     blobStorageUrl = "https://ocr-cognitive.touch.com.lb/blob/",
                     languageTransformUrl = "https://ocr-cognitive.touch.com.lb/orchestrator/api/",
                     baseUrlSigning = "https://ocr-cognitive.touch.com.lb/orchestrator/",
                     baseUrlGateway = "https://ocr-cognitive.touch.com.lb/orchestrator/"
-                )*/
-
+                )
+*/
 
                 /** INIT SDK **/
                 val environmentalConditions = EnvironmentalConditions(
@@ -204,7 +204,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    configFileName =  "OnBoarding",
+                    configFileName =  "Mint",
                    // processJsonConfigFile = path!!,
                     environmentalConditions = environmentalConditions,
                     assentifySdkCallback = this,
@@ -276,7 +276,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 //                ),
 
 
-                extractedDataLanguage = config.language,
+                //extractedDataLanguage = config.language,
                 enableNfc = config.enableNfc,
                 enableQr = config.enableQr,
                 blockLoaderCustomProperties = customProperties,
@@ -295,7 +295,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 clickFontWeight = ClickFontWeight.Bold,
                 hideBlockLoader = false,
                 hideWrapUp = false,
-                localMrzScan = true
+                localMrzScan = false
 
 
 
