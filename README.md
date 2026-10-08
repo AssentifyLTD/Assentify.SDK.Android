@@ -38,11 +38,20 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.55***
+1. *NFC Scan Improvements *
+
+***1.0.0-Beta.54***
+1. *NFC Scan Improvements DG11*
+
 ***1.0.0-Beta.53***
-1. *NFC Scan Improvements*
+1. *NFC Scan Improvements DG3*
+
+***1.0.0-Beta.52***
+1. *NFC Scan Improvements DG2*
 
 ***1.0.0-Beta.51***
-1. *NFC Scan Improvements*
+1. *NFC Scan Improvements DG1*
 
 ***1.0.0-Beta.50***
 1. *Questionnaire Step*
