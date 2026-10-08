@@ -11,9 +11,8 @@ android {
     android.ndkVersion "27.0.12077973"
     defaultConfig {
 
-
         minSdkVersion 24
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
@@ -131,7 +130,7 @@ dependencies {
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.29'
 
     // NFC
-    implementation("net.sf.scuba:scuba-sc-android:0.0.26")
+    implementation("net.sf.scuba:scuba-sc-android:0.0.23")
     implementation("org.jmrtd:jmrtd:0.8.3")
     implementation("commons-io:commons-io:2.21.0")
     implementation "org.bouncycastle:bcprov-jdk18on:1.83"
