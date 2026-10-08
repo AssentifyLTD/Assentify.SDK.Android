@@ -9,6 +9,8 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import android.os.Build
+import android.os.SystemClock
+import android.util.Log
 import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.FullNameKey
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys
@@ -26,7 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.sf.scuba.smartcards.CardService
+import net.sf.scuba.smartcards.IsoDepCardService
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.ResponseBody
@@ -73,6 +75,30 @@ class ScanNfc(
 ) : LanguageTransformationCallback {
 
     companion object {
+        /** Logcat tag. Filter with: adb logcat -s AssentifyNFC:V */
+        private const val TAG = "AssentifyNFC"
+
+        /** Host apps can turn the SDK's NFC logs off: ScanNfc.debugLogs = false */
+        @JvmStatic
+        var debugLogs: Boolean = true
+
+        private fun logD(msg: String) { if (debugLogs) Log.d(TAG, msg) }
+        private fun logW(msg: String, t: Throwable? = null) { if (debugLogs) Log.w(TAG, msg, t) }
+        private fun logE(msg: String, t: Throwable? = null) { if (debugLogs) Log.e(TAG, msg, t) }
+
+        /** Never log personal data in clear: "AB12345" -> "AB****5" */
+        private fun mask(v: String?): String = when {
+            v == null -> "null"
+            v.length <= 3 -> "***"
+            else -> v.take(2) + "*".repeat(v.length - 3) + v.takeLast(1)
+        }
+
+        private fun describe(t: Throwable): String = "${t.javaClass.name}: ${t.message}"
+
+        /** Errors (NoClassDefFoundError, OutOfMemoryError, ...) are wrapped so the callback still fires */
+        private fun Throwable.asException(): Exception =
+            this as? Exception ?: Exception(describe(this), this)
+
         private const val NAME_SEPARATOR = "#"
 
         // Arabic letters, incl. presentation forms
@@ -201,6 +227,7 @@ class ScanNfc(
     fun isNfcSupported(activity: Activity): Boolean {
         lastActivity = WeakReference(activity)
         val nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
+        logD("isNfcSupported = ${nfcAdapter != null}")
         return nfcAdapter != null
     }
 
@@ -208,7 +235,9 @@ class ScanNfc(
     fun isNfcEnabled(activity: Activity): Boolean {
         lastActivity = WeakReference(activity)
         val nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
-        return nfcAdapter?.isEnabled == true
+        val enabled = nfcAdapter?.isEnabled == true
+        logD("isNfcEnabled = $enabled")
+        return enabled
     }
 
 
@@ -218,23 +247,57 @@ class ScanNfc(
         nfcDg11 = null
         nfcDg12 = null
         nfcDg13 = null
-        if (NfcAdapter.ACTION_TECH_DISCOVERED == intent.action) {
-            val tag = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-            } else {
-                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
-            }
-            if (tag?.techList?.contains(ConstantsValues.NfcTechTag) == true) {
-                val bacKey: BACKeySpec = BACKey(
-                    dataModel.passportExtractedModel?.identificationDocumentCapture?.documentNumber.toString(),
-                    formatDateToMRZ(dataModel.passportExtractedModel?.identificationDocumentCapture?.birthDate.toString()),
-                    formatDateToMRZ(dataModel.passportExtractedModel?.identificationDocumentCapture?.expiryDate.toString()),
-                )
-                ReadTask(IsoDep.get(tag), bacKey).start()
-                scanNfcCallback.onStartNfcScan();
 
-            }
+        logD("onActivityNewIntent: action=${intent.action}")
+        if (NfcAdapter.ACTION_TECH_DISCOVERED != intent.action) {
+            logW("Intent ignored: action is not ACTION_TECH_DISCOVERED")
+            return
         }
+
+        val tag = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+        } else {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        }
+        if (tag == null) {
+            logW("Intent ignored: no EXTRA_TAG")
+            return
+        }
+        logD("Tag techList = ${tag.techList?.joinToString()}")
+        if (tag.techList?.contains(ConstantsValues.NfcTechTag) != true) {
+            logW("Intent ignored: tag does not support ${ConstantsValues.NfcTechTag}")
+            return
+        }
+
+        val isoDep = IsoDep.get(tag)
+        if (isoDep == null) {
+            logE("IsoDep.get(tag) returned null")
+            scanNfcCallback.onErrorNfcScan(dataModel, "IsoDep not available on this tag")
+            return
+        }
+
+        // The BAC key comes from OCR. A bad date here used to crash the app, so fail through the callback instead.
+        val bacKey: BACKeySpec = try {
+            val capture = dataModel.passportExtractedModel?.identificationDocumentCapture
+            val documentNumber = capture?.documentNumber.toString()
+            val birthDate = formatDateToMRZ(capture?.birthDate.toString())
+            val expiryDate = formatDateToMRZ(capture?.expiryDate.toString())
+            logD(
+                "BAC key: documentNumber=${mask(documentNumber)} (len=${documentNumber.length}), " +
+                        "birthDate len=${birthDate.length}, expiryDate len=${expiryDate.length}"
+            )
+            if (documentNumber == "null" || documentNumber.isBlank()) {
+                logW("Document number from OCR is empty: BAC/PACE will fail")
+            }
+            BACKey(documentNumber, birthDate, expiryDate)
+        } catch (e: Exception) {
+            logE("Could not build BAC key from OCR data", e)
+            scanNfcCallback.onErrorNfcScan(dataModel, "Invalid MRZ data: ${e.message}")
+            return
+        }
+
+        ReadTask(isoDep, bacKey).start()
+        scanNfcCallback.onStartNfcScan();
     }
     private fun formatDateToMRZ(dateStr: String): String {
         val parts = dateStr.split("/")
@@ -258,21 +321,37 @@ class ScanNfc(
         private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
         fun start() {
+            logD("ReadTask started")
+            val startedAt = SystemClock.elapsedRealtime()
             coroutineScope.launch {
-                try {
-                    val result = withContext(Dispatchers.IO) { performReadTask() }
-                    onPostExecute(result)
-                } catch (e: Exception) {
-                    onPostExecute(e)
+                // Throwable, not Exception: a missing class (NoClassDefFoundError) would otherwise crash the app
+                val result: Exception? = try {
+                    withContext(Dispatchers.IO) { performReadTask() }
+                } catch (t: Throwable) {
+                    logE("ReadTask crashed outside performReadTask", t)
+                    t.asException()
                 }
+                val elapsed = SystemClock.elapsedRealtime() - startedAt
+                logD("ReadTask finished in ${elapsed} ms, error = ${result?.let { describe(it) } ?: "none"}")
+                onPostExecute(result)
             }
         }
 
         private suspend fun performReadTask(): Exception? {
+            var step = "init"
             return try {
+                step = "configure IsoDep"
                 isoDep.timeout = 10000
-                val cardService = CardService.getInstance(isoDep)
+                logD("IsoDep: timeout=${isoDep.timeout}, maxTransceive=${isoDep.maxTransceiveLength}, extendedLength=${isoDep.isExtendedLengthApduSupported}")
+
+                step = "create IsoDepCardService"
+                val cardService = IsoDepCardService(isoDep)
+
+                step = "open card service"
                 cardService.open()
+                logD("IsoDepCardService opened")
+
+                step = "open PassportService"
                 val service = PassportService(
                     cardService,
                     PassportService.NORMAL_MAX_TRANCEIVE_LENGTH,
@@ -281,13 +360,18 @@ class ScanNfc(
                     false,
                 )
                 service.open()
+                logD("PassportService opened")
 
+                step = "PACE"
                 var paceSucceeded = false
                 try {
                     val cardAccessFile = CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS))
                     val securityInfoCollection = cardAccessFile.securityInfos
+                    logD("EF.CardAccess: ${securityInfoCollection.size} security info(s): " +
+                            securityInfoCollection.joinToString { it.javaClass.simpleName })
                     for (securityInfo: SecurityInfo in securityInfoCollection) {
                         if (securityInfo is PACEInfo) {
+                            logD("Trying PACE: oid=${securityInfo.objectIdentifier}, parameterId=${securityInfo.parameterId}")
                             service.doPACE(
                                 bacKey,
                                 securityInfo.objectIdentifier,
@@ -295,42 +379,69 @@ class ScanNfc(
                                 null,
                             )
                             paceSucceeded = true
+                            logD("PACE succeeded")
+                            break
                         }
                     }
+                    if (!paceSucceeded) logD("No PACEInfo on the chip: will use BAC")
                 } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        //scanNfcCallback.onErrorNfcScan(passportResponseModel!!,e.message!!);
-                    }
+                    // Normal on chips without EF.CardAccess; BAC is tried next
+                    logW("PACE not used / failed: ${describe(e)}")
                 }
+
+                step = "select applet"
                 service.sendSelectApplet(paceSucceeded)
+                logD("Applet selected (paceSucceeded=$paceSucceeded)")
+
                 if (!paceSucceeded) {
+                    step = "BAC"
                     try {
                         service.getInputStream(PassportService.EF_COM).read()
+                        logD("EF.COM readable without BAC")
                     } catch (e: Exception) {
+                        logD("EF.COM needs access control (${e.javaClass.simpleName}): doing BAC")
                         service.doBAC(bacKey)
+                        logD("BAC succeeded")
                     }
                 }
 
                 // Mandatory groups: a failure here is a real scan failure
+                step = "read DG1"
                 val dg1In = service.getInputStream(PassportService.EF_DG1)
                 dg1File = DG1File(dg1In)
+                logD("DG1 read: issuingState=${safeRead { dg1File.mrzInfo.issuingState }}, documentCode=${safeRead { dg1File.mrzInfo.documentCode }}")
+
+                step = "read DG2"
                 val dg2In = service.getInputStream(PassportService.EF_DG2)
                 dg2File = DG2File(dg2In)
+                logD("DG2 read: ${safeRead { dg2File.faceInfos.size } ?: 0} face info(s)")
 
                 // Optional groups: never fail the scan because of them
+                step = "read EF.COM"
                 val presentTags = readPresentTags(service)
+                logD("EF.COM tags: ${presentTags?.joinToString { "%02X".format(it) } ?: "unreadable (trying every DG)"}")
+
+                step = "read DG11"
                 nfcDg11 = if (isPresent(presentTags, DG11_TAG)) readDg11(service) else null
+                logD("DG11: ${if (nfcDg11 != null) "parsed" else "absent or unparsed"}")
+
+                step = "read DG12"
                 nfcDg12 = if (isPresent(presentTags, DG12_TAG)) readDg12(service) else null
+                logD("DG12: ${if (nfcDg12 != null) "parsed" else "absent or unparsed"}")
 
                 // DG13 meaning depends on the issuer, so pass the issuing state from DG1
+                step = "read DG13"
                 val issuingState = safeRead { cleanNfcText(dg1File.mrzInfo.issuingState) }
                 nfcDg13 = if (isPresent(presentTags, DG13_TAG)) readDg13(service, issuingState) else null
+                logD("DG13: ${if (nfcDg13 != null) "parsed (issuer=$issuingState)" else "absent or unparsed"}")
 
+                step = "chip authentication"
                 doChipAuth(service)
 
                 null // No error
-            } catch (e: Exception) {
-                e // Return the exception
+            } catch (t: Throwable) {
+                logE("performReadTask failed at step '$step'", t)
+                t.asException() // Return the exception
             }
         }
 
@@ -341,8 +452,11 @@ class ScanNfc(
                 val dg14InByte = ByteArrayInputStream(dg14Encoded)
                 val dg14File = DG14File(dg14InByte)
                 val dg14FileSecurityInfo = dg14File.securityInfos
+                logD("DG14: ${dg14FileSecurityInfo.size} security info(s): " +
+                        dg14FileSecurityInfo.joinToString { it.javaClass.simpleName })
                 for (securityInfo: SecurityInfo in dg14FileSecurityInfo) {
                     if (securityInfo is ChipAuthenticationPublicKeyInfo) {
+                        logD("Trying chip authentication: keyId=${securityInfo.keyId}")
                         service.doEACCA(
                             securityInfo.keyId,
                             ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
@@ -350,9 +464,13 @@ class ScanNfc(
                             securityInfo.subjectPublicKey,
                         )
                         chipAuthSucceeded = true
+                        logD("Chip authentication succeeded")
                     }
                 }
+                if (!chipAuthSucceeded) logD("No chip authentication key in DG14")
             } catch (e: Exception) {
+                // Not fatal: many chips have no DG14
+                logW("Chip authentication skipped / failed: ${describe(e)}")
                 withContext(Dispatchers.Main) {
                     // scanNfcCallback.onErrorNfcScan(passportResponseModel!!,e.message!!);
                 }
@@ -360,32 +478,38 @@ class ScanNfc(
         }
 
         private fun onPostExecute(exception: Exception?) {
-            if (exception == null) {
-                try {
-                    val mrzInfo = dg1File.mrzInfo
-                    val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
-                    dg2File.faceInfos.forEach {
-                        allFaceImageInfo.addAll(it.faceImageInfos)
-                    }
-                    if (allFaceImageInfo.isNotEmpty()) {
-                        val faceImageInfo = allFaceImageInfo.first()
-                        val imageLength = faceImageInfo.imageLength
-                        val dataInputStream = DataInputStream(faceImageInfo.imageInputStream)
-                        val buffer = ByteArray(imageLength)
-                        dataInputStream.readFully(buffer, 0, imageLength)
-                        val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
-                        val finalBitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
-                        uploadImage(finalBitmap,mrzInfo)
-                    } else {
-                        // No face on the chip: still complete with the chip text data
-                        replaceDataWithNfcData(mrzInfo)
-                    }
-
-                } catch (e:Exception) {
-                    scanNfcCallback.onErrorNfcScan(passportResponseModel!!,"Chip Auth Not Succeeded");
+            if (exception != null) {
+                logE("NFC read failed: ${describe(exception)}", exception)
+                scanNfcCallback.onErrorNfcScan(passportResponseModel!!, exception.message ?: "NFC read failed")
+                return
+            }
+            try {
+                val mrzInfo = dg1File.mrzInfo
+                val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
+                dg2File.faceInfos.forEach {
+                    allFaceImageInfo.addAll(it.faceImageInfos)
                 }
-            } else {
-                scanNfcCallback.onErrorNfcScan(passportResponseModel!!, exception.message ?: "NFC read failed");
+                logD("Face images on chip: ${allFaceImageInfo.size}")
+                if (allFaceImageInfo.isNotEmpty()) {
+                    val faceImageInfo = allFaceImageInfo.first()
+                    val imageLength = faceImageInfo.imageLength
+                    logD("Decoding face: mimeType=${faceImageInfo.mimeType}, length=$imageLength bytes")
+                    val dataInputStream = DataInputStream(faceImageInfo.imageInputStream)
+                    val buffer = ByteArray(imageLength)
+                    dataInputStream.readFully(buffer, 0, imageLength)
+                    val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
+                    val finalBitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
+                    logD("Face decoded: ${finalBitmap.width}x${finalBitmap.height}")
+                    uploadImage(finalBitmap,mrzInfo)
+                } else {
+                    // No face on the chip: still complete with the chip text data
+                    replaceDataWithNfcData(mrzInfo)
+                }
+
+            } catch (t: Throwable) {
+                // Throwable: JP2 decoding can fail with native errors (UnsatisfiedLinkError, OutOfMemoryError)
+                logE("Post-processing failed (face decode / data mapping)", t)
+                scanNfcCallback.onErrorNfcScan(passportResponseModel!!,"Chip Auth Not Succeeded");
             }
         }
     }
@@ -393,7 +517,7 @@ class ScanNfc(
     /** DG11 / DG12 / DG13 helpers — none of these ever throw **/
 
     /** Tags listed in EF.COM, or null if EF.COM can't be read (then we just try every DG) */
-    private fun readPresentTags(service: PassportService): Set<Int>? = safeRead {
+    private fun readPresentTags(service: PassportService): Set<Int>? = safeRead("EF.COM") {
         COMFile(service.getInputStream(PassportService.EF_COM)).tagList?.toSet()
     }
 
@@ -401,25 +525,29 @@ class ScanNfc(
         presentTags == null || presentTags.contains(tag)
 
     /** Whole file as bytes, or null if missing / not readable */
-    private fun readRaw(service: PassportService, fileId: Short): ByteArray? = safeRead {
+    private fun readRaw(service: PassportService, fileId: Short): ByteArray? = safeRead("read file 0x%04X".format(fileId)) {
         IOUtils.toByteArray(service.getInputStream(fileId))
     }?.takeIf { it.isNotEmpty() }
 
     private fun readDg11(service: PassportService): NfcDg11Data? {
         val raw = readRaw(service, PassportService.EF_DG11) ?: return null
+        logD("DG11 raw size: ${raw.size} bytes")
 
         // JMRTD first; if it can't parse this chip's DG11, decode the raw TLV ourselves
-        val dg11 = safeRead { DG11File(ByteArrayInputStream(raw)) }
-            ?: return safeRead { decodeDg11Raw(raw) }
+        val dg11 = safeRead("DG11File parse") { DG11File(ByteArrayInputStream(raw)) }
+            ?: run {
+                logD("DG11: JMRTD parse failed, using raw TLV decoder")
+                return safeRead("DG11 raw decode") { decodeDg11Raw(raw) }
+            }
 
         val rawOtherNames = safeRead { dg11.otherNames }
         val rawPlaceOfBirth = safeRead { dg11.placeOfBirth }
 
         // Split if the format is recognized, otherwise keep the whole value on one key.
         // If the split itself throws, we still fall back to the whole value.
-        val parents = safeRead { splitOtherNames(rawOtherNames) }
+        val parents = safeRead("split other names") { splitOtherNames(rawOtherNames) }
             ?: ParentNames(otherNames = safeRead { cleanNfcList(rawOtherNames) })
-        val placeOfBirth = safeRead { splitPlaceOfBirth(rawPlaceOfBirth) }
+        val placeOfBirth = safeRead("split place of birth") { splitPlaceOfBirth(rawPlaceOfBirth) }
             ?: LatinArabic(main = safeRead { cleanNfcList(rawPlaceOfBirth) })
 
         return NfcDg11Data(
@@ -445,10 +573,14 @@ class ScanNfc(
 
     private fun readDg12(service: PassportService): NfcDg12Data? {
         val raw = readRaw(service, PassportService.EF_DG12) ?: return null
+        logD("DG12 raw size: ${raw.size} bytes")
 
         // JMRTD first; if it can't parse this chip's DG12, decode the raw TLV ourselves
-        val dg12 = safeRead { DG12File(ByteArrayInputStream(raw)) }
-            ?: return safeRead { decodeDg12Raw(raw) }
+        val dg12 = safeRead("DG12File parse") { DG12File(ByteArrayInputStream(raw)) }
+            ?: run {
+                logD("DG12: JMRTD parse failed, using raw TLV decoder")
+                return safeRead("DG12 raw decode") { decodeDg12Raw(raw) }
+            }
 
         return NfcDg12Data(
             issuingAuthority = safeRead { cleanNfcText(dg12.issuingAuthority) },
@@ -464,7 +596,8 @@ class ScanNfc(
     /** DG13: no library parser exists, so we always decode the raw TLV */
     private fun readDg13(service: PassportService, issuingState: String?): NfcDg13Data? {
         val raw = readRaw(service, PassportService.EF_DG13) ?: return null
-        return safeRead { decodeDg13(raw, issuingState) }
+        logD("DG13 raw size: ${raw.size} bytes, issuer=$issuingState")
+        return safeRead("DG13 decode") { decodeDg13(raw, issuingState) }
     }
 
     /** ---------- Raw TLV decoding (BER-TLV, as described in ICAO 9303) ---------- **/
@@ -552,6 +685,7 @@ class ScanNfc(
     /** DG11 straight from the raw bytes — only used when JMRTD fails on this chip */
     private fun decodeDg11Raw(raw: ByteArray): NfcDg11Data? {
         val fields = fileFields(raw, DG11_TAG)
+        logD("DG11 raw TLV: ${fields.size} field(s): ${fields.joinToString { "%X".format(it.tag) }}")
         if (fields.isEmpty()) return null
 
         fun text(tag: Int) = fields.firstOrNull { it.tag == tag }?.let { decodeText(it.value) }
@@ -587,6 +721,7 @@ class ScanNfc(
     /** DG12 straight from the raw bytes — only used when JMRTD fails on this chip */
     private fun decodeDg12Raw(raw: ByteArray): NfcDg12Data? {
         val fields = fileFields(raw, DG12_TAG)
+        logD("DG12 raw TLV: ${fields.size} field(s): ${fields.joinToString { "%X".format(it.tag) }}")
         if (fields.isEmpty()) return null
 
         fun text(tag: Int) = fields.firstOrNull { it.tag == tag }?.let { decodeText(it.value) }
@@ -613,9 +748,11 @@ class ScanNfc(
             val text = decodeText(field.value) ?: return@forEach   // skip empty fields
             if (!values.containsKey(field.tag)) values[field.tag] = text
         }
+        logD("DG13 TLV tags with values: ${values.keys.joinToString { "%X".format(it) }}")
         if (values.isEmpty()) return null
 
         if (issuingState != LEBANON) {
+            logD("DG13: issuer $issuingState has no known tag table, keeping raw values")
             return NfcDg13Data(unrecognized = formatUnrecognized(values))
         }
 
@@ -637,6 +774,10 @@ class ScanNfc(
         val nationalityArabic = take(LB_NATIONALITY_AR)
         val sexArabic = take(LB_SEX_AR)
         val recordId = take(LB_RECORD_ID)
+
+        if (values.isNotEmpty()) {
+            logD("DG13 (LBN): unmapped tags: ${values.keys.joinToString { "%X".format(it) }}")
+        }
 
         return NfcDg13Data(
             givenNames = givenNames,
@@ -697,6 +838,7 @@ class ScanNfc(
             val father = pickLatinArabic(parts[0], parts[1])
             val mother = pickLatinArabic(parts[2], parts[3])
             if (father != null && mother != null) {
+                logD("Other names: split into father/mother (4 parts)")
                 return ParentNames(
                     fatherName = father.main,
                     fatherNameArabic = father.arabic,
@@ -707,6 +849,7 @@ class ScanNfc(
         }
 
         // Unknown format: keep it on one key, exactly as read
+        logD("Other names: unknown format (${parts.size} part(s)), kept as one value")
         return ParentNames(otherNames = entries.joinToString(", "))
     }
 
@@ -746,9 +889,11 @@ class ScanNfc(
 
     private fun isArabic(value: String): Boolean = ARABIC_REGEX.containsMatchIn(value)
 
-    private inline fun <T> safeRead(block: () -> T?): T? = try {
+    /** Runs [block], returns null on failure. With a [label], the swallowed exception is logged. */
+    private inline fun <T> safeRead(label: String = "", block: () -> T?): T? = try {
         block()
     } catch (e: Exception) {
+        if (label.isNotEmpty()) logW("safeRead[$label] failed: ${describe(e)}")
         null
     }
 
@@ -787,7 +932,16 @@ class ScanNfc(
         bitmap:Bitmap,
         mrzInfo: MRZInfo,
     ) {
-        val (image, fileName) =  createTimestampedTempFile(bitmap)!!;
+        val created = createTimestampedTempFile(bitmap)
+        if (created == null) {
+            // Used to crash with a NullPointerException ("!!"); now the scan still completes without the face
+            logW("Could not write the face image to cache: skipping upload")
+            replaceDataWithNfcData(mrzInfo)
+            return
+        }
+        val (image, fileName) = created
+        logD("Uploading face image: $fileName (${image.length()} bytes)")
+
         val fileRequestBody = image.asRequestBody(null)
         val filePart = MultipartBody.Part.createFormData(
             "asset", fileName, fileRequestBody
@@ -808,24 +962,35 @@ class ScanNfc(
                 call: Call<ResponseBody>,
                 response: Response<ResponseBody>
             ) {
+                logD("Face upload response: HTTP ${response.code()}")
                 if (response.isSuccessful) {
                     val responseBody = response.body()
                     if (responseBody != null) {
-                        val responseBodyString = responseBody.string()
-                        val jsonObject = JSONObject(responseBodyString)
-                        val uploadedUrl = jsonObject.getString("url")
-                        passportResponseModel!!.passportExtractedModel?.faces = mutableListOf<String>();
-                        val faces = mutableListOf<String>()
-                        faces.add(uploadedUrl);
-                        passportResponseModel!!.passportExtractedModel?.faces = faces;
+                        try {
+                            val responseBodyString = responseBody.string()
+                            val jsonObject = JSONObject(responseBodyString)
+                            val uploadedUrl = jsonObject.getString("url")
+                            passportResponseModel!!.passportExtractedModel?.faces = mutableListOf<String>();
+                            val faces = mutableListOf<String>()
+                            faces.add(uploadedUrl);
+                            passportResponseModel!!.passportExtractedModel?.faces = faces;
+                            logD("Face uploaded")
+                        } catch (e: Exception) {
+                            logE("Face upload response could not be parsed", e)
+                        }
+                        replaceDataWithNfcData(mrzInfo);
+                    } else {
+                        logW("Face upload succeeded but the body is empty")
                         replaceDataWithNfcData(mrzInfo);
                     }
                 }else{
+                    logW("Face upload failed: HTTP ${response.code()} ${response.message()}")
                     replaceDataWithNfcData(mrzInfo);
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                logE("Face upload network failure", t)
                 replaceDataWithNfcData(mrzInfo);
             }
         })
@@ -844,7 +1009,7 @@ class ScanNfc(
 
             Pair(tempFile, fileName)
         } catch (e: IOException) {
-            e.printStackTrace()
+            logE("createTimestampedTempFile failed", e)
             null
         }
     }
@@ -855,6 +1020,8 @@ class ScanNfc(
         val dg11 = nfcDg11
         val dg12 = nfcDg12
         val dg13 = nfcDg13
+        logD("Mapping NFC data: dg11=${dg11 != null}, dg12=${dg12 != null}, dg13=${dg13 != null}, " +
+                "outputProperties=${passportResponseModel?.passportExtractedModel?.outputProperties?.size ?: 0}")
 
         // Best source first: DG13 (Lebanese issuer data) → DG11 → OCR value (via "?: value" below)
         val fatherName = dg13?.fatherName ?: dg11?.fatherName
@@ -1003,16 +1170,19 @@ class ScanNfc(
         passportResponseModel!!.passportExtractedModel?.transformedProperties =
             outputProperties.mapValues { it.value.toString() }
         passportResponseModel!!.passportExtractedModel?.extractedData = extractedData
+        logD("Mapping done: ${outputProperties.size} output properties")
 
         if (languageCode == Language.NON) {
             completeScan()
         } else {
             if(apiKey.isNotEmpty()){
+                logD("Requesting language transformation: $languageCode")
                 val translated = LanguageTransformation(apiKey);
                 translated.setCallback(this);
                 translated.languageTransformation(languageCode,
                     preparePropertiesToTranslate(languageCode, passportResponseModel!!.passportExtractedModel?.outputProperties!!))
             }else{
+                logW("Language $languageCode requested but apiKey is empty: skipping translation")
                 completeScan()
             }
         }
@@ -1022,6 +1192,7 @@ class ScanNfc(
 
     /** Every successful scan ends here: show the debug toast, then notify the caller */
     private fun completeScan() {
+        logD("NFC scan complete")
         scanNfcCallback.onCompleteNfcScan(passportResponseModel!!)
     }
 
@@ -1046,6 +1217,7 @@ class ScanNfc(
     private var nameWordCount: Int = 0
     private var surnameKey: String = ""
     override fun onTranslatedSuccess(properties: Map<String, String>?) {
+        logD("Language transformation succeeded: ${properties?.size ?: 0} properties")
         properties?.let { props ->
 
             passportResponseModel!!.passportExtractedModel?.outputProperties?.forEach { (key, value) ->
@@ -1099,6 +1271,7 @@ class ScanNfc(
         completeScan()
     }
     override fun onTranslatedError(properties: Map<String, String>?) {
+        logW("Language transformation failed: completing with untranslated data")
         completeScan()
     }
 
