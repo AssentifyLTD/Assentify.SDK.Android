@@ -111,6 +111,8 @@ object BaseTheme {
 
     val LocalMrzScan: Boolean get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().localMrzScan;
 
+    val faceAcceptanceRate: Int get() = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions().faceAcceptanceRate;
+
 
 }
 

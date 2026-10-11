@@ -25,12 +25,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -59,13 +61,13 @@ import com.assentify.sdk.Flow.ReusableComposable.BaseClick
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AssistedDataEntryScreen(
     defaultTitle: String = "",
+    registerBackAction: (() -> Unit) -> Unit = {},
     onBack: () -> Unit,
     onNext: () -> Unit,
     assistedDataEntryModel: AssistedDataEntryModel?,
@@ -99,8 +101,8 @@ fun AssistedDataEntryScreen(
     }
 
     LaunchedEffect(Unit) {
-        delay(2000)
         if(eventTypes == EventTypes.onComplete){
+           withFrameNanos { }
             changeTick++
         }
     }
@@ -116,6 +118,10 @@ fun AssistedDataEntryScreen(
             onBack()
         }
     }
+
+    SideEffect { registerBackAction(handleBack) }
+
+
 
     val density = LocalDensity.current
     var headerHeightDp by remember { mutableStateOf<Dp?>(null) }

@@ -71,7 +71,7 @@ fun SecurePhoneWithOtpField(
 
     val defaultCountry = remember(options) {
         options.firstOrNull { it.code2.equals("LB", true) }
-            ?:   CountryOption("LBN", "LB", "Lebanon", "+961", Regex("^(01|03|70|71|76|78|79|81)\\d{6}$"))
+            ?:   CountryOption("LBN", "LB", "Lebanon", "+961", Regex("^(01|03|04|05|06|07|08|09|70|71|76|78|79|81)\\d{6}$"))
     }
 
     var selectedIso2 by rememberSaveable(field.inputKey, page) {

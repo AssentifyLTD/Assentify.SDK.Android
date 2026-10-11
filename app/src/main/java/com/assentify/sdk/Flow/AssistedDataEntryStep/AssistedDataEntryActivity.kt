@@ -28,6 +28,7 @@ import com.assentify.sdk.RemoteClient.Models.Customization
 
 class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback {
 
+    private var composeBackAction: (() -> Unit)? = null
 
     private var status = mutableStateOf("InProgress")
     private var eventTypes = mutableStateOf(EventTypes.onSend)
@@ -68,7 +69,7 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
             ?: ""
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                FlowController.backClick(this@AssistedDataEntryActivity);
+                composeBackAction?.invoke()
             }
         })
 
@@ -82,7 +83,8 @@ class AssistedDataEntryActivity : ComponentActivity(), AssistedDataEntryCallback
                         defaultTitle = defaultTitle,
                         assistedDataEntryModel = assistedDataModel.value,
                         eventTypes = eventTypes.value,
-                        onBack = { onBackPressedDispatcher.onBackPressed() },
+                        registerBackAction = { composeBackAction = it },
+                        onBack = { FlowController.backClick(this@AssistedDataEntryActivity);},
                         onNext = {
                             val extractedInformation = mutableMapOf<String, String>()
                             val model =
