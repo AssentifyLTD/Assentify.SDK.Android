@@ -58,12 +58,11 @@ fun FaceResultScreen(
     val baseImage = faceModel.faceExtractedModel?.baseImageFace.orEmpty()
     val secondImage = faceModel.faceExtractedModel?.secondImageFace.orEmpty()
 
-    val title = if (match > 50) s.verificationSuccess else s.verificationFail
-    val subTitle = if (match > 50) s.verificationSuccessMsg else s.verificationFailMsg
+    val title = if (match > BaseTheme.faceAcceptanceRate) s.verificationSuccess else s.verificationFail
+    val subTitle = if (match > BaseTheme.faceAcceptanceRate) s.verificationSuccessMsg else s.verificationFailMsg
 
     val borderColor = when {
-        match!! > 50 -> BaseTheme.BaseGreenColor
-        match!! > 30 ->   Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+        match!! > BaseTheme.faceAcceptanceRate -> BaseTheme.BaseGreenColor
         else -> BaseTheme.BaseRedColor
     }
     BaseBackgroundContainer(
@@ -168,7 +167,7 @@ fun FaceResultScreen(
 
         // BOTTOM ACTIONS
         when {
-            match > 50 -> {
+            match > BaseTheme.faceAcceptanceRate -> {
                 Button(
                     onClick = onNext,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -189,90 +188,45 @@ fun FaceResultScreen(
             }
 
             else -> {
-                when {
-                    match > 30 -> {
-                        val corner = RoundedCornerShape(999.dp)
+                    val corner = RoundedCornerShape(999.dp)
 
-                        Button(
-                            onClick = onRetry,
-                            shape = corner,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(54.dp)  .background(
-                                    brush = BaseTheme.BaseClickColor!!.toBrush(),
-                                    shape = RoundedCornerShape(28.dp)
-                                ) // consistent height
-                        ) {
-                            Text(s.retry,
-                                fontFamily = InterFont,
-                                fontWeight = BaseTheme.BaseClickFontWeight,
-                                color =  BaseTheme.BaseSecondaryTextColor,
-                                modifier = Modifier.padding(vertical = 7.dp))
-                        }
-
-                        Spacer(Modifier.height(12.dp))
-
-                        Button(
-                            onClick = onNext,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            shape = corner,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp)
-                                .border(1.dp, Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)), corner)
-                        ) {
-                            Text(s.confirmProceed,
-                                fontFamily = InterFont,
-                                fontWeight = BaseTheme.BaseClickFontWeight,
-                                color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                                modifier = Modifier.padding(vertical = 7.dp))
-                        }
-                    }
-
-                    else -> {
-                        val corner = RoundedCornerShape(999.dp)
-
-                       /* Button(
-                            onClick = onIDChange,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            shape = corner,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(54.dp)
-                                .background(
-                                    brush = BaseTheme.BaseClickColor!!.toBrush(),
-                                    shape = RoundedCornerShape(28.dp)
-                                )
-                        ) {
-                            Text(s.provideSupportingId,
-                                fontFamily = InterFont,
-                                fontWeight = BaseTheme.BaseClickFontWeight,
-                                color =  BaseTheme.BaseSecondaryTextColor,
-                                modifier = Modifier.padding(vertical = 7.dp))
-                        }
-
-                        Spacer(Modifier.height(12.dp))*/
-
-                        Button(
-                            onClick = onNext,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                            ),
-                            shape = corner,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp)
-                                .border(1.dp, BaseTheme.BaseRedColor, corner)
-                        ) {
-                            Text(s.overrideProceed,
-                                fontFamily = InterFont,
-                                fontWeight = BaseTheme.BaseClickFontWeight,
-                                color =  BaseTheme.BaseRedColor,
-                                modifier = Modifier.padding(vertical = 7.dp))
-                        }
-                    }
+                Button(
+                    onClick = onRetry ,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    shape = corner,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .border(1.dp, Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)), corner)
+                ) {
+                    Text(s.retry,
+                        fontFamily = InterFont,
+                        fontWeight = BaseTheme.BaseClickFontWeight,
+                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                        modifier = Modifier.padding(vertical = 7.dp))
                 }
+
+                    Spacer(Modifier.height(12.dp))
+
+                Button(
+                     onClick = onNext,
+                     shape = corner,
+                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                     modifier = Modifier
+                         .fillMaxWidth()
+                         .height(54.dp)  .background(
+                             brush = BaseTheme.BaseClickColor!!.toBrush(),
+                             shape = RoundedCornerShape(28.dp)
+                         ) // consistent height
+                 ) {
+                     Text(s.next,
+                         fontFamily = InterFont,
+                         fontWeight = BaseTheme.BaseClickFontWeight,
+                         color =  BaseTheme.BaseSecondaryTextColor,
+                         modifier = Modifier.padding(vertical = 7.dp))
+                 }
+
+
             }
         }
 
@@ -296,8 +250,7 @@ fun MatchProgress(
     val trackColor =   BaseTheme.BaseTextColor
 
     val progressColor = when {
-        percentage!! > 50 -> BaseTheme.BaseGreenColor
-        percentage!! > 30 ->Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+        percentage!! > BaseTheme.faceAcceptanceRate -> BaseTheme.BaseGreenColor
         else -> BaseTheme.BaseRedColor
     }
     Box(
