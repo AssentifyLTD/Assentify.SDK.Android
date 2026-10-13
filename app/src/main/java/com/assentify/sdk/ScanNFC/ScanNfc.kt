@@ -41,7 +41,6 @@ import org.jmrtd.lds.CardAccessFile
 import org.jmrtd.lds.ChipAuthenticationInfo
 import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo
 import org.jmrtd.lds.PACEInfo
-import org.jmrtd.lds.SecurityInfo
 import org.jmrtd.lds.icao.COMFile
 import org.jmrtd.lds.icao.DG11File
 import org.jmrtd.lds.icao.DG12File
@@ -85,6 +84,12 @@ class ScanNfc(
         /** Host apps can turn the SDK's NFC logs off: ScanNfc.debugLogs = false */
         @JvmStatic
         var debugLogs: Boolean = true
+
+        /**
+         * Prefix of the error message when the chip rejects the MRZ access key (BAC/PACE).
+         * Usually means the OCR misread the MRZ: the UI should ask the user to rescan the data page.
+         */
+        const val ERROR_ACCESS_DENIED = "NFC_ACCESS_DENIED"
 
         private fun logD(msg: String) { if (debugLogs) Log.d(TAG, msg) }
         private fun logW(msg: String, t: Throwable? = null) { if (debugLogs) Log.w(TAG, msg, t) }
@@ -251,6 +256,9 @@ class ScanNfc(
         val unrecognized: String? = null,
     )
 
+    /** The chip rejected every MRZ key: not a device/connection problem */
+    private class NfcAccessDeniedException(message: String, cause: Throwable?) : Exception(message, cause)
+
     private var passportResponseModel: PassportResponseModel? = null;
 
     // Activity for the debug popup (weak reference, so it is never leaked)
@@ -329,28 +337,17 @@ class ScanNfc(
             return
         }
 
-        // The BAC key comes from OCR. A bad date here used to crash the app, so fail through the callback instead.
-        val bacKey: BACKeySpec = try {
-            val capture = dataModel.passportExtractedModel?.identificationDocumentCapture
-            val documentNumber = capture?.documentNumber.toString()
-            val birthDate = formatDateToMRZ(capture?.birthDate.toString())
-            val expiryDate = formatDateToMRZ(capture?.expiryDate.toString())
-            logD(
-                "BAC key: documentNumber=${mask(documentNumber)} (len=${documentNumber.length}), " +
-                        "birthDate len=${birthDate.length}, expiryDate len=${expiryDate.length}"
-            )
-            if (documentNumber == "null" || documentNumber.isBlank()) {
-                logW("Document number from OCR is empty: BAC/PACE will fail")
-            }
-            BACKey(documentNumber, birthDate, expiryDate)
+        // The access key comes from OCR. Bad data fails through the callback, never a crash.
+        val accessKeys: List<BACKeySpec> = try {
+            buildAccessKeys(dataModel)
         } catch (e: Exception) {
-            logE("Could not build BAC key from OCR data", e)
-            scanNfcCallback.onErrorNfcScan(dataModel, "Invalid MRZ data: ${e.message}")
+            logE("Could not build access key from OCR data", e)
+            scanNfcCallback.onErrorNfcScan(dataModel, "$ERROR_ACCESS_DENIED: invalid MRZ data (${e.message})")
             return
         }
 
         isReading = true
-        ReadTask(isoDep, bacKey).start()
+        ReadTask(isoDep, accessKeys).start()
         scanNfcCallback.onStartNfcScan();
     }
 
@@ -363,6 +360,75 @@ class ScanNfc(
         val month = parts[1].padStart(2, '0')
         val year = parts[2].takeLast(2)
         return "$year$month$day"
+    }
+
+    /**
+     * Candidate access keys, most likely first. The chip rejects the key (SW 6985 / 6300) when a
+     * single MRZ character is wrong, so a few OCR-confusion variants of the document number are
+     * tried as well. Kept small on purpose: some chips slow down after each failed attempt.
+     */
+    private fun buildAccessKeys(dataModel: PassportResponseModel): List<BACKeySpec> {
+        val capture = dataModel.passportExtractedModel?.identificationDocumentCapture
+        val rawDocumentNumber = capture?.documentNumber?.toString().orEmpty()
+        val documentNumber = normalizeMrzField(rawDocumentNumber)
+        require(documentNumber.isNotEmpty() && documentNumber != "NULL") { "document number is empty" }
+
+        val birthDate = formatDateToMRZ(normalizeDigits(capture?.birthDate.toString()))
+        val expiryDate = formatDateToMRZ(normalizeDigits(capture?.expiryDate.toString()))
+        require(birthDate.length == 6 && birthDate.all { it.isDigit() }) { "birth date is not a valid date" }
+        require(expiryDate.length == 6 && expiryDate.all { it.isDigit() }) { "expiry date is not a valid date" }
+
+        val variants = documentNumberVariants(documentNumber)
+        logD(
+            "Access keys: raw documentNumber=${mask(rawDocumentNumber)} (len=${rawDocumentNumber.length}), " +
+                    "cleaned=${mask(documentNumber)} (len=${documentNumber.length}), variants=${variants.size}"
+        )
+        return variants.map { BACKey(it, birthDate, expiryDate) }
+    }
+
+    /** Eastern Arabic / Persian digits → ASCII digits */
+    private fun normalizeDigits(value: String): String = buildString {
+        value.forEach { c ->
+            append(
+                when (c) {
+                    in '\u0660'..'\u0669' -> '0' + (c - '\u0660')
+                    in '\u06F0'..'\u06F9' -> '0' + (c - '\u06F0')
+                    else -> c
+                }
+            )
+        }
+    }
+
+    /** MRZ fields only contain A-Z and 0-9: uppercase, convert digits, drop spaces, '<', '-', etc. */
+    private fun normalizeMrzField(value: String): String =
+        normalizeDigits(value).uppercase(Locale.ROOT).filter { it in 'A'..'Z' || it in '0'..'9' }
+
+    private fun documentNumberVariants(documentNumber: String): List<String> {
+        val variants = linkedSetOf(documentNumber)
+
+        // OCR sometimes includes the check digit: 10 chars where the MRZ field is 9
+        if (documentNumber.length == 10) variants += documentNumber.take(9)
+
+        // Letters misread inside the numeric part (after the first digit): O→0, I→1, S→5, B→8, ...
+        val firstDigit = documentNumber.indexOfFirst { it.isDigit() }
+        if (firstDigit >= 0) {
+            val digitFix = mapOf('O' to '0', 'Q' to '0', 'D' to '0', 'I' to '1', 'L' to '1',
+                'Z' to '2', 'S' to '5', 'G' to '6', 'B' to '8')
+            val fixed = documentNumber.take(firstDigit) +
+                    documentNumber.drop(firstDigit).map { digitFix[it] ?: it }.joinToString("")
+            variants += fixed
+            if (fixed.length == 10) variants += fixed.take(9)
+        }
+
+        // Leading letter prefix misread as a digit: 0→O, 1→I (e.g. "0A123456" → "OA123456")
+        val letterFix = mapOf('0' to 'O', '1' to 'I', '8' to 'B', '5' to 'S')
+        if (documentNumber.isNotEmpty() && documentNumber[0] in letterFix &&
+            documentNumber.length > 1 && documentNumber[1].isLetter()
+        ) {
+            variants += letterFix.getValue(documentNumber[0]) + documentNumber.drop(1)
+        }
+
+        return variants.take(4)
     }
 
     /** Ends a scan with an error and releases the read guard */
@@ -378,7 +444,7 @@ class ScanNfc(
 
     /** ReadTask **/
     @SuppressLint("StaticFieldLeak")
-    private inner class ReadTask(private val isoDep: IsoDep, private val bacKey: BACKeySpec) {
+    private inner class ReadTask(private val isoDep: IsoDep, private val accessKeys: List<BACKeySpec>) {
 
         private lateinit var dg1File: DG1File
         private lateinit var dg2File: DG2File
@@ -419,6 +485,82 @@ class ScanNfc(
             }
         }
 
+        /** Connects (if needed) and opens a fresh PassportService on the tag */
+        private fun openService(): PassportService {
+            val cardService = IsoDepCardService(isoDep)
+            cardService.open()                 // connects IsoDep if not connected
+            isoDep.timeout = 10000             // Android resets the timeout on every reconnect
+            val service = PassportService(
+                cardService,
+                PassportService.NORMAL_MAX_TRANCEIVE_LENGTH,
+                PassportService.DEFAULT_MAX_BLOCKSIZE,
+                false,
+                false,
+            )
+            service.open()
+            logD("PassportService opened")
+            return service
+        }
+
+        /**
+         * Closes and reopens the connection so the chip drops any half-finished authentication.
+         * Throws (TagLostException / IOException) if the passport was moved away: that ends the read.
+         */
+        private fun resetConnection(old: PassportService): PassportService {
+            logD("Resetting chip connection")
+            try { old.close() } catch (_: Exception) {}
+            closeIsoDep()
+            return openService()
+        }
+
+        /** PACE parameters from EF.CardAccess; empty when the chip has no EF.CardAccess (BAC-only) */
+        private fun readPaceInfos(service: PassportService): List<PACEInfo> = safeRead("EF.CardAccess") {
+            val infos = CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS)).securityInfos
+            logD("EF.CardAccess: ${infos.size} security info(s): " + infos.joinToString { it.javaClass.simpleName })
+            infos.filterIsInstance<PACEInfo>()
+        } ?: emptyList()
+
+        private fun isEfComReadableWithoutAccessControl(service: PassportService): Boolean = try {
+            service.getInputStream(PassportService.EF_COM).read()
+            true
+        } catch (e: Exception) {
+            logD("EF.COM needs access control (${e.javaClass.simpleName}): doing BAC")
+            false
+        }
+
+        /**
+         * BAC with each candidate key. After a rejected key the connection is reset, because many
+         * chips refuse the next MUTUAL AUTHENTICATE (SW 6985) until they start over.
+         * Returns the service that is now authenticated (it may be a new one after a reset).
+         */
+        private fun doBacWithKeys(start: PassportService, paceAttempted: Boolean): PassportService {
+            var service = start
+            var lastError: Exception? = null
+            for ((index, key) in accessKeys.withIndex()) {
+                try {
+                    if (index > 0) {
+                        service = resetConnection(service)
+                        service.sendSelectApplet(false)
+                    }
+                    logD("Trying BAC with key variant $index")
+                    service.doBAC(key)
+                    logD("BAC succeeded with key variant $index")
+                    if (index > 0) logW("OCR document number needed correction (variant $index)")
+                    return service
+                } catch (e: Exception) {
+                    lastError = e
+                    logW("BAC failed with key variant $index: ${describe(e)}")
+                    if (e is android.nfc.TagLostException || e.cause is android.nfc.TagLostException) break
+                }
+            }
+            val reason = if (paceAttempted) "PACE and BAC rejected the MRZ key" else "BAC rejected the MRZ key"
+            throw NfcAccessDeniedException(
+                "$ERROR_ACCESS_DENIED: $reason (${accessKeys.size} key variant(s) tried). " +
+                        "The MRZ was probably misread: rescan the passport data page.",
+                lastError,
+            )
+        }
+
         private fun performReadTask(): Exception? {
             var step = "init"
             return try {
@@ -426,64 +568,54 @@ class ScanNfc(
                 isoDep.timeout = 10000
                 logD("IsoDep: timeout=${isoDep.timeout}, maxTransceive=${isoDep.maxTransceiveLength}, extendedLength=${isoDep.isExtendedLengthApduSupported}")
 
-                step = "create IsoDepCardService"
-                val cardService = IsoDepCardService(isoDep)
-
-                step = "open card service"
-                cardService.open()
-                logD("IsoDepCardService opened")
-
                 step = "open PassportService"
-                val service = PassportService(
-                    cardService,
-                    PassportService.NORMAL_MAX_TRANCEIVE_LENGTH,
-                    PassportService.DEFAULT_MAX_BLOCKSIZE,
-                    false,
-                    false,
-                )
-                service.open()
-                logD("PassportService opened")
+                var service = openService()
 
+                // ---------- PACE (newer chips) ----------
                 step = "PACE"
+                val paceInfos = readPaceInfos(service)
                 var paceSucceeded = false
-                try {
-                    val cardAccessFile = CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS))
-                    val securityInfoCollection = cardAccessFile.securityInfos
-                    logD("EF.CardAccess: ${securityInfoCollection.size} security info(s): " +
-                            securityInfoCollection.joinToString { it.javaClass.simpleName })
-                    for (securityInfo: SecurityInfo in securityInfoCollection) {
-                        if (securityInfo is PACEInfo) {
-                            logD("Trying PACE: oid=${securityInfo.objectIdentifier}, parameterId=${securityInfo.parameterId}")
-                            service.doPACE(
-                                bacKey,
-                                securityInfo.objectIdentifier,
-                                PACEInfo.toParameterSpec(securityInfo.parameterId),
-                                null,
-                            )
-                            paceSucceeded = true
-                            logD("PACE succeeded")
-                            break
+                var paceAttempted = false
+                if (paceInfos.isEmpty()) {
+                    logD("No PACEInfo on the chip: will use BAC")
+                } else {
+                    paceLoop@ for (paceInfo in paceInfos) {
+                        for ((index, key) in accessKeys.withIndex()) {
+                            paceAttempted = true
+                            try {
+                                logD("Trying PACE: oid=${paceInfo.objectIdentifier}, parameterId=${paceInfo.parameterId}, key variant=$index")
+                                service.doPACE(
+                                    key,
+                                    paceInfo.objectIdentifier,
+                                    PACEInfo.toParameterSpec(paceInfo.parameterId),
+                                    paceInfo.parameterId,
+                                )
+                                paceSucceeded = true
+                                logD("PACE succeeded with key variant $index")
+                                break@paceLoop
+                            } catch (e: Exception) {
+                                logW("PACE failed with key variant $index: ${describe(e)}")
+                                // A failed PACE can leave the chip in a state where the next attempt is refused
+                                service = resetConnection(service)
+                            }
                         }
                     }
-                    if (!paceSucceeded) logD("No PACEInfo on the chip: will use BAC")
-                } catch (e: Exception) {
-                    // Normal on chips without EF.CardAccess; BAC is tried next
-                    logW("PACE not used / failed: ${describe(e)}")
                 }
 
                 step = "select applet"
                 service.sendSelectApplet(paceSucceeded)
                 logD("Applet selected (paceSucceeded=$paceSucceeded)")
 
+                // ---------- BAC (all ICAO passports, and fallback when PACE failed) ----------
                 if (!paceSucceeded) {
                     step = "BAC"
-                    try {
-                        service.getInputStream(PassportService.EF_COM).read()
+                    if (isEfComReadableWithoutAccessControl(service)) {
                         logD("EF.COM readable without BAC")
-                    } catch (e: Exception) {
-                        logD("EF.COM needs access control (${e.javaClass.simpleName}): doing BAC")
-                        service.doBAC(bacKey)
-                        logD("BAC succeeded")
+                    } else {
+                        // Reading EF.COM unauthenticated put the chip in an error state on some passports:
+                        // select the applet again so BAC starts clean
+                        safeRead("reselect before BAC") { service.sendSelectApplet(false) }
+                        service = doBacWithKeys(service, paceAttempted)
                     }
                 }
 
