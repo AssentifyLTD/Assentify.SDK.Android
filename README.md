@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.62***
+1. *Flow Improvements *
+
 ***1.0.0-Beta.61***
 1. *Flow Improvements *
 
