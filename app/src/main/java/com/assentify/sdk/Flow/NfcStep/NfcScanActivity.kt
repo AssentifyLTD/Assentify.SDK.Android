@@ -5,6 +5,7 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -86,8 +87,6 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     private var isComplete = mutableStateOf<Boolean>(false)
     private var isNavigating = false
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -95,9 +94,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
         val nfcStrings = flowStrings()
         feedbackText.value = nfcStrings.nfcInitialFeedback
-        passportResponseModel =  NfcPassportResponseModelObject.getPassportResponseModelObject()!!
-
-
+        passportResponseModel = NfcPassportResponseModelObject.getPassportResponseModelObject()!!
 
         scanNfc = assentifySdk.startScanNfc(
             this,
@@ -106,21 +103,12 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         )
 
         if (scanNfc.isNfcSupported(activity = this)) {
-            if (scanNfc.isNfcEnabled(activity = this)) {
-                //
-            } else {
-                val intent = Intent(Settings.ACTION_NFC_SETTINGS)
-                startActivity(intent)
+            if (!scanNfc.isNfcEnabled(activity = this)) {
+                startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
             }
         } else {
             feedbackText.value = nfcStrings.nfcNotSupported
         }
-
-        /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-             override fun handleOnBackPressed() {
-                 FlowController.backClick(this@NfcScanActivity);
-             }
-         })*/
 
         setContent {
             MaterialTheme {
@@ -132,23 +120,20 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                         onBack = {
                             onBackPressedDispatcher.onBackPressed()
                         },
-                        onSkip  = {
+                        onSkip = {
                             eventTypes.value = EventTypes.onComplete
                         },
                         onNext = {
-
                             if (!isNavigating) {
                                 isNavigating = true
-                                if(isComplete.value){
-                                    FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                if (isComplete.value) {
+                                    FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!, timeStarted);
                                     FlowController.naveToNextStep(this)
-                                }else{
-                                    FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!,timeStarted);
+                                } else {
+                                    FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!, timeStarted);
                                     FlowController.naveToNextStep(this)
                                 }
                             }
-
-
                         },
                         onRetry = {
                             feedbackText.value = flowStrings().nfcInitialFeedback;
@@ -165,6 +150,20 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     }
 
     companion object {
+        private const val TAG = "AssentifyNFC"
+
+        /**
+         * How often Android checks that the passport is still in the field while we talk to it.
+         * On some chipsets a short delay collides with long reads (DG2) and causes TagLostException.
+         * Tune this if logs show failures at "read DG2".
+         */
+        private const val PRESENCE_CHECK_DELAY_MS = 5000
+
+        private const val READER_FLAGS =
+            NfcAdapter.FLAG_READER_NFC_A or
+                    NfcAdapter.FLAG_READER_NFC_B or
+                    NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or
+                    NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS
 
         fun start(context: Context) {
             val intent = Intent(context, NfcScanActivity::class.java)
@@ -175,34 +174,53 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     override fun onResume() {
         super.onResume()
         isNavigating = false
-        val adapter = NfcAdapter.getDefaultAdapter(this) ?: run {
-             return
+        val adapter = NfcAdapter.getDefaultAdapter(this) ?: return
+        if (!adapter.isEnabled) {
+            Log.w(TAG, "NFC is turned off: reader mode not enabled")
+            return
         }
         val options = Bundle().apply {
-            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 1000)
+            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, PRESENCE_CHECK_DELAY_MS)
         }
-        adapter.enableReaderMode(
-            this,
-            { tag ->
-                // Wrap the tag in an Intent so the existing SDK API keeps working
-                val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
-                    .putExtra(NfcAdapter.EXTRA_TAG, tag)
-                scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
-            },
-            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
-                    NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
-            options
-        )
+        try {
+            adapter.enableReaderMode(
+                this,
+                { tag ->
+                    // Runs on a binder thread: an exception here must never escape
+                    try {
+                        val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
+                            .putExtra(NfcAdapter.EXTRA_TAG, tag)
+                        scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
+                    } catch (t: Throwable) {
+                        Log.e(TAG, "Tag handling failed", t)
+                        runOnUiThread {
+                            feedbackText.value = flowStrings().nfcConnectionLost
+                            eventTypes.value = EventTypes.onError
+                        }
+                    }
+                },
+                READER_FLAGS,
+                options
+            )
+            Log.d(TAG, "Reader mode enabled (presence check ${PRESENCE_CHECK_DELAY_MS} ms)")
+        } catch (t: Throwable) {
+            Log.e(TAG, "enableReaderMode failed", t)
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        val adapter = NfcAdapter.getDefaultAdapter(this)
-        adapter?.disableForegroundDispatch(this)
+        // Must match enableReaderMode (disableForegroundDispatch does NOT turn reader mode off)
+        try {
+            NfcAdapter.getDefaultAdapter(this)?.disableReaderMode(this)
+        } catch (t: Throwable) {
+            Log.w(TAG, "disableReaderMode failed", t)
+        }
     }
 
     public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        // Fallback path in case the system delivers the tag as an intent instead of through reader mode
         scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
     }
 
@@ -222,11 +240,11 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
             OnCompleteScreenData.clear();
             OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
             eventTypes.value = EventTypes.onComplete
-            imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
-            if(dataModel.passportExtractedModel!!.faces!!.isNotEmpty()){
-                FlowController.setImage(dataModel.passportExtractedModel!!.faces!!.first())
+            imageUrl.value = dataModel.passportExtractedModel?.imageUrl ?: ""
+            val faces = dataModel.passportExtractedModel?.faces
+            if (!faces.isNullOrEmpty()) {
+                FlowController.setImage(faces.first())
             }
-
         }
     }
 
@@ -236,10 +254,6 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
             eventTypes.value = EventTypes.onError
         }
     }
-
-
-
-
 }
 
 @Composable
@@ -256,37 +270,25 @@ fun NfcScanScreen(
     val context = LocalContext.current
     val s = flowStrings()
 
-    val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
-
-
-
-    val iconSvg= remember {
+    val iconSvg = remember {
         loadSvgFromAssets(context, "ic_nfc.svg")
     }
 
     val density = LocalDensity.current
     var headerHeightDp by remember { mutableStateOf(0.dp) }
 
-    BaseBackgroundContainer(modifier = Modifier
-        .fillMaxSize()
-    ) {
+    BaseBackgroundContainer(modifier = Modifier.fillMaxSize()) {
 
         if (eventTypes == EventTypes.onComplete) {
             val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
-                ?: false;  if(showResultPage){
-                OnCompleteScreen(imageUrl, onNext = {
-                    onNext();
-                })
-            }else{
-                OnNormalCompleteScreen(imageUrl, onNext = {
-
-                    onNext();
-                })
+                ?: false
+            if (showResultPage) {
+                OnCompleteScreen(imageUrl, onNext = { onNext() })
+            } else {
+                OnNormalCompleteScreen(imageUrl, onNext = { onNext() })
             }
-
-
         }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -305,14 +307,12 @@ fun NfcScanScreen(
                     headerHeightDp = with(density) { coordinates.size.height.toDp() }
                 }
         ) {
-            if(BaseTheme.StepperType == StepperType.Normal){
+            if (BaseTheme.StepperType == StepperType.Normal) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = {
-                        onBack()
-                    }) {
+                    IconButton(onClick = { onBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -349,10 +349,9 @@ fun NfcScanScreen(
                 percentageBased = Modifier
                     .fillMaxWidth().padding(horizontal = 5.dp).padding(top = 20.dp)
             )
-
         }
 
-        if(eventTypes != EventTypes.onComplete){
+        if (eventTypes != EventTypes.onComplete) {
 
             Box(
                 modifier = Modifier
@@ -361,7 +360,7 @@ fun NfcScanScreen(
             ) {
                 Text(
                     text = s.nfcCapture,
-                    color =   BaseTheme.BaseTextColor,
+                    color = BaseTheme.BaseTextColor,
                     fontSize = 24.sp,
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Bold,
@@ -372,17 +371,15 @@ fun NfcScanScreen(
                         .fillMaxWidth()
                 )
 
-                // 🔹 Middle section
+                // Middle section
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .fillMaxWidth()
                 ) {
-                    // Dashed outline behind icon
                     Box(
-                        modifier = Modifier
-                            .size(180.dp),
+                        modifier = Modifier.size(180.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         iconSvg?.let {
@@ -397,18 +394,18 @@ fun NfcScanScreen(
 
                     Spacer(Modifier.height(24.dp))
 
-                    if(eventTypes == EventTypes.onSend){
+                    if (eventTypes == EventTypes.onSend) {
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .size(60.dp)
                                 .align(Alignment.CenterHorizontally),
-                            color =   BaseTheme.BaseTextColor,
+                            color = BaseTheme.BaseTextColor,
                             strokeWidth = 6.dp
                         )
-                    }else{
+                    } else {
                         Text(
                             s.nfcDetected,
-                            color =   BaseTheme.BaseTextColor,
+                            color = BaseTheme.BaseTextColor,
                             fontSize = 22.sp,
                             fontFamily = InterFont,
                             fontWeight = FontWeight.Bold,
@@ -417,12 +414,11 @@ fun NfcScanScreen(
                         )
                     }
 
-
                     Spacer(Modifier.height(12.dp))
 
                     Text(
                         text = feedbackText,
-                        color =   BaseTheme.BaseTextColor,
+                        color = BaseTheme.BaseTextColor,
                         fontSize = 10.sp,
                         lineHeight = 15.sp,
                         fontFamily = InterFont,
@@ -434,7 +430,7 @@ fun NfcScanScreen(
                     )
                 }
 
-                // 🔹 Bottom section
+                // Bottom section
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -488,17 +484,6 @@ fun NfcScanScreen(
                     }
                 }
             }
-
         }
-
-
-
-
-
-
-
-
     }
 }
-
-

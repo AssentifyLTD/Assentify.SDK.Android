@@ -1,94 +1,69 @@
-# Preserve all classes in the Assentify SDK package
--keep class com.assentify.sdk.** { *; }
-
-# Tensorflow
--keep class org.tensorflow.** { *;}
--keep class org.tensorflow.lite.* { *; }
-
-# Retrofit
--dontwarn retrofit2.**
--keep class retrofit2.** { *; }
-
-# Gson
-# Gson
--dontwarn com.google.gson.**
--keep class com.google.gson.** { *; }
+########################################
+# General
+########################################
 -keepattributes Signature,InnerClasses,EnclosingMethod
 -keepattributes *Annotation*
+
+########################################
+# Assentify SDK
+########################################
+-keep class com.assentify.sdk.** { *; }
+
+########################################
+# TensorFlow / LiteRT
+########################################
+-keep class org.tensorflow.** { *; }
+-dontwarn org.tensorflow.**
+
+########################################
+# Retrofit / Gson
+########################################
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
+-keepclassmembers class * {
+    @retrofit2.http.* <methods>;
+}
+-dontwarn com.google.gson.**
+-keep class com.google.gson.** { *; }
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken { *; }
-# Keep models
--keepclassmembers class * {
-    @retrofit2.http.* <methods>;
-}
 
-# Keep models
--keepclassmembers class * {
-    @retrofit2.http.* <methods>;
-}
-
-# Scuba
+########################################
+# NFC: Scuba, JMRTD, Commons IO, BouncyCastle, JNBIS, JP2
+# (JMRTD and BouncyCastle use reflection; stripping them breaks NFC only in release builds)
+########################################
 -keep class net.sf.scuba.** { *; }
 -dontwarn net.sf.scuba.**
 
-# JMRTD
 -keep class org.jmrtd.** { *; }
 -dontwarn org.jmrtd.**
 
-# Commons IO
 -keep class org.apache.commons.io.** { *; }
 -dontwarn org.apache.commons.io.**
 
-# Bouncy Castle
 -keep class org.bouncycastle.** { *; }
 -dontwarn org.bouncycastle.**
--keepnames class org.bouncycastle.asn1.* { *; }
 
-# JNBIS
--keep class com.github.mhshams.jnbis.** { *; }
--dontwarn com.github.mhshams.jnbis.**
+# JNBIS real package is org.jnbis (the old rule used a package that does not exist)
+-keep class org.jnbis.** { *; }
+-dontwarn org.jnbis.**
 
-# General rules for reflection and serialization
--keepattributes Signature,InnerClasses,EnclosingMethod
--keepattributes *Annotation*
+-keep class dev.keiji.jp2.** { *; }
+-dontwarn dev.keiji.jp2.**
 
 ########################################
-# Preserve all classes and methods in Clarity SDK
-#######################################
+# Microsoft Clarity
+########################################
 -keep class com.microsoft.clarity.** { *; }
-
-# Preserve all models and their members (in case of reflection use)
--keepclassmembers class com.microsoft.clarity.** {
-    *;
-}
-
-# Keep annotations (in case Clarity uses them internally)
--keepattributes *Annotation*
-
-# Don't warn about missing references inside the SDK
 -dontwarn com.microsoft.clarity.**
 
-
 ########################################
-# Bugsnag Core SDK
+# Bugsnag
 ########################################
 -keep class com.bugsnag.** { *; }
-
-# Keep any user-defined error callback methods
 -keepclassmembers class * {
     public void onError(com.bugsnag.android.Event);
 }
-
-# Keep annotations (Bugsnag uses them internally)
--keepattributes *Annotation*
-
-# Keep metadata keys like breadcrumb type if used manually
 -keepclassmembers class * {
     @com.bugsnag.android.BreadcrumbType <fields>;
 }
-
-########################################
-# Bugsnag Performance SDK (optional)
-########################################
--keep class com.bugsnag.android.performance.** { *; }
-

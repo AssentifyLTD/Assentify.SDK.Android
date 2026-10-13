@@ -1,4 +1,7 @@
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import com.assentify.sdk.AssistedDataEntry.Models.InputTypes
 import com.assentify.sdk.AssistedDataEntryPagesJsonObject
 import com.assentify.sdk.AssistedDataEntryPagesObject
@@ -21,6 +24,12 @@ import retrofit2.Response
 
 object AssistedFormHelper {
 
+    var changeTick by mutableIntStateOf(0)
+        private set
+
+    fun bumpTick() {
+        changeTick++
+    }
     fun getDefaultValueValueToCheckIsDirty(key: String, page: Int): String? {
         val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
         val pages = model!!.assistedDataEntryPages
@@ -205,6 +214,8 @@ object AssistedFormHelper {
             field.prvDefaultValue = prvDefaultValue;
         }
         AssistedDataEntryPagesObject.setAssistedDataEntryModelObject(model,FlowController.getCurrentStep()!!.stepDefinition!!.stepId)
+
+        bumpTick()
     }
 
     fun changeValueSecureDropdownWithDataSource(
