@@ -92,7 +92,7 @@ fun AssistedDataEntryScreen(
 
     var currentPage by remember { mutableIntStateOf(0) }
     var changeTick by remember { mutableIntStateOf(0) }
-    val enabled = remember(pagerState.currentPage, changeTick,eventTypes) {
+    val enabled = remember(pagerState.currentPage, changeTick,eventTypes, AssistedFormHelper.changeTick, ) {
         if(eventTypes == EventTypes.onComplete){
             AssistedFormHelper.validatePage(currentPage)
         }else{

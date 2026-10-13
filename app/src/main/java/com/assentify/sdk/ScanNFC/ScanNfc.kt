@@ -33,10 +33,12 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.ResponseBody
 import org.apache.commons.io.IOUtils
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.jmrtd.BACKey
 import org.jmrtd.BACKeySpec
 import org.jmrtd.PassportService
 import org.jmrtd.lds.CardAccessFile
+import org.jmrtd.lds.ChipAuthenticationInfo
 import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo
 import org.jmrtd.lds.PACEInfo
 import org.jmrtd.lds.SecurityInfo
@@ -59,9 +61,11 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.WeakReference
+import java.math.BigInteger
 import java.net.URLEncoder
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
+import java.security.Security
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -98,6 +102,36 @@ class ScanNfc(
         /** Errors (NoClassDefFoundError, OutOfMemoryError, ...) are wrapped so the callback still fires */
         private fun Throwable.asException(): Exception =
             this as? Exception ?: Exception(describe(this), this)
+
+        /**
+         * Android ships a stripped-down crypto provider registered as "BC". It lacks curves and
+         * algorithms PACE / chip authentication need (e.g. brainpool), and what is missing differs
+         * per Android version and manufacturer. Replace it with the full BouncyCastle once per process.
+         */
+        private val bcLock = Any()
+        @Volatile
+        private var bcInstalled = false
+
+        @JvmStatic
+        fun ensureBouncyCastle() {
+            if (bcInstalled) return
+            synchronized(bcLock) {
+                if (bcInstalled) return
+                try {
+                    val current = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME)
+                    if (current == null || current.javaClass != BouncyCastleProvider::class.java) {
+                        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
+                        Security.insertProviderAt(BouncyCastleProvider(), 1)
+                        logD("Full BouncyCastle provider installed at position 1")
+                    } else {
+                        logD("Full BouncyCastle provider already installed")
+                    }
+                    bcInstalled = true
+                } catch (t: Throwable) {
+                    logE("Could not install BouncyCastle provider", t)
+                }
+            }
+        }
 
         private const val NAME_SEPARATOR = "#"
 
@@ -155,6 +189,10 @@ class ScanNfc(
         private const val LB_NATIONALITY_AR = 0x9F12
         private const val LB_SEX_AR = 0x9F13
         private const val LB_RECORD_ID = 0x9F32
+    }
+
+    init {
+        ensureBouncyCastle()
     }
 
     /** Everything readable from DG11 (all nullable: chips fill only what the issuer chose) */
@@ -223,6 +261,14 @@ class ScanNfc(
     private var nfcDg12: NfcDg12Data? = null
     private var nfcDg13: NfcDg13Data? = null
 
+    /**
+     * True from the moment a read starts until the scan completes or fails.
+     * On phones with a weak antenna the passport drops out and is re-detected; without this
+     * guard a second ReadTask would run on the same IsoDep and both reads would fail.
+     */
+    @Volatile
+    private var isReading = false
+
     /** isNfcSupported **/
     fun isNfcSupported(activity: Activity): Boolean {
         lastActivity = WeakReference(activity)
@@ -243,6 +289,12 @@ class ScanNfc(
 
     /** onActivityNewIntent **/
     fun onActivityNewIntent(intent: Intent, dataModel: PassportResponseModel) {
+        // Must be checked FIRST: resetting the fields below during a running read would corrupt it
+        if (isReading) {
+            logD("Tag detected while a read is in progress: ignored")
+            return
+        }
+
         passportResponseModel = dataModel;
         nfcDg11 = null
         nfcDg12 = null
@@ -257,6 +309,7 @@ class ScanNfc(
         val tag = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
             intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
         } else {
+            @Suppress("DEPRECATION")
             intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
         }
         if (tag == null) {
@@ -296,9 +349,11 @@ class ScanNfc(
             return
         }
 
+        isReading = true
         ReadTask(isoDep, bacKey).start()
         scanNfcCallback.onStartNfcScan();
     }
+
     private fun formatDateToMRZ(dateStr: String): String {
         val parts = dateStr.split("/")
         if (parts.size != 3) {
@@ -308,6 +363,17 @@ class ScanNfc(
         val month = parts[1].padStart(2, '0')
         val year = parts[2].takeLast(2)
         return "$year$month$day"
+    }
+
+    /** Ends a scan with an error and releases the read guard */
+    private fun finishWithError(message: String) {
+        isReading = false
+        val model = passportResponseModel
+        if (model != null) {
+            scanNfcCallback.onErrorNfcScan(model, message)
+        } else {
+            logE("finishWithError without a data model: $message")
+        }
     }
 
     /** ReadTask **/
@@ -326,7 +392,14 @@ class ScanNfc(
             coroutineScope.launch {
                 // Throwable, not Exception: a missing class (NoClassDefFoundError) would otherwise crash the app
                 val result: Exception? = try {
-                    withContext(Dispatchers.IO) { performReadTask() }
+                    withContext(Dispatchers.IO) {
+                        try {
+                            performReadTask()
+                        } finally {
+                            // DG1/DG2 are fully in memory by now, so the chip connection can be released
+                            closeIsoDep()
+                        }
+                    }
                 } catch (t: Throwable) {
                     logE("ReadTask crashed outside performReadTask", t)
                     t.asException()
@@ -337,7 +410,16 @@ class ScanNfc(
             }
         }
 
-        private suspend fun performReadTask(): Exception? {
+        private fun closeIsoDep() {
+            try {
+                if (isoDep.isConnected) isoDep.close()
+                logD("IsoDep closed")
+            } catch (e: Exception) {
+                logW("IsoDep close failed: ${describe(e)}")
+            }
+        }
+
+        private fun performReadTask(): Exception? {
             var step = "init"
             return try {
                 step = "configure IsoDep"
@@ -445,72 +527,104 @@ class ScanNfc(
             }
         }
 
-        private suspend fun doChipAuth(service: PassportService) {
+        /**
+         * Chip authentication. Never fails the scan (all data groups are already read).
+         * Uses the CA protocol the chip advertises in DG14 instead of a hardcoded one.
+         */
+        private fun doChipAuth(service: PassportService) {
             try {
-                val dg14In = service.getInputStream(PassportService.EF_DG14)
-                val dg14Encoded = IOUtils.toByteArray(dg14In)
-                val dg14InByte = ByteArrayInputStream(dg14Encoded)
-                val dg14File = DG14File(dg14InByte)
-                val dg14FileSecurityInfo = dg14File.securityInfos
-                logD("DG14: ${dg14FileSecurityInfo.size} security info(s): " +
-                        dg14FileSecurityInfo.joinToString { it.javaClass.simpleName })
-                for (securityInfo: SecurityInfo in dg14FileSecurityInfo) {
-                    if (securityInfo is ChipAuthenticationPublicKeyInfo) {
-                        logD("Trying chip authentication: keyId=${securityInfo.keyId}")
+                val dg14Encoded = IOUtils.toByteArray(service.getInputStream(PassportService.EF_DG14))
+                val dg14File = DG14File(ByteArrayInputStream(dg14Encoded))
+                val infos = dg14File.securityInfos
+                logD("DG14: ${infos.size} security info(s): " + infos.joinToString { it.javaClass.simpleName })
+
+                val caInfos = infos.filterIsInstance<ChipAuthenticationInfo>()
+                val keyInfos = infos.filterIsInstance<ChipAuthenticationPublicKeyInfo>()
+                if (keyInfos.isEmpty()) {
+                    logD("No chip authentication key in DG14")
+                    return
+                }
+
+                for (keyInfo in keyInfos) {
+                    val caOid = caInfos.firstOrNull { sameKeyId(it.keyId, keyInfo.keyId) }?.objectIdentifier
+                        ?: caInfos.singleOrNull()?.objectIdentifier
+                        ?: defaultCaOid(keyInfo.objectIdentifier)
+                    try {
+                        logD("Trying chip authentication: keyId=${keyInfo.keyId}, caOid=$caOid")
                         service.doEACCA(
-                            securityInfo.keyId,
-                            ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
-                            securityInfo.objectIdentifier,
-                            securityInfo.subjectPublicKey,
+                            keyInfo.keyId,
+                            caOid,
+                            keyInfo.objectIdentifier,
+                            keyInfo.subjectPublicKey,
                         )
                         chipAuthSucceeded = true
                         logD("Chip authentication succeeded")
+                        break
+                    } catch (e: Exception) {
+                        logW("Chip authentication with keyId=${keyInfo.keyId} failed: ${describe(e)}")
                     }
                 }
-                if (!chipAuthSucceeded) logD("No chip authentication key in DG14")
+                if (!chipAuthSucceeded) logD("Chip authentication not succeeded (not fatal)")
             } catch (e: Exception) {
                 // Not fatal: many chips have no DG14
                 logW("Chip authentication skipped / failed: ${describe(e)}")
-                withContext(Dispatchers.Main) {
-                    // scanNfcCallback.onErrorNfcScan(passportResponseModel!!,e.message!!);
-                }
             }
         }
+
+        private fun sameKeyId(a: BigInteger?, b: BigInteger?): Boolean = a == b
+
+        /** When DG14 has no ChipAuthenticationInfo, ICAO says to assume 3DES with the key's algorithm */
+        private fun defaultCaOid(publicKeyOid: String?): String =
+            if (publicKeyOid == ChipAuthenticationPublicKeyInfo.ID_PK_ECDH)
+                ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_3DES_CBC_CBC
+            else
+                ChipAuthenticationPublicKeyInfo.ID_CA_DH_3DES_CBC_CBC
 
         private fun onPostExecute(exception: Exception?) {
             if (exception != null) {
                 logE("NFC read failed: ${describe(exception)}", exception)
-                scanNfcCallback.onErrorNfcScan(passportResponseModel!!, exception.message ?: "NFC read failed")
+                finishWithError(exception.message ?: "NFC read failed")
                 return
             }
             try {
                 val mrzInfo = dg1File.mrzInfo
-                val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
-                dg2File.faceInfos.forEach {
-                    allFaceImageInfo.addAll(it.faceImageInfos)
-                }
-                logD("Face images on chip: ${allFaceImageInfo.size}")
-                if (allFaceImageInfo.isNotEmpty()) {
-                    val faceImageInfo = allFaceImageInfo.first()
-                    val imageLength = faceImageInfo.imageLength
-                    logD("Decoding face: mimeType=${faceImageInfo.mimeType}, length=$imageLength bytes")
-                    val dataInputStream = DataInputStream(faceImageInfo.imageInputStream)
-                    val buffer = ByteArray(imageLength)
-                    dataInputStream.readFully(buffer, 0, imageLength)
-                    val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
-                    val finalBitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
-                    logD("Face decoded: ${finalBitmap.width}x${finalBitmap.height}")
-                    uploadImage(finalBitmap,mrzInfo)
+                val faceBitmap = decodeFirstFace()
+                if (faceBitmap != null) {
+                    uploadImage(faceBitmap, mrzInfo)
                 } else {
-                    // No face on the chip: still complete with the chip text data
+                    // No face, or the face could not be decoded on this device: still complete with the chip text data
                     replaceDataWithNfcData(mrzInfo)
                 }
-
             } catch (t: Throwable) {
-                // Throwable: JP2 decoding can fail with native errors (UnsatisfiedLinkError, OutOfMemoryError)
-                logE("Post-processing failed (face decode / data mapping)", t)
-                scanNfcCallback.onErrorNfcScan(passportResponseModel!!,"Chip Auth Not Succeeded");
+                logE("Post-processing failed (data mapping)", t)
+                finishWithError("NFC data processing failed")
             }
+        }
+
+        /**
+         * Face image from DG2, or null. JPEG2000 decoding is native and can fail on some
+         * devices / ABIs (UnsatisfiedLinkError, OutOfMemoryError): that must not fail the scan.
+         */
+        private fun decodeFirstFace(): Bitmap? = try {
+            val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
+            dg2File.faceInfos.forEach { allFaceImageInfo.addAll(it.faceImageInfos) }
+            logD("Face images on chip: ${allFaceImageInfo.size}")
+            if (allFaceImageInfo.isEmpty()) {
+                null
+            } else {
+                val faceImageInfo = allFaceImageInfo.first()
+                val imageLength = faceImageInfo.imageLength
+                logD("Decoding face: mimeType=${faceImageInfo.mimeType}, length=$imageLength bytes")
+                val buffer = ByteArray(imageLength)
+                DataInputStream(faceImageInfo.imageInputStream).readFully(buffer, 0, imageLength)
+                val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
+                val bitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
+                logD("Face decoded: ${bitmap.width}x${bitmap.height}")
+                bitmap
+            }
+        } catch (t: Throwable) {
+            logE("Face decode failed: continuing without the face image", t)
+            null
         }
     }
 
@@ -934,7 +1048,6 @@ class ScanNfc(
     ) {
         val created = createTimestampedTempFile(bitmap)
         if (created == null) {
-            // Used to crash with a NullPointerException ("!!"); now the scan still completes without the face
             logW("Could not write the face image to cache: skipping upload")
             replaceDataWithNfcData(mrzInfo)
             return
@@ -942,20 +1055,25 @@ class ScanNfc(
         val (image, fileName) = created
         logD("Uploading face image: $fileName (${image.length()} bytes)")
 
-        val fileRequestBody = image.asRequestBody(null)
-        val filePart = MultipartBody.Part.createFormData(
-            "asset", fileName, fileRequestBody
-        )
-
-        val path = URLEncoder.encode("${appConfiguration.tenantIdentifier}/${appConfiguration.blockIdentifier}/${appConfiguration.instanceId}/${fileName}", "UTF-8")
-        val call = RemoteClient.remoteBlobStorageService.uploadImageFile(
-            apiKey = apiKey,
-            tenantId = appConfiguration.tenantIdentifier,
-            blockId = appConfiguration.blockIdentifier,
-            instanceId = appConfiguration.instanceId,
-            filePath = path,
-            asset = filePart,
-        )
+        val call = try {
+            val fileRequestBody = image.asRequestBody(null)
+            val filePart = MultipartBody.Part.createFormData(
+                "asset", fileName, fileRequestBody
+            )
+            val path = URLEncoder.encode("${appConfiguration.tenantIdentifier}/${appConfiguration.blockIdentifier}/${appConfiguration.instanceId}/${fileName}", "UTF-8")
+            RemoteClient.remoteBlobStorageService.uploadImageFile(
+                apiKey = apiKey,
+                tenantId = appConfiguration.tenantIdentifier,
+                blockId = appConfiguration.blockIdentifier,
+                instanceId = appConfiguration.instanceId,
+                filePath = path,
+                asset = filePart,
+            )
+        } catch (e: Exception) {
+            logE("Could not prepare face upload: completing without it", e)
+            replaceDataWithNfcData(mrzInfo)
+            return
+        }
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
@@ -970,28 +1088,23 @@ class ScanNfc(
                             val responseBodyString = responseBody.string()
                             val jsonObject = JSONObject(responseBodyString)
                             val uploadedUrl = jsonObject.getString("url")
-                            passportResponseModel!!.passportExtractedModel?.faces = mutableListOf<String>();
-                            val faces = mutableListOf<String>()
-                            faces.add(uploadedUrl);
-                            passportResponseModel!!.passportExtractedModel?.faces = faces;
+                            passportResponseModel!!.passportExtractedModel?.faces = mutableListOf(uploadedUrl)
                             logD("Face uploaded")
                         } catch (e: Exception) {
                             logE("Face upload response could not be parsed", e)
                         }
-                        replaceDataWithNfcData(mrzInfo);
                     } else {
                         logW("Face upload succeeded but the body is empty")
-                        replaceDataWithNfcData(mrzInfo);
                     }
-                }else{
+                } else {
                     logW("Face upload failed: HTTP ${response.code()} ${response.message()}")
-                    replaceDataWithNfcData(mrzInfo);
                 }
+                replaceDataWithNfcData(mrzInfo)
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 logE("Face upload network failure", t)
-                replaceDataWithNfcData(mrzInfo);
+                replaceDataWithNfcData(mrzInfo)
             }
         })
 
@@ -1015,8 +1128,38 @@ class ScanNfc(
     }
 
 
-    /** Replace Data With Nfc Data **/
+    /** Replace Data With Nfc Data — any failure ends the scan through the error callback, never a crash **/
     private fun replaceDataWithNfcData(mRZInfo: MRZInfo) {
+        try {
+            mapNfcData(mRZInfo)
+        } catch (t: Throwable) {
+            logE("Mapping NFC data failed", t)
+            finishWithError("NFC data processing failed")
+            return
+        }
+
+        if (languageCode == Language.NON) {
+            completeScan()
+        } else {
+            if (apiKey.isNotEmpty()) {
+                try {
+                    logD("Requesting language transformation: $languageCode")
+                    val translated = LanguageTransformation(apiKey);
+                    translated.setCallback(this);
+                    translated.languageTransformation(languageCode,
+                        preparePropertiesToTranslate(languageCode, passportResponseModel!!.passportExtractedModel?.outputProperties!!))
+                } catch (t: Throwable) {
+                    logE("Language transformation could not start: completing untranslated", t)
+                    completeScan()
+                }
+            } else {
+                logW("Language $languageCode requested but apiKey is empty: skipping translation")
+                completeScan()
+            }
+        }
+    }
+
+    private fun mapNfcData(mRZInfo: MRZInfo) {
         val dg11 = nfcDg11
         val dg12 = nfcDg12
         val dg13 = nfcDg13
@@ -1163,35 +1306,16 @@ class ScanNfc(
             extractedData[newKey] = value
         }
 
-        passportResponseModel!!.passportExtractedModel?.extractedData = mutableMapOf()
-        passportResponseModel!!.passportExtractedModel?.transformedProperties = mutableMapOf()
-
         passportResponseModel!!.passportExtractedModel?.outputProperties = outputProperties
         passportResponseModel!!.passportExtractedModel?.transformedProperties =
             outputProperties.mapValues { it.value.toString() }
         passportResponseModel!!.passportExtractedModel?.extractedData = extractedData
         logD("Mapping done: ${outputProperties.size} output properties")
-
-        if (languageCode == Language.NON) {
-            completeScan()
-        } else {
-            if(apiKey.isNotEmpty()){
-                logD("Requesting language transformation: $languageCode")
-                val translated = LanguageTransformation(apiKey);
-                translated.setCallback(this);
-                translated.languageTransformation(languageCode,
-                    preparePropertiesToTranslate(languageCode, passportResponseModel!!.passportExtractedModel?.outputProperties!!))
-            }else{
-                logW("Language $languageCode requested but apiKey is empty: skipping translation")
-                completeScan()
-            }
-        }
-
-
     }
 
-    /** Every successful scan ends here: show the debug toast, then notify the caller */
+    /** Every successful scan ends here: release the read guard, then notify the caller */
     private fun completeScan() {
+        isReading = false
         logD("NFC scan complete")
         scanNfcCallback.onCompleteNfcScan(passportResponseModel!!)
     }
@@ -1218,63 +1342,64 @@ class ScanNfc(
     private var surnameKey: String = ""
     override fun onTranslatedSuccess(properties: Map<String, String>?) {
         logD("Language transformation succeeded: ${properties?.size ?: 0} properties")
-        properties?.let { props ->
+        try {
+            properties?.let { props ->
 
-            passportResponseModel!!.passportExtractedModel?.outputProperties?.forEach { (key, value) ->
-                when {
-                    key.contains(IdentificationDocumentCaptureKeys.name) -> {
-                        nameKey = key
-                        nameWordCount = if (value.toString().trim().isEmpty()) 0 else value.toString().trim().split("\\s+".toRegex()).size
-                    }
-                    key.contains(IdentificationDocumentCaptureKeys.surname) -> {
-                        surnameKey = key
-                    }
-                }
-            }
-
-            passportResponseModel!!.passportExtractedModel?.transformedProperties = mutableMapOf()
-            passportResponseModel!!.passportExtractedModel?.extractedData = mutableMapOf()
-
-            val tempTransformedProperties = mutableMapOf<String, String>()
-            val tempExtractedData = mutableMapOf<String, Any>()
-
-            props.forEach { (key, value) ->
-                when (key) {
-                    FullNameKey -> {
-                        if (nameKey.isNotEmpty()) {
-                            tempTransformedProperties[nameKey] = getSelectedWords(value.toString(), nameWordCount)
-                            tempExtractedData["name"] = getSelectedWords(value.toString(), nameWordCount)
+                passportResponseModel!!.passportExtractedModel?.outputProperties?.forEach { (key, value) ->
+                    when {
+                        key.contains(IdentificationDocumentCaptureKeys.name) -> {
+                            nameKey = key
+                            nameWordCount = if (value.toString().trim().isEmpty()) 0 else value.toString().trim().split("\\s+".toRegex()).size
                         }
-                        if (surnameKey.isNotEmpty()) {
-                            tempTransformedProperties[surnameKey] = getRemainingWords(value.toString(), nameWordCount)
-                            tempExtractedData["surname"] = getRemainingWords(value.toString(), nameWordCount)
+                        key.contains(IdentificationDocumentCaptureKeys.surname) -> {
+                            surnameKey = key
                         }
                     }
-                    else -> {
-                        tempTransformedProperties[key] = value.toString()
-                        val newKey = key.substringAfter("IdentificationDocumentCapture_").replace("_", " ")
-                        tempExtractedData[newKey] = value
+                }
+
+                val tempTransformedProperties = mutableMapOf<String, String>()
+                val tempExtractedData = mutableMapOf<String, Any>()
+
+                props.forEach { (key, value) ->
+                    when (key) {
+                        FullNameKey -> {
+                            if (nameKey.isNotEmpty()) {
+                                tempTransformedProperties[nameKey] = getSelectedWords(value.toString(), nameWordCount)
+                                tempExtractedData["name"] = getSelectedWords(value.toString(), nameWordCount)
+                            }
+                            if (surnameKey.isNotEmpty()) {
+                                tempTransformedProperties[surnameKey] = getRemainingWords(value.toString(), nameWordCount)
+                                tempExtractedData["surname"] = getRemainingWords(value.toString(), nameWordCount)
+                            }
+                        }
+                        else -> {
+                            tempTransformedProperties[key] = value.toString()
+                            val newKey = key.substringAfter("IdentificationDocumentCapture_").replace("_", " ")
+                            tempExtractedData[newKey] = value
+                        }
                     }
                 }
-            }
 
-            getIgnoredProperties(passportResponseModel!!.passportExtractedModel?.outputProperties!!).forEach { (key, value) ->
-                tempTransformedProperties[key] = value
-                val newKey = key.substringAfter("IdentificationDocumentCapture_").replace("_", " ")
-                tempExtractedData[newKey] = value
-            }
+                getIgnoredProperties(passportResponseModel!!.passportExtractedModel?.outputProperties!!).forEach { (key, value) ->
+                    tempTransformedProperties[key] = value
+                    val newKey = key.substringAfter("IdentificationDocumentCapture_").replace("_", " ")
+                    tempExtractedData[newKey] = value
+                }
 
-            passportResponseModel!!.passportExtractedModel?.transformedProperties = tempTransformedProperties
-            passportResponseModel!!.passportExtractedModel?.extractedData = tempExtractedData
+                // Only replace the untranslated data once the translated data is fully built
+                passportResponseModel!!.passportExtractedModel?.transformedProperties = tempTransformedProperties
+                passportResponseModel!!.passportExtractedModel?.extractedData = tempExtractedData
+            }
+        } catch (t: Throwable) {
+            logE("Applying translation failed: completing with untranslated data", t)
         }
 
         completeScan()
     }
+
     override fun onTranslatedError(properties: Map<String, String>?) {
         logW("Language transformation failed: completing with untranslated data")
         completeScan()
     }
-
-
 
 }
