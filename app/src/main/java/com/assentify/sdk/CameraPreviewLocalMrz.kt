@@ -1,0 +1,1028 @@
+package com.assentify.sdk
+
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Matrix
+import android.graphics.RectF
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.VectorDrawable
+import android.os.Build
+import android.os.Bundle
+import android.os.CountDownTimer
+import android.util.Log
+import android.util.Size
+import android.view.LayoutInflater
+import android.view.Surface
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.annotation.RequiresApi
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.core.UseCase
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FallbackStrategy
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.fragment.app.Fragment
+import com.assentify.sdk.CameraPreviewLocalMrz.Companion.STILL_MAX_SIDE_PX
+import com.assentify.sdk.Core.Constants.ConstantsValues
+import com.assentify.sdk.Core.Constants.EnvironmentalConditions
+import com.assentify.sdk.Core.Constants.FaceEvents
+import com.assentify.sdk.Core.FileUtils.ImageUtils
+import com.assentify.sdk.FaceMatch.CountDownCallback
+import com.assentify.sdk.tflite.Classifier
+import com.assentify.sdk.tflite.DetectorFactory
+import com.assentify.sdk.tflite.YoloV5Classifier
+import com.google.common.util.concurrent.ListenableFuture
+import pl.droidsonroids.gif.GifImageView
+import java.util.Locale
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+abstract class CameraPreviewLocalMrz : Fragment() {
+
+    companion object {
+        private const val TAG = "AssentifyCamera"
+
+        /**
+         * Passport mode: analysis frames of ~1920x1080 instead of CameraX's default ~960x540.
+         * At 960x540 an MRZ character is only ~7 px wide, far below what OCR needs (16+ px).
+         */
+        private val PASSPORT_ANALYSIS_SIZE = Size(1920, 1080)
+
+        /** Long side of the still photo handed to OCR (full sensor size is slow and memory hungry) */
+        private const val STILL_MAX_SIDE_PX = 3000
+    }
+
+    /** Receives the full-resolution still photo (upright), or null when it could not be taken */
+    fun interface StillFrameCallback {
+        fun onStillFrame(bitmap: Bitmap?)
+    }
+
+    private var enableDetect: Boolean = false;
+    private var enableGuide: Boolean = false;
+
+    private lateinit var cameraExecutor: ExecutorService
+    private var cardBackground: ImageView? = null;
+    private var cardContainer: LinearLayout? = null;
+    private var faceContainer: LinearLayout? = null;
+    private var faceBackground: LinearLayout? = null;
+    private var transmittingContainer: LinearLayout? = null;
+
+    private lateinit var previewView: PreviewView
+    private var detector: YoloV5Classifier? = null
+    private var cropSize = ConstantsValues.InputSize
+    private var sensorOrientation: Int? = null
+    private var results: List<Classifier.Recognition> = ArrayList()
+    private val listRectF: MutableList<RectFInfo> = mutableListOf()
+    private lateinit var rectangleOverlayView: RectangleOverlayView
+    private var cameraSelector: CameraSelector? = null;
+    private var frontCamera: Boolean = false
+    private var scanBackground: Int  = R.drawable.card_background
+    private var isPassportMode: Boolean = false
+    private var camera: Camera? = null
+    private var cameraProvider: ProcessCameraProvider? = null
+    private var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>? = null
+    private var imageAnalysis: ImageAnalysis? = null
+    private var imageAnalysisListener: ImageAnalysis.Analyzer? = null
+    private var imageCapture: ImageCapture? = null;
+    private var videoCapture: VideoCapture<Recorder>? = null;
+    private var recording: Recording? = null
+    private val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+    private var countDownTimer: CountDownTimer? = null
+    private var counter = 3;
+    private var isActiveLiveEnabled: Boolean = false
+    private var activeLiveLayout: LinearLayout? = null;
+    private var errorLinearLayout: LinearLayout? = null;
+    private var successLinearLayout: LinearLayout? = null;
+    private var lookUp: GifImageView? = null;
+    private var lookDown: GifImageView? = null;
+    private var lookRight: GifImageView? = null;
+    private var lookLeft: GifImageView? = null;
+    private var winkLeft: GifImageView? = null;
+    private var winkRight: GifImageView? = null;
+    private var blink: GifImageView? = null;
+
+    // Card Layout
+    private var layoutTop: LinearLayout? = null;
+    private var layoutMiddle: LinearLayout? = null;
+    private var layoutBottom: LinearLayout? = null;
+    private var layoutLeft: LinearLayout? = null;
+    private var layoutRight: LinearLayout? = null;
+
+    @Volatile
+    private var isCameraActive = false
+
+    private var environmentalConditions: EnvironmentalConditions? = null;
+    @SuppressLint("MissingInflatedId")
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
+
+        val view = inflater.inflate(R.layout.camera_preview, container, false)
+        previewView = view.findViewById(R.id.previewView)
+        rectangleOverlayView = view.findViewById(R.id.rectangleOverlayView)
+
+
+        return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        cameraExecutor = Executors.newCachedThreadPool()
+        detector = DetectorFactory.getDetector(requireContext().assets)
+        if(ImageUtils.isLowCapabilities(context,this.environmentalConditions)){
+            startCameraForManualCapture();
+        }else{
+            startCamera();
+        }
+    }
+
+    fun  setEnvironmentalConditions(environmentalConditions: EnvironmentalConditions){
+        this.environmentalConditions = environmentalConditions
+    }
+    fun frontCamera() {
+        frontCamera = true
+    }
+
+    fun setIsPassport() {
+        scanBackground = R.drawable.passport_background
+        isPassportMode = true
+    }
+
+
+    fun closeCamera() {
+        isCameraActive = false
+
+        imageAnalysis?.clearAnalyzer()
+        imageAnalysisListener = null
+
+        try {
+            cameraProvider?.unbindAll()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        camera = null
+        imageAnalysis = null
+        imageCapture = null
+        videoCapture = null
+    }
+
+    override fun onDestroyView() {
+        closeCamera()
+
+        if (::cameraExecutor.isInitialized && !cameraExecutor.isShutdown) {
+            cameraExecutor.shutdown()
+        }
+
+        super.onDestroyView()
+    }
+
+    // ---------------------------------------------------------------------
+    // Camera configuration
+    // ---------------------------------------------------------------------
+
+    /** Analysis stream: high resolution in passport mode, CameraX default otherwise */
+    private fun buildImageAnalysis(): ImageAnalysis.Builder {
+        val builder = ImageAnalysis.Builder()
+            .setTargetRotation(Surface.ROTATION_0)
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+        if (isPassportMode) {
+            // setTargetAspectRatio and setResolutionSelector can't be combined: the selector carries both
+            builder.setResolutionSelector(
+                ResolutionSelector.Builder()
+                    .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+                    .setResolutionStrategy(
+                        ResolutionStrategy(
+                            PASSPORT_ANALYSIS_SIZE,
+                            ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER
+                        )
+                    )
+                    .build()
+            )
+        } else {
+            builder.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+        }
+        return builder
+    }
+
+    /** Still capture: the highest available resolution in passport mode */
+    private fun buildImageCapture(): ImageCapture {
+        val builder = ImageCapture.Builder()
+        if (isPassportMode) {
+            builder
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setResolutionSelector(
+                    ResolutionSelector.Builder()
+                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+                        .setResolutionStrategy(ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY)
+                        .build()
+                )
+        } else {
+            builder.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+        }
+        return builder.build()
+    }
+
+    /**
+     * Use cases to bind. VideoCapture is never recorded (startRecording() is empty); in passport
+     * mode it is left out, because a 4th stream makes many phones lower the other streams' resolution.
+     */
+    private fun useCases(preview: Preview): Array<UseCase> {
+        val list = mutableListOf<UseCase>(preview)
+        imageCapture?.let { list += it }
+        imageAnalysis?.let { list += it }
+        if (!isPassportMode) videoCapture?.let { list += it }
+        return list.toTypedArray()
+    }
+
+    private fun logBoundResolutions() {
+        try {
+            Log.d(
+                TAG, "Bound: analysis=${imageAnalysis?.resolutionInfo?.resolution}, " +
+                        "still=${imageCapture?.resolutionInfo?.resolution}, passportMode=$isPassportMode"
+            )
+        } catch (_: Exception) {
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Full-resolution still photo (passport MRZ)
+    // ---------------------------------------------------------------------
+
+    /**
+     * Takes one full-resolution photo with the already-bound ImageCapture and returns it upright,
+     * limited to [STILL_MAX_SIDE_PX] on its long side. MRZ characters are then 4-6x larger than in
+     * the analysis frames, which is what OCR needs to stop confusing 5/S, D/0, I/1 and 8/B.
+     * The callback always fires exactly once (with null on any failure), on a background thread.
+     */
+    protected fun captureStillFrame(callback: StillFrameCallback) {
+        val capture = imageCapture
+        if (capture == null || !isCameraActive || !::cameraExecutor.isInitialized || cameraExecutor.isShutdown) {
+            callback.onStillFrame(null)
+            return
+        }
+        try {
+            capture.takePicture(cameraExecutor, object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val bitmap: Bitmap? = try {
+                        uprightAndLimited(image.toBitmap(), image.imageInfo.rotationDegrees)
+                    } catch (t: Throwable) {
+                        Log.w(TAG, "Still photo conversion failed: $t")
+                        null
+                    } finally {
+                        image.close()
+                    }
+                    callback.onStillFrame(bitmap)
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    Log.w(TAG, "Still photo failed: ${exception.message}")
+                    callback.onStillFrame(null)
+                }
+            })
+        } catch (t: Throwable) {
+            Log.w(TAG, "Still photo could not start: $t")
+            callback.onStillFrame(null)
+        }
+    }
+
+    private fun uprightAndLimited(src: Bitmap, rotationDegrees: Int): Bitmap {
+        val m = Matrix()
+        if (rotationDegrees != 0) m.postRotate(rotationDegrees.toFloat())
+        val longSide = maxOf(src.width, src.height)
+        if (longSide > STILL_MAX_SIDE_PX) {
+            val s = STILL_MAX_SIDE_PX / longSide.toFloat()
+            m.postScale(s, s)
+        }
+        return if (m.isIdentity) src else Bitmap.createBitmap(src, 0, 0, src.width, src.height, m, true)
+    }
+
+    private fun startCameraForManualCapture() {
+        cameraProviderFuture = ProcessCameraProvider.Companion.getInstance(requireActivity())
+        cameraProviderFuture?.addListener({
+            cameraProvider = cameraProviderFuture?.get()
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .build()
+                .also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+            imageCapture = buildImageCapture()
+
+            val recorder = Recorder.Builder()
+                .setQualitySelector(
+                    QualitySelector.from(
+                        Quality.UHD,
+                        FallbackStrategy.higherQualityOrLowerThan(Quality.UHD)
+                    )
+                )
+                .build()
+            videoCapture = VideoCapture.withOutput(recorder)
+
+            imageAnalysisListener = ImageAnalysis.Analyzer { image ->
+                val bitmap = image.toBitmap()
+                processManualImage(bitmap);
+                image.close()
+            }
+
+            imageAnalysis = buildImageAnalysis()
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, imageAnalysisListener!!)
+                }
+
+            cameraSelector = if (frontCamera) {
+                CameraSelector.DEFAULT_FRONT_CAMERA
+            } else {
+                CameraSelector.DEFAULT_BACK_CAMERA
+            }
+
+            try {
+                cameraProvider?.unbindAll()
+                camera = cameraProvider?.bindToLifecycle(
+                    this, cameraSelector!!, *useCases(preview)
+                )
+                camera?.cameraControl?.setZoomRatio(0f)
+                sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
+                isCameraActive = true
+                logBoundResolutions()
+            } catch (exc: Exception) {
+                Log.w(TAG, "Camera bind failed: $exc")
+            }
+
+        }, ContextCompat.getMainExecutor(requireActivity()))
+
+
+    }
+
+
+
+    fun manualCaptureUi(color: String,enableGuide:Boolean){
+        if (isAdded) {
+            requireActivity().runOnUiThread {
+                if (transmittingContainer == null) {
+                    transmittingContainer =
+                        requireActivity().findViewById(R.id.transmitting_container)
+                }
+                transmittingContainer!!.visibility = View.GONE
+                if (enableGuide) {
+                    if (frontCamera) {
+                        if (faceContainer == null) {
+                            faceContainer =
+                                requireActivity().findViewById(R.id.face_container)
+                            faceContainer!!.visibility = View.VISIBLE
+                        } else {
+                            faceContainer!!.visibility = View.VISIBLE
+                        }
+                        if (faceBackground == null) {
+                            faceBackground =
+                                requireActivity().findViewById(R.id.face_background)
+                            faceBackground!!.visibility = View.VISIBLE
+                        } else {
+                            faceBackground!!.visibility = View.VISIBLE
+                        }
+                        val layerDrawable = ResourcesCompat.getDrawable(
+                            resources,
+                            R.drawable.face_background,
+                            null
+                        ) as LayerDrawable
+                        val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                        shapeDrawable.setStroke(10, Color.parseColor(color))
+                        faceBackground!!.setBackground(layerDrawable)
+
+                    } else {
+                        if (cardContainer == null) {
+                            cardContainer =
+                                requireActivity().findViewById(R.id.card_container)
+                            cardContainer!!.visibility = View.VISIBLE
+                        } else {
+                            cardContainer!!.visibility = View.VISIBLE
+                        }
+                        if (cardBackground == null) {
+                            cardBackground =
+                                requireActivity().findViewById(R.id.card_background)
+                            cardBackground!!.visibility = View.VISIBLE
+                        } else {
+                            cardBackground!!.visibility = View.VISIBLE
+                        }
+                        val drawableCard = ResourcesCompat.getDrawable(
+                            resources,
+                            scanBackground,
+                            null
+                        ) as VectorDrawable
+                        val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                        DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                        cardBackground!!.setImageDrawable(wrappedDrawableCard)
+
+
+                    }
+                }
+
+            }
+        }
+
+    }
+    fun detectCardAndFace(bitmap: Bitmap) : List<Classifier.Recognition>{
+        val scaleImage = ImageUtils.scaleBitmap(bitmap, sensorOrientation!!)
+        results = if (frontCamera) {
+            detector!!.recognizeImage(ImageUtils.mirrorBitmap(scaleImage))
+
+        } else {
+            detector!!.recognizeImage(scaleImage)
+
+        }
+        return  results;
+
+    }
+
+
+
+    private fun startCamera() {
+        cameraProviderFuture = ProcessCameraProvider.Companion.getInstance(requireActivity())
+        cameraProviderFuture?.addListener({
+            cameraProvider = cameraProviderFuture?.get()
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .build()
+                .also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+            imageCapture = buildImageCapture()
+
+            val recorder = Recorder.Builder()
+                .setQualitySelector(
+                    QualitySelector.from(
+                        Quality.UHD,
+                        FallbackStrategy.higherQualityOrLowerThan(Quality.UHD)
+                    )
+                )
+                .build()
+            videoCapture = VideoCapture.withOutput(recorder)
+
+
+
+
+
+            imageAnalysisListener = ImageAnalysis.Analyzer { image ->
+                try {
+                    if (!isCameraActive || !isAdded || activity == null || view == null) {
+                        image.close()
+                        return@Analyzer
+                    }
+
+                    val safeActivity = activity ?: run {
+                        image.close()
+                        return@Analyzer
+                    }
+
+                    val bitmap = image.toBitmap()
+                    val scaleImage = ImageUtils.scaleBitmap(bitmap, sensorOrientation ?: 0)
+
+                    safeActivity.runOnUiThread {
+                        if (!isAdded || view == null || activity == null) return@runOnUiThread
+
+                        transmittingContainer ?: run {
+                            transmittingContainer =
+                                safeActivity.findViewById(R.id.transmitting_container)
+                        }
+
+                        if (enableGuide) {
+                            if (frontCamera) {
+                                if (!this.isActiveLiveEnabled) {
+                                    faceContainer ?: run {
+                                        faceContainer = safeActivity.findViewById(R.id.face_container)
+                                    }
+                                    faceBackground ?: run {
+                                        faceBackground = safeActivity.findViewById(R.id.face_background)
+                                    }
+
+                                    faceContainer?.visibility = View.VISIBLE
+                                    faceBackground?.visibility = View.VISIBLE
+                                }
+                            } else {
+                                cardContainer ?: run {
+                                    cardContainer = safeActivity.findViewById(R.id.card_container)
+                                }
+                                cardBackground ?: run {
+                                    cardBackground = safeActivity.findViewById(R.id.card_background)
+                                }
+
+                                cardContainer?.visibility = View.VISIBLE
+                                cardBackground?.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+
+                    if (!isCameraActive || !isAdded || view == null) return@Analyzer
+
+                    results = if (frontCamera) {
+                        detector?.recognizeImage(ImageUtils.mirrorBitmap(scaleImage)) ?: emptyList()
+                    } else {
+                        detector?.recognizeImage(scaleImage) ?: emptyList()
+                    }
+
+                    listRectF.clear()
+
+                    results.forEach { item ->
+                        val confidence = (item.confidence * 100).toInt()
+                        val className = capitalizeFirstLetter(item.title)
+                        listRectF.add(RectFInfo(item.location, confidence.toString(), className))
+                    }
+
+                    if (previewView.width == 0 || previewView.height == 0) return@Analyzer
+
+                    val listScaleRectF = scaleAndDrawLocation(
+                        listRectF,
+                        image.width,
+                        image.height,
+                        previewView.width,
+                        previewView.height,
+                        enableDetect
+                    )
+
+                    processImage(
+                        scaleImage,
+                        bitmap,
+                        results,
+                        listScaleRectF,
+                        previewView.width,
+                        previewView.height
+                    )
+
+                } catch (_: Exception) {
+                    // ignore frame
+                } finally {
+                    image.close()
+                }
+            }
+
+            imageAnalysis = buildImageAnalysis()
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, imageAnalysisListener!!)
+                }
+
+            cameraSelector = if (frontCamera) {
+                CameraSelector.DEFAULT_FRONT_CAMERA
+            } else {
+                CameraSelector.DEFAULT_BACK_CAMERA
+            }
+
+            try {
+                cameraProvider?.unbindAll()
+                camera = cameraProvider?.bindToLifecycle(
+                    this, cameraSelector!!, *useCases(preview)
+                )
+                camera?.cameraControl?.setZoomRatio(0f)
+                sensorOrientation = camera!!.cameraInfo.sensorRotationDegrees
+                isCameraActive = true
+                logBoundResolutions()
+            } catch (exc: Exception) {
+                Log.w(TAG, "Camera bind failed: $exc")
+            }
+
+        }, ContextCompat.getMainExecutor(requireActivity()))
+
+
+    }
+
+
+    fun scaleAndDrawLocation(
+        listRectF: MutableList<RectFInfo>,
+        width: Int,
+        height: Int,
+        previewWidth: Int,
+        previewHeight: Int,
+        enableDetect: Boolean
+    ): MutableList<Pair<RectF, String>> {
+
+        val listScaleRectF: MutableList<Pair<RectF, String>> = mutableListOf()
+        listRectF.forEach { rectInfo ->
+            val location = rectInfo.rectF
+            val widthImageScale: Float = (width.toFloat() / cropSize)
+            val heightImageScale: Float = (height.toFloat() / cropSize)
+            var imageLeft = location.left * widthImageScale
+            val imageTop = location.top * heightImageScale
+            val imageRight = location.right * widthImageScale
+            val imageBottom = location.bottom * heightImageScale
+            val widthFullScreenScale: Float = (previewWidth / width.toFloat())
+            val heightFullScreenScale: Float = (previewHeight / height.toFloat())
+
+            if (cameraSelector != CameraSelector.DEFAULT_FRONT_CAMERA) {
+                imageLeft = imageLeft * widthFullScreenScale - (previewWidth / 40)
+            } else {
+                imageLeft *= widthFullScreenScale
+            }
+            listScaleRectF.add(
+                Pair(
+                    RectF(
+                        imageLeft,
+                        imageTop * heightFullScreenScale,
+                        imageRight * widthFullScreenScale,
+                        imageBottom * heightFullScreenScale
+                    ),
+                    "${rectInfo.className}:${rectInfo.confidence}"
+                )
+            )
+        }
+        if (enableDetect) {
+            rectangleOverlayView.setListRect(listScaleRectF)
+        } else {
+            rectangleOverlayView.setListRect(mutableListOf());
+        }
+        return listScaleRectF;
+
+    }
+
+    protected open fun processManualImage(
+        normalImage: Bitmap,
+    ){}
+
+    protected open fun processImage(
+        croppedBitmap: Bitmap,
+        normalImage: Bitmap,
+        results: List<Classifier.Recognition>,
+        listScaleRectF: MutableList<Pair<RectF, String>>,
+        previewWidth: Int,
+        previewHeight: Int,
+    ){}
+
+    fun setRectFCustomColor(
+        color: String,
+        enableDetect: Boolean,
+        enableGuide: Boolean,
+        notTransmitting: Boolean,
+    ) {
+        if (isAdded) {
+            requireActivity().runOnUiThread {
+                if (this.isVisible) {
+                    rectangleOverlayView.setCustomColor(color)
+                    if (notTransmitting) {
+                        this.enableDetect = enableDetect;
+                        this.enableGuide = enableGuide;
+                        if (transmittingContainer != null) {
+                            transmittingContainer!!.visibility = View.GONE
+                        }
+                    } else {
+                        this.enableDetect = false;
+                        this.enableGuide = false;
+                        if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                            faceBackground!!.visibility = View.GONE
+                        }
+                        if (faceContainer != null && faceContainer!!.visibility == View.VISIBLE) {
+                            faceContainer!!.visibility = View.GONE
+                        }
+                        if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                            cardBackground!!.visibility = View.GONE
+                        }
+                        if (cardContainer != null && cardContainer!!.visibility == View.VISIBLE) {
+                            cardContainer!!.visibility = View.GONE
+                        }
+                        if (transmittingContainer != null) {
+                            transmittingContainer!!.visibility = View.VISIBLE
+                        }
+                    }
+                    if(!isActiveLiveEnabled){
+                        if (this.enableGuide) {
+                            if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                                val layerDrawable = ResourcesCompat.getDrawable(
+                                    resources,
+                                    R.drawable.face_background,
+                                    null
+                                ) as LayerDrawable
+                                val shapeDrawable = layerDrawable.getDrawable(1) as GradientDrawable
+                                shapeDrawable.setStroke(10, Color.parseColor(color))
+                                faceBackground!!.setBackground(layerDrawable)
+                            }
+
+                            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                                val drawableCard = ResourcesCompat.getDrawable(
+                                    resources,
+                                    scanBackground,
+                                    null
+                                ) as VectorDrawable
+                                val wrappedDrawableCard = DrawableCompat.wrap(drawableCard!!)
+                                DrawableCompat.setTint(wrappedDrawableCard, Color.parseColor(color))
+                                cardBackground!!.setImageDrawable(wrappedDrawableCard)
+                            }
+                        }
+                    }else{
+                        this.enableDetect = false;
+                        this.enableGuide = false;
+                        if (faceBackground != null && faceBackground!!.visibility == View.VISIBLE) {
+                            faceBackground!!.visibility = View.GONE
+                        }
+                        if (faceContainer != null && faceContainer!!.visibility == View.VISIBLE) {
+                            faceContainer!!.visibility = View.GONE
+                        }
+                        if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                            cardBackground!!.visibility = View.GONE
+                        }
+                        if (cardContainer != null && cardContainer!!.visibility == View.VISIBLE) {
+                            cardContainer!!.visibility = View.GONE
+                        }
+                        if (transmittingContainer != null) {
+                            transmittingContainer!!.visibility = View.VISIBLE
+                        }
+                    }
+
+
+                }
+            }
+        }
+
+
+    }
+
+
+    fun  enableActiveLive(value:Boolean){
+        isActiveLiveEnabled = value;
+        if(!this.isActiveLiveEnabled){
+            activeLiveLayout =
+                requireActivity().findViewById(R.id.activeLiveLayout)
+            activeLiveLayout!!.visibility = View.GONE
+            clearLiveUi();
+        }
+    }
+
+    fun showSuccessLiveCheck(){
+        if(isActiveLiveEnabled) {
+            clearLiveUi();
+            successLinearLayout =
+                requireActivity().findViewById(R.id.successLinearLayout)
+            successLinearLayout!!.visibility = View.VISIBLE
+
+        }
+    }
+
+
+    fun  showErrorLiveCheck(){
+        if(isActiveLiveEnabled) {
+            clearLiveUi();
+            errorLinearLayout =
+                requireActivity().findViewById(R.id.errorLinearLayout)
+            errorLinearLayout!!.visibility = View.VISIBLE
+        }
+    }
+
+    fun setActiveLiveMove(
+        event: FaceEvents,
+    ){
+        if(isActiveLiveEnabled){
+            requireActivity().runOnUiThread {
+                activeLiveLayout =
+                    requireActivity().findViewById(R.id.activeLiveLayout)
+                activeLiveLayout!!.visibility = View.VISIBLE
+                clearLiveUi();
+                if (event == FaceEvents.PitchUp) {
+                    lookUp!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.PitchDown) {
+                    lookDown!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.YawRight) {
+                    lookRight!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.YawLeft) {
+                    lookLeft!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.WinkLeft) {
+                    winkLeft!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.WinkRight) {
+                    winkRight!!.visibility = View.VISIBLE
+                }
+                if (event == FaceEvents.BLINK) {
+                    blink!!.visibility = View.VISIBLE
+                }
+
+            }
+        }
+
+    }
+
+    fun  clearLiveUi(){
+        errorLinearLayout =
+            requireActivity().findViewById(R.id.errorLinearLayout)
+        errorLinearLayout!!.visibility = View.GONE
+
+        successLinearLayout =
+            requireActivity().findViewById(R.id.successLinearLayout)
+        successLinearLayout!!.visibility = View.GONE
+
+        lookUp =    requireActivity().findViewById(R.id.lookUp)
+        lookDown=   requireActivity().findViewById(R.id.lookDown)
+        lookRight=    requireActivity().findViewById(R.id.lookRight)
+        lookLeft=   requireActivity().findViewById(R.id.lookLeft)
+        winkLeft=   requireActivity().findViewById(R.id.winkLeft)
+        winkRight=   requireActivity().findViewById(R.id.winkRight)
+        blink=   requireActivity().findViewById(R.id.blink)
+        lookUp!!.visibility = View.GONE
+        lookDown!!.visibility = View.GONE
+        lookRight!!.visibility = View.GONE
+        lookLeft!!.visibility = View.GONE
+        winkLeft!!.visibility = View.GONE
+        winkRight!!.visibility = View.GONE
+        blink!!.visibility = View.GONE
+    }
+
+    fun capitalizeFirstLetter(input: String): String {
+        if (input.isEmpty()) return input
+        return input.substring(0, 1).uppercase(Locale.getDefault()) + input.substring(1)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun startRecording() {
+    }
+
+
+    fun stopRecording() {
+        onStopRecordVideo()
+    }
+
+    //  protected abstract fun onStopRecordVideo(videoBase64: String, video: File)
+    protected abstract fun onStopRecordVideo()
+
+
+    protected fun showCountDown(
+        callback: CountDownCallback,
+        color: String,
+        isCountDownStarted: Boolean,
+    ) {
+        if (!isAdded) return
+        if (isCountDownStarted) {
+            counter = 3;
+            requireActivity().runOnUiThread {
+                val countDownContainer =
+                    requireActivity().findViewById<View>(R.id.countDownContainer) as LinearLayout
+                countDownContainer.visibility = View.VISIBLE
+                val countDownText =
+                    requireActivity().findViewById<View>(R.id.countDownText) as TextView
+                countDownText.visibility = View.VISIBLE
+                countDownText.setTextColor(Color.parseColor(color))
+                countDownText.text = ""
+                countDownTimer = object : CountDownTimer(3000, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        countDownText.text = counter.toString()
+                        counter--
+                    }
+
+                    override fun onFinish() {
+                        if (!isAdded) return
+                        countDownText.visibility = View.GONE
+                        // Call the callback's method
+                        callback.onCountDownFinished()
+                    }
+                }.also {
+                    it.start()
+                }
+
+            }
+        }
+    }
+    protected fun stopCountDown() {
+        if (!isAdded) return
+        countDownTimer?.cancel()
+        countDownTimer = null
+        requireActivity().runOnUiThread {
+            val countDownText = requireActivity().findViewById<TextView?>(R.id.countDownText)
+            if (countDownText != null) {
+                countDownText.visibility = View.GONE
+            }
+        }
+    }
+
+
+
+    protected fun changeCardWeightLayoutID() {
+        if (!isAdded) return
+
+        if (layoutTop == null) {
+            layoutTop = requireActivity().findViewById(R.id.card_container_top)
+            layoutTop?.let {
+                val params = it.layoutParams as? LinearLayout.LayoutParams
+                params?.weight = 1f
+                it.layoutParams = params
+            }
+        }
+
+        if (layoutMiddle == null) {
+            layoutMiddle = requireActivity().findViewById(R.id.card_container_middle)
+            layoutMiddle?.let {
+                val params = it.layoutParams as? LinearLayout.LayoutParams
+                params?.weight = 1.18f
+                it.layoutParams = params
+            }
+        }
+
+        if (layoutBottom == null) {
+            layoutBottom = requireActivity().findViewById(R.id.card_container_bottom)
+            layoutBottom?.let {
+                val params = it.layoutParams as? LinearLayout.LayoutParams
+                params?.weight = 1f
+                it.layoutParams = params
+            }
+        }
+
+        if (layoutLeft == null) {
+            layoutLeft = requireActivity().findViewById(R.id.card_container_left)
+            layoutLeft?.let {
+                val params = it.layoutParams as? LinearLayout.LayoutParams
+                params?.weight = 1.8f
+                it.layoutParams = params
+            }
+        }
+
+        if (layoutRight == null) {
+            layoutRight = requireActivity().findViewById(R.id.card_container_right)
+            layoutRight?.let {
+                val params = it.layoutParams as? LinearLayout.LayoutParams
+                params?.weight = 1.8f
+                it.layoutParams = params
+            }
+        }
+    }
+    protected fun changeCardWeightLayout() {
+        if (!isAdded) return
+
+        if (layoutTop == null) {
+            layoutTop = requireActivity().findViewById(R.id.card_container_top)
+            layoutTop?.let { view ->
+                (view.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+                    params.weight = 3f
+                    view.layoutParams = params
+                }
+            }
+        }
+
+        if (layoutMiddle == null) {
+            layoutMiddle = requireActivity().findViewById(R.id.card_container_middle)
+            layoutMiddle?.let { view ->
+                (view.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+                    params.weight = 2.6f
+                    view.layoutParams = params
+                }
+            }
+        }
+
+        if (layoutBottom == null) {
+            layoutBottom = requireActivity().findViewById(R.id.card_container_bottom)
+            layoutBottom?.let { view ->
+                (view.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+                    params.weight = 3f
+                    view.layoutParams = params
+                }
+            }
+        }
+
+        if (layoutLeft == null) {
+            layoutLeft = requireActivity().findViewById(R.id.card_container_left)
+            layoutLeft?.let { view ->
+                (view.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+                    params.weight = 6.5f
+                    view.layoutParams = params
+                }
+            }
+        }
+
+        if (layoutRight == null) {
+            layoutRight = requireActivity().findViewById(R.id.card_container_right)
+            layoutRight?.let { view ->
+                (view.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+                    params.weight = 6.5f
+                    view.layoutParams = params
+                }
+            }
+        }
+    }
+
+}

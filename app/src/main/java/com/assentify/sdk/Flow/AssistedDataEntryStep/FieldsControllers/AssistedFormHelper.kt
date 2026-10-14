@@ -438,7 +438,8 @@ object AssistedFormHelper {
     ): Boolean {
         val model = AssistedDataEntryPagesObject.getAssistedDataEntryModelObject()
         val pages = model!!.assistedDataEntryPages
-        val fields = pages[page].dataEntryPageElements
+        val currentPage = pages.getOrNull(page) ?: return false
+        val fields = currentPage.dataEntryPageElements
         for (f in fields) {
             val err = validateFieldForPage(f.inputKey!!, page)
             if (!err.isNullOrEmpty()) return false
