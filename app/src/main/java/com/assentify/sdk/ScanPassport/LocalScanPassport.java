@@ -1,9 +1,6 @@
 package com.assentify.sdk.ScanPassport;
 
 
-import static com.assentify.sdk.CheckEnvironment.DetectZoomKt.ZoomPassportLimit;
-import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getVideoPath;
-import static com.assentify.sdk.Core.Constants.ConstantsValuesKt.getIDTag;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.getIgnoredProperties;
 import static com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKt.preparePropertiesToTranslate;
 import static com.assentify.sdk.Core.Constants.SupportedLanguageKt.FullNameKey;
@@ -19,43 +16,41 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.assentify.sdk.CameraPreview;
+import com.assentify.sdk.CameraPreviewLocalMrz;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
+import com.assentify.sdk.CheckEnvironment.DetectMotion;
 import com.assentify.sdk.CheckEnvironment.DetectZoom;
-import com.assentify.sdk.Core.Constants.EventsErrorMessages;
-import com.assentify.sdk.FaceMatch.FaceExtractedModel;
-import com.assentify.sdk.FaceMatch.FaceResponseModel;
-import com.assentify.sdk.RemoteClient.RemoteClient;
-import com.assentify.sdk.logging.BugsnagObject;
-
-import com.assentify.sdk.Core.Constants.BlockType;
+import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
 import com.assentify.sdk.Core.Constants.BrightnessEvents;
 import com.assentify.sdk.Core.Constants.ConstantsValues;
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions;
-import com.assentify.sdk.Core.Constants.HubConnectionFunctions;
+import com.assentify.sdk.Core.Constants.EventsErrorMessages;
 import com.assentify.sdk.Core.Constants.HubConnectionTargets;
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys;
 import com.assentify.sdk.Core.Constants.Language;
 import com.assentify.sdk.Core.Constants.MotionType;
 import com.assentify.sdk.Core.Constants.RemoteProcessing;
 import com.assentify.sdk.Core.Constants.ZoomType;
-import com.assentify.sdk.Core.FileUtils.AssetsAudioPlayer;
 import com.assentify.sdk.Core.FileUtils.ImageUtils;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformation;
 import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback;
 import com.assentify.sdk.Models.BaseResponseDataModel;
-import com.assentify.sdk.CheckEnvironment.DetectMotion;
-import com.assentify.sdk.CheckEnvironment.ImageBrightnessChecker;
-import com.assentify.sdk.ProcessingRHub.RemoteProcessingCallback;
 import com.assentify.sdk.RemoteClient.Models.ConfigModel;
 import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
+import com.assentify.sdk.RemoteClient.RemoteClient;
+import com.assentify.sdk.logging.BugsnagObject;
 import com.assentify.sdk.tflite.Classifier;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -67,35 +62,28 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import kotlin.Pair;
-
-import android.graphics.Bitmap;
-
-import androidx.annotation.NonNull;
-
-import org.jmrtd.lds.icao.MRZInfo; // adjust to your actual MRZInfo package
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Objects;
-
-import kotlin.Pair; // if createTimestampedTempFile returns kotlin.Pair<File, String>
-
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LocalScanPassport extends CameraPreview implements LanguageTransformationCallback {
+public class LocalScanPassport extends CameraPreviewLocalMrz implements LanguageTransformationCallback {
 
+    private static final String TAG = "AssentifyMRZ";
 
-    ///
+    /**
+     * How many of the most recent captured frames are OCR'd. Each frame gives up to 3 votes
+     * (zoomed MRZ, high-contrast MRZ, full page) and costs ~3 ML Kit passes (~100-300 ms each).
+     */
+    private static final int MAX_FRAMES_TO_SCAN = 5;
+
+    /**
+     * Votes per reading of the full-resolution still photo. Its MRZ characters are several times
+     * larger than in the analysis frames, so it must not be outvoted by many lower-quality reads.
+     */
+    private static final int STILL_VOTE_WEIGHT = MAX_FRAMES_TO_SCAN;
 
     private final ExecutorService mrzExecutor = Executors.newSingleThreadExecutor();
     private final MrzBitmapScanner mrzScanner = new MrzBitmapScanner();
@@ -110,7 +98,7 @@ public class LocalScanPassport extends CameraPreview implements LanguageTransfor
     private double brightness;
     private MotionType motion = MotionType.NO_DETECT;
     private ZoomType zoom = ZoomType.NO_DETECT;
-    private List<Bitmap> highQualityBitmaps = new ArrayList<>();
+    private final List<Bitmap> highQualityBitmaps = new ArrayList<>();
     private Bitmap croppedBitmap;
     private List<RectF> motionRectF = new ArrayList<>();
     private List<MotionType> sendingFlagsMotion = new ArrayList<>();
@@ -167,7 +155,11 @@ public class LocalScanPassport extends CameraPreview implements LanguageTransfor
 
         this.results = results;
         if (hasFaceOrCard()) {
-            highQualityBitmaps.add(normalImage);
+            synchronized (highQualityBitmaps) {
+                highQualityBitmaps.add(normalImage);
+                // Frames are high resolution now: keep only the ones that will be OCR'd
+                while (highQualityBitmaps.size() > MAX_FRAMES_TO_SCAN) highQualityBitmaps.remove(0);
+            }
             listScaleRectF.forEach((item) -> {
                 if (item.component2().contains(ConstantsValues.CardName)) {
                     isRectFInsideTheScreen = detectIfInsideTheScreen.isRectFWithinMargins(item.component1(), previewWidth, previewHeight);
@@ -185,12 +177,12 @@ public class LocalScanPassport extends CameraPreview implements LanguageTransfor
         }
         if (motion == MotionType.SENDING && zoom == ZoomType.SENDING && environmentalConditions.checkConditions(brightness, environmentalConditions) == BrightnessEvents.Good) {
             if (isRectFInsideTheScreen) {
-                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+                setRectFCustomColor(ConstantsValues.DetectColor, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), true);
             } else {
-                setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+                setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), true);
             }
         } else {
-            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
+            setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), true);
         }
         checkEnvironment();
 
@@ -265,51 +257,93 @@ public class LocalScanPassport extends CameraPreview implements LanguageTransfor
         return hasFace && hasCard;
     }
 
-    // TODO Later
     @Override
     protected void onStopRecordVideo() {
         start = false;
-        extractMrzFromCapturedFrames();
+        // The passport is detected and steady: take one full-resolution photo for the MRZ, then OCR
+        // it together with the recent analysis frames (the callback fires once, also on failure)
+        captureStillFrame(still -> extractMrzFromCapturedFrames(still));
     }
 
-    private void extractMrzFromCapturedFrames() {
-        List<Bitmap> frames = new ArrayList<>(highQualityBitmaps);
-        mrzExecutor.execute(() -> {
-            Mrz.Result best = null;
-            Bitmap bestFrame = null;
+    /**
+     * OCRs the most recent frames (not just until the first "valid" one) and combines them:
+     * a single frame can pass every check digit and still be wrong, but OCR mistakes rarely
+     * repeat in the same position across frames.
+     */
+    private void extractMrzFromCapturedFrames(@Nullable Bitmap still) {
+        final List<Bitmap> frames;
+        synchronized (highQualityBitmaps) {
+            frames = new ArrayList<>(highQualityBitmaps);
+            // Frames of this attempt only: a retry must not mix in old frames (or another passport)
+            highQualityBitmaps.clear();
+        }
 
-            for (int i = frames.size() - 1; i >= 0; i--) {
+        mrzExecutor.execute(() -> {
+            List<Mrz.Result> readings = new ArrayList<>();
+            List<Bitmap> readingFrames = new ArrayList<>();
+            Mrz.Result bestAny = null;
+            Bitmap bestAnyFrame = null;
+
+            // Full-resolution still first (already upright), then the analysis frames (rotated)
+            List<Bitmap> targets = new ArrayList<>();
+            List<String> names = new ArrayList<>();
+            if (still != null) {
+                targets.add(still);
+                names.add("Still " + still.getWidth() + "x" + still.getHeight());
+            } else {
+                Log.d(TAG, "No still photo: using analysis frames only");
+            }
+            int oldest = Math.max(0, frames.size() - MAX_FRAMES_TO_SCAN);
+            for (int i = frames.size() - 1; i >= oldest; i--) {
+                targets.add(null);              // rotated lazily below
+                names.add("Frame " + i);
+            }
+
+            for (int t = 0; t < targets.size(); t++) {
+                int i = frames.size() - 1 - (still != null ? t - 1 : t); // index into frames for analysis frames
                 try {
-                    Mrz.Result r = mrzScanner.scanBlocking(ImageUtils.rotateBitmap(frames.get(i),90));
-                    if (r != null && (best == null || r.score() > best.score())) {
-                        best = r;
-                        bestFrame = ImageUtils.rotateBitmap(frames.get(i),90);
-                        if (best.allValid()) break;
+                    Bitmap upright = targets.get(t) != null
+                            ? targets.get(t)
+                            : ImageUtils.rotateBitmap(frames.get(i), 90);
+                    // Zoomed MRZ, high-contrast MRZ and full page: every pass is one vote
+                    List<Mrz.Result> passes = mrzScanner.scanAllBlocking(upright);
+                    for (int p = 0; p < passes.size(); p++) {
+                        Mrz.Result r = passes.get(p);
+                        Log.d(TAG, names.get(t) + " pass " + p + ": " + r.docType + ", " + r.failSummary());
+                        if (r.bacReady()) {
+                            boolean isStill = still != null && t == 0;
+                            int weight = isStill ? STILL_VOTE_WEIGHT : 1;
+                            for (int w = 0; w < weight; w++) {
+                                readings.add(r);
+                                readingFrames.add(upright);
+                            }
+                        }
+                        if (bestAny == null || r.score() > bestAny.score()) {
+                            bestAny = r;
+                            bestAnyFrame = upright;
+                        }
                     }
                 } catch (Exception e) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            start = true;
-                            BaseResponseDataModel baseResponseDataModel = new BaseResponseDataModel(
-                                    readPassport,
-                                    null,
-                                    EventsErrorMessages.OnRetryCardMessage,
-                                    false,
-                                    "",
-                                    null
-                            );
-                            scanPassportCallback.onRetry(baseResponseDataModel);
-                        }
-                    });
+                    // One unreadable frame must not abort the scan: just skip it
+                    Log.w(TAG, names.get(t) + " OCR failed: " + e);
                 }
             }
 
-            onMrzExtracted(best, bestFrame);
+            MrzConsensus.Outcome outcome = MrzConsensus.decide(readings);
+            if (outcome != null) {
+                Log.d(TAG, "MRZ consensus: " + outcome.summary);
+                onMrzExtracted(outcome.result, readingFrames.get(outcome.frameIndex));
+            } else {
+                // No frame had valid document number + dates: keep the old behaviour (best single frame)
+                Log.d(TAG, "MRZ consensus: no BAC-ready frame, best single frame used"
+                        + (bestAny != null ? " (" + bestAny.failSummary() + ")" : ""));
+                onMrzExtracted(bestAny, bestAnyFrame);
+            }
         });
     }
 
     private void onMrzExtracted(@Nullable Mrz.Result result, Bitmap passportImage) {
+        if (getActivity() == null) return;
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -337,7 +371,11 @@ public class LocalScanPassport extends CameraPreview implements LanguageTransfor
 
     private void uploadImage(Bitmap bitmap, Mrz.Result mrzResult) {
         if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
-            Pair<File, String> result = Objects.requireNonNull(createTimestampedTempFile(bitmap));
+            Pair<File, String> result = createTimestampedTempFile(bitmap);
+            if (result == null) {
+                buildData("", mrzResult);
+                return;
+            }
             File image = result.getFirst();
             String fileName = result.getSecond();
 
@@ -381,6 +419,8 @@ public class LocalScanPassport extends CameraPreview implements LanguageTransfor
                             } catch (IOException | JSONException e) {
                                 buildData("", mrzResult);
                             }
+                        } else {
+                            buildData("", mrzResult);
                         }
                     } else {
                         buildData("", mrzResult);
@@ -479,7 +519,7 @@ public class LocalScanPassport extends CameraPreview implements LanguageTransfor
 
             return new Pair<>(tempFile, fileName);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.w(TAG, "createTimestampedTempFile failed", e);
             return null;
         }
     }

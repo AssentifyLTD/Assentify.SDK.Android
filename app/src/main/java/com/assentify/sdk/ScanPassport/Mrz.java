@@ -128,6 +128,189 @@ public final class Mrz {
         return null;
     }
 
+    // ---------- cross-check with the visual zone (VIZ) ----------
+
+    /** Characters OCR confuses in the MRZ font (OCR-B), as groups */
+    static final String[] LOOKALIKE_GROUPS = {"0ODQ", "1IL", "2Z", "4A", "5S", "6G", "7T", "8B"};
+
+    static boolean lookalike(char a, char b) {
+        if (a == b) return true;
+        for (String g : LOOKALIKE_GROUPS) if (g.indexOf(a) >= 0 && g.indexOf(b) >= 0) return true;
+        return false;
+    }
+
+    /** The other members of c's lookalike group */
+    static List<Character> lookalikesOf(char c) {
+        List<Character> out = new ArrayList<>();
+        for (String g : LOOKALIKE_GROUPS) {
+            if (g.indexOf(c) < 0) continue;
+            for (char o : g.toCharArray()) if (o != c) out.add(o);
+        }
+        return out;
+    }
+
+    /**
+     * Variants of s with exactly k lookalike swaps, for k = 0..maxSwaps (list index = k).
+     * Each position is swapped at most once.
+     */
+    static List<List<String>> lookalikeVariants(String s, int maxSwaps) {
+        List<List<String>> byCount = new ArrayList<>();
+        List<String> zero = new ArrayList<>();
+        zero.add(s);
+        byCount.add(zero);
+        for (int k = 1; k <= maxSwaps; k++) {
+            List<String> next = new ArrayList<>();
+            for (String v : byCount.get(k - 1)) {
+                for (int i = 0; i < v.length(); i++) {
+                    if (v.charAt(i) != s.charAt(i)) continue;
+                    for (char c : lookalikesOf(v.charAt(i))) {
+                        String w = v.substring(0, i) + c + v.substring(i + 1);
+                        if (!next.contains(w)) next.add(w);
+                    }
+                }
+            }
+            byCount.add(next);
+        }
+        return byCount;
+    }
+
+    static String padRight(String s, int len) {
+        StringBuilder b = new StringBuilder(s);
+        while (b.length() < len) b.append('<');
+        return b.toString();
+    }
+
+    /** Pairs that page fonts themselves draw alike (French passports print "I" like "1") */
+    static final String[] PAGE_AMBIGUOUS = {"1I", "0O"};
+
+    /** How far a candidate is from the printed number: overriding a character the page font
+     *  draws ambiguously costs 1, overriding any other printed character costs 2. */
+    static int swapPenalty(String cand, String printed) {
+        int p = 0;
+        for (int i = 0; i < cand.length(); i++) {
+            char a = cand.charAt(i), b = printed.charAt(i);
+            if (a == b) continue;
+            boolean pageAmbiguous = false;
+            for (String g : PAGE_AMBIGUOUS) if (g.indexOf(a) >= 0 && g.indexOf(b) >= 0) pageAmbiguous = true;
+            p += pageAmbiguous ? 1 : 2;
+        }
+        return p;
+    }
+
+    /** Number of separate letter groups ("25DI68178" = 1, "25D168I78" = 2) */
+    static int letterBlocks(String s) {
+        int blocks = 0;
+        boolean inLetters = false;
+        for (char c : s.toCharArray()) {
+            boolean letter = c >= 'A' && c <= 'Z';
+            if (letter && !inLetters) blocks++;
+            inLetters = letter;
+        }
+        return blocks;
+    }
+
+    /**
+     * The document number is also printed in the visual zone of the page. A misread MRZ number can
+     * pass its check digit by coincidence ("25DI68178" read as "2S016B178"), and the composite check
+     * digit cannot help: changing only the number shifts both sums by the same amount.
+     *
+     * Country-independent rule:
+     *  - take every number on the page that differs from the MRZ number only by lookalikes
+     *    (0/O/D/Q, 1/I/L, 5/S, 8/B, 2/Z, 6/G, 7/T, 4/A);
+     *  - allow up to 2 more lookalike swaps, because the page font can mislead too
+     *    (French passports print "I" like "1");
+     *  - keep the versions that pass the check digit, ranked by: fewest overrides of the page
+     *    (overriding it where it disagrees with the MRZ costs more), then fewest letter groups.
+     * The best one is used; the others and the MRZ as read are kept, best first, in
+     * {@link Result#alternativeLines} so the NFC step lets the chip decide.
+     */
+    static Result crossCheckWithVisualZone(Result r, String rawText) {
+        if (r == null || rawText == null || r.lines == null) return r;
+        try {
+            boolean td3 = r.docType.equals("td3");
+            int lineIndex = td3 ? 1 : 0;
+            int from = td3 ? 0 : 5;
+            String docLine = r.lines.get(lineIndex);
+            String field = docLine.substring(from, from + 9);
+            char cd = docLine.charAt(from + 9);
+            String doc = field.replace("<", "");
+            if (doc.length() < 6) return r;
+
+            // candidate number -> {penalty, letterBlocks}
+            Map<String, int[]> scored = new HashMap<>();
+            for (String line : rawText.split("\n")) {
+                // Skip the MRZ lines themselves: only the visual zone is an independent reading
+                String cleaned = clean(line);
+                if (cleaned.indexOf('<') >= 0 || cleaned.length() >= 30) continue;
+
+                // Single words, plus two neighbouring words glued together ("25DI 68178")
+                String[] words = line.toUpperCase().split("[^A-Z0-9]+");
+                List<String> tokens = new ArrayList<>(Arrays.asList(words));
+                for (int w = 0; w + 1 < words.length; w++) tokens.add(words[w] + words[w + 1]);
+
+                for (String token : tokens) {
+                    if (token.length() != doc.length()) continue;
+                    boolean similar = true;
+                    for (int i = 0; i < token.length() && similar; i++) {
+                        similar = lookalike(token.charAt(i), doc.charAt(i));
+                    }
+                    if (!similar) continue;
+
+                    // The MRZ reading competes too (when its check digit holds): a correct MRZ must win
+                    List<String> pool = new ArrayList<>();
+                    for (List<String> level : lookalikeVariants(token, 2)) pool.addAll(level);
+                    if (r.docNum) pool.add(doc);
+                    for (String cand : pool) {
+                        if (!checkDigit(padRight(cand, 9), cd)) continue;
+                        int[] score = {swapPenalty(cand, token), letterBlocks(cand), cand.equals(doc) ? 0 : 1};
+                        int[] old = scored.get(cand);
+                        if (old == null || compareScore(score, old) < 0) scored.put(cand, score);
+                    }
+                }
+            }
+            if (scored.isEmpty()) return r;
+
+            List<String> ranked = new ArrayList<>(scored.keySet());
+            ranked.sort((a, b) -> {
+                int c = compareScore(scored.get(a), scored.get(b));
+                return c != 0 ? c : a.compareTo(b);
+            });
+            // The MRZ reading is the best explanation of the page: keep it unchanged
+            if (ranked.get(0).equals(doc)) return r;
+
+            List<List<String>> alternatives = new ArrayList<>();
+            Result best = null;
+            for (String cand : ranked) {
+                if (cand.equals(doc)) continue; // added at the end as "the MRZ as read"
+                List<String> lines = new ArrayList<>(r.lines);
+                lines.set(lineIndex, docLine.substring(0, from) + padRight(cand, 9) + docLine.substring(from + 9));
+                Result v = td3 ? validateTd3(lines) : validateTd1(lines);
+                if (!v.bacReady() || (r.finalCd && !v.finalCd)) continue;
+                if (best == null) best = v;
+                else if (alternatives.size() < MAX_ALTERNATIVES - 1) alternatives.add(lines);
+            }
+            if (best == null) return r;
+            alternatives.add(new ArrayList<>(r.lines)); // the MRZ as read stays as the last option
+
+            best.line2Only = r.line2Only;
+            best.repaired = true;
+            best.vizCorrected = true;
+            best.mrzOriginalLines = new ArrayList<>(r.lines);
+            best.alternativeLines = alternatives;
+            return best;
+        } catch (Exception e) {
+            return r;
+        }
+    }
+
+    static final int MAX_ALTERNATIVES = 2;
+
+    /** penalty, then letter groups, then "is the MRZ reading" (ties go to the MRZ) */
+    static int compareScore(int[] a, int[] b) {
+        for (int i = 0; i < a.length; i++) if (a[i] != b[i]) return Integer.compare(a[i], b[i]);
+        return 0;
+    }
+
     // ---------- result ----------
 
     public static class Result {
@@ -136,6 +319,12 @@ public final class Mrz {
         public boolean docNum, dob, expiry, optional, finalCd;
         public boolean line2Only = false;
         public boolean repaired = false;
+        /** Document number taken from the visual zone instead of the (misread) MRZ */
+        public boolean vizCorrected = false;
+        /** The MRZ lines as read, when the visual zone corrected them; null otherwise */
+        public List<String> mrzOriginalLines = null;
+        /** Other plausible readings (best first, MRZ as read last) for the NFC step; null if none */
+        public List<List<String>> alternativeLines = null;
 
         public boolean allValid() { return docNum && dob && expiry && optional && finalCd; }
         public boolean bacReady() { return docNum && dob && expiry; }
@@ -183,6 +372,7 @@ public final class Mrz {
             String s = f.isEmpty() ? "all checks OK" : "fail: " + String.join(",", f);
             if (line2Only) s += " [line 1 not read]";
             if (repaired) s += " [auto-repaired]";
+            if (vizCorrected) s += " [doc# from visual zone]";
             return s;
         }
 
@@ -275,10 +465,10 @@ public final class Mrz {
             return new String[]{surname, given};
         }
 
+        /** YYMMDD -> "DD/MM/YY" (the old version read past the end of the 6-char string and crashed) */
         static String fmtDate(String yymmdd) {
             if (yymmdd.length() != 6) return yymmdd;
-            return yymmdd.substring(0, 2) + "-" + yymmdd.substring(3, 5) + "-" + yymmdd.substring(6, 10)
-                    + " (DD/MM/YYYY)";
+            return yymmdd.substring(4, 6) + "/" + yymmdd.substring(2, 4) + "/" + yymmdd.substring(0, 2);
         }
 
         /**
@@ -409,6 +599,12 @@ public final class Mrz {
 
     /** Best MRZ interpretation of recognized text, or null when no MRZ-like lines. */
     public static Result bestCandidate(String rawText) {
+        // The document number is cross-checked with the visual zone of the page before returning
+        return crossCheckWithVisualZone(bestMrzCandidate(rawText), rawText);
+    }
+
+    /** Best MRZ interpretation from the MRZ lines alone */
+    static Result bestMrzCandidate(String rawText) {
         List<String> raw = new ArrayList<>();
         for (String ln : rawText.split("\n")) {
             String c = clean(ln);

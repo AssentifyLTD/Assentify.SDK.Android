@@ -1,9 +1,13 @@
 package com.assentify.sdk.Flow.NfcStep
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.setContent
@@ -48,7 +52,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
@@ -86,6 +92,36 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
     private var isComplete = mutableStateOf<Boolean>(false)
     private var isNavigating = false
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var isStateReceiverRegistered = false
+
+    /** One callback instance, reused for every reader-mode registration. Runs on a binder thread. */
+    private val readerCallback = NfcAdapter.ReaderCallback { tag ->
+        try {
+            val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
+                .putExtra(NfcAdapter.EXTRA_TAG, tag)
+            scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
+        } catch (t: Throwable) {
+            Log.e(TAG, "Tag handling failed", t)
+            runOnUiThread {
+                feedbackText.value = flowStrings().nfcConnectionLost
+                eventTypes.value = EventTypes.onError
+            }
+        }
+    }
+
+    /** NFC switched on while this screen is visible (e.g. back from Settings): register again */
+    private val nfcStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val state = intent.getIntExtra(NfcAdapter.EXTRA_ADAPTER_STATE, NfcAdapter.STATE_OFF)
+            Log.d(TAG, "NFC adapter state changed: $state")
+            if (state == NfcAdapter.STATE_ON) {
+                feedbackText.value = flowStrings().nfcInitialFeedback
+                enableReaderModeSafely("adapter turned on")
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,18 +163,20 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
                             if (!isNavigating) {
                                 isNavigating = true
                                 if (isComplete.value) {
-                                    FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!, timeStarted);
+                                    FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!, timeStarted)
                                     FlowController.naveToNextStep(this)
                                 } else {
-                                    FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!, timeStarted);
+                                    FlowController.makeCurrentStepDone(passportResponseModel.passportExtractedModel!!.transformedProperties!!, timeStarted)
                                     FlowController.naveToNextStep(this)
                                 }
                             }
                         },
                         onRetry = {
-                            feedbackText.value = flowStrings().nfcInitialFeedback;
-                            eventTypes.value = EventTypes.none;
+                            feedbackText.value = flowStrings().nfcInitialFeedback
+                            eventTypes.value = EventTypes.none
                             imageUrl.value = ""
+                            // Make sure the reader is armed again for the next attempt
+                            enableReaderModeSafely("retry")
                         },
                         imageUrl = imageUrl.value,
                         eventTypes = eventTypes.value,
@@ -159,6 +197,13 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
          */
         private const val PRESENCE_CHECK_DELAY_MS = 5000
 
+        /**
+         * Second registration after onResume. On the first entry the system can silently drop the
+         * onResume registration ("Caller is not in foreground") or the previous screen's teardown
+         * can cancel it. Registering again is harmless: it just replaces the previous one.
+         */
+        private const val DELAYED_REGISTER_MS = 700L
+
         private const val READER_FLAGS =
             NfcAdapter.FLAG_READER_NFC_A or
                     NfcAdapter.FLAG_READER_NFC_B or
@@ -171,51 +216,89 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        isNavigating = false
+    private fun isResumedNow(): Boolean =
+        lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+
+    /** Registers reader mode. Safe to call many times; ignored when not resumed or NFC is off. */
+    private fun enableReaderModeSafely(reason: String) {
+        if (!isResumedNow()) {
+            Log.d(TAG, "[$reason] Not resumed: reader mode not enabled")
+            return
+        }
         val adapter = NfcAdapter.getDefaultAdapter(this) ?: return
         if (!adapter.isEnabled) {
-            Log.w(TAG, "NFC is turned off: reader mode not enabled")
+            Log.w(TAG, "[$reason] NFC is turned off: reader mode not enabled")
             return
         }
         val options = Bundle().apply {
             putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, PRESENCE_CHECK_DELAY_MS)
         }
         try {
-            adapter.enableReaderMode(
-                this,
-                { tag ->
-                    // Runs on a binder thread: an exception here must never escape
-                    try {
-                        val intent = Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
-                            .putExtra(NfcAdapter.EXTRA_TAG, tag)
-                        scanNfc.onActivityNewIntent(intent = intent, dataModel = passportResponseModel)
-                    } catch (t: Throwable) {
-                        Log.e(TAG, "Tag handling failed", t)
-                        runOnUiThread {
-                            feedbackText.value = flowStrings().nfcConnectionLost
-                            eventTypes.value = EventTypes.onError
-                        }
-                    }
-                },
-                READER_FLAGS,
-                options
-            )
-            Log.d(TAG, "Reader mode enabled (presence check ${PRESENCE_CHECK_DELAY_MS} ms)")
+            adapter.enableReaderMode(this, readerCallback, READER_FLAGS, options)
+            Log.d(TAG, "[$reason] Reader mode enabled (presence check $PRESENCE_CHECK_DELAY_MS ms)")
         } catch (t: Throwable) {
-            Log.e(TAG, "enableReaderMode failed", t)
+            Log.e(TAG, "[$reason] enableReaderMode failed", t)
         }
+    }
+
+    private fun registerNfcStateReceiver() {
+        if (isStateReceiverRegistered) return
+        try {
+            ContextCompat.registerReceiver(
+                this,
+                nfcStateReceiver,
+                IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+            isStateReceiverRegistered = true
+        } catch (t: Throwable) {
+            Log.w(TAG, "Could not register NFC state receiver", t)
+        }
+    }
+
+    private fun unregisterNfcStateReceiver() {
+        if (!isStateReceiverRegistered) return
+        try {
+            unregisterReceiver(nfcStateReceiver)
+        } catch (t: Throwable) {
+            Log.w(TAG, "Could not unregister NFC state receiver", t)
+        }
+        isStateReceiverRegistered = false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isNavigating = false
+        registerNfcStateReceiver()
+        enableReaderModeSafely("onResume")
+        mainHandler.postDelayed(
+            { enableReaderModeSafely("onResume +${DELAYED_REGISTER_MS}ms") },
+            DELAYED_REGISTER_MS
+        )
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // The window is really in front now: the most reliable moment to (re)register
+        if (hasFocus) enableReaderModeSafely("window focus")
     }
 
     override fun onPause() {
         super.onPause()
+        mainHandler.removeCallbacksAndMessages(null)
+        unregisterNfcStateReceiver()
         // Must match enableReaderMode (disableForegroundDispatch does NOT turn reader mode off)
         try {
             NfcAdapter.getDefaultAdapter(this)?.disableReaderMode(this)
+            Log.d(TAG, "Reader mode disabled")
         } catch (t: Throwable) {
             Log.w(TAG, "disableReaderMode failed", t)
         }
+    }
+
+    override fun onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null)
+        super.onDestroy()
     }
 
     public override fun onNewIntent(intent: Intent) {
@@ -234,11 +317,11 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
 
     override fun onCompleteNfcScan(dataModel: PassportResponseModel) {
         runOnUiThread {
-            isComplete.value = true;
-            dataIDModel.value = dataModel;
+            isComplete.value = true
+            dataIDModel.value = dataModel
             feedbackText.value = ""
-            OnCompleteScreenData.clear();
-            OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties);
+            OnCompleteScreenData.clear()
+            OnCompleteScreenData.setData(dataModel.passportExtractedModel!!.transformedProperties)
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel?.imageUrl ?: ""
             val faces = dataModel.passportExtractedModel?.faces
@@ -249,6 +332,7 @@ class NfcScanActivity : FragmentActivity(), ScanNfcCallback {
     }
 
     override fun onErrorNfcScan(dataModel: PassportResponseModel, message: String) {
+        Log.w(TAG, "NFC scan error: $message")
         runOnUiThread {
             feedbackText.value = flowStrings().nfcConnectionLost
             eventTypes.value = EventTypes.onError

@@ -30,6 +30,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,7 +61,19 @@ import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
+
+private const val DISPLAY_VALUE_KEY = "Display Value"
+
+/**
+ * Lightweight wrapper: display value is computed once per item (off the main thread)
+ * instead of on every recomposition / every keystroke.
+ */
+private class DropdownOption(
+    val displayValue: String,
+    val attributes: List<DataSourceAttribute>
+)
 
 @Composable
 fun SecureDropdownWithDataSource(
@@ -75,7 +89,10 @@ fun SecureDropdownWithDataSource(
     val s = flowStrings()
     val configModelObject = ConfigModelObject.getConfigModelObject()
     val currentKey = field.inputKey ?: ""
-    val isMandatory = field.mandatory  ?: false
+    val isMandatory = field.mandatory ?: false
+
+    // Always call the latest callback from long-running effects
+    val currentOnValueChange by rememberUpdatedState(onValueChange)
 
     var dataSourceData by remember(currentKey) {
         mutableStateOf<DataSourceData?>(loadedMap[currentKey])
@@ -87,8 +104,19 @@ fun SecureDropdownWithDataSource(
         mutableStateOf(filterMap[currentKey] ?: emptyMap())
     }
 
-    var selected by rememberSaveable(currentKey) {
+    // rememberSaveable with a custom Saver: only a small String key goes into the Bundle,
+    // the (possibly large) list itself stays in memory -> no TransactionTooLargeException.
+    val selectedSaver = remember(page, currentKey) {
+        selectedAttributesSaver("$page:$currentKey")
+    }
+
+    var selected by rememberSaveable(currentKey, stateSaver = selectedSaver) {
         mutableStateOf<List<DataSourceAttribute>>(emptyList())
+    }
+
+    // Fallback for process death (memory cache is gone): restore by display value.
+    var savedSelectedDisplayValue by rememberSaveable(currentKey) {
+        mutableStateOf("")
     }
 
     var searchQuery by rememberSaveable(currentKey) {
@@ -103,8 +131,17 @@ fun SecureDropdownWithDataSource(
         mutableStateOf(false)
     }
 
+    var allOptions by remember(currentKey) {
+        mutableStateOf<List<DropdownOption>>(emptyList())
+    }
+
     var filteredItems by remember(currentKey) {
-        mutableStateOf(dataSourceData?.items ?: emptyList())
+        mutableStateOf<List<DropdownOption>>(emptyList())
+    }
+
+    fun updateSelected(value: List<DataSourceAttribute>) {
+        selected = value
+        savedSelectedDisplayValue = value.displayValue()
     }
 
     LaunchedEffect(triggerFilter) {
@@ -119,9 +156,11 @@ fun SecureDropdownWithDataSource(
             loadedMap[currentKey] = null
             dataSourceData = null
             selected = emptyList()
+            savedSelectedDisplayValue = ""
             searchQuery = ""
             userStartedTyping = false
             showSearchDialog = false
+            allOptions = emptyList()
             filteredItems = emptyList()
             loadingMap[currentKey] = false
         }
@@ -135,7 +174,6 @@ fun SecureDropdownWithDataSource(
         val cachedData = loadedMap[currentKey]
         if (cachedData != null) {
             dataSourceData = cachedData
-            filteredItems = cachedData.items
             loadingMap[currentKey] = false
             return@LaunchedEffect
         }
@@ -149,70 +187,68 @@ fun SecureDropdownWithDataSource(
         try {
             val response = loadDataSourceSuspend(
                 field = field,
-                filterKeyValues = filterKeyValues ?: emptyMap()
+                filterKeyValues = filterKeyValues
             )
 
             val loadedData = response?.data ?: return@LaunchedEffect
 
             dataSourceData = loadedData
             loadedMap[currentKey] = loadedData
-            filteredItems = loadedData.items
 
-            if (field.languageTransformation == 0) {
-                val defaultValue = AssistedFormHelper.getDefaultValueValue(
-                    field.inputKey!!,
-                    page
-                )
+            val defaultValue = AssistedFormHelper.getDefaultValueValue(currentKey, page)
+            val targetLanguage = field.targetOutputLanguage
+            val transformationType = field.languageTransformation
 
+            if (transformationType == 0) {
                 val defaultSelected = withContext(Dispatchers.Default) {
                     findSelectedByDisplayValue(loadedData, defaultValue)
                 }
 
                 if (defaultSelected.isNotEmpty()) {
-                    selected = defaultSelected
-                    onValueChange(defaultSelected, loadedData.outputKeys)
+                    updateSelected(defaultSelected)
+                    currentOnValueChange(defaultSelected, loadedData.outputKeys)
                 }
-            } else {
-                if (selected.isEmpty()) {
-                    val dataList = listOf(
-                        LanguageTransformationModel(
-                            language = field.targetOutputLanguage!!,
-                            languageTransformationEnum = field.languageTransformation!!,
-                            value = AssistedFormHelper.getDefaultValueValue(
-                                field.inputKey!!,
-                                page
-                            ) ?: "",
-                            key = field.inputKey!!,
-                            dataType = field.inputType
-                        )
-                    )
-
-                    val transformationData = valueTransformationSuspend(
-                        field.targetOutputLanguage,
-                        TransformationModel(LanguageTransformationModels = dataList)
-                    )
-
-                    val valueToCompare = transformationData?.value
-                        ?: AssistedFormHelper.getDefaultValueValue(field.inputKey!!, page)
-
-                    val transformedSelected = withContext(Dispatchers.Default) {
-                        findSelectedByDisplayValue(loadedData, valueToCompare)
-                    }
-
-                    if (transformedSelected.isNotEmpty()) {
-                        selected = transformedSelected
-
-                        if (transformationData != null) {
-                            AssistedFormHelper.changeValueSecureDropdownWithDataSource(
-                                field.inputKey,
-                                transformedSelected,
-                                loadedData.outputKeys,
-                                page
+            } else if (selected.isEmpty()) {
+                // No !! — if transformation config is missing,
+                // fall back to matching the raw default value.
+                val transformationData =
+                    if (targetLanguage != null && transformationType != null) {
+                        val dataList = listOf(
+                            LanguageTransformationModel(
+                                language = targetLanguage,
+                                languageTransformationEnum = transformationType,
+                                value = defaultValue ?: "",
+                                key = currentKey,
+                                dataType = field.inputType
                             )
-                        }
-
-                        onValueChange(transformedSelected, loadedData.outputKeys)
+                        )
+                        valueTransformationSuspend(
+                            targetLanguage,
+                            TransformationModel(LanguageTransformationModels = dataList)
+                        )
+                    } else {
+                        null
                     }
+
+                val valueToCompare = transformationData?.value ?: defaultValue
+
+                val transformedSelected = withContext(Dispatchers.Default) {
+                    findSelectedByDisplayValue(loadedData, valueToCompare)
+                }
+
+                if (transformedSelected.isNotEmpty()) {
+                    updateSelected(transformedSelected)
+
+                    if (transformationData != null) {
+                        AssistedFormHelper.changeValueSecureDropdownWithDataSource(
+                            currentKey,
+                            transformedSelected,
+                            loadedData.outputKeys,
+                            page
+                        )
+                    }
+
+                    currentOnValueChange(transformedSelected, loadedData.outputKeys)
                 }
             }
         } finally {
@@ -220,23 +256,41 @@ fun SecureDropdownWithDataSource(
         }
     }
 
-    LaunchedEffect(searchQuery, dataSourceData, userStartedTyping) {
-        val currentData = dataSourceData
+    // Build options once per data load, off the main thread.
+    // Also restores the selection from the saved display value after process death.
+    LaunchedEffect(dataSourceData) {
+        val data = dataSourceData
+        val options = withContext(Dispatchers.Default) {
+            data?.items?.map { item ->
+                DropdownOption(
+                    displayValue = item.dataSourceAttributes.displayValue(),
+                    attributes = item.dataSourceAttributes
+                )
+            } ?: emptyList()
+        }
+        allOptions = options
+
+        if (selected.isEmpty() && savedSelectedDisplayValue.isNotEmpty()) {
+            val restored = withContext(Dispatchers.Default) {
+                options.firstOrNull {
+                    it.displayValue.equals(savedSelectedDisplayValue, ignoreCase = true)
+                }?.attributes
+            }
+            if (restored != null) {
+                selected = restored
+            }
+        }
+    }
+
+    LaunchedEffect(searchQuery, allOptions, userStartedTyping) {
+        val options = allOptions
         val query = searchQuery
 
         filteredItems = withContext(Dispatchers.Default) {
-            val items = currentData?.items ?: emptyList()
-
             if (!userStartedTyping || query.isBlank()) {
-                items
+                options
             } else {
-                items.filter { item ->
-                    item.dataSourceAttributes
-                        .firstOrNull { it.mappedKey == "Display Value" }
-                        ?.value
-                        .orEmpty()
-                        .contains(query, ignoreCase = true)
-                }
+                options.filter { it.displayValue.contains(query, ignoreCase = true) }
             }
         }
     }
@@ -248,22 +302,15 @@ fun SecureDropdownWithDataSource(
 
     val isReadOnly = field.readOnly == true || getIsLocked()
 
-    val err by remember(field.inputKey, page, selected, BaseTheme.BaseShowMessage.value) {
-        mutableStateOf(
-            when {
-                selected.isNotEmpty() -> ""
-                isMandatory -> if (BaseTheme.BaseValidationStyle == ValidationStyle.Message ||   BaseTheme.BaseShowMessage.value) {
-                    if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
-                } else ""
-                else -> ""
-            }
-        )
+    val err = when {
+        selected.isNotEmpty() -> ""
+        isMandatory -> if (BaseTheme.BaseValidationStyle == ValidationStyle.Message || BaseTheme.BaseShowMessage.value) {
+            if (BaseTheme.BaseUiLanguage == UiLanguage.English) "This field is required" else "هذه الخانة مطلوبه"
+        } else ""
+        else -> ""
     }
 
-    val selectedDisplayValue = selected
-        .firstOrNull { it.mappedKey == "Display Value" }
-        ?.value
-        .orEmpty()
+    val selectedDisplayValue = selected.displayValue()
 
     if (field.isHidden != true) {
         Column(modifier = modifier.fillMaxWidth()) {
@@ -308,7 +355,8 @@ fun SecureDropdownWithDataSource(
                             text = selectedDisplayValue,
                             modifier = Modifier.weight(1f),
                             color = BaseTheme.BaseTextColor,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1
                         )
 
                         Icon(
@@ -340,7 +388,9 @@ fun SecureDropdownWithDataSource(
         }
     }
 
-    if (showSearchDialog && !isReadOnly && dataSourceData != null) {
+    // Capture into a local val -> no dataSourceData!! inside click handlers
+    val dialogData = dataSourceData
+    if (showSearchDialog && !isReadOnly && dialogData != null) {
         Dialog(
             onDismissRequest = {
                 showSearchDialog = false
@@ -422,34 +472,26 @@ fun SecureDropdownWithDataSource(
                                 )
                             }
                         } else {
+                            // No custom key -> duplicate display values can't crash
+                            // with "Key was already used".
                             items(
                                 items = filteredItems,
-                                key = { option ->
-                                    option.dataSourceAttributes
-                                        .firstOrNull { it.mappedKey == "Display Value" }
-                                        ?.value
-                                        ?: option.hashCode()
-                                }
+                                contentType = { "dropdown_option" }
                             ) { option ->
-                                val displayValue = option.dataSourceAttributes
-                                    .firstOrNull { it.mappedKey == "Display Value" }
-                                    ?.value
-                                    .orEmpty()
-
                                 Text(
-                                    text = displayValue,
+                                    text = option.displayValue,
                                     color = BaseTheme.BaseTextColor,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            selected = option.dataSourceAttributes
+                                            updateSelected(option.attributes)
                                             showSearchDialog = false
                                             searchQuery = ""
                                             userStartedTyping = false
 
                                             onValueChange(
-                                                option.dataSourceAttributes,
-                                                dataSourceData!!.outputKeys
+                                                option.attributes,
+                                                dialogData.outputKeys
                                             )
                                         }
                                         .padding(vertical = 14.dp, horizontal = 12.dp)
@@ -463,19 +505,59 @@ fun SecureDropdownWithDataSource(
     }
 }
 
+/**
+ * In-memory holder for selected attribute lists.
+ * The Bundle only stores the cache key (tiny String), so large lists
+ * never hit the Binder transaction limit.
+ *
+ * Entries are NOT removed on restore: LazyColumn / Pager can save and
+ * restore the same item many times (scrolling, prefetch).
+ */
+private object SelectedAttributesCache {
+    private val cache = ConcurrentHashMap<String, List<DataSourceAttribute>>()
+
+    fun put(key: String, value: List<DataSourceAttribute>) {
+        if (value.isEmpty()) cache.remove(key) else cache[key] = value
+    }
+
+    fun get(key: String): List<DataSourceAttribute> = cache[key] ?: emptyList()
+
+    /** Call when the whole flow is finished to free memory (optional). */
+    fun clear() = cache.clear()
+}
+
+private fun selectedAttributesSaver(cacheKey: String) =
+    Saver<List<DataSourceAttribute>, String>(
+        save = { value ->
+            SelectedAttributesCache.put(cacheKey, value)
+            cacheKey
+        },
+        restore = { key ->
+            // Never return null: with stateSaver, null would be stored
+            // inside the MutableState and crash on the next read.
+            SelectedAttributesCache.get(key)
+        }
+    )
+
+private fun List<DataSourceAttribute>.displayValue(): String =
+    firstOrNull { it.mappedKey == DISPLAY_VALUE_KEY }?.value.orEmpty()
+
 private suspend fun loadDataSourceSuspend(
     field: DataEntryPageElement,
     filterKeyValues: Map<String, String>
 ): DataSourceResponse? {
+    // No !! — when the activity is exiting, the current step can already be null
+    val configModelObject = ConfigModelObject.getConfigModelObject() ?: return null
+    val stepId = FlowController.getCurrentStep()?.stepDefinition?.stepId ?: return null
+    val endpointId = field.endpointId ?: return null
+
     return withContext(Dispatchers.IO) {
         suspendCancellableCoroutine { continuation ->
-            val configModelObject = ConfigModelObject.getConfigModelObject()
-
             AssistedFormHelper.getDataSourceValues(
-                configModelObject!!,
+                configModelObject,
                 field.elementIdentifier,
-                FlowController.getCurrentStep()!!.stepDefinition!!.stepId,
-                field.endpointId!!,
+                stepId,
+                endpointId,
                 filterKeyValues = filterKeyValues
             ) { data ->
                 if (continuation.isActive) {
@@ -487,13 +569,13 @@ private suspend fun loadDataSourceSuspend(
 }
 
 private suspend fun valueTransformationSuspend(
-    targetOutputLanguage: String?,
+    targetOutputLanguage: String,
     transformationModel: TransformationModel
 ): LanguageTransformationModel? {
     return withContext(Dispatchers.IO) {
         suspendCancellableCoroutine { continuation ->
             AssistedFormHelper.valueTransformation(
-                targetOutputLanguage!!,
+                targetOutputLanguage,
                 transformationModel
             ) { transformationData ->
                 if (continuation.isActive) {
@@ -511,9 +593,6 @@ private fun findSelectedByDisplayValue(
     if (value.isNullOrEmpty()) return emptyList()
 
     return dataSourceData.items.firstOrNull { item ->
-        item.dataSourceAttributes
-            .firstOrNull { it.mappedKey == "Display Value" }
-            ?.value
-            .equals(value, ignoreCase = true)
+        item.dataSourceAttributes.displayValue().equals(value, ignoreCase = true)
     }?.dataSourceAttributes ?: emptyList()
 }
