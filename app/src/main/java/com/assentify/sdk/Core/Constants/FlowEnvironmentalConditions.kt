@@ -127,7 +127,7 @@ public class FlowEnvironmentalConditions(
     val stepperType: StepperType = StepperType.Normal,
     var rangeStart: Int = 25,// Next
     var rangeEnd : Int = 50, // Next
-    var stepperTitle : String = "Identification",
+    var stepperTitle : String = "Identity check",
 
     val extractedDataLanguage: String = Language.NON,
     val enableNfc: Boolean = false,
