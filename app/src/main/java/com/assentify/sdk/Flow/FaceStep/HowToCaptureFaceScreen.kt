@@ -223,7 +223,7 @@ fun HowToCaptureFaceScreen(
                 Text(
                     s.faceCaptureTip,
                     color = BaseTheme.BaseTextColor,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Thin,
                     textAlign = TextAlign.Center,
