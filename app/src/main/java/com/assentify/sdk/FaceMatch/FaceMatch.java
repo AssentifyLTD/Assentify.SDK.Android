@@ -73,6 +73,9 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     Boolean performLivenessFace;
 
     Boolean performPassiveLivenessFace;
+    Boolean performPassiveLivenessFaceChanged = false;
+
+    private Bitmap imageDuringActiveLiveness = null;
     Boolean saveCapturedVideo;
     Boolean storeImageStream;
     ConfigModel configModel;
@@ -231,6 +234,13 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
             faceQualityCheck.checkFaceQualityAndExpressions(normalImage, new FaceEventCallback() {
                         @Override
                         public void onFaceEventDetected(FaceEvents result) {
+                            if(performPassiveLivenessFaceChanged == true){
+                                if(result == FaceEvents.Good){
+                                    if(!areAllEventsDone()){
+                                        imageDuringActiveLiveness = normalImage;
+                                    }
+                                }
+                            }
                             if(areAllEventsDone()){
                                 if(result == FaceEvents.BLINK){
                                     faceEvent =  FaceEvents.Good;
@@ -438,7 +448,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             livnessRetryCount = 0;
                             if (environmentalConditions.getActiveLiveType() == ActiveLiveType.NONE
                                     || environmentalConditions.getActiveLivenessCheckCount() == 0) {
-                                environmentalConditions.setActiveLivenessCheckCount(3);
+                                environmentalConditions.setActiveLivenessCheckCount(2);
                                 environmentalConditions.setActiveLiveType(ActiveLiveType.Actions);
                             }
                             performLivenessFace = true;
@@ -447,6 +457,10 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             fillCompletionMap();
                             enableActiveLive(true);
                             resetActiveLive();
+                            performPassiveLivenessFace = false;
+                            performPassiveLivenessFaceChanged = true;
+                            localLivenessLimit = 0;
+
 
                         }
                     } else
@@ -576,7 +590,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.FACE_MATCH),
                         configModel,
                         stepId,
-                        ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(middleIndex), BlockType.FACE_MATCH, getActivity()),
+                        performPassiveLivenessFaceChanged == true ? ImageUtils.convertBitmapToByteArray(imageDuringActiveLiveness, BlockType.FACE_MATCH, getActivity()) : ImageUtils.convertBitmapToByteArray(highQualityBitmaps.get(middleIndex), BlockType.FACE_MATCH, getActivity()),
                         new ArrayList<>(),
                         ImageUtils.base64ToByteArray(this.secondImage),
                         performPassiveLivenessFace,

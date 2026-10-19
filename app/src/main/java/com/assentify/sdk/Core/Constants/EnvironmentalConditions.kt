@@ -4,7 +4,7 @@ package com.assentify.sdk.Core.Constants
 class EnvironmentalConditions(
 
     /**Detect**/
-    var enableDetect: Boolean = true,
+    var enableDetect: Boolean = false,
 
     var HoldHandColor: String,
     var CountDownNumbersColor: String = "#00FFFFFF",

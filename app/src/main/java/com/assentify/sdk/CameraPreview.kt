@@ -747,7 +747,7 @@ abstract class CameraPreview : Fragment() {
                 countDownText.visibility = View.VISIBLE
                 countDownText.setTextColor(Color.parseColor(color))
                 countDownText.text = ""
-                countDownTimer = object : CountDownTimer(3000, 1000) {
+                countDownTimer = object : CountDownTimer(1500, 500) {
                     override fun onTick(millisUntilFinished: Long) {
                         countDownText.text = counter.toString()
                         counter--
