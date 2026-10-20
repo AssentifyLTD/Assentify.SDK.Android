@@ -43,6 +43,7 @@ import com.assentify.sdk.RemoteClient.Models.StepDefinitions;
 import com.assentify.sdk.tflite.Classifier;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceEventCallback;
 import com.assentify.sdk.tflite.FaceQualityCheck.FaceQualityCheck;
+import com.assentify.sdk.tflite.FaceQualityCheck.FrontalFaceChecker;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -53,6 +54,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import kotlin.Pair;
+import kotlin.Unit;
 
 
 public class FaceMatch extends CameraPreview implements RemoteProcessingCallback {
@@ -101,6 +103,7 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
     private boolean isRectFInsideTheScreen = false;
 
     private FaceQualityCheck faceQualityCheck = null;
+    private FrontalFaceChecker frontalFaceChecker  = null;
     private FaceEvents faceEvent = FaceEvents.NO_DETECT;
 
 
@@ -222,6 +225,11 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
         if (faceQualityCheck == null) {
             faceQualityCheck = new FaceQualityCheck();
         }
+        if (frontalFaceChecker == null) {
+            frontalFaceChecker = new FrontalFaceChecker();
+        }
+
+
         if (audioPlayer == null) {
             if (getActivity() != null) {
                 audioPlayer = new AssetsAudioPlayer(getActivity());
@@ -237,7 +245,16 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                             if(performPassiveLivenessFaceChanged == true){
                                 if(result == FaceEvents.Good){
                                     if(!areAllEventsDone()){
-                                        imageDuringActiveLiveness = normalImage;
+                                        if(imageDuringActiveLiveness == null){
+                                            imageDuringActiveLiveness = normalImage;
+                                        }
+                                        frontalFaceChecker.check(normalImage, 0, frontalFaceCheckerResult -> {
+                                            if (frontalFaceCheckerResult == null) {
+                                                return Unit.INSTANCE;
+                                            }
+                                            imageDuringActiveLiveness = normalImage;
+                                            return Unit.INSTANCE;
+                                        });
                                     }
                                 }
                             }
@@ -446,11 +463,8 @@ public class FaceMatch extends CameraPreview implements RemoteProcessingCallback
                         faceMatchCallback.onLivenessUpdate(BaseResponseDataModel);
                         if (livnessRetryCount ==  environmentalConditions.getFaceLivenessRetryCount()){
                             livnessRetryCount = 0;
-                            if (environmentalConditions.getActiveLiveType() == ActiveLiveType.NONE
-                                    || environmentalConditions.getActiveLivenessCheckCount() == 0) {
-                                environmentalConditions.setActiveLivenessCheckCount(2);
-                                environmentalConditions.setActiveLiveType(ActiveLiveType.Actions);
-                            }
+                            environmentalConditions.setActiveLivenessCheckCount(2);
+                            environmentalConditions.setActiveLiveType(ActiveLiveType.Actions);
                             performLivenessFace = true;
                             startActiveLiveCheck = true;
                             setEnvironmentalConditions(environmentalConditions);
