@@ -38,6 +38,8 @@ dependencies {
 ```
 
 ## Versions
+***1.0.0-Beta.68***
+1. *Liveness Improvements *
 
 ***1.0.0-Beta.67***
 1. *Liveness Improvements *
