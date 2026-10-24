@@ -25,13 +25,8 @@
         android:required="false" />
 
     <application
-        android:debuggable="false"
-        android:extractNativeLibs="true"
         android:hardwareAccelerated="true"
-        android:installLocation="internalOnly"
-        android:requestLegacyExternalStorage="true"
-        android:theme="@style/Assentify.NoActionBar"
-        tools:ignore="HardcodedDebugMode">
+        android:theme="@style/Assentify.NoActionBar">
 
         <activity
             android:name=".Flow.BlockLoader.BlockLoaderStepsComposeActivity"
@@ -89,8 +84,6 @@
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4926f3132e616e760f865b69a1b93f28" />
-
-
 
         <!-- PDF FileProvider -->
         <provider
