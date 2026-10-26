@@ -275,7 +275,7 @@ private val englishStrings = FlowStrings(
     stepSigningDesc = "Provide a digital signature to complete onboarding.",
 
     restOfWorld = "Others",
-    chooseCountry = "Choose your country of issuance",
+    chooseCountry = "Choose your nationality",
     selectDocument = "Select type of document",
     passport = "Passport",
     supportedIds = "Supported IDs",
@@ -484,7 +484,7 @@ private val arabicStrings = FlowStrings(
     stepSigningDesc = "قدّم توقيعاً رقمياً لإتمام التسجيل.",
 
     restOfWorld = "آخر",
-    chooseCountry = "اختر بلد الإصدار",
+    chooseCountry = "اختر جنسيتك",
     selectDocument = "اختر نوع الوثيقة",
     passport = "جواز السفر",
     supportedIds = "الهويات المدعومة",

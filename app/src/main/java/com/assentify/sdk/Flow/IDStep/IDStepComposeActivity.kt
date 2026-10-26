@@ -42,6 +42,13 @@ class IDStepComposeActivity : ComponentActivity() {
                         onDocumentSelected = { selectedTemplate ->
                             SelectedTemplatesObject.setSelectedTemplatesObject(selectedTemplate)
                         },
+                        onTemplateClick = { selectedTemplate ->
+                            SelectedTemplatesObject.setSelectedTemplatesObject(selectedTemplate)
+                            HowToCaptureActivity.start(
+                                context = this, // Activity
+                            );
+                        },
+
                     )
                 }
             }
