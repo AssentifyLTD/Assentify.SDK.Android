@@ -86,6 +86,7 @@ fun IDStepScreen(
     onBack: () -> Unit,
     onNext: () -> Unit,
     onDocumentSelected: (Templates) -> Unit,
+    onTemplateClick: (Templates) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -304,7 +305,12 @@ fun IDStepScreen(
                             onDocumentSelected = { template ->
                                 selectedTemplate = template
                                 onDocumentSelected(template);
-                            }
+                            },
+                            onTemplateClick = { template ->
+                                selectedTemplate = template
+                                onTemplateClick(template);
+                            },
+
                         )
 
                     }
@@ -475,6 +481,7 @@ fun DocumentPicker(
     selectedTemplate: Templates?,
     minVerticalPadding: Boolean,
     onDocumentSelected: (Templates) -> Unit,
+    onTemplateClick: (Templates) -> Unit,
 ) {
     val flowEnv = remember { FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions() }
     val s = flowStrings()
@@ -491,7 +498,19 @@ fun DocumentPicker(
             title = s.supportedIds,
             templates = country.templates,
             onDismiss = { showIdsSheet = false },
+            onTemplateClick = {  ->
+                onTemplateClick(
+                    Templates(
+                        id = 1,
+                        sourceCountryFlag = "",
+                        sourceCountryCode = country.sourceCountryCode,
+                        kycDocumentType = "All IDs",
+                        sourceCountry = "",
+                        kycDocumentDetails = emptyList()
+                    )
+                )
 
+            }
             )
     }
 
@@ -682,6 +701,7 @@ private fun TemplatesBottomSheet(
     title: String,
     templates: List<Templates>,
     onDismiss: () -> Unit,
+    onTemplateClick: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -745,7 +765,10 @@ private fun TemplatesBottomSheet(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 6.dp)
-                                .clickable { },
+                                .clickable {
+                                    onDismiss()
+                                    onTemplateClick()
+                                           },
                             colors = CardDefaults.cardColors(
                                 containerColor = BaseTheme.FieldColor
                             ),
