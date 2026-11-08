@@ -2,6 +2,7 @@ package   com.assentify.sdk.ScanPassport
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import  com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.PassportLivenessInstruction
 import  com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
 
@@ -58,4 +59,5 @@ interface ScanPassportCallback {
         isCentered: Boolean,
         ){}
 
+    fun onLivenessInstruction(instruction: PassportLivenessInstruction?,progress: Int) {}
 }

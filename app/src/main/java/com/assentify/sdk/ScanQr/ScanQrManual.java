@@ -145,7 +145,7 @@ public class ScanQrManual extends CameraPreview implements RemoteProcessingCallb
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    changeCardWeightLayout();
+                    changeCardWeightLayout(environmentalConditions.getHoldHandColor());
                 }
             });
         }

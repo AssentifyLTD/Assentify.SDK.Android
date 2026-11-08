@@ -531,7 +531,7 @@ fun DocumentPicker(
                                 Templates(
                                     id = -1,
                                     sourceCountryFlag = "",
-                                    sourceCountryCode = "",
+                                    sourceCountryCode = country.sourceCountryCode,
                                     kycDocumentType = "Passport",
                                     sourceCountry = "",
                                     kycDocumentDetails = emptyList()

@@ -1,9 +1,11 @@
 package   com.assentify.sdk.ScanIDCard
 
 import com.assentify.sdk.Core.Constants.BrightnessEvents
+import com.assentify.sdk.Core.Constants.IdLivenessInstruction
 import com.assentify.sdk.Core.Constants.MotionType
 import com.assentify.sdk.Core.Constants.ZoomType
 import com.assentify.sdk.Models.BaseResponseDataModel
+
 
 sealed class ScanIDCardResult {
     data class Manual(val data: ScanIDCardManual) : ScanIDCardResult()
@@ -58,6 +60,8 @@ interface IDCardCallback {
         zoom: ZoomType,
         isCentered: Boolean,
     ){}
+
+    fun onLivenessInstruction(instruction: IdLivenessInstruction?, progress: Int)
 
 
 

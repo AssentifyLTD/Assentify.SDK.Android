@@ -7,11 +7,31 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,8 +39,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,8 +59,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -52,6 +79,7 @@ import coil.request.ImageRequest
 import com.assentify.sdk.AssentifySdkObject
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.PassportLivenessInstruction
 import com.assentify.sdk.Core.Constants.StepperType
 import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.ZoomType
@@ -87,8 +115,16 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
     private var imageUrl = mutableStateOf<String>("")
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
 
+    // liveness tilt meter (0..100), shown under the feedback text while the passport is tilted
+    private var tiltProgress = mutableStateOf(0)
+    private var tiltProgressVisible = mutableStateOf(false)
+
     private var timeStarted = getCurrentDateTimeForTracking()
-     private var isNavigating = false
+    private var isNavigating = false
+
+    // the liveness owns the instruction text while it runs
+    private var livenessActive = false
+
     override fun onResume() {
         super.onResume()
         isNavigating = false
@@ -98,11 +134,11 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
         super.onCreate(savedInstanceState)
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-       /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                FlowController.backClick(this@LocalPassportScanActivity);
-            }
-        })*/
+        /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+             override fun handleOnBackPressed() {
+                 FlowController.backClick(this@LocalPassportScanActivity);
+             }
+         })*/
 
         setContent {
             MaterialTheme {
@@ -120,6 +156,8 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
                             uploadingProgress.value = 0;
                             eventTypes.value = EventTypes.none;
                             imageUrl.value = ""
+                            tiltProgress.value = 0
+                            tiltProgressVisible.value = false
                         },
                         onNext = {
                             if (flowEnv.enableNfc) {
@@ -140,6 +178,8 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
                             }
                         },
                         feedbackText = feedbackText.value,
+                        tiltProgress = tiltProgress.value,
+                        tiltProgressVisible = tiltProgressVisible.value,
                         imageUrl = imageUrl.value,
                         progress = uploadingProgress.value,
                         eventTypes = eventTypes.value
@@ -164,6 +204,7 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
         runOnUiThread {
             start.value = true;
             eventTypes.value = EventTypes.onSend
+            tiltProgressVisible.value = false
         }
     }
 
@@ -180,18 +221,28 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
         if (dataModel.error == "Expired Passport Detected") {
             runOnUiThread {
                 start.value = false;
+                tiltProgressVisible.value = false
                 eventTypes.value = EventTypes.onExpired
             }
         } else {
             runOnUiThread {
                 start.value = false;
+                tiltProgressVisible.value = false
                 eventTypes.value = EventTypes.onRetry
             }
         }
 
     }
 
+    /** The local liveness failed (suspected copy / inconclusive / camera stalled): the liveness screen. */
     override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
+        runOnUiThread {
+            livenessActive = false
+            start.value = false
+            tiltProgressVisible.value = false
+            imageUrl.value = ""                                       // the local liveness has no server image
+            eventTypes.value = EventTypes.onLivenessUpdate
+        }
     }
 
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
@@ -204,10 +255,10 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
             NfcPassportResponseModelObject.setPassportResponseModelObject(dataModel)
             dataIDModel.value = dataModel;
             start.value = false;
+            tiltProgressVisible.value = false
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
             dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
-                val X = FlowController.getFaceMatchInputImageKey()
                 if (key.contains(FlowController.getFaceMatchInputImageKey())) {
                     FlowController.setImage(value.toString())
                 }
@@ -222,6 +273,7 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
         isCentered: Boolean,
     ) {
         runOnUiThread {
+            if (livenessActive) return@runOnUiThread                 // the liveness owns the text
             if (start.value == false) {
                 if (zoom != ZoomType.SENDING && zoom != ZoomType.NO_DETECT) {
                     if (zoom == ZoomType.ZOOM_IN) {
@@ -257,6 +309,59 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
         }
     }
 
+    override fun onLivenessInstruction(instruction: PassportLivenessInstruction?, progress: Int) {
+        if (instruction == null) {
+            return
+        }
+
+        // the liveness owns the instruction text while it runs
+        livenessActive = instruction != PassportLivenessInstruction.KEEP_HOLDING
+
+        val text = when (instruction) {
+            // ---------- POSITION ----------
+            PassportLivenessInstruction.PLACE_DOCUMENT -> cs.livenessPlaceDocument
+
+            // ---------- BASELINE ----------
+            PassportLivenessInstruction.KEEP_STEADY -> cs.livenessKeepSteady
+            PassportLivenessInstruction.KEEP_FLAT -> cs.livenessKeepSteady
+            PassportLivenessInstruction.ADJUST_POSITION -> cs.livenessKeepSteady
+
+            // ---------- LIGHT ----------
+            PassportLivenessInstruction.DO_NOT_MOVE -> cs.livenessKeepSteady
+
+            // ---------- SWEEP ----------
+            PassportLivenessInstruction.LIFT_BOTTOM -> cs.livenessLiftBottom
+            PassportLivenessInstruction.MOVE_A_LITTLE_MORE -> cs.livenessMoveLittleMore   // tilt reached, colours awaited
+            PassportLivenessInstruction.HOLD_THERE -> cs.livenessHoldThere
+            PassportLivenessInstruction.OTHER_SIDE -> cs.livenessOtherSide
+            PassportLivenessInstruction.HOLD_IT_UP -> cs.livenessHoldItUp
+
+            // ---------- RETURN (no longer sent) ----------
+            PassportLivenessInstruction.PLACE_FLAT_AGAIN -> cs.livenessPlaceFlatAgain
+
+            // ---------- DONE ----------
+            PassportLivenessInstruction.KEEP_HOLDING -> cs.livenessKeepHolding
+
+            // ---------- PAUSES (the SDK continues by itself after a few seconds) ----------
+            PassportLivenessInstruction.HOLD_IN_HAND -> cs.livenessHoldInHand
+            PassportLivenessInstruction.PHONE_TURNED -> cs.livenessPhoneTurned
+            PassportLivenessInstruction.TOO_BRIGHT -> cs.livenessTooBright
+        }
+
+        feedbackText.value = text
+
+        // ---------- tilt meter (0..100) ----------
+        tiltProgress.value = progress
+        tiltProgressVisible.value = when (instruction) {
+            PassportLivenessInstruction.LIFT_BOTTOM,
+            PassportLivenessInstruction.MOVE_A_LITTLE_MORE,
+            PassportLivenessInstruction.HOLD_THERE,
+            PassportLivenessInstruction.OTHER_SIDE,
+            PassportLivenessInstruction.HOLD_IT_UP -> true
+            else -> false                                          // hidden before the tilt, in the pauses, and while the MRZ is read
+        }
+    }
+
 }
 
 @Composable
@@ -266,6 +371,8 @@ fun PassportScanScreen(
     onRetry: () -> Unit = {},
     onNext: () -> Unit = {},
     feedbackText: String,
+    tiltProgress: Int,
+    tiltProgressVisible: Boolean,
     imageUrl: String,
     progress: Int,
     eventTypes: String,
@@ -295,11 +402,13 @@ fun PassportScanScreen(
                 }
                 if (eventTypes == EventTypes.onRetry || eventTypes == EventTypes.onError || eventTypes == EventTypes.onWrongTemplate) {
                     OnErrorScreen(imageUrl, onRetry = {
+                        localScanPassport?.retryLiveness()  // the liveness starts again from Position
                         onRetry();
                     })
                 }
                 if (eventTypes == EventTypes.onLivenessUpdate) {
                     OnLivenessScreen(imageUrl, onRetry = {
+                        localScanPassport?.retryLiveness()  // a stopped liveness (suspected_copy / inconclusive) starts again
                         onRetry();
                     })
                 }
@@ -346,6 +455,7 @@ fun PassportScanScreen(
                         flowEnv.extractedDataLanguage,
                         stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
                     )
+                    // result.setDocumentKind("lb")                // Lebanese passport rules; default: other_passport
 
                     val fm = activity.supportFragmentManager
                     val tx = fm.beginTransaction()
@@ -441,17 +551,12 @@ fun PassportScanScreen(
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .align(Alignment.BottomCenter)
-                        .padding(start = 12.dp, end = 30.dp, bottom = 25.dp)
+                        .padding(start = 20.dp, end = 20.dp, bottom = 25.dp)
                 ) {
-                    Text(
-                        feedbackText,
-                        color = Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Light,
-                        lineHeight = 34.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                    LocalLivenessFeedback(
+                        text = feedbackText,
+                        tiltProgress = tiltProgress,
+                        tiltProgressVisible = tiltProgressVisible
                     )
                 }
 
@@ -462,4 +567,159 @@ fun PassportScanScreen(
     }
 }
 
+/**
+ * The instruction in a rounded container (FieldColor background, BaseTextColor text), with the tilt meter
+ * (0..100%) underneath while the passport is tilted. Same design as PassportScanActivity's LivenessFeedback.
+ */
+@Composable
+private fun LocalLivenessFeedback(
+    text: String,
+    tiltProgress: Int,
+    tiltProgressVisible: Boolean,
+) {
+    val visible = text.isNotEmpty() || tiltProgressVisible
+    val accent = remember(BaseTheme.BaseAccentColor) {
+        Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+    }
+    val percent = tiltProgress.coerceIn(0, 100)
+    val done = percent >= 100
 
+    val animated by animateFloatAsState(
+        targetValue = percent / 100f,
+        animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessLow),
+        label = "tiltProgress"
+    )
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(200)) + slideInVertically(tween(250)) { it / 3 },
+        exit = fadeOut(tween(150)) + slideOutVertically(tween(200)) { it / 3 },
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(top = 12.dp)                                  // space above the box
+                .fillMaxWidth()
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp), clip = false)
+                .clip(RoundedCornerShape(16.dp))
+                .background(BaseTheme.FieldColor)
+                .border(1.dp, accent.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 14.dp, vertical = 10.dp)          // smaller inside padding
+                .animateContentSize(tween(220)),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            // ---------- instruction ----------
+            Crossfade(targetState = text, animationSpec = tween(220), label = "feedbackText") { current ->
+                if (current.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        PulsingDot(color = accent, active = !done)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            current,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 18.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
+
+            // ---------- tilt meter ----------
+            AnimatedVisibility(
+                visible = tiltProgressVisible,
+                enter = fadeIn(tween(200)) + expandVertically(tween(220)),
+                exit = fadeOut(tween(150)) + shrinkVertically(tween(180)),
+            ) {
+                Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(7.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(accent.copy(alpha = 0.18f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(animated)
+                                .clip(RoundedCornerShape(50))
+                                .background(Brush.horizontalGradient(listOf(accent.copy(alpha = 0.65f), accent)))
+                        )
+                    }
+
+                    Spacer(Modifier.height(6.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            if (done) flowStrings().livenessDone else flowStrings().livenessTiltProgress,
+                            color = BaseTheme.BaseTextColor.copy(alpha = 0.65f),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(accent.copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (done) {
+                                Icon(
+                                    imageVector = Icons.Filled.CheckCircle,
+                                    contentDescription = null,
+                                    tint = accent,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(Modifier.width(3.dp))
+                            }
+                            Text(
+                                "$percent%",
+                                color = accent,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** A small dot that gently pulses while the user still has something to do. */
+@Composable
+private fun LocalPulsingDot(color: Color, active: Boolean) {
+    val transition = rememberInfiniteTransition(label = "pulse")
+    val scale by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (active) 1.6f else 1f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "pulseScale"
+    )
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(14.dp)) {
+        Box(                                                     // soft halo
+            Modifier
+                .size(8.dp)
+                .graphicsLayer { scaleX = scale; scaleY = scale; alpha = if (active) 0.35f else 0f }
+                .clip(CircleShape)
+                .background(color)
+        )
+        Box(                                                     // solid centre
+            Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+    }
+}

@@ -13,6 +13,8 @@ object ConstantsValues {
     const val FaceName = "Face"
     const val DetectColor = "#00FF00"
     const val ModelFileName = "best-fp16.tflite"
+
+    const val FinderFileName = "finder_fp32.tflite"
     const val AssetsPath = "file:///android_asset/"
     const val LabelFileName = "file:///android_asset/classes.txt"
     const val IsQuantized = false
