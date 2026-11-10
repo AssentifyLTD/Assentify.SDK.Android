@@ -111,6 +111,7 @@ abstract class CameraPreview : Fragment() {
     private var tiltITopLayout: LinearLayout? = null;
     private var tiltIRightLayout: LinearLayout? = null;
     private var tiltIBottomLayout: LinearLayout? = null;
+    private var barCodeGifLayout : LinearLayout? = null;
 
 
 
@@ -1004,6 +1005,34 @@ abstract class CameraPreview : Fragment() {
             if (tiltIBottomLayout != null && tiltIBottomLayout!!.visibility == View.VISIBLE) {
                 tiltIBottomLayout!!.visibility = View.GONE
                 tiltIBottomLayout = null;
+            }
+        }
+
+    }
+
+    protected fun showBarCodeGifLayout (){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (barCodeGifLayout == null) {
+                barCodeGifLayout = requireActivity().findViewById(R.id.barCodeGifLayout)
+                barCodeGifLayout!!.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    protected fun hideBarCodeGifLayout (){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (barCodeGifLayout != null && barCodeGifLayout!!.visibility == View.VISIBLE) {
+                barCodeGifLayout!!.visibility = View.GONE
+                barCodeGifLayout = null;
             }
         }
 

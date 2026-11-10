@@ -315,6 +315,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private int livenessProgress = 0, shownProgress = -1;
     private boolean livenessFrameGood = false;
     private boolean tiltStart = false;                              // a tilt drawing is shown: the frame is hidden
+    private volatile boolean barcodeLayoutShown = false;            // the barcode drawing is shown: the frame is hidden
 
     // ---- hand / sun / stall ----
     private double FLAT_DEG = 10, TURN_DEG = 20;
@@ -920,6 +921,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     }
 
     public void stopScanning() {
+        hideBarcodeLayout();
         closeCamera();
     }
 
@@ -1370,7 +1372,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private void updateLivenessColor() {
         String color = livenessFrameGood ? ConstantsValues.DetectColor : environmentalConditions.getHoldHandColor();
         setRectFCustomColor(color, environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(),
-                start && !tiltStart);                               // hidden while the tilt drawing is shown
+                start && !tiltStart && !barcodeLayoutShown);        // hidden while a drawing (tilt / barcode) is shown
     }
 
     /** The tilt drawing for the asked edge: right (ID front), top or bottom (licence / permit). */
@@ -1393,6 +1395,22 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         hideTiltIDRightLayout();
         hideTiltIDBottomLayout();
         tiltStart = false;
+    }
+
+    /**
+     * ID back: the barcode drawing (showBarCodeGifLayout) while the barcode is being read after the photo.
+     * Shown once per BARCODE phase; the frame is hidden under it (updateLivenessColor).
+     */
+    private void showBarcodeLayout() {
+        if (barcodeLayoutShown) return;                             // already on screen
+        barcodeLayoutShown = true;
+        showBarCodeGifLayout();
+    }
+
+    /** Removes the barcode drawing: read / not read in time / a restart / a retry / the background / a stall / close. */
+    private void hideBarcodeLayout() {
+        barcodeLayoutShown = false;
+        hideBarCodeGifLayout();                                     // safe when it is not shown
     }
 
     private void runLiveness(boolean accepted, Bitmap normalImage) {
@@ -1474,6 +1492,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             lightRequestedAt = now;
             lightAvailable = setTorch(true);
             if (lightAvailable) lightState = Light.ON;
+            showBarcodeLayout();                                    // the barcode drawing while it is read
             hint(IdLivenessInstruction.READING_BARCODE);
             if (DEBUG_LOGS) Log.d("IdBarcode", "photo taken, barcode not read yet: light on, waiting up to "
                     + BARCODE_WAIT_MS + " ms");
@@ -1514,6 +1533,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         if (barcodeRead || waited > BARCODE_WAIT_MS) {
             if (DEBUG_LOGS && !barcodeRead) Log.d("IdBarcode", "not read after " + waited + " ms (" + barcodeAttempts
                     + " attempts): going on (recorded only)");
+            hideBarcodeLayout();                                    // read or not: the drawing goes
             playSuccess();
             finishTry(false);
         }
@@ -1988,6 +2008,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         long now = SystemClock.elapsedRealtime();
         lightOff(now);
         hideTiltLayouts();
+        hideBarcodeLayout();
         phase = Phase.DONE;
 
         LivenessGate.GateInput in = new LivenessGate.GateInput();
@@ -2199,6 +2220,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private void clearReadings(long now) {
         lightOff(now);
         hideTiltLayouts();
+        if (barcodeLayoutShown) hideBarcodeLayout();
         livenessFrameGood = false;
         steadySince = 0;
         positionMisses = 0;
@@ -2293,6 +2315,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         lightState = Light.OFF;
         darkAt = SystemClock.elapsedRealtime();
         hideTiltLayouts();
+        hideBarcodeLayout();
         phase = Phase.DONE;
         start = false;
         notifyLivenessFailed();
@@ -2303,6 +2326,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         try {
             setTorch(false);
             hideTiltLayouts();
+            hideBarcodeLayout();
         } catch (Exception ignored) {
         }
         lightState = Light.OFF;

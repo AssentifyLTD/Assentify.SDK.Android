@@ -772,7 +772,7 @@ private val arabicStrings = FlowStrings(
     qNoQuestions = "لا توجد أسئلة للإجابة عنها.",
     holdCardTitle = "Hold the card in your hand",
     holdCardMsg = "Pick it up off the table, then continue.",
-    continueButton = "Continue",
+    continueButton = "استمر",
     holdPassportTitle = "أمسك جواز السفر بيدك",
     holdPassportMsg = "ارفعه عن الطاولة، ثم تابع.",
 )

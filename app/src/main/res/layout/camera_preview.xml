@@ -271,6 +271,27 @@
             tools:ignore="MissingConstraints" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/barCodeGifLayout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        >
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/barCodeGif"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
+            android:layout_centerInParent="true"
+            android:background="@null"
+            android:src="@drawable/id_barcode_gif"
+            tools:ignore="MissingConstraints" />
+    </LinearLayout>
 
 
 
