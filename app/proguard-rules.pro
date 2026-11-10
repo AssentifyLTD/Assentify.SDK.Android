@@ -16,6 +16,19 @@
 -dontwarn org.tensorflow.**
 
 ########################################
+# OpenCV (org.opencv:opencv)
+# The Java classes are bound to the native library (libopencv_java*.so) by their exact
+# names through JNI: if R8 renames or removes them, release builds crash at runtime.
+########################################
+-keep class org.opencv.** { *; }
+-dontwarn org.opencv.**
+
+# any class with native methods (OpenCV's, and other JNI classes) keeps its names
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+########################################
 # Retrofit / Gson
 ########################################
 -dontwarn retrofit2.**

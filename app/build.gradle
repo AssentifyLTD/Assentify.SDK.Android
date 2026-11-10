@@ -13,7 +13,7 @@ android {
         // applicationId "com.assentify.sdk"
 
         minSdkVersion 24
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
@@ -164,7 +164,7 @@ dependencies {
     implementation "androidx.compose.material:material-icons-core"
     implementation "androidx.compose.material:material-icons-extended"
 
-
+    implementation 'org.opencv:opencv:5.0.0.1'
 
 
 }

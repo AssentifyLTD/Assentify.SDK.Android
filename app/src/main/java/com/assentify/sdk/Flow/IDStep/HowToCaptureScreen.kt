@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.assentify.sdk.ConfigModelObject
+import com.assentify.sdk.Core.Constants.UiLanguage
 import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
 import com.assentify.sdk.Flow.FlowController.FlowController
@@ -66,9 +67,14 @@ fun HowToCaptureScreen(
 
     val isCustomVideoUrl = themeVideoOverride.isNotEmpty()
 
-    val assetVideoFileName = if (selectedTemplate.id == -1) "passport-video.mp4" else "id-video.mp4"
+    val isPassport = selectedTemplate.id == -1
+    val langSuffix = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic) "ar" else "en"
 
-
+    val assetVideoFileName = if (isPassport) {
+        "passport-video_$langSuffix.mp4"
+    } else {
+        "id-video_$langSuffix.mp4"
+    }
 
     val iDCustomization = getIDStepFromConfigFile(
         ConfigModelObject.getConfigModelObject()!!,

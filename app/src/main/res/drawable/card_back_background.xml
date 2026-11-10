@@ -1,0 +1,90 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="720dp"
+    android:height="1040dp"
+    android:viewportWidth="320"
+    android:viewportHeight="480">
+
+    <!--
+        Tint-friendly: every color is white, only the ALPHA differs.
+        setTint() keeps each pixel's alpha and swaps in the tint color.
+    -->
+
+    <!-- Card (ID-1 ratio 85.6 x 54) -->
+    <path
+        android:pathData="M32,152 H288 Q300,152 300,164 V316 Q300,328 288,328 H32 Q20,328 20,316 V164 Q20,152 32,152 Z"
+        android:fillColor="#4DFFFFFF"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3" />
+
+    <!-- Header line -->
+    <path
+        android:pathData="M64,172 H200"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+
+    <!-- Data lines -->
+    <path
+        android:pathData="M64,198 H284 M64,220 H236 M64,242 H284 M64,264 H200"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Bottom lines -->
+    <path
+        android:pathData="M64,294 H284 M64,312 H284"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Palm: curved edge running behind the card between the two fingers -->
+    <path
+        android:pathData="M-4,170 L12,176 Q2,240 12,304 L-4,310 Z"
+        android:fillColor="#40FFFFFF"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineJoin="round" />
+
+    <!-- Top finger on the top-left corner -->
+    <group
+        android:translateX="34"
+        android:translateY="164"
+        android:rotation="20">
+
+        <path
+            android:pathData="M-70,-13 H0 A13,13 0 0 1 0,13 H-70 Z"
+            android:fillColor="#80FFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineJoin="round" />
+
+        <!-- Nail -->
+        <path
+            android:pathData="M-8,0 m-7,0 a7,7 0 1,1 14,0 a7,7 0 1,1 -14,0"
+            android:fillColor="#B3FFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="1.5" />
+    </group>
+
+    <!-- Bottom finger on the bottom-left corner -->
+    <group
+        android:translateX="34"
+        android:translateY="316"
+        android:rotation="-20">
+
+        <path
+            android:pathData="M-70,-13 H0 A13,13 0 0 1 0,13 H-70 Z"
+            android:fillColor="#80FFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineJoin="round" />
+
+        <!-- Nail -->
+        <path
+            android:pathData="M-8,0 m-7,0 a7,7 0 1,1 14,0 a7,7 0 1,1 -14,0"
+            android:fillColor="#B3FFFFFF"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="1.5" />
+    </group>
+
+</vector>

@@ -25,6 +25,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
+import androidx.camera.core.TorchState
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.Quality
@@ -103,6 +104,16 @@ abstract class CameraPreview : Fragment() {
     private var layoutBottom: LinearLayout? = null;
     private var layoutLeft: LinearLayout? = null;
     private var layoutRight: LinearLayout? = null;
+
+    ///
+
+    private var tiltPassportLayout: LinearLayout? = null;
+    private var tiltITopLayout: LinearLayout? = null;
+    private var tiltIRightLayout: LinearLayout? = null;
+    private var tiltIBottomLayout: LinearLayout? = null;
+    private var barCodeGifLayout : LinearLayout? = null;
+
+
 
     @Volatile
     private var isCameraActive = false
@@ -781,55 +792,59 @@ abstract class CameraPreview : Fragment() {
 
 
     protected fun changeCardWeightLayoutID() {
-        if (!isAdded) return
+        /* if (layoutTop == null) {
+         if (!isAdded) return
 
-        if (layoutTop == null) {
-            layoutTop = requireActivity().findViewById(R.id.card_container_top)
-            layoutTop?.let {
-                val params = it.layoutParams as? LinearLayout.LayoutParams
-                params?.weight = 1f
-                it.layoutParams = params
-            }
-        }
+             layoutTop = requireActivity().findViewById(R.id.card_container_top)
+             layoutTop?.let {
+                 val params = it.layoutParams as? LinearLayout.LayoutParams
+                 params?.weight = 0.5f
+                 it.layoutParams = params
+             }
+         }
 
-        if (layoutMiddle == null) {
-            layoutMiddle = requireActivity().findViewById(R.id.card_container_middle)
-            layoutMiddle?.let {
-                val params = it.layoutParams as? LinearLayout.LayoutParams
-                params?.weight = 1.18f
-                it.layoutParams = params
-            }
-        }
+         if (layoutMiddle == null) {
+             layoutMiddle = requireActivity().findViewById(R.id.card_container_middle)
+             layoutMiddle?.let {
+                 val params = it.layoutParams as? LinearLayout.LayoutParams
+                 params?.weight = 2.18f
+                 it.layoutParams = params
+             }
+         }
 
-        if (layoutBottom == null) {
-            layoutBottom = requireActivity().findViewById(R.id.card_container_bottom)
-            layoutBottom?.let {
-                val params = it.layoutParams as? LinearLayout.LayoutParams
-                params?.weight = 1f
-                it.layoutParams = params
-            }
-        }
+         if (layoutBottom == null) {
+             layoutBottom = requireActivity().findViewById(R.id.card_container_bottom)
+             layoutBottom?.let {
+                 val params = it.layoutParams as? LinearLayout.LayoutParams
+                 params?.weight = 0.5f
+                 it.layoutParams = params
+             }
+         }
 
-        if (layoutLeft == null) {
-            layoutLeft = requireActivity().findViewById(R.id.card_container_left)
-            layoutLeft?.let {
-                val params = it.layoutParams as? LinearLayout.LayoutParams
-                params?.weight = 1.8f
-                it.layoutParams = params
-            }
-        }
+         if (layoutLeft == null) {
+             layoutLeft = requireActivity().findViewById(R.id.card_container_left)
+             layoutLeft?.let {
+                 val params = it.layoutParams as? LinearLayout.LayoutParams
+                 params?.weight = 0.0f
+                 it.layoutParams = params
+             }
+         }
 
-        if (layoutRight == null) {
-            layoutRight = requireActivity().findViewById(R.id.card_container_right)
-            layoutRight?.let {
-                val params = it.layoutParams as? LinearLayout.LayoutParams
-                params?.weight = 1.8f
-                it.layoutParams = params
-            }
-        }
+         if (layoutRight == null) {
+             layoutRight = requireActivity().findViewById(R.id.card_container_right)
+             layoutRight?.let {
+                 val params = it.layoutParams as? LinearLayout.LayoutParams
+                 params?.weight = 0.0f
+                 it.layoutParams = params
+             }
+         }*/
     }
-    protected fun changeCardWeightLayout() {
+    protected fun changeCardWeightLayout(color: String) {
         if (!isAdded) return
+
+        if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+            scanBackground = R.drawable.qr_background
+        }
 
         if (layoutTop == null) {
             layoutTop = requireActivity().findViewById(R.id.card_container_top)
@@ -882,4 +897,170 @@ abstract class CameraPreview : Fragment() {
         }
     }
 
+    protected fun showLbTiltPassportLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (tiltPassportLayout == null) {
+                tiltPassportLayout = requireActivity().findViewById(R.id.tiltPassportLayout)
+                tiltPassportLayout!!.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    protected fun hideLbTiltPassportLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (tiltPassportLayout != null && tiltPassportLayout!!.visibility == View.VISIBLE) {
+                tiltPassportLayout!!.visibility = View.GONE
+                tiltPassportLayout = null;
+            }
+        }
+
+    }
+
+
+    protected fun showTiltIDTopLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (tiltITopLayout == null) {
+                tiltITopLayout = requireActivity().findViewById(R.id.tiltIDTopLayout)
+                tiltITopLayout!!.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    protected fun hideTiltIDTopLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (tiltITopLayout != null && tiltITopLayout!!.visibility == View.VISIBLE) {
+                tiltITopLayout!!.visibility = View.GONE
+                tiltITopLayout = null;
+            }
+        }
+
+    }
+
+    protected fun showTiltIDRightLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (tiltIRightLayout == null) {
+                tiltIRightLayout = requireActivity().findViewById(R.id.tiltIDRightLayout)
+                tiltIRightLayout!!.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    protected fun hideTiltIDRightLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (tiltIRightLayout != null && tiltIRightLayout!!.visibility == View.VISIBLE) {
+                tiltIRightLayout!!.visibility = View.GONE
+                tiltIRightLayout = null;
+            }
+        }
+
+    }
+
+    protected fun showTiltIDBottomLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (tiltIBottomLayout == null) {
+                tiltIBottomLayout = requireActivity().findViewById(R.id.tiltIDBottomLayout)
+                tiltIBottomLayout!!.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    protected fun hideTiltIDBottomLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (tiltIBottomLayout != null && tiltIBottomLayout!!.visibility == View.VISIBLE) {
+                tiltIBottomLayout!!.visibility = View.GONE
+                tiltIBottomLayout = null;
+            }
+        }
+
+    }
+
+    protected fun showBarCodeGifLayout (){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (barCodeGifLayout == null) {
+                barCodeGifLayout = requireActivity().findViewById(R.id.barCodeGifLayout)
+                barCodeGifLayout!!.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    protected fun hideBarCodeGifLayout (){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (barCodeGifLayout != null && barCodeGifLayout!!.visibility == View.VISIBLE) {
+                barCodeGifLayout!!.visibility = View.GONE
+                barCodeGifLayout = null;
+            }
+        }
+
+    }
+
+
+
+    protected fun changeToBackLayout(color: String){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                scanBackground = R.drawable.card_back_background
+            }
+        }
+
+    }
+
+    protected fun setTorch(on: Boolean): Boolean {
+        val cam = camera ?: return false
+        if (!cam.cameraInfo.hasFlashUnit()) return false
+        cam.cameraControl.enableTorch(on)
+        return true
+    }
+
+    protected fun isTorchOn(): Boolean {
+        return camera?.cameraInfo?.torchState?.value == TorchState.ON
+    }
+
+    protected fun frameRotationDegrees(): Int = sensorOrientation ?: 90
 }

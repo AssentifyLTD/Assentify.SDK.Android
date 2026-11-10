@@ -30,6 +30,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.TorchState
 import androidx.camera.core.UseCase
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
@@ -134,6 +135,8 @@ abstract class CameraPreviewLocalMrz : Fragment() {
 
     @Volatile
     private var isCameraActive = false
+
+    private var tiltPassportLayout: LinearLayout? = null;
 
     private var environmentalConditions: EnvironmentalConditions? = null;
     @SuppressLint("MissingInflatedId")
@@ -1024,5 +1027,42 @@ abstract class CameraPreviewLocalMrz : Fragment() {
             }
         }
     }
+    protected fun showLbTiltPassportLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (tiltPassportLayout == null) {
+                tiltPassportLayout = requireActivity().findViewById(R.id.tiltPassportLayout)
+                tiltPassportLayout!!.visibility = View.VISIBLE
+            }
+        }
 
+    }
+
+    protected fun hideLbTiltPassportLayout(){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (tiltPassportLayout != null && tiltPassportLayout!!.visibility == View.VISIBLE) {
+                tiltPassportLayout!!.visibility = View.GONE
+                tiltPassportLayout = null;
+            }
+        }
+
+    }
+
+    protected fun setTorch(on: Boolean): Boolean {
+        val cam = camera ?: return false
+        if (!cam.cameraInfo.hasFlashUnit()) return false
+        cam.cameraControl.enableTorch(on)
+        return true
+    }
+
+    protected fun isTorchOn(): Boolean {
+        return camera?.cameraInfo?.torchState?.value == TorchState.ON
+    }
 }

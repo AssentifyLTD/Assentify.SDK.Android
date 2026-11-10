@@ -1,7 +1,9 @@
 package   com.assentify.sdk.ScanPassport
 
+import android.graphics.Bitmap
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import  com.assentify.sdk.Core.Constants.MotionType
+import com.assentify.sdk.Core.Constants.PassportLivenessInstruction
 import  com.assentify.sdk.Core.Constants.ZoomType
 import  com.assentify.sdk.Models.BaseResponseDataModel
 
@@ -27,7 +29,7 @@ interface ScanPassportCallback {
 
     fun onUpdated(dataModel: BaseResponseDataModel){}
 
-    fun onLivenessUpdate(dataModel: BaseResponseDataModel){}
+    fun onLivenessUpdate(dataModel: BaseResponseDataModel, image: Bitmap?) {}
 
     fun onCardDetected(dataModel: BaseResponseDataModel){}
 
@@ -58,4 +60,5 @@ interface ScanPassportCallback {
         isCentered: Boolean,
         ){}
 
+    fun onLivenessInstruction(instruction: PassportLivenessInstruction?,progress: Int) {}
 }
