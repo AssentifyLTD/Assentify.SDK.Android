@@ -2,6 +2,7 @@ package com.assentify.sdk.Flow.IDStep
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -100,6 +101,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnWrongTemplateScreen
+import com.assentify.sdk.Flow.ReusableComposable.HoldCardInHandPopup
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
@@ -125,6 +127,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
     private var uploadingProgress = mutableStateOf(0)
     private var eventTypes = mutableStateOf<String>(EventTypes.none)
     private var imageUrl = mutableStateOf<String>("")
+    private var livenessImage = mutableStateOf<Bitmap?>(null)      // the local liveness's image (null = use imageUrl)
     private var classifiedTemplateValue = mutableStateOf<String>("")
     private var extractedInformation = mutableStateOf<Map<String, String>?>(null)
 
@@ -146,12 +149,6 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-             override fun handleOnBackPressed() {
-                 FlowController.backClick(this@IDCardScanActivity);
-             }
-         })*/
 
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
@@ -180,6 +177,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                             uploadingProgress.value = 0;
                             eventTypes.value = EventTypes.none;
                             imageUrl.value = "";
+                            livenessImage.value = null
                             tiltProgress.value = 0
                             tiltProgressVisible.value = false
                             livenessActive = false
@@ -189,6 +187,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                             feedbackText.value = "";
                             uploadingProgress.value = 0;
                             eventTypes.value = EventTypes.none;
+                            livenessImage.value = null
                             tiltProgress.value = 0
                             tiltProgressVisible.value = false
                             livenessActive = false
@@ -199,8 +198,6 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                                     context = this,
                                 );
                             } else {
-
-
                                 if (!isNavigating) {
                                     isNavigating = true
                                     FlowController.makeCurrentStepDone(extractedInformation.value!!, timeStarted);
@@ -212,6 +209,7 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                         tiltProgress = tiltProgress.value,
                         tiltProgressVisible = tiltProgressVisible.value,
                         imageUrl = imageUrl.value,
+                        livenessImage = livenessImage.value,
                         progress = uploadingProgress.value,
                         eventTypes = eventTypes.value,
                         isLastPage = isLastPageValue.value,
@@ -228,6 +226,13 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             val intent = Intent(context, IDCardScanActivity::class.java)
             context.startActivity(intent)
         }
+    }
+
+    /** The server's image URL from a response, or "" (the local liveness sends no response). */
+    private fun imageUrlOf(dataModel: BaseResponseDataModel): String = try {
+        getImageUrlFromBaseResponseDataModel(dataModel.response!!)
+    } catch (e: Exception) {
+        ""
     }
 
     /**  Events **/
@@ -250,15 +255,16 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
         runOnUiThread {
             start.value = false;
             tiltProgressVisible.value = false
+            livenessActive = false
             eventTypes.value = EventTypes.onError
-            imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
+            imageUrl.value = imageUrlOf(dataModel)
         }
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "Error" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
             status = "InProgress"
         )
         /***/
@@ -268,19 +274,16 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
         runOnUiThread {
             start.value = false;
             tiltProgressVisible.value = false
+            livenessActive = false
             eventTypes.value = EventTypes.onRetry
-            try {
-                imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
-            } catch (e: Exception) {
-                imageUrl.value = "";
-            }
+            imageUrl.value = imageUrlOf(dataModel)
         }
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
             status = "InProgress"
         )
         /***/
@@ -330,22 +333,20 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
             )
             /***/
         }
-
-
     }
 
-    /** Server liveness failure, or the LOCAL card liveness failed (suspected copy / inconclusive): response may be null. */
-    override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
+    /**
+     * The liveness failed. From the server: the image URL is in dataModel.response and image is null.
+     * From the LOCAL card liveness (suspected copy / inconclusive / camera stalled): image is the card as the camera saw it.
+     */
+    override fun onLivenessUpdate(dataModel: BaseResponseDataModel, image: Bitmap?) {
         runOnUiThread {
             livenessActive = false
             start.value = false;
             tiltProgressVisible.value = false
+            livenessImage.value = image
+            imageUrl.value = if (image != null) "" else imageUrlOf(dataModel)
             eventTypes.value = EventTypes.onLivenessUpdate
-            imageUrl.value = try {
-                getImageUrlFromBaseResponseDataModel(dataModel.response!!)
-            } catch (e: Exception) {
-                ""                                                    // the local liveness has no server image
-            }
         }
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
@@ -362,15 +363,16 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
         runOnUiThread {
             start.value = false;
             tiltProgressVisible.value = false
+            livenessActive = false
             eventTypes.value = EventTypes.onWrongTemplate
-            imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
+            imageUrl.value = imageUrlOf(dataModel)
         }
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "WrongTemplate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
             status = "InProgress"
         )
         /***/
@@ -494,6 +496,7 @@ fun IDCardScanScreen(
     tiltProgress: Int,
     tiltProgressVisible: Boolean,
     imageUrl: String,
+    livenessImage: Bitmap?,
     progress: Int,
     eventTypes: String,
     isLastPage: Boolean,
@@ -528,6 +531,9 @@ fun IDCardScanScreen(
     var scanID by remember { mutableStateOf<ScanIDCard?>(null) }
     var scanIDManual by remember { mutableStateOf<ScanIDCardManual?>(null) }
 
+    // "Hold the card in your hand": shown on top of the camera when the scan opens, until Continue
+    var showHoldPopup by remember { mutableStateOf(true) }
+
     val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
         LayoutDirection.Rtl else LayoutDirection.Ltr
 
@@ -554,10 +560,13 @@ fun IDCardScanScreen(
                         })
                 }
                 if (eventTypes == EventTypes.onLivenessUpdate) {
-                    OnLivenessScreen(imageUrl, onRetry = {
-                        if (!isManual) scanID?.retryLiveness()      // a stopped local liveness starts again
-                        onRetry();
-                    })
+                    OnLivenessScreen(
+                        imageUrl = imageUrl,
+                        imageBitmap = livenessImage,                // null (server) -> the URL is shown
+                        onRetry = {
+                            if (!isManual) scanID?.retryLiveness()  // a stopped local liveness starts again
+                            onRetry();
+                        })
                 }
                 if (eventTypes == EventTypes.onComplete) {
                     if (isLastPage) {
@@ -600,8 +609,6 @@ fun IDCardScanScreen(
                                     );
                                 })
                             }
-
-
                         }
 
                     } else {
@@ -616,7 +623,6 @@ fun IDCardScanScreen(
                                 onFlip();
                             })
                     }
-
                 }
 
 
@@ -694,9 +700,9 @@ fun IDCardScanScreen(
                     ) {
                         IconButton(onClick = {
                             if (isManual) {
-                                scanIDManual!!.stopScanning()
+                                scanIDManual?.stopScanning()
                             } else {
-                                scanID!!.stopScanning()
+                                scanID?.stopScanning()
                             }
                             onBack()
                         }) {
@@ -765,7 +771,7 @@ fun IDCardScanScreen(
                             modifier = Modifier.padding(vertical = 7.dp)
                         )
                     }
-                } else {
+                } else if (!showHoldPopup) {                // the instructions start once the popup is closed
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -779,8 +785,18 @@ fun IDCardScanScreen(
                             tiltProgressVisible = tiltProgressVisible
                         )
                     }
-
                 }
+            }
+
+            // ---------- on top of everything: hold the card in your hand (auto scan only) ----------
+            if (showHoldPopup && eventTypes == EventTypes.none && !isManual) {
+                HoldCardInHandPopup(
+                    title = flowStrings().holdCardTitle,
+                    message = flowStrings().holdCardMsg,
+                    buttonText = flowStrings().continueButton,
+                    onContinue = {
+                        showHoldPopup = false               // only closes the popup: the scan goes on as it is
+                    })
             }
 
         }

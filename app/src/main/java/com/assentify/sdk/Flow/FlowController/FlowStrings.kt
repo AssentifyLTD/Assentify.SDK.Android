@@ -279,6 +279,13 @@ data class FlowStrings(
     val qFinish: String,
     val qLoadFailed: String,
     val qNoQuestions: String,
+
+    val holdCardTitle: String,
+    val holdCardMsg: String,
+    val continueButton: String,
+
+    val holdPassportTitle: String,
+    val holdPassportMsg: String,
 )
 
 private val englishStrings = FlowStrings(
@@ -518,6 +525,11 @@ private val englishStrings = FlowStrings(
     qFinish = "Finish",
     qLoadFailed = "We couldn't load the questions. Please try again.",
     qNoQuestions = "There are no questions to answer.",
+    holdCardTitle = "Hold the card in your hand",
+    holdCardMsg = "Pick it up off the table, then continue.",
+    continueButton = "Continue",
+    holdPassportTitle = "Hold the passport in your hand",
+    holdPassportMsg = "Pick it up off the table, then continue.",
 
     )
 
@@ -758,6 +770,11 @@ private val arabicStrings = FlowStrings(
     qFinish = "إنهاء",
     qLoadFailed = "تعذّر تحميل الأسئلة. يرجى المحاولة مرة أخرى.",
     qNoQuestions = "لا توجد أسئلة للإجابة عنها.",
+    holdCardTitle = "Hold the card in your hand",
+    holdCardMsg = "Pick it up off the table, then continue.",
+    continueButton = "Continue",
+    holdPassportTitle = "أمسك جواز السفر بيدك",
+    holdPassportMsg = "ارفعه عن الطاولة، ثم تابع.",
 )
 
 fun flowStrings(): FlowStrings =

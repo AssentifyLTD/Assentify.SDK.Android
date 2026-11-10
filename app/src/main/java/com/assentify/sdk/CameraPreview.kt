@@ -1033,4 +1033,5 @@ abstract class CameraPreview : Fragment() {
         return camera?.cameraInfo?.torchState?.value == TorchState.ON
     }
 
+    protected fun frameRotationDegrees(): Int = sensorOrientation ?: 90
 }

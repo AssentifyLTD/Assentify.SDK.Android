@@ -18,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.assentify.sdk.Core.Constants.BackgroundStyle
 import com.assentify.sdk.Core.Constants.BackgroundType
 import com.assentify.sdk.Core.Constants.ClickFontWeight
 import com.assentify.sdk.Core.Constants.EnvironmentalConditions
@@ -266,13 +265,13 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 //svgBackgroundImageUrl = "https://api.dicebear.com/7.x/shapes/svg?seed=patternA",
 
                 /**Theme 1**/
-                  logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
+/*                  logoUrl = "https://image2url.com/r2/default/images/1769694393603-0afa5733-d9a5-4b0d-9134-868d3a750069.png",
                   textColor = "#000000",
                   accentColor = "#ffc400",
                   secondaryTextColor = "#ffffff",
                   backgroundCardColor = "#f3f4f6",
                   backgroundColor = BackgroundStyle.Solid("#ffffff"),
-                  clickColor = BackgroundStyle.Solid("#ffc400"),
+                  clickColor = BackgroundStyle.Solid("#ffc400"),*/
 
                 /**Theme 2**/
 //               logoUrl = "https://i.postimg.cc/0NVMJBDx/bank-of-beirut-small-logo.png",

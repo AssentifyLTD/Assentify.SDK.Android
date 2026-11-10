@@ -2,6 +2,7 @@ package com.assentify.sdk.Flow.IDStep
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -95,6 +96,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnPassportExpired
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
+import com.assentify.sdk.Flow.ReusableComposable.HoldCardInHandPopup
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
@@ -113,6 +115,7 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
     private var uploadingProgress = mutableStateOf(0)
     private var eventTypes = mutableStateOf<String>(EventTypes.none)
     private var imageUrl = mutableStateOf<String>("")
+    private var livenessImage = mutableStateOf<Bitmap?>(null)      // the local liveness's image
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
 
     // liveness tilt meter (0..100), shown under the feedback text while the passport is tilted
@@ -134,19 +137,13 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
         super.onCreate(savedInstanceState)
         val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
 
-        /* onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-             override fun handleOnBackPressed() {
-                 FlowController.backClick(this@LocalPassportScanActivity);
-             }
-         })*/
-
         setContent {
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PassportScanScreen(
+                    LocalPassportScanScreen(
                         activity = this@LocalPassportScanActivity, onBack = {
                             onBackPressedDispatcher.onBackPressed()
                         },
@@ -156,14 +153,15 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
                             uploadingProgress.value = 0;
                             eventTypes.value = EventTypes.none;
                             imageUrl.value = ""
+                            livenessImage.value = null
                             tiltProgress.value = 0
                             tiltProgressVisible.value = false
+                            livenessActive = false
                         },
                         onNext = {
                             if (flowEnv.enableNfc) {
                                 NfcScanActivity.start(context = this)
                             } else {
-
                                 if (!isNavigating) {
                                     isNavigating = true
 
@@ -173,14 +171,13 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
                                     );
                                     FlowController.naveToNextStep(this)
                                 }
-
-
                             }
                         },
                         feedbackText = feedbackText.value,
                         tiltProgress = tiltProgress.value,
                         tiltProgressVisible = tiltProgressVisible.value,
                         imageUrl = imageUrl.value,
+                        livenessImage = livenessImage.value,
                         progress = uploadingProgress.value,
                         eventTypes = eventTypes.value
                     )
@@ -222,25 +219,27 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
             runOnUiThread {
                 start.value = false;
                 tiltProgressVisible.value = false
+                livenessActive = false
                 eventTypes.value = EventTypes.onExpired
             }
         } else {
             runOnUiThread {
                 start.value = false;
                 tiltProgressVisible.value = false
+                livenessActive = false
                 eventTypes.value = EventTypes.onRetry
             }
         }
-
     }
 
-    /** The local liveness failed (suspected copy / inconclusive / camera stalled): the liveness screen. */
-    override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
+    /** The local liveness failed (suspected copy / inconclusive / camera stalled): the liveness screen, with its image. */
+    override fun onLivenessUpdate(dataModel: BaseResponseDataModel, image: Bitmap?) {
         runOnUiThread {
             livenessActive = false
             start.value = false
             tiltProgressVisible.value = false
-            imageUrl.value = ""                                       // the local liveness has no server image
+            livenessImage.value = image                               // the still / flat photo of the try
+            imageUrl.value = ""                                       // the local flow has no server image
             eventTypes.value = EventTypes.onLivenessUpdate
         }
     }
@@ -256,6 +255,7 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
             dataIDModel.value = dataModel;
             start.value = false;
             tiltProgressVisible.value = false
+            livenessActive = false
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
             dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
@@ -364,8 +364,9 @@ class LocalPassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
 }
 
+/** The local passport scan screen (named apart from PassportScanActivity's PassportScanScreen: same package). */
 @Composable
-fun PassportScanScreen(
+fun LocalPassportScanScreen(
     activity: LocalPassportScanActivity,
     onBack: () -> Unit = {},
     onRetry: () -> Unit = {},
@@ -374,6 +375,7 @@ fun PassportScanScreen(
     tiltProgress: Int,
     tiltProgressVisible: Boolean,
     imageUrl: String,
+    livenessImage: Bitmap?,
     progress: Int,
     eventTypes: String,
 ) {
@@ -384,6 +386,9 @@ fun PassportScanScreen(
 
 
     var localScanPassport by remember { mutableStateOf<LocalScanPassport?>(null) }
+
+    // "Hold the passport in your hand": shown on top of the camera when the scan opens, until Continue
+    var showHoldPopup by remember { mutableStateOf(true) }
 
     val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
         LayoutDirection.Rtl else LayoutDirection.Ltr
@@ -397,6 +402,7 @@ fun PassportScanScreen(
                 }
                 if (eventTypes == EventTypes.onExpired) {
                     OnPassportExpired(imageUrl, onRetry = {
+                        localScanPassport?.retryLiveness()  // the liveness starts again from Position
                         onRetry();
                     })
                 }
@@ -407,15 +413,19 @@ fun PassportScanScreen(
                     })
                 }
                 if (eventTypes == EventTypes.onLivenessUpdate) {
-                    OnLivenessScreen(imageUrl, onRetry = {
-                        localScanPassport?.retryLiveness()  // a stopped liveness (suspected_copy / inconclusive) starts again
-                        onRetry();
-                    })
+                    OnLivenessScreen(
+                        imageUrl = imageUrl,
+                        imageBitmap = livenessImage,                // the camera's image of the try
+                        onRetry = {
+                            localScanPassport?.retryLiveness()  // a stopped liveness (suspected_copy / inconclusive) starts again
+                            onRetry();
+                        })
                 }
                 if (eventTypes == EventTypes.onComplete) {
                     val showResultPage =
                         FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
-                            ?: false; if (flowEnv.enableNfc) {
+                            ?: false
+                    if (flowEnv.enableNfc) {
                         OnNormalCompleteScreen(imageUrl, onNext = {
                             localScanPassport?.stopScanning()
                             onNext();
@@ -432,9 +442,7 @@ fun PassportScanScreen(
                                 onNext();
                             })
                         }
-
                     }
-
                 }
 
 
@@ -544,8 +552,7 @@ fun PassportScanScreen(
 
             }
 
-            if (eventTypes == EventTypes.none) {
-
+            if (eventTypes == EventTypes.none && !showHoldPopup) {   // the instructions start once the popup is closed
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -559,8 +566,17 @@ fun PassportScanScreen(
                         tiltProgressVisible = tiltProgressVisible
                     )
                 }
+            }
 
-
+            // ---------- on top of everything: hold the passport in your hand ----------
+            if (showHoldPopup && eventTypes == EventTypes.none) {
+                HoldCardInHandPopup(
+                    title = flowStrings().holdPassportTitle,
+                    message = flowStrings().holdPassportMsg,
+                    buttonText = flowStrings().continueButton,
+                    onContinue = {
+                        showHoldPopup = false               // only closes the popup: the scan goes on as it is
+                    })
             }
 
         }
@@ -616,7 +632,7 @@ private fun LocalLivenessFeedback(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        PulsingDot(color = accent, active = !done)
+                        LocalPulsingDot(color = accent, active = !done)
                         Spacer(Modifier.width(8.dp))
                         Text(
                             current,

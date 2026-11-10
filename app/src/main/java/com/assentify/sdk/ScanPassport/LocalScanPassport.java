@@ -27,7 +27,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.assentify.sdk.CameraPreview;
 import com.assentify.sdk.CameraPreviewLocalMrz;
 import com.assentify.sdk.CheckEnvironment.DetectIfRectFInsideTheScreen;
 import com.assentify.sdk.CheckEnvironment.DetectMotion;
@@ -108,6 +107,9 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
      * larger than in the analysis frames, so it must not be outvoted by many lower-quality reads.
      */
     private static final int STILL_VOTE_WEIGHT = MAX_FRAMES_TO_SCAN;
+
+    /** The liveness screen's image: long side at most this (enough for a screen, light on memory). */
+    private static final int LIVENESS_IMAGE_MAX_SIDE = 1080;
 
     private final ExecutorService mrzExecutor = Executors.newSingleThreadExecutor();
     private final MrzBitmapScanner mrzScanner = new MrzBitmapScanner();
@@ -311,6 +313,7 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
     // ---- result ----
     private boolean finalReady = false;                            // processImage sends the flat photo
     private volatile Bitmap captureBitmap = null;
+    private volatile Bitmap lastFrame = null;                      // the latest camera frame (liveness screen image)
 
     // ---- UI ----
     private PassportLivenessInstruction shownInstruction = null;
@@ -449,6 +452,7 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
 
         this.results = results;
         this.croppedBitmap = croppedBitmap;
+        lastFrame = normalImage;                                    // a reference only (CameraX makes a new bitmap per frame)
 
         // ---- local liveness: always on ----
         boolean accepted = false;
@@ -1733,9 +1737,7 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
             return;
         }
 
-        // laminate colours of this frame, against the LIT flat reference.
-        // native: the tilt reflection sample (pageResponse vs the lit frame) is recorded only and never decides;
-        // it is no longer computed on every tilt frame, so the tilt frames come in faster.
+        // laminate colours of this frame, against the LIT flat reference
         double[] irid = null;
         if (litImg != null) {
             int[] cur = rectifyNow();
@@ -1791,10 +1793,8 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
         setProgress((int) Math.round(100 * meter));
 
         if (reachedAt != 0) {
-            // keep_tilting: the reached tilt is held open while the laminate colours are not strong yet (tiltHoldMs).
-            // native: only when the colours DECIDE (laminate policy enforce, lb_passport). For other_passport they are
-            // recorded only, so waiting up to tiltHoldMs for "strong" colours most foreign passports never show only
-            // made every scan 4 s slower.
+            // keep_tilting: the reached tilt is held open while the laminate colours are not strong yet (tiltHoldMs),
+            // only when the colours DECIDE (laminate policy enforce, lb_passport)
             boolean coloursDecide = "enforce".equals(lightAvailable ? cfg.laminatePolicy() : "shadow");
             boolean awaiting = cfg.profile.iridescent && coloursDecide && !lam.strong;
             if (awaiting && now - reachedAt < TILT_HOLD_MS) {
@@ -1882,7 +1882,7 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
     // Verdict (gate-policy.md, pseudocode/capture-loop.md "finish")
     // =============================================================================================
 
-    /** Ends the try: readings -> decide() -> continue (send the flat photo) / retry / suspected_copy / inconclusive. */
+    /** Ends the try: readings -> decide() -> continue (read the MRZ) / retry / suspected_copy / inconclusive. */
     private void finishTry(boolean engineFailed) {
         long now = SystemClock.elapsedRealtime();
         lightOff(now);
@@ -1961,11 +1961,14 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
     }
 
     /**
-     * suspected_copy / inconclusive / the camera stalled: reported through onLivenessUpdate (the liveness screen).
-     * The screen's retry button calls retryLiveness(). The model has no server response (response = null).
+     * suspected_copy / inconclusive / the camera stalled: reported through onLivenessUpdate (the liveness screen), with
+     * the passport as the camera saw it: the full-resolution still of the flat hold if it was taken, else the flat
+     * photo, else the latest frame. Called before the next try clears them. The screen's retry button calls
+     * retryLiveness(). No server response.
      */
     private void notifyLivenessFailed() {
         if (getActivity() == null || scanPassportCallback == null) return;
+        final Bitmap image = livenessScreenImage();
         getActivity().runOnUiThread(() -> scanPassportCallback.onLivenessUpdate(new BaseResponseDataModel(
                 readPassport,
                 null,
@@ -1973,7 +1976,21 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
                 false,
                 "",
                 null
-        )));
+        ), image));
+    }
+
+    /** The image for the liveness screen: upright, long side at most 1080 px; null when there is no frame at all. */
+    @Nullable
+    private Bitmap livenessScreenImage() {
+        try {
+            Bitmap still = stillPhoto;                              // full resolution, already upright
+            if (still != null) return fitLongSide(still, LIVENESS_IMAGE_MAX_SIDE);
+            Bitmap src = flatPhoto != null ? flatPhoto : lastFrame; // analysis frames: sensor orientation
+            if (src == null) return null;
+            return fitLongSide(ImageUtils.rotateBitmap(src, 90), LIVENESS_IMAGE_MAX_SIDE);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // =============================================================================================
@@ -2165,7 +2182,7 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
      *  - table: in position / baseline / light, with an outline in view, the phone within hands.flatDeg of level
      *    for hands.flatMs (camera down over a table) -> HOLD_IN_HAND
      *  - phone: in the tilt, the phone itself turned by hands.turnDeg since the tilt began -> PHONE_TURNED
-     * Each pause records flag_on_table / flag_phone_tilted, switches the light off and restarts the try on Continue.
+     * Each pause records flag_on_table / flag_phone_tilted, switches the light off and restarts the try.
      */
     private boolean notInHand(long now) {
         if (handPauses >= MAX_HAND_PAUSES) return false;

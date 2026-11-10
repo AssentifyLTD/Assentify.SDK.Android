@@ -1,5 +1,6 @@
 package   com.assentify.sdk.ScanIDCard
 
+import android.graphics.Bitmap
 import com.assentify.sdk.Core.Constants.BrightnessEvents
 import com.assentify.sdk.Core.Constants.IdLivenessInstruction
 import com.assentify.sdk.Core.Constants.MotionType
@@ -30,7 +31,7 @@ interface IDCardCallback {
 
     fun onUpdated(dataModel: BaseResponseDataModel){}
 
-    fun onLivenessUpdate(dataModel: BaseResponseDataModel){}
+    fun onLivenessUpdate(dataModel: BaseResponseDataModel, image: Bitmap?) {}
 
     fun onCardDetected(dataModel: BaseResponseDataModel){}
 

@@ -69,10 +69,6 @@ import com.assentify.sdk.tflite.LivenessDetection.Finder.OutlineStabilizer;
 import com.assentify.sdk.tflite.LivenessDetection.Finder.SpreadFix;
 
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,8 +79,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import kotlin.Pair;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
 
 public class ScanPassport extends CameraPreview implements RemoteProcessingCallback, LanguageTransformationCallback {
 
@@ -193,6 +187,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     private static final int BOTTOM_LIFT_SIGN = -1;                // lifting the bottom makes tb go NEGATIVE (log + spec sign)
     private static final double SWEEP_FLAT_EPS = 0.04;             // |delta| below this = still flat
     private static final double RAW_PAGE_ASPECT_MIN = 1.0;         // raw outline: >= 1.0 photo page, < 1.0 whole booklet
+    private static final int LIVENESS_IMAGE_MAX_SIDE = 1080;       // the liveness screen's image: long side at most this
 
     // ---- orientation check (normal only: not upside down, not MRZ left / right) ----
     private static final double MAX_ROLL_DEG = 30;     // max in-plane rotation of the page
@@ -289,6 +284,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     // ---- result ----
     private boolean finalReady = false;                            // processImage sends the flat photo
     private volatile Bitmap captureBitmap = null;
+    private volatile Bitmap lastFrame = null;                      // the latest camera frame (liveness screen image)
 
     // ---- UI ----
     private PassportLivenessInstruction shownInstruction = null;
@@ -473,6 +469,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         }
 
         this.results = results;
+        lastFrame = normalImage;                                    // a reference only (CameraX makes a new bitmap per frame)
 
         boolean livenessOn = Boolean.TRUE.equals(performLivenessDocument) && configReady;
 
@@ -661,7 +658,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                                 scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
+                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel, null);   // server: image URL in the response
                                 break;
                             case HubConnectionTargets.ON_ERROR:
                                 scanPassportCallback.onError(BaseResponseDataModel);
@@ -733,9 +730,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         boolean hasFace = true;
         boolean hasCard = false;
         for (Classifier.Recognition item : results) {
-            /* if (item.getDetectedClass() == 1 && environmentalConditions.isPredictionValid(item.getConfidence())) {
-                hasFace = true;
-            }*/
             if (item.getDetectedClass() == 0 && environmentalConditions.isPredictionValid(item.getConfidence())) {
                 hasCard = true;
             }
@@ -743,7 +737,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         return hasFace && hasCard;
     }
 
-    // TODO Later
     @Override
     protected void onStopRecordVideo() {
         if (getActivity() != null) {
@@ -788,8 +781,6 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                     false
             );
         });
-
-        // remoteProcessing.uploadVideo(videoCounter, video, configModel, readPassport);
     }
     String nameKey = "";
     int nameWordCount = 0;
@@ -865,14 +856,14 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     }
 
     @Override
-    public void onDestroy() {                            // FIX 2: no "synchronized" on the method
+    public void onDestroy() {                            // no "synchronized" on the method: finderLock below
         BugsnagObject.INSTANCE.pauseSession();
         super.onDestroy();
         this.createBase64.shutdown();
         if (audioPlayer != null) {
             audioPlayer.stopAudio();
         }
-        synchronized (finderLock) {                      // FIX 2: waits for a frame inside detect() to finish
+        synchronized (finderLock) {                      // waits for a frame inside detect() to finish
             finderClosed = true;
             if (finder != null) {
                 finder.close();
@@ -990,7 +981,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         lastRawPose = null; lastRawQuad = null; lastIsRaw = false; lastSharp = false; lastGlare = false;
 
         // analysis (ANA) size: every pixel check of the spec is measured at this size; the photo stays full size
-        Bitmap upright = ImageUtils.rotateBitmap(scaleDown(normalImage, ANALYSIS_LONG_EDGE), 90);
+        Bitmap upright = ImageUtils.rotateBitmap(scaleDown(normalImage, ANALYSIS_LONG_EDGE), frameRotationDegrees());
         double w = upright.getWidth(), h = upright.getHeight();
 
         FinderResult r = finder.detect(upright, DocHead.PASSPORT_PAGE);
@@ -1676,9 +1667,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
             return;
         }
 
-        // laminate colours of this frame, against the LIT flat reference.
-        // native: the tilt reflection sample (pageResponse vs the lit frame) is recorded only and never decides;
-        // it is no longer computed on every tilt frame, so the tilt frames come in faster.
+        // laminate colours of this frame, against the LIT flat reference
         double[] irid = null;
         if (litImg != null) {
             int[] cur = rectifyNow();
@@ -1734,10 +1723,8 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         setProgress((int) Math.round(100 * meter));
 
         if (reachedAt != 0) {
-            // keep_tilting: the reached tilt is held open while the laminate colours are not strong yet (tiltHoldMs).
-            // native: only when the colours DECIDE (laminate policy enforce, lb_passport). For other_passport they are
-            // recorded only, so waiting up to tiltHoldMs for "strong" colours most foreign passports never show only
-            // made every scan 4 s slower.
+            // keep_tilting: the reached tilt is held open while the laminate colours are not strong yet (tiltHoldMs),
+            // only when the colours DECIDE (laminate policy enforce, lb_passport)
             boolean coloursDecide = "enforce".equals(lightAvailable ? cfg.laminatePolicy() : "shadow");
             boolean awaiting = cfg.profile.iridescent && coloursDecide && !lam.strong;
             if (awaiting && now - reachedAt < TILT_HOLD_MS) {
@@ -1902,11 +1889,13 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
     }
 
     /**
-     * suspected_copy / inconclusive / the camera stalled: reported through onLivenessUpdate (the liveness screen).
-     * The screen's retry button calls retryLiveness(). The model has no server response (response = null).
+     * suspected_copy / inconclusive / the camera stalled: reported through onLivenessUpdate (the liveness screen), with
+     * the passport as the camera saw it: the flat, unlit photo if the try got that far, else the latest frame. Called
+     * before the next try clears them. The screen's retry button calls retryLiveness(). No server response.
      */
     private void notifyLivenessFailed() {
         if (getActivity() == null || scanPassportCallback == null) return;
+        final Bitmap image = livenessScreenImage();
         getActivity().runOnUiThread(() -> scanPassportCallback.onLivenessUpdate(new BaseResponseDataModel(
                 readPassport,
                 "",
@@ -1914,7 +1903,20 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                 false,
                 "",
                 null
-        )));
+        ), image));
+    }
+
+    /** The image for the liveness screen: upright, long side at most 1080 px; null when there is no frame at all. */
+    @Nullable
+    private Bitmap livenessScreenImage() {
+        Bitmap src = flatPhoto != null ? flatPhoto : lastFrame;
+        if (src == null) return null;
+        try {
+            Bitmap upright = ImageUtils.rotateBitmap(src, frameRotationDegrees());   // sensor frames are landscape
+            return fitLongSide(upright, LIVENESS_IMAGE_MAX_SIDE);                    // enough for a screen, light on memory
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // =============================================================================================
@@ -2105,7 +2107,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
      *  - table: in position / baseline / light, with an outline in view, the phone within hands.flatDeg of level
      *    for hands.flatMs (camera down over a table) -> HOLD_IN_HAND
      *  - phone: in the tilt, the phone itself turned by hands.turnDeg since the tilt began -> PHONE_TURNED
-     * Each pause records flag_on_table / flag_phone_tilted, switches the light off and restarts the try on Continue.
+     * Each pause records flag_on_table / flag_phone_tilted, switches the light off and restarts the try.
      */
     private boolean notInHand(long now) {
         if (handPauses >= MAX_HAND_PAUSES) return false;

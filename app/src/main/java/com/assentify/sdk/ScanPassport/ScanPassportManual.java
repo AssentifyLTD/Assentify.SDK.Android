@@ -289,7 +289,7 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                 scanPassportCallback.onWrongTemplate(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel);
+                                scanPassportCallback.onLivenessUpdate(BaseResponseDataModel,null);
                                 break;
                             case HubConnectionTargets.ON_ERROR:
                                 scanPassportCallback.onError(BaseResponseDataModel);

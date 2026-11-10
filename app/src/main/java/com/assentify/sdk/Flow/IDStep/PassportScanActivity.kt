@@ -2,6 +2,7 @@ package com.assentify.sdk.Flow.IDStep
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -99,6 +100,7 @@ import com.assentify.sdk.Flow.ReusableComposable.Events.OnLivenessScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnNormalCompleteScreen
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnPassportExpired
 import com.assentify.sdk.Flow.ReusableComposable.Events.OnSendScreen
+import com.assentify.sdk.Flow.ReusableComposable.HoldCardInHandPopup
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.Models.BaseResponseDataModel
@@ -121,6 +123,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     private var uploadingProgress = mutableStateOf(0)
     private var eventTypes = mutableStateOf<String>(EventTypes.none)
     private var imageUrl = mutableStateOf<String>("")
+    private var livenessImage = mutableStateOf<Bitmap?>(null)      // the local liveness's image (null = use imageUrl)
     private var dataIDModel = mutableStateOf<PassportResponseModel?>(null)
 
     // liveness tilt meter (0..100), shown under the feedback text while the passport is tilted
@@ -131,6 +134,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
     private var isNavigating = false
 
+    // the liveness owns the instruction text while it runs
     private var livenessActive = false
 
 
@@ -153,13 +157,6 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
         )
         /***/
 
-
-        /*  onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-              override fun handleOnBackPressed() {
-                  FlowController.backClick(this@PassportScanActivity);
-              }
-          })*/
-
         setContent {
             MaterialTheme {
                 Surface(
@@ -176,8 +173,10 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                             uploadingProgress.value = 0;
                             eventTypes.value = EventTypes.none;
                             imageUrl.value = ""
+                            livenessImage.value = null
                             tiltProgress.value = 0
                             tiltProgressVisible.value = false
+                            livenessActive = false
                         },
                         onNext = {
                             if (flowEnv.enableNfc) {
@@ -189,14 +188,13 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                                     FlowController.makeCurrentStepDone(dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!, timeStarted);
                                     FlowController.naveToNextStep(this)
                                 }
-
-
                             }
                         },
                         feedbackText = feedbackText.value,
                         tiltProgress = tiltProgress.value,
                         tiltProgressVisible = tiltProgressVisible.value,
                         imageUrl = imageUrl.value,
+                        livenessImage = livenessImage.value,
                         progress = uploadingProgress.value,
                         eventTypes = eventTypes.value
                     )
@@ -233,15 +231,20 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     override fun onError(dataModel: BaseResponseDataModel) {
         runOnUiThread {
             start.value = false;
+            tiltProgressVisible.value = false
             eventTypes.value = EventTypes.onError
-            imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
+            imageUrl.value = try {
+                getImageUrlFromBaseResponseDataModel(dataModel.response!!)
+            } catch (e: Exception) {
+                ""
+            }
         }
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "Error" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
             status = "InProgress"
         )
         /***/
@@ -251,6 +254,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
         if (dataModel.error == "Expired Passport Detected") {
             runOnUiThread {
                 start.value = false;
+                tiltProgressVisible.value = false
                 eventTypes.value = EventTypes.onExpired
                 try {
                     imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
@@ -263,13 +267,14 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             FlowController.trackProgress(
                 currentStep = currentStep!!,
                 response = "Expired " + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-                inputData = FlowController.decodeToJsonObject(dataModel.response),
+                inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
                 status = "InProgress"
             )
             /***/
         } else {
             runOnUiThread {
                 start.value = false;
+                tiltProgressVisible.value = false
                 eventTypes.value = EventTypes.onRetry
                 try {
                     imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
@@ -282,7 +287,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             FlowController.trackProgress(
                 currentStep = currentStep!!,
                 response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-                inputData = FlowController.decodeToJsonObject(dataModel.response),
+                inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
                 status = "InProgress"
             )
             /***/
@@ -290,18 +295,29 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
 
     }
 
-    override fun onLivenessUpdate(dataModel: BaseResponseDataModel) {
+    /**
+     * The liveness failed. From the server: the image URL is in dataModel.response and image is null.
+     * From the local liveness (suspected copy / inconclusive / camera stalled): image is the passport as the camera saw it.
+     */
+    override fun onLivenessUpdate(dataModel: BaseResponseDataModel, image: Bitmap?) {
         runOnUiThread {
-            start.value = false;
+            livenessActive = false
+            start.value = false
+            tiltProgressVisible.value = false
+            livenessImage.value = image
+            imageUrl.value = if (image != null) "" else try {
+                getImageUrlFromBaseResponseDataModel(dataModel.response!!)
+            } catch (e: Exception) {
+                ""                                                    // no server response
+            }
             eventTypes.value = EventTypes.onLivenessUpdate
-            imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "LivenessUpdate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
             status = "InProgress"
         )
         /***/
@@ -310,15 +326,20 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
     override fun onWrongTemplate(dataModel: BaseResponseDataModel) {
         runOnUiThread {
             start.value = false;
+            tiltProgressVisible.value = false
             eventTypes.value = EventTypes.onWrongTemplate
-            imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
+            imageUrl.value = try {
+                getImageUrlFromBaseResponseDataModel(dataModel.response!!)
+            } catch (e: Exception) {
+                ""
+            }
         }
         /** Track Progress **/
         val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "WrongTemplate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
-            inputData = FlowController.decodeToJsonObject(dataModel.response),
+            inputData = FlowController.decodeToJsonObject(dataModel.response ?: "{}"),
             status = "InProgress"
         )
         /***/
@@ -331,6 +352,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
             NfcPassportResponseModelObject.setPassportResponseModelObject(dataModel)
             dataIDModel.value = dataModel;
             start.value = false;
+            tiltProgressVisible.value = false
+            livenessActive = false
             eventTypes.value = EventTypes.onComplete
             imageUrl.value = dataModel.passportExtractedModel!!.imageUrl!!
             dataModel.passportExtractedModel!!.outputProperties?.forEach { (key, value) ->
@@ -357,7 +380,7 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
         isCentered: Boolean,
     ) {
         runOnUiThread {
-            if (livenessActive) return@runOnUiThread
+            if (livenessActive) return@runOnUiThread                 // the liveness owns the text
             if (start.value == false) {
                 if (zoom != ZoomType.SENDING && zoom != ZoomType.NO_DETECT) {
                     if (zoom == ZoomType.ZOOM_IN) {
@@ -460,6 +483,7 @@ fun PassportScanScreen(
     tiltProgress: Int,
     tiltProgressVisible: Boolean,
     imageUrl: String,
+    livenessImage: Bitmap?,
     progress: Int,
     eventTypes: String,
 ) {
@@ -473,6 +497,9 @@ fun PassportScanScreen(
     var scanPassport by remember { mutableStateOf<ScanPassport?>(null) }
     var scanPassportManual by remember { mutableStateOf<ScanPassportManual?>(null) }
 
+    // "Hold the passport in your hand": shown on top of the camera when the scan opens, until Continue
+    var showHoldPopup by remember { mutableStateOf(true) }
+
     val layoutDirection = if (BaseTheme.BaseUiLanguage == UiLanguage.Arabic)
         LayoutDirection.Rtl else LayoutDirection.Ltr
 
@@ -485,20 +512,24 @@ fun PassportScanScreen(
                 }
                 if (eventTypes == EventTypes.onExpired) {
                     OnPassportExpired(imageUrl, onRetry = {
+                        scanPassport?.retryLiveness()       // the liveness starts again from Position
                         onRetry();
                     })
                 }
                 if (eventTypes == EventTypes.onRetry || eventTypes == EventTypes.onError || eventTypes == EventTypes.onWrongTemplate) {
                     OnErrorScreen(imageUrl, onRetry = {
-                        scanPassport?.retryLiveness()       // a stopped liveness (suspected_copy / inconclusive) starts again
+                        scanPassport?.retryLiveness()       // the liveness starts again from Position
                         onRetry();
                     })
                 }
                 if (eventTypes == EventTypes.onLivenessUpdate) {
-                    OnLivenessScreen(imageUrl, onRetry = {
-                        scanPassport?.retryLiveness()       // a stopped liveness (suspected_copy / inconclusive) starts again
-                        onRetry();
-                    })
+                    OnLivenessScreen(
+                        imageUrl = imageUrl,
+                        imageBitmap = livenessImage,                // null (server) -> the URL is shown
+                        onRetry = {
+                            scanPassport?.retryLiveness()       // a stopped liveness (suspected_copy / inconclusive) starts again
+                            onRetry();
+                        })
                 }
                 if (eventTypes == EventTypes.onComplete) {
                     val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
@@ -614,9 +645,9 @@ fun PassportScanScreen(
                     ) {
                         IconButton(onClick = {
                             if (isManual) {
-                                scanPassportManual!!.stopScanning()
+                                scanPassportManual?.stopScanning()
                             } else {
-                                scanPassport!!.stopScanning()
+                                scanPassport?.stopScanning()
                             }
                             onBack()
                         }) {
@@ -680,8 +711,6 @@ fun PassportScanScreen(
                                 brush = BaseTheme.BaseClickColor!!.toBrush(),
                                 shape = RoundedCornerShape(28.dp)
                             )
-
-
                     ) {
                         Text(
                             flowStrings().takePhoto,
@@ -691,7 +720,7 @@ fun PassportScanScreen(
                             modifier = Modifier.padding(vertical = 7.dp)
                         )
                     }
-                } else {
+                } else if (!showHoldPopup) {                // the instructions start once the popup is closed
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -709,12 +738,23 @@ fun PassportScanScreen(
                 }
             }
 
+            // ---------- on top of everything: hold the passport in your hand (auto scan only) ----------
+            if (showHoldPopup && eventTypes == EventTypes.none && !isManual) {
+                HoldCardInHandPopup(
+                    title = flowStrings().holdPassportTitle,
+                    message = flowStrings().holdPassportMsg,
+                    buttonText = flowStrings().continueButton,
+                    onContinue = {
+                        showHoldPopup = false               // only closes the popup: the scan goes on as it is
+                    })
+            }
+
         }
     }
 }
 
 /**
- * The instruction in a rounded container (dark background, text in BaseAccentColor),
+ * The instruction in a rounded container (FieldColor background, BaseTextColor text),
  * with the tilt meter (0..100%) underneath while the passport is tilted.
  */
 @Composable

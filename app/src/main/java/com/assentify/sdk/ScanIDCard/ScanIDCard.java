@@ -139,7 +139,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
 
     private TemplatesByCountry templatesByCountry;
-    ;
 
     private IDResponseModel idResponseModel;
 
@@ -163,12 +162,13 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private volatile boolean kindDecided = false;                   // the classifier answered for this side
     private volatile String livenessKind = null;                    // null = no local liveness for this card
     private volatile boolean backShownLayout = false;               // the classifier saw a "back" class: back layout
-    private String lastLabel = null;
-    private int labelAgree = 0;
-    private long classifyStart = 0;
-    private static final float CLASSIFY_MIN_CONF = 0.60f;           // native: a class below this is "not sure"
-    private static final int CLASSIFY_AGREE_FRAMES = 3;             // native: the same class on 3 frames in a row
-    private static final long CLASSIFY_MAX_MS = 4000;               // native: no sure answer in 4 s -> no local liveness
+    private long classifyStart = 0;                                 // when a card was first seen for this side
+    // The FIRST frame whose top class is one of the four supported cards decides (any confidence; "back" needs
+    // CLASSIFY_BACK_MIN_CONF, because a front taken as the back would switch the front's checks off).
+    // No supported card within CLASSIFY_MAX_MS of the first card seen: no local liveness for this side.
+    private static final float CLASSIFY_MIN_CONF = 0.20f;           // any confidence above this
+    private static final float CLASSIFY_BACK_MIN_CONF = 0.50f;      // safeguard for "back"; 0 to turn it off
+    private static final long CLASSIFY_MAX_MS = 6000;
 
     // ---- finder ----
     private Finder finder;
@@ -309,6 +309,8 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     // ---- result / UI ----
     private boolean finalReady = false;
     private volatile Bitmap captureBitmap = null;
+    private volatile Bitmap lastFrame = null;                       // the latest camera frame (liveness screen image)
+    private static final int LIVENESS_IMAGE_MAX_SIDE = 1080;        // the liveness screen's image: long side at most
     private IdLivenessInstruction shownInstruction = null;
     private int livenessProgress = 0, shownProgress = -1;
     private boolean livenessFrameGood = false;
@@ -359,7 +361,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         }
     };
 
-    private static final boolean DEBUG_LOGS = false;                // TEMP: set false for release
+    private static final boolean DEBUG_LOGS = true;                // TEMP: set false for release
 
     public ScanIDCard() {
     }
@@ -410,7 +412,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         for (StepDefinitions item : configModel.getStepDefinitions()) {
             if (Integer.parseInt(this.stepId) == item.getStepId()) {
                 if (performLivenessDocument == null) {
-                    performLivenessDocument = false;
+                    performLivenessDocument = item.getCustomization().getDocumentLiveness();
                 }
                 if (processMrz == null) {
                     processMrz = item.getCustomization().getProcessMrz();
@@ -511,6 +513,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
         this.results = results;
         this.croppedBitmap = croppedBitmap;
+        lastFrame = normalImage;                                    // a reference only (CameraX makes a new bitmap per frame)
 
         if (pendingReset) {                                         // a new side, a retry, or back from the background
             pendingReset = false;
@@ -518,7 +521,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             resetLiveness();
         }
 
-        // local liveness only when the server's document liveness is off, and only for the cards it is defined for
+        // local liveness only when the step's document liveness is on, and only for the cards it is defined for
         boolean localAllowed = Boolean.TRUE.equals(performLivenessDocument);
         if (localAllowed && start && !kindDecided) {
             decideKind(normalImage);
@@ -723,7 +726,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                                 idCardCallback.onWrongTemplate(BaseResponseDataModel);
                                 break;
                             case HubConnectionTargets.ON_LIVENESS_UPDATE:
-                                idCardCallback.onLivenessUpdate(BaseResponseDataModel);
+                                idCardCallback.onLivenessUpdate(BaseResponseDataModel, null);   // server: image URL in the response
                                 break;
                             case HubConnectionTargets.ON_ERROR:
                                 idCardCallback.onError(BaseResponseDataModel);
@@ -861,8 +864,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             );
 
         });
-
-        //  remoteProcessing.uploadVideo(videoCounter, video, configModel, this.templateId);
     }
 
     String nameKey = "";
@@ -988,7 +989,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     //      No tilt (back.sweeps = 0). The PDF417 barcode is read and PRINTED (tag IdBarcode); recorded only, never a verdict.
     //    - lb_driving_licence / lb_residence_permit: POSITION -> BASELINE (flat photo) -> LIGHT -> lift the TOP or
     //      BOTTOM edge (random) -> held open while the laminate colours are read -> verdict. Enforced: laminate, reflection.
-    //   Run only when performLivenessDocument is off, and only for those four cards (DocumentClassifier).
+    //   Run only when the step's document liveness is on, and only for those four cards (DocumentClassifier).
     //
     // #############################################################################################
     // #############################################################################################
@@ -997,13 +998,14 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     // Which card: DocumentClassifier
     // =============================================================================================
 
-    /** The classifier on frames with a card in view: 3 sure frames of the same class, or CLASSIFY_MAX_MS. */
+    /**
+     * The classifier on frames with a card in view. The FIRST frame whose top class is one of the four supported cards
+     * (civil ID front / back, driving licence, residence permit) decides, at any confidence ("back" needs
+     * CLASSIFY_BACK_MIN_CONF). Nothing supported within CLASSIFY_MAX_MS of the first card seen: no local liveness.
+     */
     private void decideKind(Bitmap frame) {
         if (getActivity() == null) return;
-        if (!hasFaceOrCard()) {
-            labelAgree = 0;
-            return;
-        }
+        if (!hasFaceOrCard()) return;                               // no card in view: nothing to classify yet
         long now = SystemClock.elapsedRealtime();
         if (classifyStart == 0) classifyStart = now;
         if (docClassifier == null && !classifierFailed) {
@@ -1021,20 +1023,25 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         DocumentClassifier.Result r;
         synchronized (finderLock) {
             if (finderClosed || docClassifier == null) return;
-            r = docClassifier.classify(ImageUtils.rotateBitmap(scaleDown(frame, ANALYSIS_LONG_EDGE), 90));
+            r = docClassifier.classify(ImageUtils.rotateBitmap(scaleDown(frame, ANALYSIS_LONG_EDGE), frameRotationDegrees()));
         }
-        boolean sure = r.confidence >= CLASSIFY_MIN_CONF;
-        if (sure && r.label.equals(lastLabel)) labelAgree++;
-        else labelAgree = sure ? 1 : 0;
-        lastLabel = r.label;
-        if (DEBUG_LOGS) Log.d("IdLivenessDebug", "classifier: " + r + " agree=" + labelAgree);
-        if (labelAgree >= CLASSIFY_AGREE_FRAMES) {
-            // a class with "back" in its name (civil ID back, residence permit back, Syrian / Palestinian ID back ...)
-            backShownLayout = r.label.toLowerCase(Locale.US).contains("back");
-            applyKind(DocumentClassifier.kindFor(r.label), r.toString());
-        } else if (now - classifyStart > CLASSIFY_MAX_MS) {
-            applyKind(null, "not sure after " + CLASSIFY_MAX_MS + " ms (last " + r + ")");
+
+        String kind = DocumentClassifier.kindFor(r.label);
+        boolean supported = KIND_ID_FRONT.equals(kind) || KIND_ID_BACK.equals(kind)
+                || KIND_LICENCE.equals(kind) || KIND_PERMIT.equals(kind);
+        boolean back = r.label.toLowerCase(Locale.US).contains("back");
+        float bar = back ? CLASSIFY_BACK_MIN_CONF : CLASSIFY_MIN_CONF;
+        long waited = now - classifyStart;
+        if (DEBUG_LOGS) Log.d("IdLivenessDebug", "classifier: " + r + " supported=" + supported
+                + " bar=" + bar + " waited=" + waited + "ms");
+
+        if (supported && r.confidence >= bar) {                     // one of the four: decide now
+            backShownLayout = back;
+            applyKind(kind, r + " after " + waited + " ms");
+        } else if (waited > CLASSIFY_MAX_MS) {                      // nothing supported in time: no local liveness
+            applyKind(null, "no supported card after " + CLASSIFY_MAX_MS + " ms (last " + r + ")");
         }
+        // otherwise: keep trying on the next frame
     }
 
     /** Only the civil ID (front / back), the driving licence and the residence permit get the local liveness. */
@@ -1051,8 +1058,6 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         kindDecided = false;
         livenessKind = null;
         backShownLayout = false;
-        lastLabel = null;
-        labelAgree = 0;
         classifyStart = 0;
     }
 
@@ -1179,7 +1184,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         lastUpright = null; lastQuad = null; lastPixelQuad = null; lastRawQuad = null; lastPose = null; lastRawPose = null;
         lastIsRaw = false; lastSharp = false;
 
-        Bitmap upright = ImageUtils.rotateBitmap(scaleDown(normalImage, ANALYSIS_LONG_EDGE), 90);
+        Bitmap upright = ImageUtils.rotateBitmap(scaleDown(normalImage, ANALYSIS_LONG_EDGE), frameRotationDegrees());
         double w = upright.getWidth(), h = upright.getHeight();
 
         FinderResult r = finder.detect(upright, DocHead.CARD);
@@ -1346,7 +1351,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             double[] o = orderCorners(lastPixelQuad);
             if (o == null) return;
             double[] q = LivenessVision.roll(o, baseK);               // top left (the emblem's corner) first, clockwise
-            Bitmap full = ImageUtils.rotateBitmap(curFrame, 90);      // upright, full size
+            Bitmap full = ImageUtils.rotateBitmap(curFrame, frameRotationDegrees());   // upright, full size
             double sc = full.getWidth() / (double) lastUpright.getWidth();
             double[] fq = new double[8];
             for (int i = 0; i < 8; i++) fq[i] = q[i] * sc;
@@ -1368,7 +1373,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 start && !tiltStart);                               // hidden while the tilt drawing is shown
     }
 
-    /** The tilt drawing for the asked edge: right (ID front) or top (licence / permit). The bottom edge has none. */
+    /** The tilt drawing for the asked edge: right (ID front), top or bottom (licence / permit). */
     private void showTiltLayout() {
         hideTiltLayouts();
         if ("right".equals(direction)) {
@@ -1526,10 +1531,11 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         final Bitmap frame = curFrame;
         final double anaW = lastUpright.getWidth();
         final int token = barcodeToken;
+        final int rotation = frameRotationDegrees();
         try {
             barcodeExecutor.execute(() -> {
                 try {
-                    Bitmap full = ImageUtils.rotateBitmap(frame, 90);            // upright, full size
+                    Bitmap full = ImageUtils.rotateBitmap(frame, rotation);      // upright, full size
                     double sc = full.getWidth() / anaW;
                     double[] q = new double[8];
                     for (int i = 0; i < 8; i++) q[i] = o[i] * sc;                // the card in the full frame, TL first
@@ -2136,11 +2142,29 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         }
     }
 
-    /** suspected_copy / inconclusive / the camera stalled: the liveness screen (onLivenessUpdate, response = null). */
+    /**
+     * suspected_copy / inconclusive / the camera stalled: the liveness screen (onLivenessUpdate, response = null), with
+     * the card as the camera saw it: the flat, unlit photo if the try got that far, else the latest frame. Called
+     * before the next try clears them.
+     */
     private void notifyLivenessFailed() {
         if (getActivity() == null || idCardCallback == null) return;
+        final Bitmap image = livenessScreenImage();
         getActivity().runOnUiThread(() -> idCardCallback.onLivenessUpdate(new BaseResponseDataModel(
-                "IdCard", null, EventsErrorMessages.OnRetryCardMessage, false, "", null)));
+                "IdCard", null, EventsErrorMessages.OnRetryCardMessage, false, "", null), image));
+    }
+
+    /** The image for the liveness screen: upright, long side at most 1080 px; null when there is no frame at all. */
+    @Nullable
+    private Bitmap livenessScreenImage() {
+        Bitmap src = flatPhoto != null ? flatPhoto : lastFrame;
+        if (src == null) return null;
+        try {
+            Bitmap upright = ImageUtils.rotateBitmap(src, frameRotationDegrees());   // sensor frames are landscape
+            return fitLongSide(upright, LIVENESS_IMAGE_MAX_SIDE);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // =============================================================================================
