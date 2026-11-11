@@ -170,6 +170,22 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private static final float CLASSIFY_BACK_MIN_CONF = 0.50f;      // safeguard for "back"; 0 to turn it off
     private static final long CLASSIFY_MAX_MS = 6000;
 
+    // ---- the civil extract (lebanese-civil-extract / -old): no card liveness, its QR code is read and sent ----
+    // (was ScanQr). The classifier sees the sheet -> the QR drawing + "move closer to the QR code" -> the first QR read
+    // is sent with the frame (starQrProcessing) -> the answer is read with IDExtractedModel.fromQrJsonString.
+    private static final String KIND_CIVIL_EXTRACT = "lb_civil_extract";
+    private static final float CLASSIFY_QR_MIN_CONF = 0.50f;        // the extract with a card in view (YOLO)
+    private static final float CLASSIFY_QR_NO_CARD_CONF = 0.70f;    // the extract without a card box (a sheet of paper)
+    private static final long CLASSIFY_NO_CARD_EVERY_MS = 300;      // no card in view: classify at most this often
+    private long lastNoCardClassifyAt = 0;
+    private volatile boolean qrMode = false;                        // this side is the civil extract: read its QR
+    private volatile boolean qrBusy = false;                        // a QR reading is running
+    private volatile boolean qrSent = false;                        // the last upload was the QR (parse its answer so)
+    private volatile boolean qrLayoutShown = false;                 // the QR drawing is shown: the frame is hidden
+    private BarcodeScanner qrScanner;
+    private volatile Bitmap sheetPhoto = null;                      // the WHOLE extract, from the frame the classifier
+    // recognised (before the person moves in on the QR)
+
     // ---- finder ----
     private Finder finder;
     private final Object finderLock = new Object();
@@ -532,6 +548,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                 return;
             }
         }
+        if (qrMode) {                                               // the civil extract: read its QR code
+            processQr(normalImage);
+            return;
+        }
         boolean livenessOn = localAllowed && livenessKind != null && ensureConfig();
         if (!livenessOn) {
             processImageWithoutLiveness(normalImage, listScaleRectF, previewWidth, previewHeight);
@@ -671,7 +691,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                     if (eventName.equals(HubConnectionTargets.ON_COMPLETE)) {
                         Map<String, String> transformedProperties = new HashMap<>();
                         start = false;
-                        IDExtractedModel idExtractedModel = IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
+                        IDExtractedModel idExtractedModel = qrSent       // the civil extract's QR: its own answer format
+                                ? IDExtractedModel.Companion.fromQrJsonString(BaseResponseDataModel.getResponse(), transformedProperties)
+                                : IDExtractedModel.Companion.fromJsonString(BaseResponseDataModel.getResponse(), transformedProperties);
                         idResponseModel = new IDResponseModel(
                                 BaseResponseDataModel.getDestinationEndpoint(),
                                 idExtractedModel,
@@ -831,6 +853,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         start = false;
         videoCounter = videoCounter + 1;
         sentKind = captureBitmap != null ? cfgKind : null;          // the side sent (for the ID number check)
+        qrSent = false;                                             // a card photo, not the extract's QR
         // local liveness passed: the flat, unlit photo; otherwise (no local liveness) the latest frame, as before
         final Bitmap liveness = captureBitmap;
         final Bitmap picked = liveness != null
@@ -922,6 +945,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     public void stopScanning() {
         hideBarcodeLayout();
+        hideQrLayout();
         closeCamera();
     }
 
@@ -955,6 +979,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         if (barcodeScanner != null) {
             barcodeScanner.close();
             barcodeScanner = null;
+        }
+        if (qrScanner != null) {
+            qrScanner.close();
+            qrScanner = null;
         }
         if (audioPlayer != null) {
             audioPlayer.stopAudio();
@@ -1007,9 +1035,15 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
      */
     private void decideKind(Bitmap frame) {
         if (getActivity() == null) return;
-        if (!hasFaceOrCard()) return;                               // no card in view: nothing to classify yet
         long now = SystemClock.elapsedRealtime();
-        if (classifyStart == 0) classifyStart = now;
+        boolean card = hasFaceOrCard();
+        if (!card) {
+            // no card box: the card kinds wait for one, but the civil extract (a sheet of paper, which YOLO may not box)
+            // can still be recognised: classify now and then, and accept ONLY the extract, at a stricter confidence
+            if (now - lastNoCardClassifyAt < CLASSIFY_NO_CARD_EVERY_MS) return;
+            lastNoCardClassifyAt = now;
+        }
+        if (card && classifyStart == 0) classifyStart = now;
         if (docClassifier == null && !classifierFailed) {
             try {
                 docClassifier = new DocumentClassifier(getActivity().getApplicationContext());
@@ -1029,6 +1063,14 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         }
 
         String kind = DocumentClassifier.kindFor(r.label);
+
+        // the civil extract: no liveness, read its QR code instead
+        if (KIND_CIVIL_EXTRACT.equals(kind) && r.confidence >= (card ? CLASSIFY_QR_MIN_CONF : CLASSIFY_QR_NO_CARD_CONF)) {
+            enterQrMode(r + (card ? "" : " (no card box)"), frame);
+            return;
+        }
+        if (!card) return;                                          // without a card box only the extract is decided
+
         boolean supported = KIND_ID_FRONT.equals(kind) || KIND_ID_BACK.equals(kind)
                 || KIND_LICENCE.equals(kind) || KIND_PERMIT.equals(kind);
         boolean back = r.label.toLowerCase(Locale.US).contains("back");
@@ -1061,6 +1103,94 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         livenessKind = null;
         backShownLayout = false;
         classifyStart = 0;
+        lastNoCardClassifyAt = 0;
+        if (qrMode || qrLayoutShown) {                              // the extract's QR step ends with the side
+            qrMode = false;
+            hideQrLayout();
+        }
+        sheetPhoto = null;
+    }
+
+    // =============================================================================================
+    // The civil extract: its QR code (was ScanQr)
+    // =============================================================================================
+
+    /**
+     * The classifier saw the civil extract: no card liveness; the QR drawing and its instruction until a QR is read.
+     * The frame it was recognised on shows the WHOLE sheet (the person has not moved in on the code yet): it is kept
+     * and sent with the QR's text, instead of the close-up the QR is read on.
+     */
+    private void enterQrMode(String why, Bitmap wholeSheet) {
+        sheetPhoto = wholeSheet;                                    // the full camera frame, as the classifier saw it
+        livenessKind = null;
+        kindDecided = true;
+        qrMode = true;
+        qrBusy = false;
+        Log.d("IdLiveness", "card: " + why + " -> civil extract: read its QR code (no local liveness)");
+        showQrLayout();
+        hint(IdLivenessInstruction.SCAN_QR);                        // "move closer to the QR code"
+    }
+
+    /**
+     * One frame of the civil extract: the QR read on the whole frame (as ScanQr did). The first QR found is sent with
+     * the frame (starQrProcessing); the answer comes back through onMessageReceived (fromQrJsonString).
+     */
+    private void processQr(Bitmap normalImage) {
+        setRectFCustomColor(environmentalConditions.getHoldHandColor(), environmentalConditions.getEnableDetect(),
+                environmentalConditions.getEnableGuide(), start && !qrLayoutShown);   // the QR drawing replaces the frame
+        if (!start || qrBusy) return;
+        if (qrLayoutShown) hint(IdLivenessInstruction.SCAN_QR);     // (sent once; hint() skips repeats)
+        if (qrScanner == null) qrScanner = BarcodeScanning.getClient();
+        qrBusy = true;
+        final Bitmap frame = normalImage;
+        qrScanner.process(InputImage.fromBitmap(frame, 0))
+                .addOnSuccessListener(barcodes -> {
+                    if (!qrMode || !start) {                        // the side was reset / already sent meanwhile
+                        qrBusy = false;
+                        return;
+                    }
+                    if (barcodes != null && !barcodes.isEmpty()) {
+                        Barcode barcode = barcodes.get(0);
+                        start = false;
+                        qrSent = true;
+                        sentKind = null;                            // not an ID side: no ID number check
+                        hideQrLayout();
+                        if (DEBUG_LOGS) Log.d("IdLivenessDebug", "civil extract: QR read -> sending");
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> idCardCallback.onSend());   // was onStartQrScan
+                        }
+                        playSuccess();
+                        // the whole extract (recognised before moving in); the close-up only if there is none
+                        final Bitmap photo = sheetPhoto != null ? sheetPhoto : frame;
+                        if (DEBUG_LOGS) Log.d("IdLivenessDebug", "civil extract: sending the "
+                                + (sheetPhoto != null ? "whole sheet" : "QR close-up (no whole-sheet frame)")
+                                + " " + photo.getWidth() + "x" + photo.getHeight());
+                        remoteProcessing.starQrProcessing(
+                                HubConnectionFunctions.INSTANCE.etHubConnectionFunction(BlockType.QR),
+                                ImageUtils.convertBitmapToByteArray(photo, BlockType.QR, getActivity()),
+                                configModel,
+                                selectedTemplates,
+                                "ConnectionId",
+                                this.stepId,
+                                barcode.getRawValue(),
+                                false,
+                                true
+                        );
+                    }
+                    qrBusy = false;
+                })
+                .addOnFailureListener(e -> qrBusy = false);
+    }
+
+    private void showQrLayout() {
+        if (qrLayoutShown) return;
+        qrLayoutShown = true;
+        showQrGifLayout();
+    }
+
+    private void hideQrLayout() {
+        qrLayoutShown = false;
+        hideQrGifLayout();                                          // safe when it is not shown
     }
 
     // =============================================================================================
@@ -2327,6 +2457,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             setTorch(false);
             hideTiltLayouts();
             hideBarcodeLayout();
+            if (qrLayoutShown) hideQrLayout();
         } catch (Exception ignored) {
         }
         lightState = Light.OFF;

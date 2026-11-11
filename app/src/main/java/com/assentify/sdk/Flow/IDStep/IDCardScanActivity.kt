@@ -460,6 +460,9 @@ class IDCardScanActivity : FragmentActivity(), IDCardCallback {
                 IdLivenessInstruction.READING_BARCODE -> cs.idLivenessReadingBarcode
                 IdLivenessInstruction.BARCODE_READ -> cs.idLivenessBarcodeRead
 
+                // ---------- civil extract: its QR code ----------
+                IdLivenessInstruction.SCAN_QR -> cs.idLivenessScanQr
+
                 // ---------- PAUSES (the SDK continues by itself after a few seconds) ----------
                 IdLivenessInstruction.HOLD_IN_HAND -> cs.idLivenessHoldInHand
                 IdLivenessInstruction.PHONE_TURNED -> cs.idLivenessPhoneTurned
@@ -573,7 +576,7 @@ fun IDCardScanScreen(
                         val showResultPage = FlowController.getCurrentStep()!!.stepDefinition!!.customization.showResultPage
                             ?: false;
 
-                        if (flowEnv.enableQr && kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode) {
+                        if (isManual && flowEnv.enableQr && kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode) {
                             OnNormalCompleteScreen(imageUrl, onNext = {
                                 if (isManual) {
                                     scanIDManual?.stopScanning()
@@ -581,7 +584,7 @@ fun IDCardScanScreen(
                                     scanID?.stopScanning()
                                 }
                                 onNext(
-                                    kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                                    kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode && isManual,
                                 );
                             })
                         } else {
@@ -593,7 +596,7 @@ fun IDCardScanScreen(
                                         scanID?.stopScanning()
                                     }
                                     onNext(
-                                        kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                                        kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode && isManual,
                                     );
                                 })
 
@@ -605,7 +608,7 @@ fun IDCardScanScreen(
                                         scanID?.stopScanning()
                                     }
                                     onNext(
-                                        kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode,
+                                        kycDocumentDetails.first { it.templateProcessingKeyInformation == classifiedTemplate }.hasQrCode && isManual,
                                     );
                                 })
                             }

@@ -286,6 +286,8 @@ data class FlowStrings(
 
     val holdPassportTitle: String,
     val holdPassportMsg: String,
+
+    val idLivenessScanQr: String,
 )
 
 private val englishStrings = FlowStrings(
@@ -531,6 +533,8 @@ private val englishStrings = FlowStrings(
     holdPassportTitle = "Hold the passport in your hand",
     holdPassportMsg = "Pick it up off the table, then continue.",
 
+    idLivenessScanQr = "Move closer to the QR code",
+
     )
 
 private val arabicStrings = FlowStrings(
@@ -775,6 +779,7 @@ private val arabicStrings = FlowStrings(
     continueButton = "استمر",
     holdPassportTitle = "أمسك جواز السفر بيدك",
     holdPassportMsg = "ارفعه عن الطاولة، ثم تابع.",
+    idLivenessScanQr = "اقترب من رمز QR",
 )
 
 fun flowStrings(): FlowStrings =
