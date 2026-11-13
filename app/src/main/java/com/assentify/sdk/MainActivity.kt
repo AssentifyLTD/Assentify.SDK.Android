@@ -101,8 +101,8 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
 
 
-        etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
-        // etApiKey.setText("2R9sIKMVdY2UClCzDiMTmBZnO2v5bcfMUQszYgYETPqFTpHKSMYTleSBwZ9HRf5N4tRBq8iRWUNuHvMetHOiQ")
+        //etApiKey.setText("QwWzzKOYLkDzCLJ9lENlgvRQ1kmkKDv76KbJ9sPfr9Joxwj2DUuzC7htaZP89RqzgB9i9lHc4IpYOA7g")
+        etApiKey.setText("slyPlwwqBXZx5n4kaUW3H86vw8T9XXmjTddazuC5fPpyaMAJyuLQv81D1rHXrZwyVgTPdiXpFMnvD0Ud8nAw")
         //  etApiKey.setText("wzSw2ebGUF1H3mMt7CmjKz8ob5TuEV4UdvKhOUMKy2XcsVnIeKYmqdG5TdgFnaLn3JUXPdS5pUIo3gt2rAhCQ")
 
 
@@ -215,7 +215,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    configFileName =  "Mint",
+                    configFileName =  "QaFlow",
                     // processJsonConfigFile = path!!,
                     environmentalConditions = environmentalConditions,
                     assentifySdkCallback = this,
@@ -313,7 +313,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
 
             );
 
-            assentifySdk.clearFlow(this@MainActivity,)
+           assentifySdk.clearFlow(this@MainActivity,)
             assentifySdk.startFlow(
                 this@MainActivity,
                 flowCallback = this,

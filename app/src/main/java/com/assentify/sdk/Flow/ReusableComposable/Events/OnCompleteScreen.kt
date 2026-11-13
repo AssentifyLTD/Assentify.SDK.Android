@@ -96,8 +96,6 @@ fun OnCompleteScreen(
         return s
     }
 
-
-
     // ✅ allowed keys by "contains" (ignore UUID prefixes)
     val allowedKeyParts = remember(s.fieldFirstName) {
         linkedMapOf(
@@ -119,9 +117,14 @@ fun OnCompleteScreen(
             "OnBoardMe_IdentificationDocumentCapture_ID_MaritalStatus" to s.fieldMaritalStatus,
             "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfResidence" to s.fieldPlaceOfResidence,
             "OnBoardMe_IdentificationDocumentCapture_ID_Province" to s.fieldProvince,
-            "OnBoardMe_IdentificationDocumentCapture_ID_Governorate" to s.fieldGovernorate
+            "OnBoardMe_IdentificationDocumentCapture_ID_Governorate" to s.fieldGovernorate,
+            "OnBoardMe_IdentificationDocumentCapture_MothersName_Ar" to s.fieldMotherNameAr,
+            "OnBoardMe_IdentificationDocumentCapture_PlaceOfBirth_Ar" to s.fieldPlaceOfBirthAr,
+            "OnBoardMe_IdentificationDocumentCapture_FathersName_Ar" to s.fieldFatherNameAr,
         )
     }
+
+
 
     fun isAllowedKey(key: String): Boolean {
         return allowedKeyParts.keys.any { part ->

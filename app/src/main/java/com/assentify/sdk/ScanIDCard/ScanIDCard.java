@@ -406,44 +406,53 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     }
 
-    public void setStepId(String stepId) {
-        this.stepId = stepId;
-        if (this.stepId == null) {
-            long stepsCount = this.configModel.getStepDefinitions().stream()
-                    .filter(item -> item.getStepDefinition().equals("IdentificationDocumentCapture"))
-                    .count();
+    public void setStepId(String stepId,boolean enableSupportingDocument) {
+        if(enableSupportingDocument){
+            this.stepId = "";
+            performLivenessDocument = true;
+            processMrz = true;
+            storeCapturedDocument = true;
+            saveCapturedVideo = true;
+        }else {
+            this.stepId = stepId;
+            if (this.stepId == null) {
+                long stepsCount = this.configModel.getStepDefinitions().stream()
+                        .filter(item -> item.getStepDefinition().equals("IdentificationDocumentCapture"))
+                        .count();
 
-            if (stepsCount == 1) {
-                for (StepDefinitions item : this.configModel.getStepDefinitions()) {
-                    if (item.getStepDefinition().equals("IdentificationDocumentCapture")) {
-                        this.stepId = String.valueOf(item.getStepId());
-                        break;
+                if (stepsCount == 1) {
+                    for (StepDefinitions item : this.configModel.getStepDefinitions()) {
+                        if (item.getStepDefinition().equals("IdentificationDocumentCapture")) {
+                            this.stepId = String.valueOf(item.getStepId());
+                            break;
+                        }
+                    }
+                } else {
+                    if (this.stepId == null) {
+                        throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
                     }
                 }
-            } else {
-                if (this.stepId == null) {
-                    throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
+            }
+            for (StepDefinitions item : configModel.getStepDefinitions()) {
+                if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                    if (performLivenessDocument == null) {
+                        performLivenessDocument = item.getCustomization().getDocumentLiveness();
+                    }
+                    if (processMrz == null) {
+                        processMrz = item.getCustomization().getProcessMrz();
+                    }
+                    if (storeCapturedDocument == null) {
+                        storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
+                    }
+                    if (saveCapturedVideo == null) {
+                        saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
+                    }
+
+
                 }
             }
         }
-        for (StepDefinitions item : configModel.getStepDefinitions()) {
-            if (Integer.parseInt(this.stepId) == item.getStepId()) {
-                if (performLivenessDocument == null) {
-                    performLivenessDocument = item.getCustomization().getDocumentLiveness();
-                }
-                if (processMrz == null) {
-                    processMrz = item.getCustomization().getProcessMrz();
-                }
-                if (storeCapturedDocument == null) {
-                    storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
-                }
-                if (saveCapturedVideo == null) {
-                    saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
-                }
 
-
-            }
-        }
     }
 
 
@@ -547,6 +556,10 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                         environmentalConditions.getEnableDetect(), environmentalConditions.getEnableGuide(), start);
                 return;
             }
+        } else if (!localAllowed && start && !qrMode) {
+            // document liveness off: no card liveness, but the civil extract is still recognised and its QR read.
+            // Looked for now and then while the old capture runs as before (nothing is held back for it).
+            lookForExtract(normalImage);
         }
         if (qrMode) {                                               // the civil extract: read its QR code
             processQr(normalImage);
@@ -1044,14 +1057,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             lastNoCardClassifyAt = now;
         }
         if (card && classifyStart == 0) classifyStart = now;
-        if (docClassifier == null && !classifierFailed) {
-            try {
-                docClassifier = new DocumentClassifier(getActivity().getApplicationContext());
-            } catch (Exception e) {
-                classifierFailed = true;
-                Log.e("IdLiveness", "document classifier could not be loaded: " + e);
-            }
-        }
+        loadClassifier();
         if (docClassifier == null) {
             applyKind(null, "classifier unavailable");
             return;
@@ -1086,6 +1092,40 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             applyKind(null, "no supported card after " + CLASSIFY_MAX_MS + " ms (last " + r + ")");
         }
         // otherwise: keep trying on the next frame
+    }
+
+    /** The document classifier, once (classifierFailed: not again). */
+    private void loadClassifier() {
+        if (docClassifier != null || classifierFailed || getActivity() == null) return;
+        try {
+            docClassifier = new DocumentClassifier(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            classifierFailed = true;
+            Log.e("IdLiveness", "document classifier could not be loaded: " + e);
+        }
+    }
+
+    /**
+     * Document liveness OFF: only the civil extract is looked for (every CLASSIFY_NO_CARD_EVERY_MS, with or without a
+     * card box, the same confidence bars as with the liveness on). Found: its QR mode, as with the liveness on.
+     * Anything else changes nothing: the old capture goes on as before.
+     */
+    private void lookForExtract(Bitmap frame) {
+        if (getActivity() == null) return;
+        long now = SystemClock.elapsedRealtime();
+        if (now - lastNoCardClassifyAt < CLASSIFY_NO_CARD_EVERY_MS) return;
+        lastNoCardClassifyAt = now;
+        loadClassifier();
+        DocumentClassifier.Result r;
+        synchronized (finderLock) {
+            if (finderClosed || docClassifier == null) return;
+            r = docClassifier.classify(ImageUtils.rotateBitmap(scaleDown(frame, ANALYSIS_LONG_EDGE), frameRotationDegrees()));
+        }
+        boolean card = hasFaceOrCard();
+        if (KIND_CIVIL_EXTRACT.equals(DocumentClassifier.kindFor(r.label))
+                && r.confidence >= (card ? CLASSIFY_QR_MIN_CONF : CLASSIFY_QR_NO_CARD_CONF)) {
+            enterQrMode(r + " (document liveness off" + (card ? "" : ", no card box") + ")", frame);
+        }
     }
 
     /** Only the civil ID (front / back), the driving licence and the residence permit get the local liveness. */
@@ -2452,12 +2492,13 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     }
 
     private void interrupt() {
+        if (qrLayoutShown) hideQrLayout();                          // the extract's QR step (also with the liveness off)
+        if (qrMode) pendingReset = true;                            // it starts again after the background
         if (cfg == null) return;
         try {
             setTorch(false);
             hideTiltLayouts();
             hideBarcodeLayout();
-            if (qrLayoutShown) hideQrLayout();
         } catch (Exception ignored) {
         }
         lightState = Light.OFF;

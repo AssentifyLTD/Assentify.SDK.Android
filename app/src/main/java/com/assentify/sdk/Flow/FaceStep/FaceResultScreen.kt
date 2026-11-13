@@ -34,9 +34,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.assentify.sdk.Core.Constants.toBrush
 import com.assentify.sdk.FaceMatch.FaceResponseModel
 import com.assentify.sdk.Flow.BlockLoader.BaseTheme
+import com.assentify.sdk.Flow.FlowController.FlowController
 import com.assentify.sdk.Flow.FlowController.InterFont
 import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.BaseBackgroundContainer
@@ -47,191 +47,297 @@ import com.assentify.sdk.FlowEnvironmentalConditionsObject
 @Composable
 fun FaceResultScreen(
     faceModel: FaceResponseModel,
-    onNext: () -> Unit = {},
+    onNext: (isSkip: Boolean) -> Unit = {},
     onRetry: () -> Unit = {},
     onIDChange: () -> Unit = {},
 ) {
+    val  faceCurrentStep = FlowController.getCurrentStep()!!.stepDefinition!!.customization;
+    val supportingDocumentEnabled = faceCurrentStep.supportingDocumentEnabled ?: false ;
+
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
     val s = flowStrings()
-
     val match = faceModel.faceExtractedModel?.percentageMatch ?: 0
     val baseImage = faceModel.faceExtractedModel?.baseImageFace.orEmpty()
     val secondImage = faceModel.faceExtractedModel?.secondImageFace.orEmpty()
 
-    val title = if (match > BaseTheme.faceAcceptanceRate) s.verificationSuccess else s.verificationFail
-    val subTitle = if (match > BaseTheme.faceAcceptanceRate) s.verificationSuccessMsg else s.verificationFailMsg
+    var title = ""
+    var subTitle = ""
+    var borderColor = BaseTheme.BaseRedColor
 
-    val borderColor = when {
-        match!! > BaseTheme.faceAcceptanceRate -> BaseTheme.BaseGreenColor
-        else -> BaseTheme.BaseRedColor
+    if (!supportingDocumentEnabled) {
+        val threshold = faceCurrentStep.faceMatchPassThreshold ?: 60
+        val isPassed = match >= threshold
+
+        title = if (isPassed) s.verificationSuccess else s.verificationFail
+        subTitle = if (isPassed) s.verificationSuccessMsg else s.verificationFailMsg
+        borderColor = when {
+            isPassed -> BaseTheme.BaseGreenColor
+            faceCurrentStep.belowThresholdFlagAndPass == true ->
+                Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+            else -> BaseTheme.BaseRedColor
+        }
+    }else{
+        val threshold = faceCurrentStep.faceMatchPassThreshold ?: 60
+        val isPassed = match >= threshold
+        val supportingDocumentFrom  = faceCurrentStep.supportingDocumentFrom  ?: 20
+
+        title = if (isPassed) s.verificationSuccess else s.verificationFail
+        subTitle = if (isPassed) s.verificationSuccessMsg else s.verificationFailMsg
+        borderColor = when {
+            isPassed -> BaseTheme.BaseGreenColor
+            match >= supportingDocumentFrom -> Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+            else -> BaseTheme.BaseRedColor
+        }
     }
+
+
+
     BaseBackgroundContainer(
         modifier = Modifier.fillMaxSize()
     ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()              // respect status bar
-            .padding(horizontal = 24.dp)      // side padding like the mock
-            .padding(top = 24.dp, bottom = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        // TOP + MIDDLE CONTENT
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxSize()
+                .statusBarsPadding()              // respect status bar
+                .padding(horizontal = 24.dp)      // side padding like the mock
+                .padding(top = 24.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(150.dp))
 
-            // TOP
-            Text(
-                text = title,
-                color =   BaseTheme.BaseTextColor,
-                fontSize = 25.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 30.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp)
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = subTitle,
-                color =   BaseTheme.BaseTextColor,
-                fontSize = 10.sp,
-                fontFamily = InterFont,
-                fontWeight = FontWeight.Light,
-                lineHeight = 18.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // MIDDLE
-            Spacer(Modifier.height(32.dp))
-
+            // TOP + MIDDLE CONTENT
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val imageWidth = 140.dp
-                    val imageHeight = 160.dp
+                Spacer(Modifier.height(150.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .width(imageWidth)
-                            .height(imageHeight)
-                            .border(1.dp, borderColor, RoundedCornerShape(0.dp))
-                    ) {
-                        SecureImage(
-                            imageUrl = baseImage,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .width(imageWidth)
-                            .height(imageHeight)
-                            .border(1.dp, borderColor, RoundedCornerShape(0.dp))
-                    ) {
-                        SecureImage(
-                            imageUrl = secondImage,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(25.dp))
-
-                MatchProgress(
-                    percentage = match,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                // TOP
+                Text(
+                    text = title,
+                    color =   BaseTheme.BaseTextColor,
+                    fontSize = 25.sp,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 30.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
                 )
-            }
 
-            // Push content up, leave room for the bottom buttons
-            Spacer(Modifier.weight(1f))
-        }
+                Spacer(Modifier.height(8.dp))
 
-        // BOTTOM ACTIONS
-        when {
-            match > BaseTheme.faceAcceptanceRate -> {
-                Button(
-                    onClick = onNext,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    shape = RoundedCornerShape(999.dp),
+                Text(
+                    text = subTitle,
+                    color =   BaseTheme.BaseTextColor,
+                    fontSize = 10.sp,
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Light,
+                    lineHeight = 18.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // MIDDLE
+                Spacer(Modifier.height(32.dp))
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)  .background(
-                            brush = BaseTheme.BaseClickColor!!.toBrush(),
-                            shape = RoundedCornerShape(28.dp)
-                        )
                 ) {
-                    Text(s.next,
-                        fontFamily = InterFont,
-                        fontWeight = BaseTheme.BaseClickFontWeight,
-                        color =  BaseTheme.BaseSecondaryTextColor,
-                        modifier = Modifier.padding(vertical = 7.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val imageWidth = 140.dp
+                        val imageHeight = 160.dp
+
+                        Box(
+                            modifier = Modifier
+                                .width(imageWidth)
+                                .height(imageHeight)
+                                .border(1.dp, borderColor, RoundedCornerShape(0.dp))
+                        ) {
+                            SecureImage(
+                                imageUrl = baseImage,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .width(imageWidth)
+                                .height(imageHeight)
+                                .border(1.dp, borderColor, RoundedCornerShape(0.dp))
+                        ) {
+                            SecureImage(
+                                imageUrl = secondImage,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(25.dp))
+
+                    MatchProgress(
+                        percentage = match,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        progressColor = borderColor
+
+                    )
                 }
+
+                // Push content up, leave room for the bottom buttons
+                Spacer(Modifier.weight(1f))
             }
 
-            else -> {
-                    val corner = RoundedCornerShape(999.dp)
+            if(!supportingDocumentEnabled) {
+                when {
+                    match >= faceCurrentStep.faceMatchPassThreshold!! -> {
+                        Button(
+                            onClick = { onNext(false) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            shape = RoundedCornerShape(999.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .background(
+                                    color = BaseTheme.BaseGreenColor,
+                                    shape = RoundedCornerShape(28.dp)
+                                )
+                        ) {
+                            Text(s.next,
+                                fontFamily = InterFont,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
+                                color =  BaseTheme.BaseSecondaryTextColor,
+                                modifier = Modifier.padding(vertical = 7.dp))
+                        }
+                    }
 
-                Button(
-                    onClick = onRetry ,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    shape = corner,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .border(1.dp, Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)), corner)
-                ) {
-                    Text(s.retry,
-                        fontFamily = InterFont,
-                        fontWeight = BaseTheme.BaseClickFontWeight,
-                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                        modifier = Modifier.padding(vertical = 7.dp))
+                    else -> {
+                        val corner = RoundedCornerShape(999.dp)
+                        if(faceCurrentStep.belowThresholdFlagAndPass == true){
+                            Button(
+                                onClick = { onNext(true) },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                shape = RoundedCornerShape(999.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                                    .background(
+                                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                        shape = RoundedCornerShape(28.dp)
+                                    )
+                            ) {
+                                Text(s.skip,
+                                    fontFamily = InterFont,
+                                    fontWeight = BaseTheme.BaseClickFontWeight,
+                                    color =  BaseTheme.BaseSecondaryTextColor,
+                                    modifier = Modifier.padding(vertical = 7.dp))
+                            }
+                        }else{
+                            Button(
+                                onClick = onRetry,
+                                shape = corner,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                                    .background(
+                                        color =  BaseTheme.BaseRedColor,
+                                        shape = RoundedCornerShape(28.dp)
+                                    )
+                            ) {
+                                Text(s.retry,
+                                    fontFamily = InterFont,
+                                    fontWeight = BaseTheme.BaseClickFontWeight,
+                                    color =  BaseTheme.BaseSecondaryTextColor,
+                                    modifier = Modifier.padding(vertical = 7.dp))
+                            }
+                        }
+
+
+                    }
                 }
+            }else{
+                when {
+                    match >= faceCurrentStep.faceMatchPassThreshold!! -> {
+                        Button(
+                            onClick = { onNext(false) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            shape = RoundedCornerShape(999.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .background(
+                                    color = BaseTheme.BaseGreenColor,
+                                    shape = RoundedCornerShape(28.dp)
+                                )
+                        ) {
+                            Text(s.next,
+                                fontFamily = InterFont,
+                                fontWeight = BaseTheme.BaseClickFontWeight,
+                                color =  BaseTheme.BaseSecondaryTextColor,
+                                modifier = Modifier.padding(vertical = 7.dp))
+                        }
+                    }
 
-                    Spacer(Modifier.height(12.dp))
+                    else -> {
+                        when {
+                            match >= faceCurrentStep.supportingDocumentFrom!!  -> {
+                                val corner = RoundedCornerShape(999.dp)
+                                Button(
+                                    onClick = onIDChange,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                    shape = corner,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(54.dp)
+                                        .background(
+                                            color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
+                                            shape = RoundedCornerShape(28.dp)
+                                        )
+                                ) {
+                                    Text(s.provideSupportingId,
+                                        fontFamily = InterFont,
+                                        fontWeight = BaseTheme.BaseClickFontWeight,
+                                        color =  BaseTheme.BaseSecondaryTextColor,
+                                        modifier = Modifier.padding(vertical = 7.dp))
+                                }
+                            }
+                            else -> {
+                                val corner = RoundedCornerShape(999.dp)
+                                Button(
+                                    onClick = onRetry,
+                                    shape = corner,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp)
+                                        .background(
+                                            color =  BaseTheme.BaseRedColor,
+                                            shape = RoundedCornerShape(28.dp)
+                                        )
+                                ) {
+                                    Text(s.retry,
+                                        fontFamily = InterFont,
+                                        fontWeight = BaseTheme.BaseClickFontWeight,
+                                        color =  BaseTheme.BaseSecondaryTextColor,
+                                        modifier = Modifier.padding(vertical = 7.dp))
+                                }
+                            }
+                        }
 
-                Button(
-                     onClick = onNext,
-                     shape = corner,
-                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                     modifier = Modifier
-                         .fillMaxWidth()
-                         .height(54.dp)  .background(
-                             brush = BaseTheme.BaseClickColor!!.toBrush(),
-                             shape = RoundedCornerShape(28.dp)
-                         ) // consistent height
-                 ) {
-                     Text(s.next,
-                         fontFamily = InterFont,
-                         fontWeight = BaseTheme.BaseClickFontWeight,
-                         color =  BaseTheme.BaseSecondaryTextColor,
-                         modifier = Modifier.padding(vertical = 7.dp))
-                 }
-
-
+                    }
+                }
             }
-        }
+            // BOTTOM ACTIONS
 
-        Spacer(Modifier.navigationBarsPadding())
-    }}
+            Spacer(Modifier.navigationBarsPadding())
+        }}
 
 }
 
@@ -242,6 +348,7 @@ fun MatchProgress(
     modifier: Modifier = Modifier,
     size: Dp = 100.dp,
     strokeWidth: Dp = 2.dp,
+    progressColor: Color
 ) {
     val pct = (percentage ?: 0).coerceIn(0, 100)
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
@@ -249,10 +356,6 @@ fun MatchProgress(
     val s = flowStrings()
     val trackColor =   BaseTheme.BaseTextColor
 
-    val progressColor = when {
-        percentage!! > BaseTheme.faceAcceptanceRate -> BaseTheme.BaseGreenColor
-        else -> BaseTheme.BaseRedColor
-    }
     Box(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center
