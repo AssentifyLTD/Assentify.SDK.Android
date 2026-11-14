@@ -118,9 +118,9 @@ fun OnCompleteScreen(
             "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfResidence" to s.fieldPlaceOfResidence,
             "OnBoardMe_IdentificationDocumentCapture_ID_Province" to s.fieldProvince,
             "OnBoardMe_IdentificationDocumentCapture_ID_Governorate" to s.fieldGovernorate,
-            "OnBoardMe_IdentificationDocumentCapture_MothersName_Ar" to s.fieldMotherNameAr,
-            "OnBoardMe_IdentificationDocumentCapture_PlaceOfBirth_Ar" to s.fieldPlaceOfBirthAr,
-            "OnBoardMe_IdentificationDocumentCapture_FathersName_Ar" to s.fieldFatherNameAr,
+            "OnBoardMe_IdentificationDocumentCapture_ID_MothersNameAr" to s.fieldMotherNameAr,
+            "OnBoardMe_IdentificationDocumentCapture_ID_PlaceOfBirthAr" to s.fieldPlaceOfBirthAr,
+            "OnBoardMe_IdentificationDocumentCapture_ID_FathersNameAr" to s.fieldFatherNameAr,
         )
     }
 
