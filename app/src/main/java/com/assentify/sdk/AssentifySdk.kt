@@ -36,12 +36,17 @@ import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationMod
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
 import com.assentify.sdk.Questionnaire.Questionnaire
 import com.assentify.sdk.Questionnaire.QuestionnaireCallback
+import com.assentify.sdk.RemoteClient.Models.CompareFacesRequest
+import com.assentify.sdk.RemoteClient.Models.CompareFacesResponse
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.Models.IdentificationDocumentsDocumentType
+import com.assentify.sdk.RemoteClient.Models.IdentityMatchRequest
+import com.assentify.sdk.RemoteClient.Models.IdentityMatchResponse
 import com.assentify.sdk.RemoteClient.Models.SubmitRequestModel
 import com.assentify.sdk.RemoteClient.Models.Templates
 import com.assentify.sdk.RemoteClient.Models.TemplatesByCountry
 import com.assentify.sdk.RemoteClient.Models.TenantThemeModel
+import com.assentify.sdk.RemoteClient.Models.buildIdentity
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.ScanIDCard.IDCardCallback
 import com.assentify.sdk.ScanIDCard.ScanIDCard
@@ -209,6 +214,7 @@ class AssentifySdk(
         scanPassportCallback: ScanPassportCallback,
         language: String = Language.NON,
         stepId: Int? = null,
+        enableSupportingDocument: Boolean = false,
     ): ScanPassportResult {
         if (isKeyValid) {
             if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
@@ -228,7 +234,7 @@ class AssentifySdk(
                     apiKey,
                     language
                 )
-                scanPassport.setStepId(stepId?.toString())
+                scanPassport.setStepId(stepId?.toString(),enableSupportingDocument)
                 scanPassport.setScanPassportCallback(scanPassportCallback)
                 return ScanPassportResult.Auto(scanPassport)
             }
@@ -265,6 +271,7 @@ class AssentifySdk(
         templatesByCountry: TemplatesByCountry,
         language: String = Language.NON,
         stepId: Int? = null,
+        enableSupportingDocument: Boolean = false,
     ): ScanIDCardResult {
         if (isKeyValid) {
             if (ImageUtils.isLowCapabilities(context, this.environmentalConditions)) {
@@ -283,7 +290,7 @@ class AssentifySdk(
                     scnIDCardCallback,
                     templatesByCountry, language
                 )
-                scanIDCard.setStepId(stepId?.toString())
+                scanIDCard.setStepId(stepId?.toString(),enableSupportingDocument)
                 return ScanIDCardResult.Auto(scanIDCard);
             }
 
@@ -694,6 +701,22 @@ class AssentifySdk(
         return stepTemplates ?: emptyList()
     }
 
+    fun getTemplatesForSupportingDoc(supportingDocumentAcceptedDocuments: List<String>): TemplatesByCountry {
+        val acceptedIds = supportingDocumentAcceptedDocuments.toSet()
+
+        val templatesForSupportingDoc = allTemplates
+            .flatMap { it.templates }
+            .filter { tm -> tm.id.toString() in acceptedIds }
+
+        return TemplatesByCountry(
+            id = -1,
+            name = "",
+            sourceCountryCode = "",
+            flag = "",
+            templates = templatesForSupportingDoc
+        )
+    }
+
     /** FLOW **/
 
     public fun startFlow(
@@ -791,6 +814,116 @@ class AssentifySdk(
         ConfigModelObject.setConfigModelObject(
             null
         )
+    }
+
+
+    fun compareFaces(
+        sourceImageUrl: String,
+        targetImageUrl: String,
+        onSuccess: (CompareFacesResponse) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val config = configModel
+        if (config == null) {
+            onError("SDK is not initialized")
+            return
+        }
+
+        val sourceHash = extractBlobHash(sourceImageUrl)
+        val targetHash = extractBlobHash(targetImageUrl)
+        if (sourceHash == null || targetHash == null) {
+            onError("Invalid image URL, hash not found")
+            return
+        }
+
+        val remoteService = RemoteClient.remoteWidgetsService
+        val call = remoteService.compareFacesByHash(
+            xBlockIdentifier = config.blockIdentifier,
+            xFlowIdentifier = config.flowIdentifier,
+            xFlowInstanceId = config.flowInstanceId,
+            xInstanceHash = config.instanceHash,
+            xInstanceId = config.instanceId,
+            xTenantIdentifier = config.tenantIdentifier,
+            body = CompareFacesRequest(sourceHash, targetHash)
+        )
+
+        call.enqueue(object : Callback<CompareFacesResponse> {
+            override fun onResponse(
+                call: Call<CompareFacesResponse>,
+                response: Response<CompareFacesResponse>
+            ) {
+                val body = response.body()
+                when {
+                    !response.isSuccessful ->
+                        onError("Compare faces failed (${response.code()})")
+                    body == null ->
+                        onError("Empty compare faces response")
+                    body.error != null ->
+                        onError(body.error)
+                    else ->
+                        onSuccess(body)
+                }
+            }
+
+            override fun onFailure(call: Call<CompareFacesResponse>, t: Throwable) {
+                onError(t.message ?: "Network error")
+            }
+        })
+    }
+
+    fun identityMatch(
+        identityFields: List<String>,
+        primaryValues: Map<String, String?>,
+        documentValues: Map<String, String?>,
+        useCase: Int,
+        onSuccess: (IdentityMatchResponse) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val config = configModel
+        if (config == null) {
+            onError("SDK is not initialized")
+            return
+        }
+
+        val body = IdentityMatchRequest(
+            primary = buildIdentity(identityFields, primaryValues),
+            document = buildIdentity(identityFields, documentValues),
+            useCase= useCase
+        )
+
+        val call = RemoteClient.remoteWidgetsService.identityMatch(
+            xBlockIdentifier = config.blockIdentifier,
+            xFlowIdentifier = config.flowIdentifier,
+            xFlowInstanceId = config.flowInstanceId,
+            xInstanceHash = config.instanceHash,
+            xInstanceId = config.instanceId,
+            xTenantIdentifier = config.tenantIdentifier,
+            body = body
+        )
+
+        call.enqueue(object : Callback<IdentityMatchResponse> {
+            override fun onResponse(
+                call: Call<IdentityMatchResponse>,
+                response: Response<IdentityMatchResponse>
+            ) {
+                val result = response.body()
+                when {
+                    !response.isSuccessful -> onError("Identity match failed (${response.code()})")
+                    result == null -> onError("Empty identity match response")
+                    else -> onSuccess(result)
+                }
+            }
+
+            override fun onFailure(call: Call<IdentityMatchResponse>, t: Throwable) {
+                onError(t.message ?: "Network error")
+            }
+        })
+    }
+
+    private  fun extractBlobHash(blobUrl: String): String? {
+        val segments = blobUrl.substringBefore("?").split("/")
+        val index = segments.indexOf("Document")
+        return segments.getOrNull(index + 1)?.takeIf { it.isNotBlank() }
     }
 
 }

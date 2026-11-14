@@ -112,6 +112,7 @@ abstract class CameraPreview : Fragment() {
     private var tiltIRightLayout: LinearLayout? = null;
     private var tiltIBottomLayout: LinearLayout? = null;
     private var barCodeGifLayout : LinearLayout? = null;
+    private var qrGifLayout : LinearLayout? = null;
 
 
 
@@ -1038,6 +1039,34 @@ abstract class CameraPreview : Fragment() {
 
     }
 
+
+    protected fun showQrGifLayout (){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.GONE
+            }
+            if (qrGifLayout == null) {
+                qrGifLayout = requireActivity().findViewById(R.id.qrGifLayout)
+                qrGifLayout!!.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    protected fun hideQrGifLayout (){
+        if (!isAdded) return
+        requireActivity().runOnUiThread {
+            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
+                cardBackground!!.visibility = View.VISIBLE
+            }
+            if (qrGifLayout != null && qrGifLayout!!.visibility == View.VISIBLE) {
+                qrGifLayout!!.visibility = View.GONE
+                qrGifLayout = null;
+            }
+        }
+
+    }
 
 
     protected fun changeToBackLayout(color: String){

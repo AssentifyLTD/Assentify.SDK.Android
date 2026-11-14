@@ -147,7 +147,6 @@ public class FlowEnvironmentalConditions(
     val hideWrapUp: Boolean = false,
     val localMrzScan: Boolean = false,
 
-    val faceAcceptanceRate: Int = 50,
 
     ) {
 

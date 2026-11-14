@@ -3,6 +3,7 @@ package  com.assentify.sdk
 import android.content.Context
 import com.assentify.sdk.AssistedDataEntry.Models.AssistedDataEntryModel
 import com.assentify.sdk.Core.Constants.FlowEnvironmentalConditions
+import com.assentify.sdk.FaceMatch.FaceResponseModel
 import com.assentify.sdk.Flow.Models.FlowCallBack
 import com.assentify.sdk.Flow.Models.LocalStepModel
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
@@ -461,5 +462,22 @@ object HasSubmittedObject {
         prefs.edit()
             .remove(key())
             .apply()
+    }
+
+
+
+    object FaceModelObject {
+        private  var faceResponseModel: FaceResponseModel? = null
+        fun setFaceModelObject(faceResponseModel: FaceResponseModel) {
+            this.faceResponseModel = faceResponseModel
+        }
+
+        fun getFaceModelObject(): FaceResponseModel? {
+            return faceResponseModel
+        }
+
+        fun clear() {
+            faceResponseModel = null
+        }
     }
 }

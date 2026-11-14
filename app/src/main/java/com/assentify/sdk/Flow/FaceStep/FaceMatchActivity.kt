@@ -75,6 +75,7 @@ import com.assentify.sdk.Flow.FlowController.flowStrings
 import com.assentify.sdk.Flow.ReusableComposable.Events.EventTypes
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
+import com.assentify.sdk.HasSubmittedObject.FaceModelObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
@@ -132,8 +133,8 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onIDChange = {
-                         //  FlowController.faceIDChange();
-                         //  FlowController.backClick(context = this)
+                            FaceModelObject.setFaceModelObject(faceModel.value!!)
+                            SupportingDocComposeActivity.start(context = this)
                         },
                         onNext = {
                             val outputProps: MutableMap<String, String> =
@@ -143,17 +144,16 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                             Base64ImageObject.clear();
                             IDImageObject.clear();
 
-                            if(faceModel.value!!.faceExtractedModel!!.percentageMatch!! <= 50){
-                                var isSkippedStatusKey = "";
-                                outputProps.forEach {
-                                    if(it.key.contains("OnBoardMe_FaceImageAcquisition_IsSkippedStatus")){
-                                        isSkippedStatusKey = it.key
-                                    }
-                                }
-                                if(isSkippedStatusKey.isNotEmpty()){
-                                    outputProps[isSkippedStatusKey] = "true";
-                                }
-                            }
+                             var isSkippedStatusKey = "";
+                             outputProps.forEach {
+                                 if(it.key.contains("OnBoardMe_FaceImageAcquisition_IsSkippedStatus")){
+                                     isSkippedStatusKey = it.key
+                                 }
+                             }
+                             if(isSkippedStatusKey.isNotEmpty()){
+                                 outputProps[isSkippedStatusKey] = it.toString();
+                             }
+
 
                             if (!isNavigating) {
                                 isNavigating = true
@@ -373,7 +373,7 @@ fun FaceMatchScanScreen(
     onRetry: () -> Unit = {},
     onScanRetry: () -> Unit = {},
     onIDChange: () -> Unit = {},
-    onNext: () -> Unit = {},
+    onNext: (isSkip: Boolean) -> Unit = {},
     feedbackText: String,
     imageUrl: String,
     progress: Int,
@@ -416,7 +416,7 @@ fun FaceMatchScanScreen(
                     } else {
                         faceMatch!!.stopScanning()
                     }
-                    onNext();
+                    onNext(it);
                 }, onRetry = {
                     onScanRetry();
                 }, onIDChange = {

@@ -147,7 +147,7 @@ class RemoteProcessing {
         val traceIdentifier = UUID.randomUUID().toString()
         val call = RemoteClient.remoteWidgetsService.starProcessingIDs(
             url,
-            stepId,
+            stepId.ifEmpty { null },
             appConfiguration.blockIdentifier,
             appConfiguration.flowIdentifier,
             appConfiguration.flowInstanceId,

@@ -80,10 +80,20 @@
             android:name=".Flow.QuestionnaireStep.QuestionnaireActivity"
             android:taskAffinity="com.assentify.sdk.affinity" />
 
+        <activity
+            android:name=".Flow.FaceStep.SupportingDocComposeActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.FaceStep.SupportingIDCardScanActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
+        <activity
+            android:name=".Flow.FaceStep.SupportingPassportScanActivity"
+            android:taskAffinity="com.assentify.sdk.affinity" />
 
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4926f3132e616e760f865b69a1b93f28" />
+
 
 
         <!-- PDF FileProvider -->

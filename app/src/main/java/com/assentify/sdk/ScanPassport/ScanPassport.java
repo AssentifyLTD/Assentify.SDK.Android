@@ -390,44 +390,53 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         setEnvironmentalConditions(this.environmentalConditions);
     }
 
-    public void setStepId(String stepId) {
-        this.stepId = stepId;
-        if(this.stepId==null){
-            long stepsCount = this.configModel.getStepDefinitions().stream()
-                    .filter(item -> item.getStepDefinition().equals("IdentificationDocumentCapture"))
-                    .count();
+    public void setStepId(String stepId,boolean enableSupportingDocument) {
+        if(enableSupportingDocument){
+            this.stepId = "";
+            performLivenessDocument = true;
+            processMrz = true;
+            storeCapturedDocument = true;
+            saveCapturedVideo = true;
+        }else {
+            this.stepId = stepId;
+            if(this.stepId==null){
+                long stepsCount = this.configModel.getStepDefinitions().stream()
+                        .filter(item -> item.getStepDefinition().equals("IdentificationDocumentCapture"))
+                        .count();
 
-            if(stepsCount==1){
-                for (StepDefinitions item : this.configModel.getStepDefinitions()) {
-                    if (item.getStepDefinition().equals("IdentificationDocumentCapture")) {
-                        this.stepId = String.valueOf(item.getStepId());
-                        break;
+                if(stepsCount==1){
+                    for (StepDefinitions item : this.configModel.getStepDefinitions()) {
+                        if (item.getStepDefinition().equals("IdentificationDocumentCapture")) {
+                            this.stepId = String.valueOf(item.getStepId());
+                            break;
+                        }
+                    }
+                }else {
+                    if(this.stepId==null){
+                        throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
                     }
                 }
-            }else {
-                if(this.stepId==null){
-                    throw new IllegalArgumentException("Step ID is required because multiple 'Identification Document Capture' steps are present.");
+            }
+
+            for (StepDefinitions item : configModel.getStepDefinitions()) {
+                if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                    if (performLivenessDocument == null) {
+                        performLivenessDocument = item.getCustomization().getDocumentLiveness();
+                    }
+                    if (processMrz == null) {
+                        processMrz = item.getCustomization().getProcessMrz();
+                    }
+                    if (storeCapturedDocument == null) {
+                        storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
+                    }
+                    if (saveCapturedVideo == null) {
+                        saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
+                    }
+
+
                 }
             }
-        }
 
-        for (StepDefinitions item : configModel.getStepDefinitions()) {
-            if (Integer.parseInt(this.stepId) == item.getStepId()) {
-                if (performLivenessDocument == null) {
-                    performLivenessDocument = item.getCustomization().getDocumentLiveness();
-                }
-                if (processMrz == null) {
-                    processMrz = item.getCustomization().getProcessMrz();
-                }
-                if (storeCapturedDocument == null) {
-                    storeCapturedDocument = item.getCustomization().getStoreCapturedDocument();
-                }
-                if (saveCapturedVideo == null) {
-                    saveCapturedVideo = item.getCustomization().getSaveCapturedVideo();
-                }
-
-
-            }
         }
 
 

@@ -164,7 +164,8 @@ class PassportScanActivity : FragmentActivity(), ScanPassportCallback {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     PassportScanScreen(
-                        activity = this@PassportScanActivity, onBack = {
+                        activity = this@PassportScanActivity,
+                        onBack = {
                             onBackPressedDispatcher.onBackPressed()
                         },
                         onRetry = {

@@ -25,5 +25,7 @@ enum class IdLivenessInstruction {
     // ---- pauses (the SDK continues by itself) ----
     HOLD_IN_HAND,        // on a table: hold the card in your hand
     PHONE_TURNED,        // the phone turned in the tilt: move the card, not the phone
-    TOO_BRIGHT           // sun: too much light here
+    TOO_BRIGHT ,
+    SCAN_QR         // sun: too much light here
+
 }

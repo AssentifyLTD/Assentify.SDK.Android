@@ -101,7 +101,23 @@ data class Customization(
     val otpFormat: Int?,
     val inputProperties: List<InputProperty>?,
     val documentCaptures: List<DocumentCaptures>?,
-    val questions: List<QuestionModel>?
+    val questions: List<QuestionModel>?,
+
+    // Face match / supporting document
+    val faceMatchPassThreshold: Int? = null,
+    val belowThresholdFlagAndPass: Boolean? = null,
+    val supportingDocumentEnabled: Boolean? = null,
+    val supportingDocumentFrom: Int? = null,
+    val supportingDocumentAcceptedDocuments: List<String>? = null,
+    val identityFields: List<String>? = null,
+    val aiAdjudicatorEnabled: Boolean? = null,
+
+    val supportingDocumentAllowSkip: Boolean? = null,
+
+
+    /// Later
+    val hardStopEnabled: Boolean? = null,
+    val hardStopFields: List<String>? = null
 )
 
 data class Branch(

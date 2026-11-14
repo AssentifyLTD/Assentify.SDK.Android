@@ -4,8 +4,12 @@ import com.assentify.sdk.Flow.Models.DataSourceRequestBody
 import com.assentify.sdk.Flow.Models.DataSourceResponse
 import com.assentify.sdk.LanguageTransformation.Models.LanguageTransformationModel
 import com.assentify.sdk.LanguageTransformation.Models.TransformationModel
+import com.assentify.sdk.RemoteClient.Models.CompareFacesRequest
+import com.assentify.sdk.RemoteClient.Models.CompareFacesResponse
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentRequestModel
 import com.assentify.sdk.RemoteClient.Models.CreateUserDocumentResponseModel
+import com.assentify.sdk.RemoteClient.Models.IdentityMatchRequest
+import com.assentify.sdk.RemoteClient.Models.IdentityMatchResponse
 import com.assentify.sdk.RemoteClient.Models.RequestOtpModel
 import com.assentify.sdk.RemoteClient.Models.RequestOtpResponseModel
 import com.assentify.sdk.RemoteClient.Models.SignatureRequestModel
@@ -245,7 +249,7 @@ interface RemoteWidgetsService {
     @Headers("Accept: application/json, text/plain, */*")
     fun starProcessingIDs(
         @Url url: String,
-        @Header("x-step-id") stepID: String,
+        @Header("x-step-id") stepID: String?,
         @Header("x-block-identifier") xBlockIdentifier: String,
         @Header("x-flow-identifier") xFlowIdentifier: String,
         @Header("x-flow-instance-id") xFlowInstanceId: String,
@@ -304,6 +308,39 @@ interface RemoteWidgetsService {
         @Part("IsManualCapture") isManualCapture: RequestBody,
         @Part("callerConnectionId") callerConnectionId: RequestBody,
     ): Call<ResponseBody>
+
+    @POST("v3/api/IdentificationDocument/CompareFaces")
+    @JvmSuppressWildcards
+    @Headers(
+        "Accept: application/json, text/plain, */*",
+        "Content-Type: application/json"
+    )
+    fun compareFacesByHash(
+        @Header("x-block-identifier") xBlockIdentifier: String,
+        @Header("x-flow-identifier") xFlowIdentifier: String,
+        @Header("x-flow-instance-id") xFlowInstanceId: String,
+        @Header("x-instance-hash") xInstanceHash: String,
+        @Header("x-instance-id") xInstanceId: String,
+        @Header("x-tenant-identifier") xTenantIdentifier: String,
+        @Body body: CompareFacesRequest
+    ): Call<CompareFacesResponse>
+
+
+    @POST("api/IdentificationDocument/IdentityMatch")
+    @JvmSuppressWildcards
+    @Headers(
+        "Accept: application/json, text/plain, */*",
+        "Content-Type: application/json"
+    )
+    fun identityMatch(
+        @Header("x-block-identifier") xBlockIdentifier: String,
+        @Header("x-flow-identifier") xFlowIdentifier: String,
+        @Header("x-flow-instance-id") xFlowInstanceId: String,
+        @Header("x-instance-hash") xInstanceHash: String,
+        @Header("x-instance-id") xInstanceId: String,
+        @Header("x-tenant-identifier") xTenantIdentifier: String,
+        @Body body: IdentityMatchRequest
+    ): Call<IdentityMatchResponse>
 
 }
 

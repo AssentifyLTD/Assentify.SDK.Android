@@ -286,6 +286,19 @@ data class FlowStrings(
 
     val holdPassportTitle: String,
     val holdPassportMsg: String,
+
+    val idLivenessScanQr: String,
+    val supportingDocumentTitle: String,
+    val supportingDocumentTMsg: String,
+
+    val supportingDocPassedMsg : String,
+    val supportingDocFaceNoMatchMsg : String,
+    val supportingDocIdentityMismatchMsg : String,
+    val supportingDocBothFailedMsg : String,
+
+    val fieldMotherNameAr : String,
+    val fieldPlaceOfBirthAr : String,
+    val fieldFatherNameAr : String,
 )
 
 private val englishStrings = FlowStrings(
@@ -531,6 +544,19 @@ private val englishStrings = FlowStrings(
     holdPassportTitle = "Hold the passport in your hand",
     holdPassportMsg = "Pick it up off the table, then continue.",
 
+    idLivenessScanQr = "Move closer to the QR code",
+    supportingDocumentTitle = "Additional Document Required",
+    supportingDocumentTMsg = "We couldn't confirm your face match. Please provide another identity document to continue your verification.",
+
+    supportingDocPassedMsg = "Your supporting document has been verified successfully. You can continue.",
+    supportingDocFaceNoMatchMsg = "The face on the document doesn't match your selfie. Please try again with a clearer document.",
+    supportingDocIdentityMismatchMsg = "The details on this document don't match your original ID. Please use a document that belongs to you.",
+    supportingDocBothFailedMsg = "We couldn't verify this document. The face and the details don't match your original ID.",
+
+    fieldMotherNameAr = "Mother's Name (Arabic)",
+    fieldPlaceOfBirthAr = "Place of Birth (Arabic)",
+    fieldFatherNameAr = "Father's Name (Arabic)",
+
     )
 
 private val arabicStrings = FlowStrings(
@@ -775,6 +801,18 @@ private val arabicStrings = FlowStrings(
     continueButton = "استمر",
     holdPassportTitle = "أمسك جواز السفر بيدك",
     holdPassportMsg = "ارفعه عن الطاولة، ثم تابع.",
+    idLivenessScanQr = "اقترب من رمز QR",
+    supportingDocumentTitle = "مطلوب مستند إضافي",
+    supportingDocumentTMsg = "لم نتمكن من تأكيد تطابق الوجه. يرجى تقديم مستند هوية آخر لمتابعة عملية التحقق.",
+
+    supportingDocPassedMsg = "تم التحقق من المستند الداعم بنجاح. يمكنك المتابعة.",
+    supportingDocFaceNoMatchMsg = "الوجه في المستند لا يطابق صورتك الشخصية. يرجى المحاولة مرة أخرى بمستند أوضح.",
+    supportingDocIdentityMismatchMsg = "البيانات في هذا المستند لا تطابق هويتك الأصلية. يرجى استخدام مستند يخصك.",
+    supportingDocBothFailedMsg = "لم نتمكن من التحقق من هذا المستند. الوجه والبيانات لا تطابق هويتك الأصلية.",
+
+    fieldMotherNameAr = "اسم الأم (بالعربية)",
+    fieldPlaceOfBirthAr = "مكان الولادة (بالعربية)",
+    fieldFatherNameAr = "اسم الأب (بالعربية)",
 )
 
 fun flowStrings(): FlowStrings =
