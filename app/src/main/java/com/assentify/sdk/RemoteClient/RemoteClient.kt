@@ -9,11 +9,11 @@ import java.util.concurrent.TimeUnit
 object RemoteClient {
 
     // Defaults
-    private const val DEFAULT_WIDGETS_SOCKET_URL = "https://qa.widgets.socket.assentify.com/"
-    private const val DEFAULT_BASE_URL_SIGNING = "https://qa.signme.assentify.com/api/"
-    private const val DEFAULT_BASE_URL_GATEWAY = "https://qa.api.gateway.assentify.com/webapi/"
-    private const val DEFAULT_BLOB_STORAGE_URL = "https://qa.blob.assentify.com/"
-    private const val DEFAULT_LANGUAGE_TRANSFORM_URL = "https://qa.widgets.socket.assentify.com/api/"
+    private const val DEFAULT_WIDGETS_SOCKET_URL = "https://widgets.socket.assentify.com/"
+    private const val DEFAULT_BASE_URL_SIGNING = "https://signme.assentify.com/api/"
+    private const val DEFAULT_BASE_URL_GATEWAY = "https://api.gateway.assentify.com/webapi/"
+    private const val DEFAULT_BLOB_STORAGE_URL = "https://blob.assentify.com/"
+    private const val DEFAULT_LANGUAGE_TRANSFORM_URL = "https://widgets.socket.assentify.com/api/"
 
     @Volatile var WIDGETS_SOCKET_URL = DEFAULT_WIDGETS_SOCKET_URL
         private set
