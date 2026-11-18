@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 object RemoteClient {
 
     // Defaults
-    private const val DEFAULT_WIDGETS_SOCKET_URL = "https://qwidgets.socket.assentify.com/"
+    private const val DEFAULT_WIDGETS_SOCKET_URL = "https://widgets.socket.assentify.com/"
     private const val DEFAULT_BASE_URL_SIGNING = "https://signme.assentify.com/api/"
     private const val DEFAULT_BASE_URL_GATEWAY = "https://api.gateway.assentify.com/webapi/"
     private const val DEFAULT_BLOB_STORAGE_URL = "https://blob.assentify.com/"
