@@ -247,40 +247,23 @@ class SupportingIDCardScanActivity : FragmentActivity(), IDCardCallback {
     }
 
     /** Next / Skip on the result screen: write the keys and continue the flow. */
+    /** Next / Skip on the result screen: write the keys and continue the flow. */
     private fun finishSupportingDoc(isSkip: Boolean) {
-        val outputProps: MutableMap<String, String> =
-            FaceModelObject.getFaceModelObject()!!.faceExtractedModel!!.outputProperties!!
-                .mapValues { it.value.toString() }
-                .toMutableMap()
+        if (isNavigating) return
+        isNavigating = true
+
+        val outputProps = SupportingDocOutputs.outputProperties(
+            isSkip = isSkip,
+            faceResult = faceResultState.value,
+            identityResult = identityResultState.value,
+            documentProperties = extractedInformation.value.orEmpty(),
+            documentFace = supportingDocImage.value
+        )
         Base64ImageObject.clear()
         IDImageObject.clear()
 
-        outputProps.keys
-            .firstOrNull { it.contains("OnBoardMe_FaceImageAcquisition_IsSkippedStatus") }
-            ?.let { outputProps[it] = isSkip.toString() }
-
-        val faceResult = faceResultState.value
-        val identityResult = identityResultState.value
-
-        outputProps["status"] = faceResult?.status?.toString().orEmpty()
-        outputProps["scanStatus"] = faceResult?.scanStatus.orEmpty()
-        outputProps["matchScore"] = faceResult?.matchScore?.toString().orEmpty()
-        outputProps["isLive"] = faceResult?.isLive?.toString().orEmpty()
-        outputProps["error"] = faceResult?.error.orEmpty()
-
-        outputProps["samePerson"] = identityResult?.samePerson?.toString().orEmpty()
-        outputProps["confidence"] = identityResult?.confidence?.toString().orEmpty()
-        outputProps["reason"] = identityResult?.reason.orEmpty()
-
-        extractedInformation.value?.forEach {
-            outputProps[it.key] = it.value
-        }
-
-        if (!isNavigating) {
-            isNavigating = true
-            FlowController.makeCurrentStepDone(outputProps, timeStarted)
-            FlowController.naveToNextStep(context = this)
-        }
+        FlowController.makeCurrentStepDone(outputProps, timeStarted)
+        FlowController.naveToNextStep(context = this)
     }
 
     /** Face compare + identity match in parallel, then the result screen. */
