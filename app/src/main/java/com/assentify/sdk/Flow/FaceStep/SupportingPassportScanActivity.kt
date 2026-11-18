@@ -103,7 +103,6 @@ import com.assentify.sdk.Flow.ReusableComposable.HoldCardInHandPopup
 import com.assentify.sdk.Flow.ReusableComposable.ProgressStepper.ProgressStepper
 import com.assentify.sdk.FlowEnvironmentalConditionsObject
 import com.assentify.sdk.HasSubmittedObject
-import com.assentify.sdk.HasSubmittedObject.FaceModelObject
 import com.assentify.sdk.IDImageObject
 import com.assentify.sdk.Models.BaseResponseDataModel
 import com.assentify.sdk.Models.getImageUrlFromBaseResponseDataModel
@@ -184,46 +183,22 @@ class SupportingPassportScanActivity : FragmentActivity(), ScanPassportCallback 
                         onRestart = {
                             onBackPressedDispatcher.onBackPressed()
                         },
-                        onNext = { it ->
-                            val outputProps: MutableMap<String, String> =
-                                FaceModelObject.getFaceModelObject()!!.faceExtractedModel!!.outputProperties!!
-                                    .mapValues { it.value.toString() }
-                                    .toMutableMap()
-                            Base64ImageObject.clear();
-                            IDImageObject.clear();
-
-                            var isSkippedStatusKey = "";
-                            outputProps.forEach {
-                                if(it.key.contains("OnBoardMe_FaceImageAcquisition_IsSkippedStatus")){
-                                    isSkippedStatusKey = it.key
-                                }
-                            }
-                            if(isSkippedStatusKey.isNotEmpty()){
-                                outputProps[isSkippedStatusKey] = it.toString();
-                            }
-
-                            val faceResult = faceResultState.value
-                            val identityResult = identityResultState.value
-
-                            outputProps["status"] =  faceResult?.status?.toString().orEmpty()
-                            outputProps["scanStatus"] =  faceResult?.scanStatus.orEmpty()
-                            outputProps["matchScore"] =  faceResult?.matchScore?.toString().orEmpty()
-                            outputProps["isLive"] =  faceResult?.isLive?.toString().orEmpty()
-                            outputProps["error"] =  faceResult?.error.orEmpty()
-
-                            outputProps["samePerson"] =  identityResult?.samePerson?.toString().orEmpty()
-                            outputProps["confidence"] =  identityResult?.confidence?.toString().orEmpty()
-                            outputProps["reason"] =  identityResult?.reason.orEmpty()
-
-                            dataIDModel.value!!.passportExtractedModel!!.transformedProperties!!.forEach {
-                                outputProps[it.key] =  it.value
-                            }
-
+                        onNext = { isSkip ->
                             if (!isNavigating) {
                                 isNavigating = true
-                                FlowController.makeCurrentStepDone(outputProps,timeStarted);
-                                FlowController.naveToNextStep(context = this)
 
+                                val outputProps = SupportingDocOutputs.outputProperties(
+                                    isSkip = isSkip,
+                                    faceResult = faceResultState.value,
+                                    identityResult = identityResultState.value,
+                                    documentProperties = dataIDModel.value?.passportExtractedModel?.transformedProperties.orEmpty(),
+                                    documentFace = supportingDocImage.value
+                                )
+                                Base64ImageObject.clear()
+                                IDImageObject.clear()
+
+                                FlowController.makeCurrentStepDone(outputProps, timeStarted)
+                                FlowController.naveToNextStep(context = this)
                             }
                         },
                         feedbackText = feedbackText.value,

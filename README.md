@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.73***
+1. *Supporting Document*
+
 ***1.0.0-Beta.72***
 1. *Supporting Document*
 
