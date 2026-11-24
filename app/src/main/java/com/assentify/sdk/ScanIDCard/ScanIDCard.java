@@ -727,7 +727,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                                 retryCount++;
                                 start = true;
                                 pendingReset = true;
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnBarcodeMismatchMessage);
                                 idCardCallback.onRetry(BaseResponseDataModel);
                                 return;
                             } else {
@@ -737,16 +737,25 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                             }
                         }
 
-                        if (Objects.equals(language, Language.NON)) {
-                            idCardCallback.onComplete(idResponseModel, isFrontPage(), isLastPage, classifiedTemplate);
-                        } else {
-                            LanguageTransformation translated = new LanguageTransformation(apiKey);
-                            translated.setCallback(ScanIDCard.this);
-                            translated.languageTransformation(
-                                    language,
-                                    preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
-                            );
+                        if(Boolean.TRUE.equals(idExtractedModel.getBarcodeOcrChecked()) && Boolean.TRUE.equals(idExtractedModel.getBarcodeOcrMismatch())){
+                            retryCount++;
+                            start = true;
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnBarcodeMismatchMessage);
+                            idCardCallback.onRetry(BaseResponseDataModel);
+                        }else {
+                            if (Objects.equals(language, Language.NON)) {
+                                idCardCallback.onComplete(idResponseModel, isFrontPage(), isLastPage, classifiedTemplate);
+                            } else {
+                                LanguageTransformation translated = new LanguageTransformation(apiKey);
+                                translated.setCallback(ScanIDCard.this);
+                                translated.languageTransformation(
+                                        language,
+                                        preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
+                                );
+                            }
                         }
+
+
 
 
                     } else if (eventName.equals(HubConnectionTargets.ON_RETRY)) {

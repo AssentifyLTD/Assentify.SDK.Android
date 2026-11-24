@@ -641,16 +641,23 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                             BaseResponseDataModel.setError(EventsErrorMessages.OnExpiredPassportMessage);
                             scanPassportCallback.onRetry(BaseResponseDataModel);
                         }else {
-                            start = false;
-                            if (Objects.equals(language, Language.NON)) {
-                                scanPassportCallback.onComplete(passportResponseModel);
-                            } else {
-                                LanguageTransformation translated = new LanguageTransformation(apiKey);
-                                translated.setCallback(ScanPassport.this);
-                                translated.languageTransformation(
-                                        language,
-                                        preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
-                                );
+                            if(Boolean.TRUE.equals(passportExtractedModel.getMrzVizChecked()) && Boolean.TRUE.equals(passportExtractedModel.getMrzVizMismatch())){
+                                retryCount++;
+                                start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnPassportMrzMismatchMessage);
+                                scanPassportCallback.onRetry(BaseResponseDataModel);
+                            }else {
+                                start = false;
+                                if (Objects.equals(language, Language.NON)) {
+                                    scanPassportCallback.onComplete(passportResponseModel);
+                                } else {
+                                    LanguageTransformation translated = new LanguageTransformation(apiKey);
+                                    translated.setCallback(ScanPassport.this);
+                                    translated.languageTransformation(
+                                            language,
+                                            preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
+                                    );
+                                }
                             }
                         }
 

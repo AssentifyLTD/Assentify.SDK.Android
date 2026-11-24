@@ -311,17 +311,23 @@ public class ScanIDCardManual extends CameraPreview implements RemoteProcessingC
                                 BaseResponseDataModel.getSuccess()
                         );
 
-                        if (Objects.equals(language, Language.NON)) {
-                            idCardCallback.onComplete(idResponseModel,isFrontPage(),isLastPage,classifiedTemplate);
-                        } else {
-                            LanguageTransformation translated = new LanguageTransformation(apiKey);
-                            translated.setCallback(ScanIDCardManual.this);
-                            translated.languageTransformation(
-                                    language,
-                                    preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
-                            );
+                        if(Boolean.TRUE.equals(idExtractedModel.getBarcodeOcrChecked()) && Boolean.TRUE.equals(idExtractedModel.getBarcodeOcrMismatch())){
+                            retryCount++;
+                            start = true;
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnBarcodeMismatchMessage);
+                            idCardCallback.onRetry(BaseResponseDataModel);
+                        }else{
+                            if (Objects.equals(language, Language.NON)) {
+                                idCardCallback.onComplete(idResponseModel,isFrontPage(),isLastPage,classifiedTemplate);
+                            } else {
+                                LanguageTransformation translated = new LanguageTransformation(apiKey);
+                                translated.setCallback(ScanIDCardManual.this);
+                                translated.languageTransformation(
+                                        language,
+                                        preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
+                                );
+                            }
                         }
-
 
                     } else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {
                         retryCount++;

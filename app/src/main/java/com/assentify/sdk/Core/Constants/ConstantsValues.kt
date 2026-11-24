@@ -46,6 +46,10 @@ object EventsErrorMessages {
 
     const val OnExpiredPassportMessage = "Expired Passport Detected"
 
+    const val OnPassportMrzMismatchMessage = "Passport MRZ Data Mismatch"
+
+    const val OnBarcodeMismatchMessage = "Barcode Data Mismatch"
+
 }
 
 

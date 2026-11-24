@@ -401,6 +401,12 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
         }
     };
 
+    // ---- TEMP switch: the local liveness ----
+    // true  = as before: flat hold -> light -> tilt -> verdict, then the MRZ is read.
+    // false = the liveness is skipped: the passport is found, held flat (the flat hold, its still photo and its frames
+    //         are kept for the MRZ), then the MRZ is read and sent at once. No light, no tilt, no verdict.
+    private static final boolean LOCAL_LIVENESS_ENABLED = true;
+
     // ---- debug ----
     private static final boolean DEBUG_LOGS = false;                // TEMP: set false for release
 
@@ -1594,6 +1600,12 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
         // local MRZ: the still photo is being taken; the light comes on after it (at most STILL_WAIT_MS)
         if (unlitImg == null && stillPending && now - stillRequestedAt < STILL_WAIT_MS) return;
 
+        // TEMP: the local liveness switched off -> no light, no tilt: read the MRZ now (the still is in by here)
+        if (!LOCAL_LIVENESS_ENABLED) {
+            skipLiveness();
+            return;
+        }
+
         // 1) unlit reference + light request
         if (unlitImg == null) {
             if (lastPixelQuad == null || lastUpright == null) return;
@@ -1958,6 +1970,20 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
                 notifyLivenessFailed();
                 break;
         }
+    }
+
+    /**
+     * TEMP (LOCAL_LIVENESS_ENABLED = false): the flat hold is done and its still taken; no light, no tilt, no verdict.
+     * Goes on exactly like a passed liveness: the frame stays green and processImage reads the MRZ and sends it.
+     */
+    private void skipLiveness() {
+        phase = Phase.DONE;
+        android.util.Log.d("PassportLiveness", "local liveness OFF (LOCAL_LIVENESS_ENABLED = false): reading the MRZ");
+        setProgress(100);
+        hint(PassportLivenessInstruction.KEEP_HOLDING);
+        livenessFrameGood = true;
+        livenessPassed = true;
+        finalReady = true;                                          // processImage -> stopRecording -> the MRZ
     }
 
     /**
