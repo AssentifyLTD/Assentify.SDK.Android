@@ -553,6 +553,23 @@ fun LocalPassportScanScreen(
             }
 
             if (eventTypes == EventTypes.none && !showHoldPopup) {   // the instructions start once the popup is closed
+
+                // ---------- TOP: the instruction (whenever the tilt meter is not shown) ----------
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .align(Alignment.TopCenter)
+                        .padding(start = 20.dp, end = 20.dp, top = 50.dp)     // under the back / logo row
+                ) {
+                    LocalLivenessFeedback(
+                        text = if (!tiltProgressVisible) feedbackText else "",
+                        tiltProgress = tiltProgress,
+                        tiltProgressVisible = false
+                    )
+                }
+
+                // ---------- BOTTOM: the instruction with the tilt meter (only while the passport is tilted) ----------
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -561,7 +578,7 @@ fun LocalPassportScanScreen(
                         .padding(start = 20.dp, end = 20.dp, bottom = 25.dp)
                 ) {
                     LocalLivenessFeedback(
-                        text = feedbackText,
+                        text = if (tiltProgressVisible) feedbackText else "",
                         tiltProgress = tiltProgress,
                         tiltProgressVisible = tiltProgressVisible
                     )
@@ -632,7 +649,7 @@ private fun LocalLivenessFeedback(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        LocalPulsingDot(color = accent, active = !done)
+                        LocalPulsingDot(color = accent, active = !(tiltProgressVisible && done))
                         Spacer(Modifier.width(8.dp))
                         Text(
                             current,

@@ -215,7 +215,7 @@ class MainActivity : AppCompatActivity(), AssentifySdkCallback, FlowCallBack {
                 );
                 assentifySdk = AssentifySdk(
                     apiKey = config.apiKey,
-                    configFileName =  "Mint",
+                    configFileName =  "pixelConfig",
                     // processJsonConfigFile = path!!,
                     environmentalConditions = environmentalConditions,
                     assentifySdkCallback = this,

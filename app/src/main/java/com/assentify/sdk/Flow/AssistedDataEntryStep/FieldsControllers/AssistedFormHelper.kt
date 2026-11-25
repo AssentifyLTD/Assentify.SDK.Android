@@ -188,20 +188,25 @@ object AssistedFormHelper {
                 if (key == value && list.isNotEmpty()) {
                     val pageList =
                         model.assistedDataEntryPages[page].dataEntryPageElements.toMutableList()
-                    var insertIndex = pageList.indexOf(field) + 1
+
+                    val existingIds = pageList.map { it.elementIdentifier }.toMutableSet()
+                    var insertIndex = pageList.indexOfFirst { it.elementIdentifier == field.elementIdentifier } + 1
+
                     list.forEach { element ->
-                        if (!pageList.contains(element)) {
+                        if (existingIds.add(element.elementIdentifier)) {
                             pageList.add(insertIndex, element)
                             insertIndex++
                         }
                     }
+
                     model.assistedDataEntryPages[page].dataEntryPageElements = pageList
                 } else {
+                    val keysToRemove = list.map { it.elementIdentifier }.toSet()
                     model.assistedDataEntryPages[page].dataEntryPageElements =
                         model.assistedDataEntryPages[page].dataEntryPageElements
                             .toMutableList()
                             .apply {
-                                removeAll(list)
+                                removeAll { it.elementIdentifier in keysToRemove }
                             }
                 }
             }
@@ -235,20 +240,25 @@ object AssistedFormHelper {
                 if (dataSourceAttribute.isNotEmpty() && key == dataSourceAttribute.first{i->i.mappedKey =="Display Value"}.value && list.isNotEmpty()) {
                     val pageList =
                         model.assistedDataEntryPages[page].dataEntryPageElements.toMutableList()
-                    var insertIndex = pageList.indexOf(field) + 1
+
+                    val existingIds = pageList.map { it.elementIdentifier }.toMutableSet()
+                    var insertIndex = pageList.indexOfFirst { it.elementIdentifier == field.elementIdentifier } + 1
+
                     list.forEach { element ->
-                        if (!pageList.contains(element)) {
+                        if (existingIds.add(element.elementIdentifier)) {
                             pageList.add(insertIndex, element)
                             insertIndex++
                         }
                     }
+
                     model.assistedDataEntryPages[page].dataEntryPageElements = pageList
                 } else {
+                    val keysToRemove = list.map { it.elementIdentifier }.toSet()
                     model.assistedDataEntryPages[page].dataEntryPageElements =
                         model.assistedDataEntryPages[page].dataEntryPageElements
                             .toMutableList()
                             .apply {
-                                removeAll(list)
+                                removeAll { it.elementIdentifier in keysToRemove }
                             }
                 }
             }

@@ -94,6 +94,14 @@ fun SecureDropdownWithDataSource(
     // Always call the latest callback from long-running effects
     val currentOnValueChange by rememberUpdatedState(onValueChange)
 
+    // The step this dropdown belongs to, captured once when it is created.
+    // FilterManager, AssistedDataEntryPagesObject and getCurrentStep() are global: when
+    // another AssistedDataEntry step is opened on top, this (still alive) form must not
+    // react to that step's filter changes, read its model, or fetch with its step id.
+    val ownStepId = remember { FlowController.getCurrentStep()?.stepDefinition?.stepId }
+    fun isOwnStepActive(): Boolean =
+        ownStepId != null && FlowController.getCurrentStep()?.stepDefinition?.stepId == ownStepId
+
     var dataSourceData by remember(currentKey) {
         mutableStateOf<DataSourceData?>(loadedMap[currentKey])
     }
@@ -145,6 +153,10 @@ fun SecureDropdownWithDataSource(
     }
 
     LaunchedEffect(triggerFilter) {
+        // A filter change from another step's form: ignore it. When this form is shown
+        // again, triggerFilter's latest value re-runs this effect against the right model.
+        if (!isOwnStepActive()) return@LaunchedEffect
+
         val newFilterKeyValues = withContext(Dispatchers.Default) {
             AssistedFormHelper.getFilterValue(dataSourceData)
         }
@@ -187,7 +199,8 @@ fun SecureDropdownWithDataSource(
         try {
             val response = loadDataSourceSuspend(
                 field = field,
-                filterKeyValues = filterKeyValues
+                filterKeyValues = filterKeyValues,
+                stepId = ownStepId
             )
 
             val loadedData = response?.data ?: return@LaunchedEffect
@@ -544,11 +557,12 @@ private fun List<DataSourceAttribute>.displayValue(): String =
 
 private suspend fun loadDataSourceSuspend(
     field: DataEntryPageElement,
-    filterKeyValues: Map<String, String>
+    filterKeyValues: Map<String, String>,
+    stepId: Int?
 ): DataSourceResponse? {
-    // No !! — when the activity is exiting, the current step can already be null
+    // Use the dropdown's own step id, never getCurrentStep(): another step may be on top.
     val configModelObject = ConfigModelObject.getConfigModelObject() ?: return null
-    val stepId = FlowController.getCurrentStep()?.stepDefinition?.stepId ?: return null
+    if (stepId == null) return null
     val endpointId = field.endpointId ?: return null
 
     return withContext(Dispatchers.IO) {

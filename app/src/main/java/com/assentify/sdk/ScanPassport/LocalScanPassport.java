@@ -1735,7 +1735,7 @@ public class LocalScanPassport extends CameraPreviewLocalMrz implements Language
         lastMoveAt = now;
         enterPhase(Phase.SWEEP, now);
         tiltStart = true;
-        showLbTiltPassportLayout();
+        showLbTiltPassportLayout(environmentalConditions.getHoldHandColor());
         hint(PassportLivenessInstruction.LIFT_BOTTOM);
     }
 

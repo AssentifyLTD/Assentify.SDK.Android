@@ -16,15 +16,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -118,16 +119,15 @@ fun AssistedDataEntryPager(
 
             val pageModel =  assistedDataEntryPages.value[page]
 
-            val listState = remember(page) { LazyListState() } // ✅ one state per page
+            // One scroll state per page. A plain (non-lazy) Column is used on purpose:
+            // every field widget is composed as soon as the page opens, so each one
+            // writes its default value (from earlier steps) into the model even if the
+            // user never scrolls to it. A LazyColumn only composes visible rows, which
+            // left off-screen prefilled fields out of the submitted data.
+            val scrollState = remember(page) { ScrollState(0) }
 
             val reachedEnd by remember(page) {
-                derivedStateOf {
-                    val layoutInfo = listState.layoutInfo
-                    val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()
-                    lastVisible != null &&
-                            lastVisible.index == layoutInfo.totalItemsCount - 1 &&
-                            (lastVisible.offset + lastVisible.size) <= layoutInfo.viewportEndOffset
-                }
+                derivedStateOf { scrollState.value >= scrollState.maxValue }
             }
 
             LaunchedEffect(page, reachedEnd) {
@@ -136,8 +136,8 @@ fun AssistedDataEntryPager(
                 }
             }
 
-            LazyColumnWithScrollbar(
-                state = listState,
+            ScrollColumnWithScrollbar(
+                state = scrollState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 24.dp, start = 16.dp, end = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -146,7 +146,7 @@ fun AssistedDataEntryPager(
                 thumbMinHeight = 60.dp,
                 thumbMaxHeight = 140.dp
             ) {
-                item {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     if (!pageModel.svgLogoUrl.isNullOrEmpty() && !pageModel.title.isNullOrEmpty() && !pageModel.subTitle.isNullOrEmpty()) {
 
                         Row(
@@ -195,13 +195,15 @@ fun AssistedDataEntryPager(
                     }
                 }
                 val currentTick = rebuildTick
-                items(
-                    count = pageModel.dataEntryPageElements.size,
-                    key = { index -> "${pageModel.dataEntryPageElements[index].inputKey ?: "no_key"}_$index" }
-
-                ) { i ->
+                pageModel.dataEntryPageElements.forEachIndexed { i, field ->
+                    // Key by the element's identity (not its index) so that inserting or
+                    // removing child fields above does not reset the state of fields below.
+                    // `as String?` guards against Gson leaving the non-null field null.
+                    val stableKey: Any = (field.elementIdentifier as String?)
+                        ?: field.inputKey
+                        ?: i
+                    key(stableKey) {
                     Box(modifier = Modifier.padding(end = 10.dp)) {
-                    val field = pageModel.dataEntryPageElements[i]
                     val typeEnum = InputTypes.fromString(field.inputType)
 
                     when (typeEnum) {
@@ -389,9 +391,10 @@ fun AssistedDataEntryPager(
                             )
                         }
                     }
-                }}
+                }}}
 
-                item { Spacer(Modifier.height(300.dp)) }}
+                Spacer(Modifier.height(300.dp))
+            }
 
         }
 
@@ -401,9 +404,13 @@ fun AssistedDataEntryPager(
 
 
 
+/**
+ * Scrollable (non-lazy) column with a custom scrollbar.
+ * All children are composed up front — see AssistedDataEntryPager for why.
+ */
 @Composable
-fun LazyColumnWithScrollbar(
-    state: LazyListState,
+fun ScrollColumnWithScrollbar(
+    state: ScrollState,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
@@ -412,13 +419,14 @@ fun LazyColumnWithScrollbar(
     thumbColor: Color,
     thumbMinHeight: Dp = 48.dp,
     thumbMaxHeight: Dp = 160.dp,
-    content: LazyListScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit
 ) {
     Box(modifier = modifier) {
-        LazyColumn(
-            state = state,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = contentPadding,
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(state)
+                .padding(contentPadding),
             verticalArrangement = verticalArrangement,
             content = content
         )
@@ -440,7 +448,7 @@ fun LazyColumnWithScrollbar(
 
 @Composable
 private fun VerticalScrollbar(
-    state: LazyListState,
+    state: ScrollState,
     modifier: Modifier = Modifier,
     width: Dp,
     trackColor: Color,
@@ -448,16 +456,16 @@ private fun VerticalScrollbar(
     thumbMinHeight: Dp,
     thumbMaxHeight: Dp = 180.dp,
 ) {
-    // ✅ Hide when content doesn’t scroll
+    // Hide when content doesn't scroll
     val showScrollbar by remember {
-        derivedStateOf { state.canScrollForward || state.canScrollBackward }
+        derivedStateOf { state.maxValue > 0 }
     }
 
     if (!showScrollbar) return
 
     Canvas(modifier = modifier.width(width)) {
 
-        // Track (always draw if scrollbar is visible)
+        // Track
         drawRoundRect(
             color = trackColor,
             topLeft = Offset.Zero,
@@ -465,33 +473,12 @@ private fun VerticalScrollbar(
             cornerRadius = CornerRadius(size.width / 2f, size.width / 2f)
         )
 
-        val layoutInfo = state.layoutInfo
-        val visible = layoutInfo.visibleItemsInfo
-        val totalItems = layoutInfo.totalItemsCount
-
-        // If not ready yet (first frame), draw a default thumb so it doesn't "wait until scroll"
-        if (totalItems <= 0 || visible.isEmpty()) {
-            val thumbPx = thumbMinHeight.toPx().coerceAtMost(thumbMaxHeight.toPx())
-            drawRoundRect(
-                color = thumbColor,
-                topLeft = Offset(0f, 0f),
-                size = Size(size.width, thumbPx),
-                cornerRadius = CornerRadius(size.width / 2f, size.width / 2f)
-            )
-            return@Canvas
-        }
-
-        val firstIndex = state.firstVisibleItemIndex
-        val firstOffsetPx = state.firstVisibleItemScrollOffset.toFloat()
-
-        val avgItemPx = visible.map { it.size }.average().toFloat().coerceAtLeast(1f)
-        val totalContentPx = (totalItems * avgItemPx).coerceAtLeast(1f)
-
-        val viewportPx = layoutInfo.viewportEndOffset.toFloat().coerceAtLeast(1f)
-        val maxScrollPx = (totalContentPx - viewportPx).coerceAtLeast(1f)
-
-        val scrollPx = (firstIndex * avgItemPx + firstOffsetPx).coerceIn(0f, maxScrollPx)
-        val fraction = (scrollPx / maxScrollPx).coerceIn(0f, 1f)
+        // The scrollbar fills the viewport height, so the canvas height is the viewport.
+        // ScrollState gives exact numbers (no per-item size estimation needed).
+        val viewportPx = size.height.coerceAtLeast(1f)
+        val maxScrollPx = state.maxValue.toFloat().coerceAtLeast(1f)
+        val totalContentPx = viewportPx + maxScrollPx
+        val fraction = (state.value / maxScrollPx).coerceIn(0f, 1f)
 
         val minThumbPx = thumbMinHeight.toPx()
         val maxThumbPx = thumbMaxHeight.toPx().coerceAtLeast(minThumbPx)

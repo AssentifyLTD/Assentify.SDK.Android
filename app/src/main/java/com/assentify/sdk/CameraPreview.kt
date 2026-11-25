@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
@@ -898,18 +899,30 @@ abstract class CameraPreview : Fragment() {
         }
     }
 
-    protected fun showLbTiltPassportLayout(){
+    protected fun showLbTiltPassportLayout(color: String) {
         if (!isAdded) return
         requireActivity().runOnUiThread {
-            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                cardBackground!!.visibility = View.GONE
-            }
+            cardBackground?.takeIf { it.visibility == View.VISIBLE }?.visibility = View.GONE
+
             if (tiltPassportLayout == null) {
                 tiltPassportLayout = requireActivity().findViewById(R.id.tiltPassportLayout)
-                tiltPassportLayout!!.visibility = View.VISIBLE
+            }
+            tiltPassportLayout?.visibility = View.VISIBLE
+
+            val gifView = tiltPassportLayout?.findViewById<GifImageView>(R.id.tiltPassport)
+
+            val parsedColor = try {
+                Color.parseColor(if (color.startsWith("#")) color else "#$color")
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+
+            if (parsedColor != null) {
+                gifView?.setColorFilter(parsedColor, PorterDuff.Mode.SRC_IN)
+            } else {
+                gifView?.clearColorFilter() // invalid color → show original GIF
             }
         }
-
     }
 
     protected fun hideLbTiltPassportLayout(){
@@ -927,7 +940,7 @@ abstract class CameraPreview : Fragment() {
     }
 
 
-    protected fun showTiltIDTopLayout(){
+    protected fun showTiltIDTopLayout(color: String) {
         if (!isAdded) return
         requireActivity().runOnUiThread {
             if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
@@ -935,10 +948,17 @@ abstract class CameraPreview : Fragment() {
             }
             if (tiltITopLayout == null) {
                 tiltITopLayout = requireActivity().findViewById(R.id.tiltIDTopLayout)
-                tiltITopLayout!!.visibility = View.VISIBLE
+            }
+            tiltITopLayout?.visibility = View.VISIBLE
+
+            val gifView = tiltITopLayout?.findViewById<GifImageView>(R.id.tiltIDTop)
+            try {
+                val parsedColor = Color.parseColor(if (color.startsWith("#")) color else "#$color")
+                gifView?.setColorFilter(parsedColor, PorterDuff.Mode.SRC_IN)
+            } catch (e: IllegalArgumentException) {
+                gifView?.clearColorFilter()
             }
         }
-
     }
 
     protected fun hideTiltIDTopLayout(){
@@ -955,7 +975,7 @@ abstract class CameraPreview : Fragment() {
 
     }
 
-    protected fun showTiltIDRightLayout(){
+    protected fun showTiltIDRightLayout(color: String) {
         if (!isAdded) return
         requireActivity().runOnUiThread {
             if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
@@ -963,10 +983,17 @@ abstract class CameraPreview : Fragment() {
             }
             if (tiltIRightLayout == null) {
                 tiltIRightLayout = requireActivity().findViewById(R.id.tiltIDRightLayout)
-                tiltIRightLayout!!.visibility = View.VISIBLE
+            }
+            tiltIRightLayout?.visibility = View.VISIBLE
+
+            val gifView = tiltIRightLayout?.findViewById<GifImageView>(R.id.tiltIDRight)
+            try {
+                val parsedColor = Color.parseColor(if (color.startsWith("#")) color else "#$color")
+                gifView?.setColorFilter(parsedColor, PorterDuff.Mode.SRC_IN)
+            } catch (e: IllegalArgumentException) {
+                gifView?.clearColorFilter()
             }
         }
-
     }
 
     protected fun hideTiltIDRightLayout(){
@@ -983,7 +1010,7 @@ abstract class CameraPreview : Fragment() {
 
     }
 
-    protected fun showTiltIDBottomLayout(){
+    protected fun showTiltIDBottomLayout(color: String) {
         if (!isAdded) return
         requireActivity().runOnUiThread {
             if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
@@ -991,10 +1018,17 @@ abstract class CameraPreview : Fragment() {
             }
             if (tiltIBottomLayout == null) {
                 tiltIBottomLayout = requireActivity().findViewById(R.id.tiltIDBottomLayout)
-                tiltIBottomLayout!!.visibility = View.VISIBLE
+            }
+            tiltIBottomLayout?.visibility = View.VISIBLE
+
+            val gifView = tiltIBottomLayout?.findViewById<GifImageView>(R.id.tiltIDBottom)
+            try {
+                val parsedColor = Color.parseColor(if (color.startsWith("#")) color else "#$color")
+                gifView?.setColorFilter(parsedColor, PorterDuff.Mode.SRC_IN)
+            } catch (e: IllegalArgumentException) {
+                gifView?.clearColorFilter()
             }
         }
-
     }
 
     protected fun hideTiltIDBottomLayout(){
@@ -1011,7 +1045,7 @@ abstract class CameraPreview : Fragment() {
 
     }
 
-    protected fun showBarCodeGifLayout (){
+    protected fun showBarCodeGifLayout(color: String) {
         if (!isAdded) return
         requireActivity().runOnUiThread {
             if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
@@ -1019,10 +1053,17 @@ abstract class CameraPreview : Fragment() {
             }
             if (barCodeGifLayout == null) {
                 barCodeGifLayout = requireActivity().findViewById(R.id.barCodeGifLayout)
-                barCodeGifLayout!!.visibility = View.VISIBLE
+            }
+            barCodeGifLayout?.visibility = View.VISIBLE
+
+            val gifView = barCodeGifLayout?.findViewById<GifImageView>(R.id.barCodeGif)
+            try {
+                val parsedColor = Color.parseColor(if (color.startsWith("#")) color else "#$color")
+                gifView?.setColorFilter(parsedColor, PorterDuff.Mode.SRC_IN)
+            } catch (e: IllegalArgumentException) {
+                gifView?.clearColorFilter()
             }
         }
-
     }
 
     protected fun hideBarCodeGifLayout (){
