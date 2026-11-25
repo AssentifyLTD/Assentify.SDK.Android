@@ -722,6 +722,23 @@ fun PassportScanScreen(
                         )
                     }
                 } else if (!showHoldPopup) {                // the instructions start once the popup is closed
+
+                    // ---------- TOP: the instruction (whenever the tilt meter is not shown) ----------
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .align(Alignment.TopCenter)
+                            .padding(start = 20.dp, end = 20.dp, top = 50.dp)   // under the back / logo row
+                    ) {
+                        LivenessFeedback(
+                            text = if (!tiltProgressVisible) feedbackText else "",
+                            tiltProgress = tiltProgress,
+                            tiltProgressVisible = false
+                        )
+                    }
+
+                    // ---------- BOTTOM: the instruction with the tilt meter (only while the passport is tilted) ----------
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -730,7 +747,7 @@ fun PassportScanScreen(
                             .padding(start = 20.dp, end = 20.dp, bottom = 25.dp)
                     ) {
                         LivenessFeedback(
-                            text = feedbackText,
+                            text = if (tiltProgressVisible) feedbackText else "",
                             tiltProgress = tiltProgress,
                             tiltProgressVisible = tiltProgressVisible
                         )
@@ -803,7 +820,7 @@ private fun LivenessFeedback(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        PulsingDot(color = accent, active = !done)
+                        PulsingDot(color = accent, active = !(tiltProgressVisible && done))
                         Spacer(Modifier.width(8.dp))
                         Text(
                             current,

@@ -1,5 +1,7 @@
 package com.assentify.sdk.RemoteClient.Models
 
+import com.google.gson.annotations.SerializedName
+
 object IdentityField {
     const val FIRST_NAME = "FirstName"
     const val LAST_NAME = "LastName"
@@ -16,9 +18,9 @@ object IdentityField {
 }
 
 data class IdentityMatchRequest(
-    val primary: Map<String, String>,
-    val document: Map<String, String>,
-    val useCase: Int = IdentityMatchUseCase.SUPPORTING_DOC
+    @SerializedName("primary") val primary: Map<String, String>,
+    @SerializedName("document") val document: Map<String, String>,
+    @SerializedName("useCase") val useCase: Int = IdentityMatchUseCase.SUPPORTING_DOC
 )
 
 fun buildIdentity(
@@ -40,7 +42,7 @@ object IdentityMatchUseCase {
 }
 
 data class IdentityMatchResponse(
-    val samePerson: Boolean?,
-    val confidence: Double?,
-    val reason: String?
+    @SerializedName("samePerson") val samePerson: Boolean?,
+    @SerializedName("confidence") val confidence: Double?,
+    @SerializedName("reason") val reason: String?
 )

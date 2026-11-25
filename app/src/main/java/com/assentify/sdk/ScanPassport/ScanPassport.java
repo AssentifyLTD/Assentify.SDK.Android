@@ -104,6 +104,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
     Boolean processMrz;
     Boolean performLivenessDocument;
+    Boolean activeDocumentLiveness;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     ConfigModel configModel;
@@ -394,6 +395,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         if(enableSupportingDocument){
             this.stepId = "";
             performLivenessDocument = true;
+            activeDocumentLiveness = true;
             processMrz = true;
             storeCapturedDocument = true;
             saveCapturedVideo = true;
@@ -420,6 +422,9 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
             for (StepDefinitions item : configModel.getStepDefinitions()) {
                 if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                    if (activeDocumentLiveness == null) {
+                        activeDocumentLiveness = item.getCustomization().getActiveDocumentLiveness();
+                    }
                     if (performLivenessDocument == null) {
                         performLivenessDocument = item.getCustomization().getDocumentLiveness();
                     }
@@ -480,7 +485,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         this.results = results;
         lastFrame = normalImage;                                    // a reference only (CameraX makes a new bitmap per frame)
 
-        boolean livenessOn = Boolean.TRUE.equals(performLivenessDocument) && configReady;
+        boolean livenessOn = Boolean.TRUE.equals(activeDocumentLiveness) && configReady;
 
         boolean accepted = false;
         if (livenessOn) {
@@ -641,16 +646,23 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
                             BaseResponseDataModel.setError(EventsErrorMessages.OnExpiredPassportMessage);
                             scanPassportCallback.onRetry(BaseResponseDataModel);
                         }else {
-                            start = false;
-                            if (Objects.equals(language, Language.NON)) {
-                                scanPassportCallback.onComplete(passportResponseModel);
-                            } else {
-                                LanguageTransformation translated = new LanguageTransformation(apiKey);
-                                translated.setCallback(ScanPassport.this);
-                                translated.languageTransformation(
-                                        language,
-                                        preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
-                                );
+                            if(Boolean.TRUE.equals(passportExtractedModel.getMrzVizChecked()) && Boolean.TRUE.equals(passportExtractedModel.getMrzVizMismatch())){
+                                retryCount++;
+                                start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnPassportMrzMismatchMessage);
+                                scanPassportCallback.onRetry(BaseResponseDataModel);
+                            }else {
+                                start = false;
+                                if (Objects.equals(language, Language.NON)) {
+                                    scanPassportCallback.onComplete(passportResponseModel);
+                                } else {
+                                    LanguageTransformation translated = new LanguageTransformation(apiKey);
+                                    translated.setCallback(ScanPassport.this);
+                                    translated.languageTransformation(
+                                            language,
+                                            preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
+                                    );
+                                }
                             }
                         }
 
@@ -1662,7 +1674,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
         lastMoveAt = now;
         enterPhase(Phase.SWEEP, now);
         tiltStart = true;
-        showLbTiltPassportLayout();
+        showLbTiltPassportLayout(environmentalConditions.getHoldHandColor());
         hint(PassportLivenessInstruction.LIFT_BOTTOM);
     }
 
@@ -2066,7 +2078,7 @@ public class ScanPassport extends CameraPreview implements RemoteProcessingCallb
 
     /** camera-torch.md: no analysed frame for stallMs ends the capture (vision_stalled). Runs on the main thread. */
     private void checkStall() {
-        if (cfg == null || !Boolean.TRUE.equals(performLivenessDocument) || !start || phase == Phase.DONE) return;
+        if (cfg == null || !Boolean.TRUE.equals(activeDocumentLiveness) || !start || phase == Phase.DONE) return;
         long last = lastFrameAt;
         if (last == 0 || SystemClock.elapsedRealtime() - last <= STALL_MS) return;
         if (DEBUG_LOGS) android.util.Log.d("PassportLivenessDebug", "vision_stalled: no frame for " + STALL_MS + " ms");

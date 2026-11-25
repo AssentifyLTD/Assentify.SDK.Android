@@ -257,17 +257,27 @@ public class ScanPassportManual extends CameraPreview implements RemoteProcessin
                                 manualCaptureUi((environmentalConditions.getHoldHandColor()), environmentalConditions.getEnableGuide());
                             }
                         }else {
-                            start = false;
-                        if (Objects.equals(language, Language.NON)) {
-                            scanPassportCallback.onComplete(passportResponseModel);
-                        } else {
-                            LanguageTransformation translated = new LanguageTransformation(apiKey);
-                            translated.setCallback(ScanPassportManual.this);
-                            translated.languageTransformation(
-                                    language,
-                                    preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
-                            );
-                        }
+
+                            if(Boolean.TRUE.equals(passportExtractedModel.getMrzVizChecked()) && Boolean.TRUE.equals(passportExtractedModel.getMrzVizMismatch())){
+                                retryCount++;
+                                start = true;
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnPassportMrzMismatchMessage);
+                                scanPassportCallback.onRetry(BaseResponseDataModel);
+                            }else {
+                                start = false;
+                                if (Objects.equals(language, Language.NON)) {
+                                    scanPassportCallback.onComplete(passportResponseModel);
+                                } else {
+                                    LanguageTransformation translated = new LanguageTransformation(apiKey);
+                                    translated.setCallback(ScanPassportManual.this);
+                                    translated.languageTransformation(
+                                            language,
+                                            preparePropertiesToTranslate(language, passportExtractedModel.getOutputProperties())
+                                    );
+                                }
+                            }
+
+
                     }
 
                     }else if (eventName.equals(HubConnectionTargets.ON_RETRY)  ) {

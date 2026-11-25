@@ -126,6 +126,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
 
     Boolean processMrz;
     Boolean performLivenessDocument;
+    Boolean activeDocumentLiveness;
     Boolean saveCapturedVideo;
     Boolean storeCapturedDocument;
     ConfigModel configModel;
@@ -409,6 +410,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     public void setStepId(String stepId,boolean enableSupportingDocument) {
         if(enableSupportingDocument){
             this.stepId = "";
+            activeDocumentLiveness = true;
             performLivenessDocument = true;
             processMrz = true;
             storeCapturedDocument = true;
@@ -435,6 +437,9 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
             }
             for (StepDefinitions item : configModel.getStepDefinitions()) {
                 if (Integer.parseInt(this.stepId) == item.getStepId()) {
+                    if (activeDocumentLiveness == null) {
+                        activeDocumentLiveness = item.getCustomization().getActiveDocumentLiveness();
+                    }
                     if (performLivenessDocument == null) {
                         performLivenessDocument = item.getCustomization().getDocumentLiveness();
                     }
@@ -548,7 +553,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
         }
 
         // local liveness only when the step's document liveness is on, and only for the cards it is defined for
-        boolean localAllowed = Boolean.TRUE.equals(performLivenessDocument);
+        boolean localAllowed = Boolean.TRUE.equals(activeDocumentLiveness);
         if (localAllowed && start && !kindDecided) {
             decideKind(normalImage);
             if (!kindDecided) {                                     // still looking: no capture of any kind yet
@@ -727,7 +732,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                                 retryCount++;
                                 start = true;
                                 pendingReset = true;
-                                BaseResponseDataModel.setError(EventsErrorMessages.OnRetryCardMessage);
+                                BaseResponseDataModel.setError(EventsErrorMessages.OnBarcodeMismatchMessage);
                                 idCardCallback.onRetry(BaseResponseDataModel);
                                 return;
                             } else {
@@ -737,16 +742,25 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
                             }
                         }
 
-                        if (Objects.equals(language, Language.NON)) {
-                            idCardCallback.onComplete(idResponseModel, isFrontPage(), isLastPage, classifiedTemplate);
-                        } else {
-                            LanguageTransformation translated = new LanguageTransformation(apiKey);
-                            translated.setCallback(ScanIDCard.this);
-                            translated.languageTransformation(
-                                    language,
-                                    preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
-                            );
+                        if(Boolean.TRUE.equals(idExtractedModel.getBarcodeOcrChecked()) && Boolean.TRUE.equals(idExtractedModel.getBarcodeOcrMismatch())){
+                            retryCount++;
+                            start = true;
+                            BaseResponseDataModel.setError(EventsErrorMessages.OnBarcodeMismatchMessage);
+                            idCardCallback.onRetry(BaseResponseDataModel);
+                        }else {
+                            if (Objects.equals(language, Language.NON)) {
+                                idCardCallback.onComplete(idResponseModel, isFrontPage(), isLastPage, classifiedTemplate);
+                            } else {
+                                LanguageTransformation translated = new LanguageTransformation(apiKey);
+                                translated.setCallback(ScanIDCard.this);
+                                translated.languageTransformation(
+                                        language,
+                                        preparePropertiesToTranslate(language, idExtractedModel.getOutputProperties())
+                                );
+                            }
                         }
+
+
 
 
                     } else if (eventName.equals(HubConnectionTargets.ON_RETRY)) {
@@ -1549,13 +1563,13 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private void showTiltLayout() {
         hideTiltLayouts();
         if ("right".equals(direction)) {
-            showTiltIDRightLayout();
+            showTiltIDRightLayout(environmentalConditions.getHoldHandColor());
             tiltStart = true;
         } else if ("top".equals(direction)) {
-            showTiltIDTopLayout();
+            showTiltIDTopLayout(environmentalConditions.getHoldHandColor());
             tiltStart = true;
         } else if ("bottom".equals(direction)) {
-            showTiltIDBottomLayout();
+            showTiltIDBottomLayout(environmentalConditions.getHoldHandColor());
             tiltStart = true;
         }
     }
@@ -1574,7 +1588,7 @@ public class ScanIDCard extends CameraPreview implements RemoteProcessingCallbac
     private void showBarcodeLayout() {
         if (barcodeLayoutShown) return;                             // already on screen
         barcodeLayoutShown = true;
-        showBarCodeGifLayout();
+        showBarCodeGifLayout(environmentalConditions.getHoldHandColor());
     }
 
     /** Removes the barcode drawing: read / not read in time / a restart / a retry / the background / a stall / close. */

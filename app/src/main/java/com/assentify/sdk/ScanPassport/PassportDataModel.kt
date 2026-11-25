@@ -19,7 +19,10 @@ open class PassportExtractedModel(
     var extractedData: Map<String, Any>? = null,
     var imageUrl: String? = null,
     var faces: List<String>? = null,
-    var identificationDocumentCapture: IdentificationDocumentCapture? = null
+    var identificationDocumentCapture: IdentificationDocumentCapture? = null,
+    val mrzVizChecked: Boolean? = null,
+    val mrzVizMismatch: Boolean? = null,
+
 ) {
     companion object {
         fun fromJsonString(
@@ -28,6 +31,11 @@ open class PassportExtractedModel(
         ): PassportExtractedModel? {
             return try {
                 val response = JSONObject(responseString)
+
+                val mrzVizChecked  = response.optBoolean("mrz_viz_checked", false)
+                val mrzVizMismatch = response.optBoolean("mrz_viz_mismatch", false)
+
+
 
                 val faces = mutableListOf<String>()
                 response.optJSONArray("faces")?.let { faceArray ->
@@ -77,6 +85,8 @@ open class PassportExtractedModel(
                     imageUrl,
                     faces,
                     identificationDocumentCapture,
+                    mrzVizChecked,
+                    mrzVizMismatch,
                 )
             } catch (e: Exception) {
                 e.printStackTrace()

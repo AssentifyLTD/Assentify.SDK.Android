@@ -328,10 +328,7 @@ interface RemoteWidgetsService {
 
     @POST("api/IdentificationDocument/IdentityMatch")
     @JvmSuppressWildcards
-    @Headers(
-        "Accept: application/json, text/plain, */*",
-        "Content-Type: application/json"
-    )
+    @Headers("Accept: application/json")
     fun identityMatch(
         @Header("x-block-identifier") xBlockIdentifier: String,
         @Header("x-flow-identifier") xFlowIdentifier: String,

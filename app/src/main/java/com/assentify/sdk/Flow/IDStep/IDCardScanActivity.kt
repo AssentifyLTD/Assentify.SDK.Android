@@ -775,6 +775,23 @@ fun IDCardScanScreen(
                         )
                     }
                 } else if (!showHoldPopup) {                // the instructions start once the popup is closed
+
+                    // ---------- TOP: the instruction (whenever the tilt meter is not shown) ----------
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .align(Alignment.TopCenter)
+                            .padding(start = 32.dp, end = 32.dp, top = 64.dp)   // under the back / logo row
+                    ) {
+                        IdLivenessFeedback(
+                            text = if (!tiltProgressVisible) feedbackText else "",
+                            tiltProgress = tiltProgress,
+                            tiltProgressVisible = false
+                        )
+                    }
+
+                    // ---------- BOTTOM: the instruction with the tilt meter (only while the card is tilted) ----------
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -783,7 +800,7 @@ fun IDCardScanScreen(
                             .padding(start = 32.dp, end = 32.dp, bottom = 25.dp)
                     ) {
                         IdLivenessFeedback(
-                            text = feedbackText,
+                            text = if (tiltProgressVisible) feedbackText else "",
                             tiltProgress = tiltProgress,
                             tiltProgressVisible = tiltProgressVisible
                         )
@@ -855,7 +872,7 @@ private fun IdLivenessFeedback(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        IdPulsingDot(color = accent, active = !done)
+                        IdPulsingDot(color = accent, active = !(tiltProgressVisible && done))
                         Spacer(Modifier.width(8.dp))
                         Text(
                             current,

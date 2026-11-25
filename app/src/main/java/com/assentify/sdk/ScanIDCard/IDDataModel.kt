@@ -17,12 +17,17 @@ open class IDExtractedModel(
     var extractedData: Map<String, Any>? = null,
     var imageUrl: String? = null,
     var faces: List<String>? = null,
-    var identificationDocumentCapture: IdentificationDocumentCapture? = null
+    var identificationDocumentCapture: IdentificationDocumentCapture? = null,
+    var barcodeOcrChecked: Boolean? = null,
+    var barcodeOcrMismatch: Boolean? = null,
 ) {
     companion object {
         fun fromJsonString(responseString: String,transformedProperties: Map<String, String>?): IDExtractedModel? {
             return try {
                 val response = JSONObject(responseString)
+
+                val barcodeOcrChecked  = response.optBoolean("barcode_ocr_checked", false)
+                val barcodeOcrMismatch = response.optBoolean("barcode_ocr_mismatch", false)
 
                 val faces = mutableListOf<String>()
                 response.optJSONArray("faces")?.let { faceArray ->
@@ -63,7 +68,7 @@ open class IDExtractedModel(
                     extractedData[newKey] = value
                 }
 
-                IDExtractedModel(outputProperties,transformedPropertiesResult, extractedData, imageUrl, faces, identificationDocumentCapture)
+                IDExtractedModel(outputProperties,transformedPropertiesResult, extractedData, imageUrl, faces, identificationDocumentCapture,barcodeOcrChecked,barcodeOcrMismatch)
             } catch (e: Exception) {
                 e.printStackTrace()
                 null

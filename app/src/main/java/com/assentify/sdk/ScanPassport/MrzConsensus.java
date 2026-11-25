@@ -17,6 +17,9 @@ import java.util.Map;
  * OCR mistakes like S/5 or D/0 rarely hit the same position in every frame, so a per-character
  * majority vote across frames removes them. All distinct readings are also kept, ranked by
  * votes, so the NFC step can let the chip decide when frames disagree.
+ *
+ * The name line (TD3 line 1, TD1 line 3) has no check digit: only readings whose name line is
+ * structurally valid vote on it, and a result with a valid name line is always preferred.
  */
 final class MrzConsensus {
 
@@ -56,20 +59,20 @@ final class MrzConsensus {
             }
         }
 
-        // 2. Per-character vote, line by line
+        // 2. Per-character vote, line by line (the name line only from readings where it is valid)
         int lineCount = same.get(0).lines.size();
         List<String> voted = new ArrayList<>();
         boolean line2Only = false;
         for (int li = 0; li < lineCount; li++) {
+            boolean nameLine = type.equals("td3") ? li == 0 : li == 2;
             List<Mrz.Result> voters = new ArrayList<>();
             for (Mrz.Result r : same) {
-                // TD3 line 1 of a "line 2 only" reading is a placeholder: it must not vote
-                if (li == 0 && type.equals("td3") && r.line2Only) continue;
+                if (nameLine && (r.line2Only || !r.line1Ok)) continue;
                 voters.add(r);
             }
             if (voters.isEmpty()) {
-                voted.add(same.get(0).lines.get(li)); // only placeholders available
-                line2Only = true;
+                voted.add(same.get(0).lines.get(li));               // nothing valid to vote with
+                if (type.equals("td3")) line2Only = true;
             } else {
                 voted.add(voteLine(voters, li));
             }
@@ -82,7 +85,8 @@ final class MrzConsensus {
         } catch (Exception ignored) {
         }
 
-        // 3. Distinct readings (by the BAC-relevant part), ranked by how many frames produced them
+        // 3. Distinct readings (by the BAC-relevant part), ranked by how many frames produced them;
+        //    per key the reading with the best score (a valid line 1) represents it
         Map<String, Integer> votes = new LinkedHashMap<>();
         Map<String, Mrz.Result> byKey = new HashMap<>();
         Map<String, Integer> firstIndex = new HashMap<>();
@@ -93,7 +97,8 @@ final class MrzConsensus {
             if (key == null) continue;
             Integer old = votes.get(key);
             votes.put(key, old == null ? 1 : old + 1);
-            if (!byKey.containsKey(key)) {
+            Mrz.Result prev = byKey.get(key);
+            if (prev == null || r.score() > prev.score()) {
                 byKey.put(key, r);
                 firstIndex.put(key, sameIdx.get(i));
             }
@@ -105,20 +110,24 @@ final class MrzConsensus {
             return Integer.compare(byKey.get(b).score(), byKey.get(a).score());
         });
 
-        // 4. Pick the result: the vote if it passes every check, else the most-voted valid reading
-        Mrz.Result chosen;
-        String how;
-        if (consensus != null && consensus.allValid()) {
-            chosen = consensus;
-            how = "per-character vote of " + same.size() + " frame(s)";
-        } else {
-            chosen = null;
-            for (String k : ranked) {
-                if (byKey.get(k).allValid()) { chosen = byKey.get(k); break; }
-            }
-            if (chosen == null) chosen = bestByScore(same);
-            how = "best single frame (vote " + (consensus == null ? "invalid" : consensus.failSummary()) + ")";
+        // 4. Pick: valid check digits AND a valid name line first, then valid check digits, then best score
+        List<Mrz.Result> order = new ArrayList<>();
+        if (consensus != null) order.add(consensus);
+        for (String k : ranked) order.add(byKey.get(k));
+
+        Mrz.Result chosen = null;
+        for (Mrz.Result r : order) {
+            if (r.allValid() && r.line1Ok && !r.line2Only) { chosen = r; break; }
         }
+        if (chosen == null) {
+            for (Mrz.Result r : order) {
+                if (r.allValid()) { chosen = r; break; }
+            }
+        }
+        if (chosen == null) chosen = bestByScore(same);
+        String how = chosen == consensus
+                ? "per-character vote of " + same.size() + " frame(s)"
+                : "best single frame (vote " + (consensus == null ? "invalid" : consensus.failSummary()) + ")";
 
         // 5. Candidates for NFC: chosen first, then the other distinct readings by votes
         List<String> candidates = new ArrayList<>();
@@ -151,7 +160,10 @@ final class MrzConsensus {
             char best = '<';
             int bestCount = -1;
             for (Map.Entry<Character, Integer> e : count.entrySet()) {
-                if (e.getValue() > bestCount) { best = e.getKey(); bestCount = e.getValue(); }
+                if (e.getValue() > bestCount) {
+                    best = e.getKey();
+                    bestCount = e.getValue();
+                }
             }
             sb.append(best);
         }

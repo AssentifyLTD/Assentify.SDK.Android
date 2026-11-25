@@ -39,6 +39,12 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.74***
+1. *UI Improvements *
+2. *ID Liveness Improvements *
+3. *Passport Liveness Improvements *
+4. *Face Liveness Improvements *
+
 ***1.0.0-Beta.73***
 1. *Supporting Document*
 

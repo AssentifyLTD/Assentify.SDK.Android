@@ -70,6 +70,7 @@ data class Customization(
     val confirmationRequired: Boolean?,
     val showResultPage: Boolean?,
     val documentLiveness: Boolean?,
+    val activeDocumentLiveness: Boolean?,
     val storeCapturedDocument: Boolean?,
     val performLivenessDetection: Boolean?,
     val stepTypeDto: StepTypeDto,

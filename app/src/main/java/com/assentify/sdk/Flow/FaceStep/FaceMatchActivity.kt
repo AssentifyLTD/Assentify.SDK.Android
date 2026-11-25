@@ -7,7 +7,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +33,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,8 +54,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -94,15 +113,16 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
 
     private var timeStarted = getCurrentDateTimeForTracking()
 
-     private var isNavigating = false
+    private var isNavigating = false
     override fun onResume() {
         super.onResume()
         isNavigating = false
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
+        val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = null,
@@ -144,20 +164,20 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                             Base64ImageObject.clear();
                             IDImageObject.clear();
 
-                             var isSkippedStatusKey = "";
-                             outputProps.forEach {
-                                 if(it.key.contains("OnBoardMe_FaceImageAcquisition_IsSkippedStatus")){
-                                     isSkippedStatusKey = it.key
-                                 }
-                             }
-                             if(isSkippedStatusKey.isNotEmpty()){
-                                 outputProps[isSkippedStatusKey] = it.toString();
-                             }
+                            var isSkippedStatusKey = "";
+                            outputProps.forEach {
+                                if (it.key.contains("OnBoardMe_FaceImageAcquisition_IsSkippedStatus")) {
+                                    isSkippedStatusKey = it.key
+                                }
+                            }
+                            if (isSkippedStatusKey.isNotEmpty()) {
+                                outputProps[isSkippedStatusKey] = it.toString();
+                            }
 
 
                             if (!isNavigating) {
                                 isNavigating = true
-                                FlowController.makeCurrentStepDone(outputProps,timeStarted);
+                                FlowController.makeCurrentStepDone(outputProps, timeStarted);
                                 FlowController.naveToNextStep(context = this)
 
                             }
@@ -210,7 +230,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
         /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
+        val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "Error" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
@@ -227,11 +247,11 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             eventTypes.value = EventTypes.onRetry
             try {
                 imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
-            }catch (e:Exception){
-                imageUrl.value = "" ;
+            } catch (e: Exception) {
+                imageUrl.value = "";
             }
             /** Track Progress **/
-            val  currentStep = FlowController.getCurrentStep()
+            val currentStep = FlowController.getCurrentStep()
             FlowController.trackProgress(
                 currentStep = currentStep!!,
                 response = "Retry" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
@@ -251,7 +271,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             eventTypes.value = EventTypes.onComplete
         }
         /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
+        val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "Completed",
@@ -269,7 +289,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
             imageUrl.value = getImageUrlFromBaseResponseDataModel(dataModel.response!!);
         }
         /** Track Progress **/
-        val  currentStep = FlowController.getCurrentStep()
+        val currentStep = FlowController.getCurrentStep()
         FlowController.trackProgress(
             currentStep = currentStep!!,
             response = "LivenessUpdate" + " - " + FlowController.extractAfterDash(dataModel.responseJsonObject?.optString("error")),
@@ -352,7 +372,7 @@ class FaceMatchActivity : FragmentActivity(), FaceMatchCallback {
                     }
                     if (motion == MotionType.NO_DETECT && zoomType == ZoomType.NO_DETECT && faceEvents == FaceEvents.NO_DETECT) {
                         feedbackText.value = cs.faceWithinCircle
-                    }else if(!isCentered){
+                    } else if (!isCentered) {
                         feedbackText.value = cs.centerFace
                     }
                 }
@@ -382,13 +402,10 @@ fun FaceMatchScanScreen(
 ) {
 
 
-
-
     var isManual by remember { mutableStateOf<Boolean>(false) }
     var isCollectingManualImages by remember { mutableStateOf<Boolean>(false) }
     val assentifySdk = AssentifySdkObject.getAssentifySdkObject()
     val flowEnv = FlowEnvironmentalConditionsObject.getFlowEnvironmentalConditions()
-
 
 
     var faceMatch by remember { mutableStateOf<FaceMatch?>(null) }
@@ -398,182 +415,176 @@ fun FaceMatchScanScreen(
         LayoutDirection.Rtl else LayoutDirection.Ltr
 
     CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
-    Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-        if (eventTypes != EventTypes.none) {
-            if (eventTypes == EventTypes.onSend) {
-                OnFaceSendScreen(progress)
-            }
-            if (eventTypes == EventTypes.onRetry || eventTypes == EventTypes.onError || eventTypes == EventTypes.onLivenessUpdate) {
-                OnFaceErrorScreen(imageUrl, isLiveError = eventTypes == EventTypes.onLivenessUpdate, onRetry = {
-                    onRetry();
-                })
-            }
-            if (eventTypes == EventTypes.onComplete) {
-                FaceResultScreen(faceModel!!, onNext = {
-                    if (isManual) {
-                        faceMatchManual!!.stopScanning()
-                    } else {
-                        faceMatch!!.stopScanning()
-                    }
-                    onNext(it);
-                }, onRetry = {
-                    onScanRetry();
-                }, onIDChange = {
-                    if (isManual) {
-                        faceMatchManual!!.stopScanning()
-                    } else {
-                        faceMatch!!.stopScanning()
-                    }
-                    onIDChange();
-                })
-            }
-
-        }
-        AndroidView(
-            modifier = if (eventTypes != EventTypes.none) Modifier.size(0.dp) else Modifier.fillMaxSize(),
-            factory = { context ->
-                val container = FrameLayout(context).apply {
-                    id = View.generateViewId()
-                    layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
+            if (eventTypes != EventTypes.none) {
+                if (eventTypes == EventTypes.onSend) {
+                    OnFaceSendScreen(progress)
+                }
+                if (eventTypes == EventTypes.onRetry || eventTypes == EventTypes.onError || eventTypes == EventTypes.onLivenessUpdate) {
+                    OnFaceErrorScreen(imageUrl, isLiveError = eventTypes == EventTypes.onLivenessUpdate, onRetry = {
+                        onRetry();
+                    })
+                }
+                if (eventTypes == EventTypes.onComplete) {
+                    FaceResultScreen(faceModel!!, onNext = {
+                        if (isManual) {
+                            faceMatchManual!!.stopScanning()
+                        } else {
+                            faceMatch!!.stopScanning()
+                        }
+                        onNext(it);
+                    }, onRetry = {
+                        onScanRetry();
+                    }, onIDChange = {
+                        if (isManual) {
+                            faceMatchManual!!.stopScanning()
+                        } else {
+                            faceMatch!!.stopScanning()
+                        }
+                        onIDChange();
+                    })
                 }
 
-                val result = assentifySdk.startFaceMatch(
-                    activity,
-                    Base64ImageObject.getImage()!!,
-                    showCountDown = BaseTheme.ShowCountDown,
-                    stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+            }
+            AndroidView(
+                modifier = if (eventTypes != EventTypes.none) Modifier.size(0.dp) else Modifier.fillMaxSize(),
+                factory = { context ->
+                    val container = FrameLayout(context).apply {
+                        id = View.generateViewId()
+                        layoutParams = FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    }
+
+                    val result = assentifySdk.startFaceMatch(
+                        activity,
+                        Base64ImageObject.getImage()!!,
+                        showCountDown = BaseTheme.ShowCountDown,
+                        stepId = FlowController.getCurrentStep()!!.stepDefinition!!.stepId
+                    )
+
+                    val fm = activity.supportFragmentManager
+                    val tx = fm.beginTransaction()
+                    when (result) {
+                        is FaceMatchResult.Manual -> {
+                            isManual = true;
+                            faceMatchManual = result.data
+                            tx.replace(container.id, result.data)
+                        }
+
+                        is FaceMatchResult.Auto -> {
+                            isManual = false;
+                            faceMatch = result.data
+                            tx.replace(container.id, result.data)
+                        }
+                    }
+                    tx.commitAllowingStateLoss()
+                    container
+                },
+
                 )
 
-                val fm = activity.supportFragmentManager
-                val tx = fm.beginTransaction()
-                when (result) {
-                    is FaceMatchResult.Manual -> {
-                        isManual = true;
-                        faceMatchManual = result.data
-                        tx.replace(container.id, result.data)
+
+
+            DisposableEffect(isManual, faceMatch, faceMatchManual) {
+                onDispose {
+                    try {
+                        if (isManual) {
+                            faceMatchManual?.stopScanning()
+                        } else {
+                            faceMatch?.stopScanning()
+                        }
+                    } catch (_: Exception) { /* ignore */
                     }
-
-                    is FaceMatchResult.Auto -> {
-                        isManual = false;
-                        faceMatch = result.data
-                        tx.replace(container.id, result.data)
-                    }
-                }
-                tx.commitAllowingStateLoss()
-                container
-            },
-
-            )
-
-
-
-        DisposableEffect(isManual, faceMatch, faceMatchManual) {
-            onDispose {
-                try {
-                    if (isManual) {
-                        faceMatchManual?.stopScanning()
-                    } else {
-                        faceMatch?.stopScanning()
-                    }
-                } catch (_: Exception) { /* ignore */
                 }
             }
-        }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .align(Alignment.TopCenter)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            Color.Black.copy(alpha = 0.55f),
-                            Color.Transparent
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Black.copy(alpha = 0.55f),
+                                Color.Transparent
+                            )
                         )
                     )
-                )
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        ) {
-            if(eventTypes == EventTypes.none || BaseTheme.StepperType == StepperType.Normal){
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                IconButton(onClick = {
-                    if (isManual) {
-                        faceMatchManual!!.stopScanning()
-                    } else {
-                        faceMatch!!.stopScanning()
+                if (eventTypes == EventTypes.none || BaseTheme.StepperType == StepperType.Normal) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            if (isManual) {
+                                faceMatchManual!!.stopScanning()
+                            } else {
+                                faceMatch!!.stopScanning()
+                            }
+                            onBack()
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = BaseTheme.BaseTextColor,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+
+                        Spacer(Modifier.weight(1f))
+
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(BaseTheme.BaseLogo)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.CenterVertically),
+                            contentScale = ContentScale.Fit
+                        )
+
+                        Spacer(Modifier.weight(1f))
+                        Spacer(Modifier.size(48.dp))
                     }
-                    onBack()
-                }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = BaseTheme.BaseTextColor,
-                        modifier = Modifier.size(30.dp)
-                    )
                 }
 
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(10.dp))
 
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(BaseTheme.BaseLogo)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.CenterVertically),
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(Modifier.weight(1f))
-                Spacer(Modifier.size(48.dp))
-            }
-        }
-
-            Spacer(Modifier.height(10.dp))
-
-            if(eventTypes != EventTypes.none){
-                ProgressStepper(
-                    onBack = { onBack() },
-                    normalModifier =  Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 6.dp),
-                    percentageBased = Modifier
-                        .fillMaxWidth().padding(horizontal = 0.dp).padding(top = 20.dp)
-                )
-            }
-        }
-
-        if (eventTypes == EventTypes.none) {
-            if (isManual) {
-                if(feedbackText.isNotEmpty()){
-                    Column(
-                        modifier = Modifier
+                if (eventTypes != EventTypes.none) {
+                    ProgressStepper(
+                        onBack = { onBack() },
+                        normalModifier = Modifier
                             .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .align(Alignment.BottomCenter)
-                            .padding(start = 12.dp, end = 30.dp, bottom = 25.dp)
-                    ) {
-                        Text(
-                            feedbackText,
-                            color =   BaseTheme.BaseTextColor,                        fontSize = 15.sp,
-                            fontWeight = FontWeight.Light,
-                            lineHeight = 34.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    }
-                }else{
+                            .padding(horizontal = 6.dp, vertical = 6.dp),
+                        percentageBased = Modifier
+                            .fillMaxWidth().padding(horizontal = 0.dp).padding(top = 20.dp)
+                    )
+                }
+            }
+
+            if (eventTypes == EventTypes.none) {
+
+                // ---------- TOP: the instruction (auto and manual) ----------
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .align(Alignment.TopCenter)
+                        .padding(start = 20.dp, end = 20.dp, top = 64.dp)       // under the back / logo row
+                ) {
+                    FaceLivenessFeedback(text = feedbackText)
+                }
+
+                // ---------- BOTTOM: the take-photo button (manual only, hidden while images are collected) ----------
+                if (isManual && feedbackText.isEmpty()) {
                     Button(
                         onClick = {
                             faceMatchManual!!.takePicture();
@@ -593,37 +604,91 @@ fun FaceMatchScanScreen(
                             flowStrings().takePhoto,
                             fontFamily = InterFont,
                             color = BaseTheme.BaseSecondaryTextColor,
-                            fontWeight =BaseTheme.BaseClickFontWeight,
+                            fontWeight = BaseTheme.BaseClickFontWeight,
                             modifier = Modifier.padding(vertical = 7.dp)
                         )
                     }
                 }
-
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .align(Alignment.BottomCenter)
-                        .padding(start = 12.dp, end = 30.dp, bottom = 25.dp)
-                ) {
-                    Text(
-                        feedbackText,
-                        color =  Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor)),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Light,
-                        lineHeight = 34.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                }
-
             }
-        }
 
-    }
+        }
     }
 }
 
+/**
+ * The instruction in a rounded container (FieldColor background, BaseTextColor text).
+ * Same design as the ID / passport screens' LivenessFeedback (the face step has no tilt meter).
+ */
+@Composable
+private fun FaceLivenessFeedback(text: String) {
+    val accent = remember(BaseTheme.BaseAccentColor) {
+        Color(android.graphics.Color.parseColor(BaseTheme.BaseAccentColor))
+    }
 
+    AnimatedVisibility(
+        visible = text.isNotEmpty(),
+        enter = fadeIn(tween(200)) + slideInVertically(tween(250)) { -it / 3 },
+        exit = fadeOut(tween(150)) + slideOutVertically(tween(200)) { -it / 3 },
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp), clip = false)
+                .clip(RoundedCornerShape(16.dp))
+                .background(BaseTheme.FieldColor)
+                .border(1.dp, accent.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+                .animateContentSize(tween(220)),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Crossfade(targetState = text, animationSpec = tween(220), label = "faceFeedbackText") { current ->
+                if (current.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        FacePulsingDot(color = accent, active = true)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            current,
+                            color = BaseTheme.BaseTextColor,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 18.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** A small dot that gently pulses while the user still has something to do. */
+@Composable
+private fun FacePulsingDot(color: Color, active: Boolean) {
+    val transition = rememberInfiniteTransition(label = "pulse")
+    val scale by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (active) 1.6f else 1f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "pulseScale"
+    )
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(14.dp)) {
+        Box(                                                     // soft halo
+            Modifier
+                .size(8.dp)
+                .graphicsLayer { scaleX = scale; scaleY = scale; alpha = if (active) 0.35f else 0f }
+                .clip(CircleShape)
+                .background(color)
+        )
+        Box(                                                     // solid centre
+            Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+    }
+}

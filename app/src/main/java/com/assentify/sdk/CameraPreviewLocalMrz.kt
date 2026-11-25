@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
@@ -1027,18 +1028,30 @@ abstract class CameraPreviewLocalMrz : Fragment() {
             }
         }
     }
-    protected fun showLbTiltPassportLayout(){
+    protected fun showLbTiltPassportLayout(color: String) {
         if (!isAdded) return
         requireActivity().runOnUiThread {
-            if (cardBackground != null && cardBackground!!.visibility == View.VISIBLE) {
-                cardBackground!!.visibility = View.GONE
-            }
+            cardBackground?.takeIf { it.visibility == View.VISIBLE }?.visibility = View.GONE
+
             if (tiltPassportLayout == null) {
                 tiltPassportLayout = requireActivity().findViewById(R.id.tiltPassportLayout)
-                tiltPassportLayout!!.visibility = View.VISIBLE
+            }
+            tiltPassportLayout?.visibility = View.VISIBLE
+
+            val gifView = tiltPassportLayout?.findViewById<GifImageView>(R.id.tiltPassport)
+
+            val parsedColor = try {
+                Color.parseColor(if (color.startsWith("#")) color else "#$color")
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+
+            if (parsedColor != null) {
+                gifView?.setColorFilter(parsedColor, PorterDuff.Mode.SRC_IN)
+            } else {
+                gifView?.clearColorFilter() // invalid color → show original GIF
             }
         }
-
     }
 
     protected fun hideLbTiltPassportLayout(){
