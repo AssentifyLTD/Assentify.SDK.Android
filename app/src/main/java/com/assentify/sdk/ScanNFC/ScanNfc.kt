@@ -11,6 +11,7 @@ import android.nfc.tech.IsoDep
 import android.os.Build
 import android.os.SystemClock
 import android.util.Log
+// TODO: adjust this import to the package where BugsnagObject is declared
 import com.assentify.sdk.Core.Constants.ConstantsValues
 import com.assentify.sdk.Core.Constants.FullNameKey
 import com.assentify.sdk.Core.Constants.IdentificationDocumentCaptureKeys
@@ -24,6 +25,7 @@ import com.assentify.sdk.LanguageTransformation.LanguageTransformationCallback
 import com.assentify.sdk.RemoteClient.Models.ConfigModel
 import com.assentify.sdk.RemoteClient.RemoteClient
 import com.assentify.sdk.ScanPassport.PassportResponseModel
+import com.assentify.sdk.logging.BugsnagObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -117,6 +119,10 @@ class ScanNfc(
         @Volatile
         private var bcInstalled = false
 
+        /** Kept so the ScanNfc instance can send it to Bugsnag (the companion has no config) */
+        @Volatile
+        private var bcInstallError: Throwable? = null
+
         @JvmStatic
         fun ensureBouncyCastle() {
             if (bcInstalled) return
@@ -132,7 +138,9 @@ class ScanNfc(
                         logD("Full BouncyCastle provider already installed")
                     }
                     bcInstalled = true
+                    bcInstallError = null
                 } catch (t: Throwable) {
+                    bcInstallError = t
                     logE("Could not install BouncyCastle provider", t)
                 }
             }
@@ -197,7 +205,53 @@ class ScanNfc(
     }
 
     init {
+        // Bugsnag first, so even a BouncyCastle install failure gets reported
+        try {
+            BugsnagObject.initialize(context.applicationContext, appConfiguration)
+            logD("Bugsnag initialized")
+        } catch (t: Throwable) {
+            logE("Bugsnag initialize failed", t)
+        }
+
         ensureBouncyCastle()
+        bcInstallError?.let {
+            reportError("ensureBouncyCastle", "Could not install BouncyCastle provider", it, fatal = false)
+        }
+    }
+
+    /** ---------- Bugsnag reporting ---------- **/
+
+    /**
+     * Sends the full error to Bugsnag: where it happened, the message, device info,
+     * the exception with its cause chain and the full stack trace.
+     * Never throws: a reporting problem must never break the scan.
+     * Never put personal data in [message] (use mask()).
+     */
+    private fun reportError(where: String, message: String, t: Throwable? = null, fatal: Boolean = true) {
+        try {
+            BugsnagObject.logInfo(buildFullError(where, message, t, fatal), appConfiguration)
+        } catch (e: Throwable) {
+            logW("Bugsnag report failed: ${describe(e)}")
+        }
+    }
+
+    private fun buildFullError(where: String, message: String, t: Throwable?, fatal: Boolean): String = buildString {
+        append("NFC Error  : ")
+        if (!fatal) append("[non-fatal] ")
+        append("[").append(where).append("] ").append(message)
+        append("\nDevice: ${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
+        append("\nLanguage: $languageCode")
+        if (t != null) {
+            append("\nException: ").append(describe(t))
+            var cause = t.cause
+            var depth = 0
+            while (cause != null && cause !== t && depth < 5) {
+                append("\nCaused by: ").append(describe(cause))
+                cause = cause.cause
+                depth++
+            }
+            append("\nStack trace:\n").append(Log.getStackTraceString(t))
+        }
     }
 
     /** Everything readable from DG11 (all nullable: chips fill only what the issuer chose) */
@@ -282,6 +336,9 @@ class ScanNfc(
         lastActivity = WeakReference(activity)
         val nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
         logD("isNfcSupported = ${nfcAdapter != null}")
+        if (nfcAdapter == null) {
+            reportError("isNfcSupported", "NFC is not supported on this device", fatal = false)
+        }
         return nfcAdapter != null
     }
 
@@ -291,6 +348,9 @@ class ScanNfc(
         val nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
         val enabled = nfcAdapter?.isEnabled == true
         logD("isNfcEnabled = $enabled")
+        if (nfcAdapter != null && !enabled) {
+            reportError("isNfcEnabled", "NFC is supported but disabled", fatal = false)
+        }
         return enabled
     }
 
@@ -311,28 +371,42 @@ class ScanNfc(
         logD("onActivityNewIntent: action=${intent.action}")
         if (NfcAdapter.ACTION_TECH_DISCOVERED != intent.action) {
             logW("Intent ignored: action is not ACTION_TECH_DISCOVERED")
+            reportError("onActivityNewIntent", "Intent ignored: action is ${intent.action}, not ACTION_TECH_DISCOVERED", fatal = false)
             return
         }
 
-        val tag = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        val tag = try {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            }
+        } catch (t: Throwable) {
+            logE("Could not read EXTRA_TAG", t)
+            reportError("onActivityNewIntent", "Could not read EXTRA_TAG from the intent", t, fatal = false)
+            null
         }
         if (tag == null) {
             logW("Intent ignored: no EXTRA_TAG")
+            reportError("onActivityNewIntent", "Intent ignored: no EXTRA_TAG", fatal = false)
             return
         }
         logD("Tag techList = ${tag.techList?.joinToString()}")
         if (tag.techList?.contains(ConstantsValues.NfcTechTag) != true) {
             logW("Intent ignored: tag does not support ${ConstantsValues.NfcTechTag}")
+            reportError(
+                "onActivityNewIntent",
+                "Intent ignored: tag does not support ${ConstantsValues.NfcTechTag}. techList=${tag.techList?.joinToString()}",
+                fatal = false,
+            )
             return
         }
 
         val isoDep = IsoDep.get(tag)
         if (isoDep == null) {
             logE("IsoDep.get(tag) returned null")
+            reportError("onActivityNewIntent", "IsoDep.get(tag) returned null. techList=${tag.techList?.joinToString()}")
             scanNfcCallback.onErrorNfcScan(dataModel, "IsoDep not available on this tag")
             return
         }
@@ -342,12 +416,19 @@ class ScanNfc(
             buildAccessKeys(dataModel)
         } catch (e: Exception) {
             logE("Could not build access key from OCR data", e)
+            reportError("buildAccessKeys", "Could not build access key from OCR data", e)
             scanNfcCallback.onErrorNfcScan(dataModel, "$ERROR_ACCESS_DENIED: invalid MRZ data (${e.message})")
             return
         }
 
         isReading = true
-        ReadTask(isoDep, accessKeys).start()
+        try {
+            ReadTask(isoDep, accessKeys).start()
+        } catch (t: Throwable) {
+            logE("ReadTask could not start", t)
+            finishWithError("NFC read could not start", t, "ReadTask.start")
+            return
+        }
         scanNfcCallback.onStartNfcScan();
     }
 
@@ -431,14 +512,16 @@ class ScanNfc(
         return variants.take(4)
     }
 
-    /** Ends a scan with an error and releases the read guard */
-    private fun finishWithError(message: String) {
+    /** Ends a scan with an error, reports it to Bugsnag and releases the read guard */
+    private fun finishWithError(message: String, t: Throwable? = null, where: String = "finishWithError") {
         isReading = false
+        reportError(where, message, t)
         val model = passportResponseModel
         if (model != null) {
             scanNfcCallback.onErrorNfcScan(model, message)
         } else {
             logE("finishWithError without a data model: $message")
+            reportError("finishWithError", "No data model, the error callback could not be called: $message")
         }
     }
 
@@ -449,6 +532,10 @@ class ScanNfc(
         private lateinit var dg1File: DG1File
         private lateinit var dg2File: DG2File
         private var chipAuthSucceeded = false
+
+        /** Step where the read failed, sent to Bugsnag with the error */
+        @Volatile
+        private var failedStep = ""
 
         private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -468,11 +555,12 @@ class ScanNfc(
                     }
                 } catch (t: Throwable) {
                     logE("ReadTask crashed outside performReadTask", t)
+                    failedStep = "outside performReadTask"
                     t.asException()
                 }
                 val elapsed = SystemClock.elapsedRealtime() - startedAt
                 logD("ReadTask finished in ${elapsed} ms, error = ${result?.let { describe(it) } ?: "none"}")
-                onPostExecute(result)
+                onPostExecute(result, elapsed)
             }
         }
 
@@ -482,6 +570,7 @@ class ScanNfc(
                 logD("IsoDep closed")
             } catch (e: Exception) {
                 logW("IsoDep close failed: ${describe(e)}")
+                reportError("closeIsoDep", "IsoDep close failed", e, fatal = false)
             }
         }
 
@@ -545,11 +634,15 @@ class ScanNfc(
                     logD("Trying BAC with key variant $index")
                     service.doBAC(key)
                     logD("BAC succeeded with key variant $index")
-                    if (index > 0) logW("OCR document number needed correction (variant $index)")
+                    if (index > 0) {
+                        logW("OCR document number needed correction (variant $index)")
+                        reportError("BAC", "BAC succeeded only after OCR correction (key variant $index)", fatal = false)
+                    }
                     return service
                 } catch (e: Exception) {
                     lastError = e
                     logW("BAC failed with key variant $index: ${describe(e)}")
+                    reportError("BAC", "BAC failed with key variant $index of ${accessKeys.size}", e, fatal = false)
                     if (e is android.nfc.TagLostException || e.cause is android.nfc.TagLostException) break
                 }
             }
@@ -595,6 +688,12 @@ class ScanNfc(
                                 break@paceLoop
                             } catch (e: Exception) {
                                 logW("PACE failed with key variant $index: ${describe(e)}")
+                                reportError(
+                                    "PACE",
+                                    "PACE failed: oid=${paceInfo.objectIdentifier}, parameterId=${paceInfo.parameterId}, key variant=$index",
+                                    e,
+                                    fatal = false,
+                                )
                                 // A failed PACE can leave the chip in a state where the next attempt is refused
                                 service = resetConnection(service)
                             }
@@ -655,6 +754,7 @@ class ScanNfc(
                 null // No error
             } catch (t: Throwable) {
                 logE("performReadTask failed at step '$step'", t)
+                failedStep = step
                 t.asException() // Return the exception
             }
         }
@@ -694,12 +794,14 @@ class ScanNfc(
                         break
                     } catch (e: Exception) {
                         logW("Chip authentication with keyId=${keyInfo.keyId} failed: ${describe(e)}")
+                        reportError("chip authentication", "Chip authentication failed: keyId=${keyInfo.keyId}, caOid=$caOid", e, fatal = false)
                     }
                 }
                 if (!chipAuthSucceeded) logD("Chip authentication not succeeded (not fatal)")
             } catch (e: Exception) {
                 // Not fatal: many chips have no DG14
                 logW("Chip authentication skipped / failed: ${describe(e)}")
+                reportError("chip authentication", "Chip authentication skipped (DG14 missing or unreadable)", e, fatal = false)
             }
         }
 
@@ -712,10 +814,14 @@ class ScanNfc(
             else
                 ChipAuthenticationPublicKeyInfo.ID_CA_DH_3DES_CBC_CBC
 
-        private fun onPostExecute(exception: Exception?) {
+        private fun onPostExecute(exception: Exception?, elapsed: Long) {
             if (exception != null) {
                 logE("NFC read failed: ${describe(exception)}", exception)
-                finishWithError(exception.message ?: "NFC read failed")
+                finishWithError(
+                    exception.message ?: "NFC read failed",
+                    exception,
+                    "ReadTask step '$failedStep' (after ${elapsed} ms, ${accessKeys.size} key variant(s))",
+                )
                 return
             }
             try {
@@ -729,7 +835,7 @@ class ScanNfc(
                 }
             } catch (t: Throwable) {
                 logE("Post-processing failed (data mapping)", t)
-                finishWithError("NFC data processing failed")
+                finishWithError("NFC data processing failed", t, "onPostExecute")
             }
         }
 
@@ -737,26 +843,32 @@ class ScanNfc(
          * Face image from DG2, or null. JPEG2000 decoding is native and can fail on some
          * devices / ABIs (UnsatisfiedLinkError, OutOfMemoryError): that must not fail the scan.
          */
-        private fun decodeFirstFace(): Bitmap? = try {
-            val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
-            dg2File.faceInfos.forEach { allFaceImageInfo.addAll(it.faceImageInfos) }
-            logD("Face images on chip: ${allFaceImageInfo.size}")
-            if (allFaceImageInfo.isEmpty()) {
+        private fun decodeFirstFace(): Bitmap? {
+            var mimeType: String? = null
+            return try {
+                val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
+                dg2File.faceInfos.forEach { allFaceImageInfo.addAll(it.faceImageInfos) }
+                logD("Face images on chip: ${allFaceImageInfo.size}")
+                if (allFaceImageInfo.isEmpty()) {
+                    reportError("decodeFirstFace", "DG2 has no face image", fatal = false)
+                    null
+                } else {
+                    val faceImageInfo = allFaceImageInfo.first()
+                    mimeType = faceImageInfo.mimeType
+                    val imageLength = faceImageInfo.imageLength
+                    logD("Decoding face: mimeType=$mimeType, length=$imageLength bytes")
+                    val buffer = ByteArray(imageLength)
+                    DataInputStream(faceImageInfo.imageInputStream).readFully(buffer, 0, imageLength)
+                    val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
+                    val bitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
+                    logD("Face decoded: ${bitmap.width}x${bitmap.height}")
+                    bitmap
+                }
+            } catch (t: Throwable) {
+                logE("Face decode failed: continuing without the face image", t)
+                reportError("decodeFirstFace", "Face decode failed (mimeType=$mimeType): continuing without the face image", t, fatal = false)
                 null
-            } else {
-                val faceImageInfo = allFaceImageInfo.first()
-                val imageLength = faceImageInfo.imageLength
-                logD("Decoding face: mimeType=${faceImageInfo.mimeType}, length=$imageLength bytes")
-                val buffer = ByteArray(imageLength)
-                DataInputStream(faceImageInfo.imageInputStream).readFully(buffer, 0, imageLength)
-                val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
-                val bitmap = NfcImageUtil.decodeImage(faceImageInfo.mimeType, inputStream)
-                logD("Face decoded: ${bitmap.width}x${bitmap.height}")
-                bitmap
             }
-        } catch (t: Throwable) {
-            logE("Face decode failed: continuing without the face image", t)
-            null
         }
     }
 
@@ -1135,11 +1247,17 @@ class ScanNfc(
 
     private fun isArabic(value: String): Boolean = ARABIC_REGEX.containsMatchIn(value)
 
-    /** Runs [block], returns null on failure. With a [label], the swallowed exception is logged. */
+    /**
+     * Runs [block], returns null on failure. With a [label], the swallowed exception is logged
+     * and sent to Bugsnag as non-fatal.
+     */
     private inline fun <T> safeRead(label: String = "", block: () -> T?): T? = try {
         block()
     } catch (e: Exception) {
-        if (label.isNotEmpty()) logW("safeRead[$label] failed: ${describe(e)}")
+        if (label.isNotEmpty()) {
+            logW("safeRead[$label] failed: ${describe(e)}")
+            reportError("safeRead", "$label failed", e, fatal = false)
+        }
         null
     }
 
@@ -1181,6 +1299,7 @@ class ScanNfc(
         val created = createTimestampedTempFile(bitmap)
         if (created == null) {
             logW("Could not write the face image to cache: skipping upload")
+            reportError("uploadImage", "Could not write the face image to cache: upload skipped", fatal = false)
             replaceDataWithNfcData(mrzInfo)
             return
         }
@@ -1203,6 +1322,7 @@ class ScanNfc(
             )
         } catch (e: Exception) {
             logE("Could not prepare face upload: completing without it", e)
+            reportError("uploadImage", "Could not prepare face upload: completing without it", e, fatal = false)
             replaceDataWithNfcData(mrzInfo)
             return
         }
@@ -1224,18 +1344,27 @@ class ScanNfc(
                             logD("Face uploaded")
                         } catch (e: Exception) {
                             logE("Face upload response could not be parsed", e)
+                            reportError("uploadImage", "Face upload response could not be parsed (HTTP ${response.code()})", e, fatal = false)
                         }
                     } else {
                         logW("Face upload succeeded but the body is empty")
+                        reportError("uploadImage", "Face upload succeeded (HTTP ${response.code()}) but the body is empty", fatal = false)
                     }
                 } else {
                     logW("Face upload failed: HTTP ${response.code()} ${response.message()}")
+                    val errorBody = try { response.errorBody()?.string()?.take(500) } catch (_: Exception) { null }
+                    reportError(
+                        "uploadImage",
+                        "Face upload failed: HTTP ${response.code()} ${response.message()}, body=$errorBody",
+                        fatal = false,
+                    )
                 }
                 replaceDataWithNfcData(mrzInfo)
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 logE("Face upload network failure", t)
+                reportError("uploadImage", "Face upload network failure", t, fatal = false)
                 replaceDataWithNfcData(mrzInfo)
             }
         })
@@ -1255,6 +1384,7 @@ class ScanNfc(
             Pair(tempFile, fileName)
         } catch (e: IOException) {
             logE("createTimestampedTempFile failed", e)
+            reportError("createTimestampedTempFile", "Could not write the face image to cache", e, fatal = false)
             null
         }
     }
@@ -1266,7 +1396,7 @@ class ScanNfc(
             mapNfcData(mRZInfo)
         } catch (t: Throwable) {
             logE("Mapping NFC data failed", t)
-            finishWithError("NFC data processing failed")
+            finishWithError("NFC data processing failed", t, "mapNfcData")
             return
         }
 
@@ -1282,10 +1412,12 @@ class ScanNfc(
                         preparePropertiesToTranslate(languageCode, passportResponseModel!!.passportExtractedModel?.outputProperties!!))
                 } catch (t: Throwable) {
                     logE("Language transformation could not start: completing untranslated", t)
+                    reportError("languageTransformation", "Language transformation could not start: completing untranslated", t, fatal = false)
                     completeScan()
                 }
             } else {
                 logW("Language $languageCode requested but apiKey is empty: skipping translation")
+                reportError("languageTransformation", "Language $languageCode requested but apiKey is empty: translation skipped", fatal = false)
                 completeScan()
             }
         }
@@ -1524,6 +1656,7 @@ class ScanNfc(
             }
         } catch (t: Throwable) {
             logE("Applying translation failed: completing with untranslated data", t)
+            reportError("onTranslatedSuccess", "Applying translation failed: completing with untranslated data", t, fatal = false)
         }
 
         completeScan()
@@ -1531,6 +1664,11 @@ class ScanNfc(
 
     override fun onTranslatedError(properties: Map<String, String>?) {
         logW("Language transformation failed: completing with untranslated data")
+        reportError(
+            "onTranslatedError",
+            "Language transformation to $languageCode failed (${properties?.size ?: 0} properties returned): completing with untranslated data",
+            fatal = false,
+        )
         completeScan()
     }
 

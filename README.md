@@ -39,6 +39,9 @@ dependencies {
 
 ## Versions
 
+***1.0.0-Beta.75***
+1. *NFC Report Error*
+
 ***1.0.0-Beta.74***
 1. *UI Improvements *
 2. *ID Liveness Improvements *
